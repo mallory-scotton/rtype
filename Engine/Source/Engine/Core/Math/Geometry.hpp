@@ -4,19 +4,11 @@
 #pragma once
 
 ///////////////////////////////////////////////////////////////////////////////
-// Namespace tkd
+// Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-namespace tkd
-{
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief
-///
-/// \tparam T
-///
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-class TRotator2D
-{};
-
-} // !namespace tkd
+#include <Engine/Core/Math/Geometry/Forward.hpp>
+#include <Engine/Core/Math/Geometry/TCircle.hpp>
+#include <Engine/Core/Math/Geometry/TCube.hpp>
+#include <Engine/Core/Math/Geometry/TRectangle.hpp>
+#include <Engine/Core/Math/Geometry/TSphere.hpp>
+#include <Engine/Core/Math/Geometry/TSquare.hpp>

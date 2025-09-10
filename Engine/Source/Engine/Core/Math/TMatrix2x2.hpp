@@ -16,7 +16,7 @@ namespace tkd
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class TRotator2D
+class TMatrix2x2
 {};
 
 } // !namespace tkd
