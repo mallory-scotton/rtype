@@ -1,0 +1,77 @@
+{
+  /* Language Specific Configuration */
+  "[cpp]": {
+    "editor.tabSize": 4,
+    "prettier.useTabs": false,
+    "editor.rulers": [79]
+  },
+  "[c]": {
+    "editor.tabSize": 4,
+    "prettier.useTabs": false,
+    "editor.rulers": [79]
+  },
+  "[makefile]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false,
+    "editor.rulers": [79]
+  },
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[jsonc]": {
+    "editor.tabSize": 2
+  },
+  "[jsonl]": {
+    "editor.tabSize": 2
+  },
+
+  /* Epitech Header Generator */
+  "epitech-c-cpp-headers.headerType": "post2017",
+  "epitech-c-cpp-headers.usePragmaOnce": true,
+  "epitech-c-cpp-headers.autoGenerateClasses": false,
+  "epitech-c-cpp-headers.indentAccessSpecifiers": false,
+
+  /* Better Comment Settings */
+  "better-comments.tags": [
+    {
+      "tag": "!",
+      "color": "#FF2D00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "?",
+      "color": "#3498DB",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    },
+    {
+      "tag": "*",
+      "color": "#98C379",
+      "strikethrough": false,
+      "underline": false,
+      "backgroundColor": "transparent",
+      "bold": false,
+      "italic": false
+    }
+  ],
+
+  /* IDE Settings */
+  "editor.minimap.enabled": false,
+  "explorer.compactFolders": false
+}
