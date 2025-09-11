@@ -6,5 +6,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[])
 {
+    tkd::FString greeting = "RType Game starting...\n";
+    tkd::FString farewell = "RType Game stopped.\n";
+
+    std::cout << greeting;
+
+    // TODO: Implement game logic
+
+    std::cout << farewell;
+
     return TKD_EXIT_SUCCESS;
 }
