@@ -21,6 +21,7 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A 2D vector template class for arithmetic types.
+///
 /// \tparam T The arithmetic type for the vector components.
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,6 +115,7 @@ public:
     /// casting to T.
     ///
     /// \tparam U The type of the components.
+    ///
     /// \param x The x-component.
     /// \param y The y-component.
     ///
@@ -129,6 +131,7 @@ public:
     /// casting to T.
     ///
     /// \tparam U The type of the other vector's components.
+    ///
     /// \param other The vector to copy from.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -143,6 +146,7 @@ public:
     /// \brief Copy assignment operator.
     ///
     /// \param other The vector to assign from.
+    ///
     /// \return Reference to this vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -159,6 +163,7 @@ public:
     /// \brief Move assignment operator.
     ///
     /// \param other The vector to move from.
+    ///
     /// \return Reference to this vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -175,6 +180,7 @@ public:
     /// \brief Accesses the component at the specified index.
     ///
     /// \param index The index (0 for x, 1 for y).
+    ///
     /// \return Reference to the component.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -188,6 +194,7 @@ public:
     /// \brief Accesses the component at the specified index (const version).
     ///
     /// \param index The index (0 for x, 1 for y).
+    ///
     /// \return Const reference to the component.
     ///
     ///////////////////////////////////////////////////////////////////////////
