@@ -45,6 +45,10 @@ set_target_properties(RTypeEngine PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
     PUBLIC_HEADER "${ENGINE_HEADERS}"
+    # Set the output directory for the library
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
 # Include directories
@@ -82,6 +86,16 @@ if(WIN32)
         $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SFML_STATIC>
     )
 endif()
+
+# Create lib directory if it doesn't exist
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# Add custom command to ensure library is copied to Build/lib
+add_custom_command(TARGET RTypeEngine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RTypeEngine> ${CMAKE_BINARY_DIR}/lib/
+    COMMENT "Copying RTypeEngine library to Build/lib directory"
+)
 
 # Installation rules
 include(GNUInstallDirs)
