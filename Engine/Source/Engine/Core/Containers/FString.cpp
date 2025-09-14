@@ -1142,6 +1142,7 @@ void FString::_allocCString(
     const ConstIterator it2
 ) const
 {
+    (void)it2;
     _allocCString(buffer, n);
     ConstIterator begin = it1;
     for (sizeType i = 0; i < n; i++)

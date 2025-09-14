@@ -6,6 +6,5 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Core/Templates/Delegate.hpp>
-#include <Engine/Core/Templates/Function.hpp>
-#include <Engine/Core/Templates/TypeTraits.hpp>
+#include <Engine/Core/Utils/EventEmitter.hpp>
+#include <Engine/Core/Utils/Singleton.hpp>
