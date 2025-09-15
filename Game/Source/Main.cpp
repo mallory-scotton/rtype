@@ -16,11 +16,6 @@ int main(int argc, char* argv[])
     FVector2f vector(1.0f, 2.0f);
     IWindow& window = IWindow::GetInstance();
 
-    struct FakeEvent
-    {
-        int value;
-    };
-
     window.On<IWindow::Events::Opened>(
         [](const IWindow::Events::Opened&)
         { std::cout << "Window opened event received!" << std::endl; }
