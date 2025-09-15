@@ -7,7 +7,7 @@ This project is made possible thanks to the hard work and contributions of the f
 ### 👑 Project Leadership & Core Development
 | [<img src="https://github.com/mallory-scotton.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/mallory-scotton) |
 |:--:|
-| [**Mallory Scotton**](https://github.com/mallory-scotton)  |
+| [**Mallory SCOTTON**](https://github.com/mallory-scotton)  |
 | Project Leader · Lead Engine Developer |
 
 ---
@@ -15,7 +15,7 @@ This project is made possible thanks to the hard work and contributions of the f
 ### 🛠 Coordination & Engine Development
 | [<img src="https://github.com/natan-fievet.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/natan-fievet) |
 |:--:|
-| [**Nathan Fievet**](https://github.com/natan-fievet)  |
+| [**Nathan FIEVET**](https://github.com/natan-fievet)  |
 | Team Coordinator · Engine Developer |
 
 ---
@@ -23,7 +23,7 @@ This project is made possible thanks to the hard work and contributions of the f
 ### 🔗 Engine & Network Development
 | [<img src="https://github.com/Hugo-Cathelain.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/Hugo-Cathelain) |
 |:--:|
-| [**Hugo Cathelain**](https://github.com/Hugo-Cathelain)  |
+| [**Hugo CATHELAIN**](https://github.com/Hugo-Cathelain)  |
 | Engine & Network Developer |
 
 ---
@@ -31,7 +31,7 @@ This project is made possible thanks to the hard work and contributions of the f
 ### 🎮 Game Development
 | [<img src="https://github.com/omegalpha28.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/omegalpha28) | [<img src="https://github.com/bombabobo.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/bombabobo) |
 |:--:|:--:|
-| [**Ossan MSOILI**](https://github.com/omegalpha28) | [**Raphael Ostier**](https://github.com/bombabobo) |
+| [**Ossan MSOILI**](https://github.com/omegalpha28) | [**Raphael OSTIER**](https://github.com/bombabobo) |
 | Game Developer | Game Developer |
 
 ---
