@@ -10,8 +10,8 @@
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Object/UProperty.hpp>
-#include <vector>
 #include <functional>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -31,10 +31,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString className;                          //<! Name of the class.
-    UClass* superClass;                         //<! Pointer to the superclass.
-    std::vector<UProperty*> properties;         //<! List of properties of the class.
-    std::function<UObject*()> createInstance;   //<! Function to create an instance of the class.
+    FString className;                    //<! Name of the class.
+    UClass* superClass;                   //<! Pointer to the superclass.
+    std::vector<UProperty*> properties;   //<! List of properties of the class.
+    std::function<UObject*()>
+        createInstance;   //<! Function to create an instance of the class.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -72,4 +73,4 @@ public:
     Bool IsChildOf(const UClass* other) const;
 };
 
-} // !namespace tkd
+}   // namespace tkd

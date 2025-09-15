@@ -4,7 +4,4 @@
 #include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[])
-{
-    return TKD_EXIT_SUCCESS;
-}
+int main(int argc, char* argv[]) { return TKD_EXIT_SUCCESS; }

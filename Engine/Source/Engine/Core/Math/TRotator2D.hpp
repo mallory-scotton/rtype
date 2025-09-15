@@ -19,4 +19,4 @@ template <typename T>
 class TRotator2D
 {};
 
-} // !namespace tkd
+}   // namespace tkd

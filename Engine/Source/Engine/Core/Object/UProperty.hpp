@@ -7,8 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Object/UObject.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -70,4 +70,4 @@ public:
     U GetValue(UObject* object) const;
 };
 
-} // !namespace tkd
+}   // namespace tkd

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Format staged C++ files
+git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp|h|inl)$' | xargs clang-format -i
+git add $(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(cpp|hpp|h|inl)$')

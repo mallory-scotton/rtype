@@ -6,18 +6,18 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <algorithm>
 #include <Engine/Config.hpp>
-#include <variant>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <queue>
-#include <type_traits>
-#include <functional>
-#include <unordered_map>
-#include <typeindex>
-#include <memory>
-#include <vector>
-#include <algorithm>
 #include <tuple>
+#include <type_traits>
+#include <typeindex>
+#include <unordered_map>
+#include <variant>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -59,7 +59,8 @@ namespace __internal
 ///
 ///         // Register one-time listeners
 ///         Once<MouseClicked>([](const MouseClicked& event) {
-///             std::cout << "Mouse clicked once at: " << event.x << ", " << event.y << std::endl;
+///             std::cout << "Mouse clicked once at: " << event.x << ", " <<
+///             event.y << std::endl;
 ///         });
 ///
 ///         // Remove a listener
@@ -136,10 +137,7 @@ public:
                 IsValidEventType<T>,
                 "Invalid event type - not in EventTypes list"
             );
-            if constexpr (IsValidEventType<T>)
-            {
-                m_data = data;
-            }
+            if constexpr (IsValidEventType<T>) { m_data = data; }
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -157,10 +155,7 @@ public:
                 IsValidEventType<T>,
                 "Invalid event type - not in EventTypes list"
             );
-            if constexpr (IsValidEventType<T>)
-            {
-                m_data = std::move(data);
-            }
+            if constexpr (IsValidEventType<T>) { m_data = std::move(data); }
         }
 
     public:
@@ -179,7 +174,8 @@ public:
                 IsValidEventType<T>,
                 "Invalid event type - not in EventTypes list"
             );
-            if constexpr (IsValidEventType<T>) {
+            if constexpr (IsValidEventType<T>)
+            {
                 return std::holds_alternative<T>(m_data);
             }
             return false;
@@ -244,14 +240,12 @@ public:
                 IsValidEventType<T>,
                 "Invalid event type - not in EventTypes list"
             );
-            if constexpr (IsValidEventType<T>)
-            {
-                return std::get<T>(m_data);
-            }
+            if constexpr (IsValidEventType<T>) { return std::get<T>(m_data); }
         }
 
         ///////////////////////////////////////////////////////////////////////
-        /// \brief Get the event as a specific type (throws on wrong type, const)
+        /// \brief Get the event as a specific type (throws on wrong type,
+        /// const)
         ///
         /// \tparam T Type to get
         ///
@@ -265,10 +259,7 @@ public:
                 IsValidEventType<T>,
                 "Invalid event type - not in EventTypes list"
             );
-            if constexpr (IsValidEventType<T>)
-            {
-                return std::get<T>(m_data);
-            }
+            if constexpr (IsValidEventType<T>) { return std::get<T>(m_data); }
         }
 
         ///////////////////////////////////////////////////////////////////////
@@ -327,9 +318,9 @@ private:
         ///////////////////////////////////////////////////////////////////////
         // Class Member
         ///////////////////////////////////////////////////////////////////////
-        std::function<void(const T&)> callback; //<! Callback function
-        bool once;                              //<! If true, remove after first call
-        mutable bool called;                    //<! If true, has been called
+        std::function<void(const T&)> callback;   //<! Callback function
+        bool once;             //<! If true, remove after first call
+        mutable bool called;   //<! If true, has been called
 
         ///////////////////////////////////////////////////////////////////////
         /// \brief Constructor for Listener
@@ -367,10 +358,7 @@ private:
         /// \return True if the listener should be removed
         ///
         ///////////////////////////////////////////////////////////////////////
-        bool ShouldRemove(void) const override
-        {
-            return once && called;
-        }
+        bool ShouldRemove(void) const override { return once && called; }
     };
 
 public:
@@ -387,13 +375,8 @@ protected:
     std::queue<Event> m_eventQueue;
     std::unordered_map<
         std::type_index,
-        std::vector<
-            std::pair<
-                ListenerHandle,
-                std::unique_ptr<ListenerBase>
-            >
-        >
-    > m_listeners;
+        std::vector<std::pair<ListenerHandle, std::unique_ptr<ListenerBase>>>>
+        m_listeners;
     ListenerHandle m_nextHandle = 1;
 
 public:
@@ -405,10 +388,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     std::optional<Event> PollEvent(void)
     {
-        if (m_eventQueue.empty())
-        {
-            return std::nullopt;
-        }
+        if (m_eventQueue.empty()) { return std::nullopt; }
 
         Event event = std::move(m_eventQueue.front());
         m_eventQueue.pop();
@@ -421,10 +401,7 @@ public:
     /// \return True if events are available
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool HasEvents(void) const
-    {
-        return !m_eventQueue.empty();
-    }
+    bool HasEvents(void) const { return !m_eventQueue.empty(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the number of events in the queue
@@ -432,10 +409,7 @@ public:
     /// \return Number of queued events
     ///
     ///////////////////////////////////////////////////////////////////////////
-    size_t GetEventCount(void) const
-    {
-        return m_eventQueue.size();
-    }
+    size_t GetEventCount(void) const { return m_eventQueue.size(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Clear all events from the queue
@@ -443,10 +417,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void ClearEvents(void)
     {
-        while (!m_eventQueue.empty())
-        {
-            m_eventQueue.pop();
-        }
+        while (!m_eventQueue.empty()) { m_eventQueue.pop(); }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -469,10 +440,11 @@ public:
 
         auto typeIndex = std::type_index(typeid(T));
         auto handle = m_nextHandle++;
-        
-        auto listener = std::make_unique<Listener<T>>(std::move(callback), false);
+
+        auto listener =
+            std::make_unique<Listener<T>>(std::move(callback), false);
         m_listeners[typeIndex].emplace_back(handle, std::move(listener));
-        
+
         return handle;
     }
 
@@ -481,7 +453,8 @@ public:
     ///
     /// \tparam T Event type to listen for
     ///
-    /// \param callback Function to call when the event is triggered (only once)
+    /// \param callback Function to call when the event is triggered (only
+    /// once)
     ///
     /// \return Handle to the listener (for removal)
     ///
@@ -496,10 +469,11 @@ public:
 
         auto typeIndex = std::type_index(typeid(T));
         auto handle = m_nextHandle++;
-        
-        auto listener = std::make_unique<Listener<T>>(std::move(callback), true);
+
+        auto listener =
+            std::make_unique<Listener<T>>(std::move(callback), true);
         m_listeners[typeIndex].emplace_back(handle, std::move(listener));
-        
+
         return handle;
     }
 
@@ -513,11 +487,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     bool RemoveListener(ListenerHandle handle)
     {
-        for (auto& [typeIndex, listeners] : m_listeners)
+        for (auto& [typeIndex, listeners]: m_listeners)
         {
-            auto it = std::find_if(listeners.begin(), listeners.end(),
-                [handle](const auto& pair) { return pair.first == handle; });
-            
+            auto it = std::find_if(
+                listeners.begin(),
+                listeners.end(),
+                [handle](const auto& pair) { return pair.first == handle; }
+            );
+
             if (it != listeners.end())
             {
                 listeners.erase(it);
@@ -549,10 +526,7 @@ public:
     /// \brief Remove all listeners for all event types
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void RemoveAllListeners()
-    {
-        m_listeners.clear();
-    }
+    void RemoveAllListeners() { m_listeners.clear(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the number of listeners for a specific event type
@@ -585,29 +559,36 @@ private:
     void TriggerListeners(const Event& event)
     {
         // Visit the event to get its type and trigger appropriate listeners
-        event.Visit([this](const auto& eventData) {
-            using EventType = std::decay_t<decltype(eventData)>;
-            auto typeIndex = std::type_index(typeid(EventType));
+        event.Visit(
+            [this](const auto& eventData)
+            {
+                using EventType = std::decay_t<decltype(eventData)>;
+                auto typeIndex = std::type_index(typeid(EventType));
 
-            auto it = m_listeners.find(typeIndex);
-            if (it != m_listeners.end()) {
-                auto& listeners = it->second;
+                auto it = m_listeners.find(typeIndex);
+                if (it != m_listeners.end())
+                {
+                    auto& listeners = it->second;
 
-                // Call all listeners
-                for (auto& [handle, listener] : listeners) {
-                    listener->Call(Event{eventData});
+                    // Call all listeners
+                    for (auto& [handle, listener]: listeners)
+                    {
+                        listener->Call(Event{ eventData });
+                    }
+
+                    // Remove any "once" listeners that have been called
+                    listeners.erase(
+                        std::remove_if(
+                            listeners.begin(),
+                            listeners.end(),
+                            [](const auto& pair)
+                            { return pair.second->ShouldRemove(); }
+                        ),
+                        listeners.end()
+                    );
                 }
-
-                // Remove any "once" listeners that have been called
-                listeners.erase(
-                    std::remove_if(listeners.begin(), listeners.end(),
-                        [](const auto& pair) {
-                            return pair.second->ShouldRemove();
-                        }),
-                    listeners.end()
-                );
             }
-        });
+        );
     }
 
 protected:
@@ -662,7 +643,7 @@ protected:
             (std::disjunction_v<std::is_same<T, EventTypes>...>),
             "Event type not in template parameter list"
         );
-        TriggerListeners(Event{eventData});
+        TriggerListeners(Event{ eventData });
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -680,7 +661,7 @@ protected:
             (std::disjunction_v<std::is_same<T, EventTypes>...>),
             "Event type not in template parameter list"
         );
-        TriggerListeners(Event{std::forward<T>(eventData)});
+        TriggerListeners(Event{ std::forward<T>(eventData) });
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -699,7 +680,7 @@ protected:
             "Event type not in template parameter list"
         );
         m_eventQueue.emplace(eventData);
-        TriggerListeners(Event{eventData});
+        TriggerListeners(Event{ eventData });
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -718,7 +699,7 @@ protected:
             "Event type not in template parameter list"
         );
         m_eventQueue.emplace(std::forward<T>(eventData));
-        TriggerListeners(Event{std::forward<T>(eventData)});
+        TriggerListeners(Event{ std::forward<T>(eventData) });
     }
 };
 
@@ -744,12 +725,14 @@ struct TupleToTEventEmitter<std::tuple<Ts...>>
 };
 
 template <typename T>
-struct IsTuple : std::false_type {};
+struct IsTuple : std::false_type
+{};
 
 template <typename... Ts>
-struct IsTuple<std::tuple<Ts...>> : std::true_type {};
+struct IsTuple<std::tuple<Ts...>> : std::true_type
+{};
 
-} // !namespace __internal
+}   // namespace __internal
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Unified TEventEmitter alias that handles both tuple and variadic
@@ -763,7 +746,6 @@ template <typename T, typename... EventTypes>
 using TEventEmitter = std::conditional_t<
     __internal::IsTuple<T>::value && sizeof...(EventTypes) == 0,
     typename __internal::TupleToTEventEmitter<T>::type,
-    __internal::TEventEmitter<T, EventTypes...>
->;
+    __internal::TEventEmitter<T, EventTypes...>>;
 
-} // !namespace tkd
+}   // namespace tkd

@@ -8,6 +8,15 @@ set -e  # Exit on any error
 echo "=== Cross-Platform Build Script ==="
 echo "Detected OS: $(uname -s)"
 
+# Copy Pre-Commit Hook to .git/hooks
+if [ -d ".git" ]; then
+    echo "Setting up pre-commit hook..."
+    cp .github/hooks/pre-commit .git/hooks/pre-commit
+    chmod +x .git/hooks/pre-commit
+else
+    echo "Warning: .git directory not found. Skipping pre-commit hook setup."
+fi
+
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1

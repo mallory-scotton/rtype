@@ -6,6 +6,14 @@ setlocal enabledelayedexpansion
 
 echo === Cross-Platform Build Script for Windows ===
 
+REM Copy Pre-Commit Hook to .git/hooks
+if exist .git (
+    echo Setting up pre-commit hook...
+    copy .github\hooks\pre-commit .git\hooks\pre-commit
+) else (
+    echo WARNING: .git directory not found. Skipping pre-commit hook setup.
+)
+
 REM Function to check if command exists
 where python >nul 2>&1
 if %errorlevel% neq 0 (

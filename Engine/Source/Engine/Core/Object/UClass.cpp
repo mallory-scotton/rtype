@@ -22,14 +22,11 @@ Bool UClass::IsChildOf(const UClass* other) const
 
     while (current != nullptr)
     {
-        if (current == other)
-        {
-            return true;
-        }
+        if (current == other) { return true; }
         current = current->superClass;
     }
 
     return false;
 }
 
-} // !namespace tkd
+}   // namespace tkd

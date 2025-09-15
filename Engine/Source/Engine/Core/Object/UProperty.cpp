@@ -16,4 +16,4 @@ UProperty::UProperty(const FString& name, const FString& type, SizeT offset)
     , offset(offset)
 {}
 
-} // !namespace tkd
+}   // namespace tkd

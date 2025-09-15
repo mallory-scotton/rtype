@@ -19,4 +19,4 @@ template <typename T>
 class TRectangle
 {};
 
-} // !namespace tkd
+}   // namespace tkd

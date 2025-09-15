@@ -62,7 +62,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Ensure minimum C++ language standard version is met
 ///////////////////////////////////////////////////////////////////////////////
-#if (defined(_MSVC_LANG) && _MSVC_LANG < 201703L) || (!defined(_MSVC_LANG) && __cplusplus < 201703L)
+#if (defined(_MSVC_LANG) && _MSVC_LANG < 201703L) || \
+    (!defined(_MSVC_LANG) && __cplusplus < 201703L)
     #error "Enable C++17 or newer for your compiler"
 #endif
 
@@ -118,6 +119,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Types, Macros and Constants definition
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config/Types.hpp>
-#include <Engine/Config/Macros.hpp>
 #include <Engine/Config/Constants.hpp>
+#include <Engine/Config/Macros.hpp>
+#include <Engine/Config/Types.hpp>

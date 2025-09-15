@@ -19,4 +19,4 @@ template <typename T>
 class TSphere
 {};
 
-} // !namespace tkd
+}   // namespace tkd

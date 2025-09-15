@@ -21,9 +21,10 @@ int main(int argc, char* argv[])
         int value;
     };
 
-    window.On<IWindow::Events::Opened>([](const IWindow::Events::Opened&){
-        std::cout << "Window opened event received!" << std::endl;
-    });
+    window.On<IWindow::Events::Opened>(
+        [](const IWindow::Events::Opened&)
+        { std::cout << "Window opened event received!" << std::endl; }
+    );
 
     std::cout << greeting << std::endl;
 

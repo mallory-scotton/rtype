@@ -87,9 +87,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     static T& GetInstance(void)
     {
-        std::call_once(m_onceFlag, []() {
-            m_instance = std::make_unique<T>();
-        });
+        std::call_once(
+            m_onceFlag, []() { m_instance = std::make_unique<T>(); }
+        );
         return *m_instance;
     }
 
@@ -104,12 +104,14 @@ public:
     /// calls will ignore the arguments and return the existing instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template<typename... Args>
+    template <typename... Args>
     static T& GetInstance(Args&&... args)
     {
-        std::call_once(m_onceFlag, [&args...]() {
-            m_instance = std::make_unique<T>(std::forward<Args>(args)...);
-        });
+        std::call_once(
+            m_onceFlag,
+            [&args...]()
+            { m_instance = std::make_unique<T>(std::forward<Args>(args)...); }
+        );
         return *m_instance;
     }
 
@@ -123,7 +125,7 @@ public:
     /// \note This is an alias for GetInstance with arguments for clarity
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template<typename... Args>
+    template <typename... Args>
     static T& CreateInstance(Args&&... args)
     {
         return GetInstance(std::forward<Args>(args)...);
@@ -135,10 +137,7 @@ public:
     /// \return true if instance exists, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static Bool HasInstance(void)
-    {
-        return m_instance != nullptr;
-    }
+    static Bool HasInstance(void) { return m_instance != nullptr; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destroy the singleton instance
@@ -159,19 +158,16 @@ public:
     /// \return Raw pointer to instance or nullptr if not created
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static T* GetInstancePtr(void)
-    {
-        return m_instance.get();
-    }
+    static T* GetInstancePtr(void) { return m_instance.get(); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // Static member definitions (must be in header for templates)
 ///////////////////////////////////////////////////////////////////////////////
-template<typename T>
+template <typename T>
 std::unique_ptr<T> Singleton<T>::m_instance = nullptr;
 
-template<typename T>
+template <typename T>
 std::once_flag Singleton<T>::m_onceFlag;
 
-} // !namespace tkd
+}   // namespace tkd
