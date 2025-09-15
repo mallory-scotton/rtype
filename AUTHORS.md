@@ -29,15 +29,10 @@ This project is made possible thanks to the hard work and contributions of the f
 ---
 
 ### 🎮 Game Development
-| [<img src="https://github.com/omegalpha28.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/omegalpha28) |
-|:--:|
-| [**Ossan MSOILI**](https://github.com/omegalpha28) |
-| Game Developer |
-
-| [<img src="https://github.com/bombabobo.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/bombabobo) |
-|:--:|
-| [**Raphael Ostier**](https://github.com/bombabobo) |
-| Game Developer |
+| [<img src="https://github.com/omegalpha28.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/omegalpha28) | [<img src="https://github.com/bombabobo.png" width="80" height="80" style="border-radius:50%"/>](https://github.com/bombabobo) |
+|:--:|:--:|
+| [**Ossan MSOILI**](https://github.com/omegalpha28) | [**Raphael Ostier**](https://github.com/bombabobo) |
+| Game Developer | Game Developer |
 
 ---
 
