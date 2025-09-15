@@ -12,11 +12,15 @@ namespace tkd::__internal
 ///////////////////////////////////////////////////////////////////////////////
 bool Engine::s_isInitialized = false;
 int Engine::s_exitCode = TKD_EXIT_SUCCESS;
+bool Engine::s_isRunning = false;
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Engine::Initialize(int argc, char* argv[])
 {
     if (s_isInitialized) { return false; }
+
+    (void)argc;
+    (void)argv;
 
     // TODO: Initialization logic here (e.g., setting up subsystems, loading
     // resources)
@@ -43,8 +47,9 @@ bool Engine::IsInitialized(void) { return s_isInitialized; }
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::Run(void)
 {
-    if (!s_isInitialized) { return; }
+    if (!s_isInitialized || s_isRunning) { return; }
 
+    s_isRunning = true;
     // TODO: Main loop logic here (e.g., processing events, updating state,
     // rendering)
 }

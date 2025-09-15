@@ -30,12 +30,15 @@ private:
     static bool
         s_isInitialized;     //<! Flag indicating if the engine is initialized
     static int s_exitCode;   //<! Exit code of the engine
+    static bool s_isRunning;   //<! Flag indicating if the engine is running
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Public types
     ///////////////////////////////////////////////////////////////////////////
+#if TKD_ENGINE_CLIENT
     using Window = tkd::__internal::Window;
+#endif
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -106,13 +109,13 @@ using Engine = tkd::__internal::Engine;
 // Main entry of the engine
 ///////////////////////////////////////////////////////////////////////////////
 #define TKD_ENGINE_MAIN(Game) \
-    int main(int argc, char* argv[]) \ 
-    { \ 
-        if (tkd::__internal::Engine::Initialize(argc, argv)) \ 
-        { \ 
-            tkd::__internal::Engine::BindGameClass<Game>(); \ 
-            tkd::__internal::Engine::Run(); \ 
-            tkd::__internal::Engine::Shutdown(); \ 
-        } \ 
-        return tkd::__internal::Engine::GetExitCode(); \ 
+    int main(int argc, char* argv[]) \
+    { \
+        if (tkd::__internal::Engine::Initialize(argc, argv)) \
+        { \
+            tkd::__internal::Engine::BindGameClass<Game>(); \
+            tkd::__internal::Engine::Run(); \
+            tkd::__internal::Engine::Shutdown(); \
+        } \
+        return tkd::__internal::Engine::GetExitCode(); \
     }

@@ -9,8 +9,6 @@
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/IWindow.hpp>
 
-#define TKD_ENGINE_CLIENT true
-
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
