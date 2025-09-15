@@ -25,8 +25,6 @@ int main(int argc, char* argv[])
 
     std::cout << vector << std::endl;
 
-    window.Start();
-
     std::cout << farewell << std::endl;
 
     return TKD_EXIT_SUCCESS;
