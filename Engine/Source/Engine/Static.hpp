@@ -6,8 +6,5 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
-#include <Engine/Core.hpp>
-#include <Engine/Renderer.hpp>
-#include <Engine/Runtime.hpp>
-#include <Engine/Static.hpp>
+#include <Engine/Static/Engine.hpp>
+#include <Engine/Static/Window.hpp>
