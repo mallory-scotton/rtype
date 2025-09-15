@@ -1,0 +1,125 @@
+name: 'Bug report'
+title: "[BUG] - YOUR_ISSUE_TITLE_HERE_REPLACE_ME"
+description: Create a report to help us improve
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue :pray:.
+
+        This issue tracker is for reporting bugs found in [R-Type github repository](https://github.com/mallory-scotton/rtype/)
+        If you have a question about how to achieve something and are struggling, please post a question
+        inside of either of the following places:
+          - R-Type's [Discussion's tab](https://github.com/mallory-scotton/rtype/discussions)
+
+
+        Before submitting a new bug/issue, please check the links below to see if there is a solution or question posted there already:
+         - R-Type's [Issue's tab](https://github.com/mallory-scotton/rtype/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc)
+         - R-Type's [closed issues tab](https://github.com/mallory-scotton/rtype/issues?q=is%3Aissue+sort%3Aupdated-desc+is%3Aclosed)
+         - R-Type's [Discussions tab](https://github.com/mallory-scotton/rtype/discussions)
+
+        The more information you fill in, the better the community can help you.
+  - type: input
+    id: version
+    attributes:
+      label: R-Type Version
+      description: |
+        Please provide the version of R-Type you are using.
+        You can find the version number in the VERSION file.
+        For global installation, please state the version only. (e.g. 2.4.2)
+        For individual installation, please state the package name as well. (e.g. Engine@2.0.34)
+      placeholder: ex. 2.4.2
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: Provide a clear and concise description of the challenge you are running into.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce the Bug or Issue
+      description: Describe the steps we have to take to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Provide a clear and concise description of what you expected to happen.
+      placeholder: |
+        As a user, I expected ___ behavior but i am seeing ___
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots_or_videos
+    attributes:
+      label: Screenshots or Videos
+      description: |
+        If applicable, add screenshots or a video to help explain your problem.
+        For more information on the supported file image/file types and the file size limits, please refer
+        to the following link: https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files
+      placeholder: |
+        You can drag your video or image files inside of this editor ↓
+  - type: input
+    id: os
+    attributes:
+      label: Operating System Version
+      description: What operating system are you using?
+      placeholder: |
+        - OS: [e.g. macOS, Windows, Linux]
+    validations:
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: RAM
+      description: How much RAM does your system have?
+      placeholder: |
+        - RAM: [e.g. 8GB, 16GB, 32GB]
+    validations:
+      required: true
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      description: What CPU does your system have?
+      placeholder: |
+        - CPU: [e.g. Intel i5, AMD Ryzen 5]
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU
+      description: What GPU does your system have?
+      placeholder: |
+        - GPU: [e.g. NVIDIA GTX 1050, AMD Radeon RX 580]
+    validations:
+      required: true
+  - type: textarea
+    id: additional_logs
+    attributes:
+      label: Additional context
+      description: |
+        Add any other context about the problem here.
+        If you have any relevant log files, please copy and paste them here.
+      placeholder: |
+        For example, if you are seeing an error in the console, please copy and paste the error message here.
+    validations:
+      required: false
+  - type: markdown
+    id: code_of_conduct
+    attributes:
+      label: Code of Conduct
+      description: |
+        By submitting this issue, you agree to abide by R-Type's [Code of Conduct](https://github.com/mallory-scotton/r-type/blob/main/CODE_OF_CONDUCT.md).
