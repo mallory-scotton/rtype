@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Renderer.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -52,6 +53,24 @@ void Engine::Run(void)
     s_isRunning = true;
     // TODO: Main loop logic here (e.g., processing events, updating state,
     // rendering)
+
+    // TEMPORARY: Simple window creation and event loop using SFML
+    std::unique_ptr<tkd::IWindow> window =
+        std::make_unique<tkd::SFML::Window>("R-Type", true);
+
+    while (window->IsOpen())
+    {
+        window->Update(0.0f);
+
+        window->Draw(
+            []()
+            {
+                // Drawing logic here (e.g., rendering game objects)
+            }
+        );
+    }
+
+    s_isRunning = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -7,132 +7,73 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
-#include <Engine/Core/Math/Forward.hpp>
-#include <Engine/Core/Utils/EventEmitter.hpp>
-#include <functional>
-#include <tuple>
+#include <Engine/Renderer/IWindow.hpp>
+#include <memory>
+#include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-// Namespace tkd
+// Namespace tkd::SFML
 ///////////////////////////////////////////////////////////////////////////////
-namespace tkd
+namespace tkd::SFML
 {
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Window state enumeration
-///
-///////////////////////////////////////////////////////////////////////////////
-enum class EWindowState : UInt8
-{
-    Minimized = 0,   //<! The window is minimized
-    Maximized,       //<! The window is maximized
-    Fullscreen,      //<! The window is in fullscreen mode
-    Windowed         //<! The window is in windowed mode
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// Pre-declaration of IWindow class
-///////////////////////////////////////////////////////////////////////////////
-class IWindow;
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Private namespace for window events
-///
-///////////////////////////////////////////////////////////////////////////////
-template <>
-struct TEvents<IWindow>
-{
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window is opened
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct Opened
-    {
-        FVector2i position;    //<! The position of the window
-        FVector2u dimension;   //<! The dimensions of the window
-        EWindowState state;    //<! The initial state of the window
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window is closed
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct Closed
-    {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window state changes
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct StateChanged
-    {
-        EWindowState oldState;   //<! The previous state of the window
-        EWindowState newState;   //<! The new state of the window
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window is resized
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct Resized
-    {
-        FVector2u oldSize;   //<! The previous size of the window
-        FVector2u newSize;   //<! The new size of the window
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window loses focus
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct LostFocus
-    {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window gains focus
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct GainedFocus
-    {};
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event when the window is moved
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct Moved
-    {
-        FVector2i oldPosition;   //<! The previous position of the window
-        FVector2i newPosition;   //<! The new position of the window
-    };
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    using All = std::tuple<
-        Opened,
-        Closed,
-        StateChanged,
-        Resized,
-        LostFocus,
-        GainedFocus,
-        Moved>;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class IWindow : public TEventEmitter<TEvents<IWindow>::All>
+class Window : public IWindow
 {
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    std::unique_ptr<sf::RenderWindow> m_window;   //<! The SFML window instance
+    EWindowState m_state;                         //<! The current window state
+    FVector2i m_position;    //<! The current window position
+    FVector2u m_dimension;   //<! The current window dimensions
+    FString m_title;         //<! The current window title
+    bool m_vsync;            //<! Whether VSync is enabled
+
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Alias for event types
+    /// \brief Parameterized constructor
+    ///
+    /// \param title The title of the window
+    /// \param openDefault Whether to open the window upon construction
+    /// \param position The initial position of the window
+    /// \param dimension The initial dimensions of the window
+    /// \param state The initial state of the window
     ///
     ///////////////////////////////////////////////////////////////////////////
-    using Events = TEvents<IWindow>;
+    Window(
+        const FString& title,
+        bool openDefault = true,
+        const FVector2i& position = FVector2i::Zero,
+        const FVector2u& dimension = FVector2u(1280, 720),
+        EWindowState state = EWindowState::Windowed
+    );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert window dimensions to SFML VideoMode
+    ///
+    /// \param dimension The dimensions to convert
+    ///
+    /// \return The corresponding SFML VideoMode
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::VideoMode ToSFMLVideoMode(const FVector2u& dimension);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert window state to SFML style flags
+    ///
+    /// \param state The window state to convert
+    ///
+    /// \return The corresponding SFML style flags
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Uint32 ToSFMLStyle(const EWindowState& state);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -141,7 +82,7 @@ public:
     /// \return True if the window was successfully opened, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool Open(void) = 0;
+    virtual bool Open(void) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Close the window
@@ -149,7 +90,7 @@ public:
     /// \return True if the window was successfully closed, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool Close(void) = 0;
+    virtual bool Close(void) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if the window is currently open
@@ -157,7 +98,7 @@ public:
     /// \return True if the window is open, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual bool IsOpen(void) const = 0;
+    TKD_NODISCARD virtual bool IsOpen(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window state
@@ -167,7 +108,7 @@ public:
     /// \return True if the state was successfully set, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool SetState(const EWindowState& state) = 0;
+    virtual bool SetState(const EWindowState& state) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current window state
@@ -175,7 +116,7 @@ public:
     /// \return A constant reference to the current window state
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const EWindowState& GetState(void) const = 0;
+    TKD_NODISCARD virtual const EWindowState& GetState(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window position
@@ -185,7 +126,7 @@ public:
     /// \return True if the position was successfully set, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool SetPosition(const FVector2i& position) = 0;
+    virtual bool SetPosition(const FVector2i& position) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current window position
@@ -193,7 +134,7 @@ public:
     /// \return A constant reference to the current window position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FVector2i& GetPosition(void) const = 0;
+    TKD_NODISCARD virtual const FVector2i& GetPosition(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window dimensions
@@ -203,7 +144,7 @@ public:
     /// \return True if the dimensions were successfully set, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool SetDimension(const FVector2u& dimension) = 0;
+    virtual bool SetDimension(const FVector2u& dimension) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current window dimensions
@@ -211,7 +152,7 @@ public:
     /// \return A constant reference to the current window dimensions
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FVector2u& GetDimension(void) const = 0;
+    TKD_NODISCARD virtual const FVector2u& GetDimension(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window title
@@ -221,7 +162,7 @@ public:
     /// \return True if the title was successfully set, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool SetTitle(const FString& title) = 0;
+    virtual bool SetTitle(const FString& title) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current window title
@@ -229,7 +170,7 @@ public:
     /// \return A constant reference to the current window title
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FString& GetTitle(void) const = 0;
+    TKD_NODISCARD virtual const FString& GetTitle(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the vertical synchronization (VSync) state
@@ -239,7 +180,7 @@ public:
     /// \return True if VSync state was successfully set, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool SetVSync(bool enabled) = 0;
+    virtual bool SetVSync(bool enabled) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if vertical synchronization (VSync) is enabled
@@ -247,7 +188,7 @@ public:
     /// \return True if VSync is enabled, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual bool IsVSync(void) const = 0;
+    TKD_NODISCARD virtual bool IsVSync(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the native window handle
@@ -255,7 +196,7 @@ public:
     /// \return A pointer to the native window handle (platform-specific)
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual void* GetNativeHandle(void) const = 0;
+    TKD_NODISCARD virtual void* GetNativeHandle(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Update the window (process events, etc.)
@@ -263,7 +204,7 @@ public:
     /// \param deltaTime Time elapsed since the last update (in seconds)
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Update(float deltaTime) = 0;
+    virtual void Update(float deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Draw using a provided function
@@ -271,7 +212,7 @@ public:
     /// \param drawFunction The drawing function to call
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Draw(const std::function<void(void)>& drawFunction) = 0;
+    virtual void Draw(const std::function<void(void)>& drawFunction) override;
 };
 
-}   // namespace tkd
+}   // namespace tkd::SFML
