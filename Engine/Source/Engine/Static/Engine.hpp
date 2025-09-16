@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Runtime.hpp>
 #include <Engine/Static/Window.hpp>
+#include <Engine/Static/World.hpp>
 #include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,6 +40,7 @@ public:
 #if TKD_ENGINE_CLIENT
     using Window = tkd::__internal::Window;
 #endif
+    using World = tkd::__internal::World;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
