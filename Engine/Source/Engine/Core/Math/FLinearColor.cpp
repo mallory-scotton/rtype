@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Math/FLinearColor.hpp>
 #include <Engine/Core/Math/FColor.hpp>
+#include <Engine/Core/Math/Utils.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -31,10 +32,10 @@ FLinearColor::FLinearColor(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 FLinearColor::FLinearColor(UInt8 r, UInt8 g, UInt8 b, UInt8 a)
-    : r(r)
-    , g(g)
-    , b(b)
-    , a(a)
+    : r(Math<UInt8>::Clamp(r, 0, 255))
+    , g(Math<UInt8>::Clamp(g, 0, 255))
+    , b(Math<UInt8>::Clamp(b, 0, 255))
+    , a(Math<UInt8>::Clamp(a, 0, 255))
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,10 +45,10 @@ FLinearColor::FLinearColor(UInt32 color)
 
 ///////////////////////////////////////////////////////////////////////////////
 FLinearColor::FLinearColor(const FColor& other)
-    : r(static_cast<UInt8>(other.r * 255.0f))
-    , g(static_cast<UInt8>(other.g * 255.0f))
-    , b(static_cast<UInt8>(other.b * 255.0f))
-    , a(static_cast<UInt8>(other.a * 255.0f))
+    : r(Math<UInt8>::Clamp(static_cast<UInt8>(other.r * 255.f), 0, 255))
+    , g(Math<UInt8>::Clamp(static_cast<UInt8>(other.g * 255.f), 0, 255))
+    , b(Math<UInt8>::Clamp(static_cast<UInt8>(other.b * 255.f), 0, 255))
+    , a(Math<UInt8>::Clamp(static_cast<UInt8>(other.a * 255.f), 0, 255))
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,10 +58,10 @@ FLinearColor::operator UInt32(void) const { return color; }
 FLinearColor::operator FColor(void) const
 {
     return FColor(
-        static_cast<Float32>(r) / 255.0f,
-        static_cast<Float32>(g) / 255.0f,
-        static_cast<Float32>(b) / 255.0f,
-        static_cast<Float32>(a) / 255.0f
+        static_cast<Float32>(r) / 255.f,
+        static_cast<Float32>(g) / 255.f,
+        static_cast<Float32>(b) / 255.f,
+        static_cast<Float32>(a) / 255.f
     );
 }
 
@@ -89,10 +90,10 @@ bool operator!=(const FLinearColor& lhs, const FLinearColor& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 bool operator==(const FLinearColor& lhs, const FColor& rhs)
 {
-    return (lhs.r == static_cast<UInt8>(rhs.r * 255.0f)) &&
-           (lhs.g == static_cast<UInt8>(rhs.g * 255.0f)) &&
-           (lhs.b == static_cast<UInt8>(rhs.b * 255.0f)) &&
-           (lhs.a == static_cast<UInt8>(rhs.a * 255.0f));
+    return (lhs.r == static_cast<UInt8>(rhs.r * 255.f)) &&
+           (lhs.g == static_cast<UInt8>(rhs.g * 255.f)) &&
+           (lhs.b == static_cast<UInt8>(rhs.b * 255.f)) &&
+           (lhs.a == static_cast<UInt8>(rhs.a * 255.f));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
