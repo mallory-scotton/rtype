@@ -448,6 +448,29 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static T Fract(const T value) { return value - std::floor(value); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Modulo function for all arithmetic types
+    ///
+    /// \param value The value
+    /// \param modulus The modulus
+    ///
+    /// \return The modulo result
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Mod(const T value, const T modulus)
+    {
+        if constexpr (std::is_integral<T>::value)
+        {
+            T result = value % modulus;
+            if ((result < 0) != (modulus < 0)) { result += modulus; }
+            return result;
+        }
+        else
+        {
+            return std::fmod(std::fmod(value, modulus) + modulus, modulus);
+        }
+    }
 };
 
 }   // namespace tkd
