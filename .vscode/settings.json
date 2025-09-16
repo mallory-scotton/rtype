@@ -2,6 +2,7 @@
   /* C++ Formatting */
   "C_Cpp.clang_format_style": "file",
   "C_Cpp.clang_format_fallbackStyle": "LLVM",
+  "C_Cpp.autoAddFileAssociations": false,
 
   /* Language Specific Configuration */
   "[cpp]": {
