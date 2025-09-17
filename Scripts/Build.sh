@@ -8,6 +8,21 @@ set -e  # Exit on any error
 echo "=== Cross-Platform Build Script ==="
 echo "Detected OS: $(uname -s)"
 
+# Parse command line arguments
+INSTALLER=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --installer=*)
+            INSTALLER="${1#*=}"
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
 # Copy Pre-Commit Hook to .git/hooks
 if [ -d ".git" ]; then
     echo "Setting up pre-commit hook..."
@@ -24,39 +39,77 @@ command_exists() {
 
 # Function to install packages on different systems
 install_packages() {
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        echo "Installing packages for Linux..."
-        if command_exists zypper; then
-            sudo zypper refresh
-            sudo zypper install -y python3-pip cmake gcc-c++ make
-            python3 -m pip install --user pipx
-        elif command_exists dnf; then
-            sudo dnf install -y python3-pip cmake gcc-c++ make
-            python3 -m pip install --user pipx
-        elif command_exists apt; then
-            sudo apt update
-            sudo apt install -y pipx python3-pip cmake build-essential
-        elif command_exists yum; then
-            sudo yum install -y python3-pip cmake gcc-c++ make
-            python3 -m pip install --user pipx
-        elif command_exists pacman; then
-            sudo pacman -S --noconfirm python-pipx cmake base-devel
+    if [[ -n "$INSTALLER" ]]; then
+        echo "Installing packages using $INSTALLER..."
+        case $INSTALLER in
+            zypper)
+                sudo zypper refresh
+                sudo zypper install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+                ;;
+            dnf)
+                sudo dnf install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+                ;;
+            apt)
+                sudo apt update
+                sudo apt install -y pipx python3-pip cmake build-essential
+                ;;
+            yum)
+                sudo yum install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+                ;;
+            pacman)
+                sudo pacman -S --noconfirm python-pipx cmake base-devel
+                ;;
+            brew)
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    brew install pipx cmake
+                else
+                    echo "brew is not supported on this OS"
+                    exit 1
+                fi
+                ;;
+            *)
+                echo "Unsupported installer: $INSTALLER"
+                exit 1
+                ;;
+        esac
+    else
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            echo "Installing packages for Linux..."
+            if command_exists zypper; then
+                sudo zypper refresh
+                sudo zypper install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+            elif command_exists dnf; then
+                sudo dnf install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+            elif command_exists apt; then
+                sudo apt update
+                sudo apt install -y pipx python3-pip cmake build-essential
+            elif command_exists yum; then
+                sudo yum install -y python3-pip cmake gcc-c++ make
+                python3 -m pip install --user pipx
+            elif command_exists pacman; then
+                sudo pacman -S --noconfirm python-pipx cmake base-devel
+            else
+                echo "Unsupported Linux distribution. Please install pipx and cmake manually."
+                exit 1
+            fi
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            echo "Installing packages for macOS..."
+            if command_exists brew; then
+                brew install pipx cmake
+            else
+                echo "Homebrew not found. Installing Homebrew first..."
+                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                brew install pipx cmake
+            fi
         else
-            echo "Unsupported Linux distribution. Please install pipx and cmake manually."
+            echo "Unsupported operating system: $OSTYPE"
             exit 1
         fi
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        echo "Installing packages for macOS..."
-        if command_exists brew; then
-            brew install pipx cmake
-        else
-            echo "Homebrew not found. Installing Homebrew first..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            brew install pipx cmake
-        fi
-    else
-        echo "Unsupported operating system: $OSTYPE"
-        exit 1
     fi
 }
 
