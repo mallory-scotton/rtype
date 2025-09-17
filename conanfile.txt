@@ -9,5 +9,5 @@ asio/1.36.0
 CMakeToolchain
 CMakeDeps
 
-[options]
-sfml/*:shared=True
+[layout]
+cmake_layout

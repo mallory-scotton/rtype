@@ -31,6 +31,13 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     union
     {
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
+#endif
         struct
         {
             Float32 r;   //<! Red component
@@ -38,6 +45,11 @@ public:
             Float32 b;   //<! Blue component
             Float32 a;   //<! Alpha component
         };
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
         Float32 data[4];   //<! Combined color value
     };

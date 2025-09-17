@@ -26,7 +26,14 @@ command_exists() {
 install_packages() {
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "Installing packages for Linux..."
-        if command_exists apt; then
+        if command_exists zypper; then
+            sudo zypper refresh
+            sudo zypper install -y python3-pip cmake gcc-c++ make
+            python3 -m pip install --user pipx
+        elif command_exists dnf; then
+            sudo dnf install -y python3-pip cmake gcc-c++ make
+            python3 -m pip install --user pipx
+        elif command_exists apt; then
             sudo apt update
             sudo apt install -y pipx python3-pip cmake build-essential
         elif command_exists yum; then
@@ -98,7 +105,7 @@ echo "Step 5: Creating Conan default profile..."
 conan profile detect --force
 
 echo "Step 6: Installing dependencies with Conan..."
-conan install . --output-folder=Build --build=missing --settings=build_type=Release --settings=compiler.cppstd=20 -c tools.system.package_manager:mode=install
+conan install . --output-folder=Build --build=missing --settings=build_type=Release --settings=compiler.cppstd=20 --settings=compiler=gcc --settings=compiler.version=11 -c tools.system.package_manager:mode=install
 
 echo "Step 7: Configuring CMake..."
 cmake -B Build -S . -DCMAKE_BUILD_TYPE=Release

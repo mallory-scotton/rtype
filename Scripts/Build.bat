@@ -101,7 +101,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Step 6: Installing dependencies with Conan...
-conan install . --output-folder=Build --build=missing --settings=build_type=Release --settings=compiler.cppstd=20 -c tools.system.package_manager:mode=install
+conan install . --output-folder=Build --build=missing --settings=build_type=Release --settings=compiler.cppstd=20 --settings=compiler=gcc --settings=compiler.version=11 -c tools.system.package_manager:mode=install
 if %errorlevel% neq 0 (
     echo ERROR: Conan install failed
     pause

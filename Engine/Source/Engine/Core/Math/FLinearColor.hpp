@@ -31,6 +31,13 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     union
     {
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
+#endif
         struct
         {
             UInt8 r;   //<! Red component
@@ -38,6 +45,11 @@ public:
             UInt8 b;   //<! Blue component
             UInt8 a;   //<! Alpha component
         };
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
         UInt32 color;   //<! Combined color value
     };
