@@ -4,4 +4,9 @@
 #include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-int main(int argc, char* argv[]) { return TKD_EXIT_SUCCESS; }
+int main(int argc, char* argv[])
+{
+    TKD_UNUSED(argc);
+    TKD_UNUSED(argv);
+    return TKD_EXIT_SUCCESS;
+}
