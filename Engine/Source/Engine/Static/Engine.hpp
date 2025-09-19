@@ -163,27 +163,25 @@ public:
 using Engine = tkd::__internal::Engine;
 
 ///////////////////////////////////////////////////////////////////////////////
+// Weak symbols for game creation and destruction
+///////////////////////////////////////////////////////////////////////////////
+#define TKD_EXPORT_WEAK \
+    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) TKD_WEAK; \
+    extern "C" const char* TKD_GetEngineVersion(void) TKD_WEAK;
+
+///////////////////////////////////////////////////////////////////////////////
 // Main entry of the engine
 ///////////////////////////////////////////////////////////////////////////////
-#define TKD_ENGINE_MAIN(Game) \
-    int main(int argc, char* argv[]) \
+#define TKD_EXPORT_GAME(GameClass, EngineVersion) \
+    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) \
     { \
-        try \
-        { \
-            if (tkd::__internal::Engine::Initialize(argc, argv)) \
-        { \
-            tkd::__internal::Engine::BindGameClass<Game>(); \
-            tkd::__internal::Engine::Run(); \
-            tkd::__internal::Engine::Shutdown(); \
-        } \
-        } \
-        catch (const std::exception& e) \
-        { \
-            tkd::__internal::Engine::SetExitCode(TKD_EXIT_FAILURE); \
-            tkd::__internal::Engine::SetExitMessage( \
-                tkd::FString("Unhandled exception: ") + tkd::FString(e.what()) \
-            ); \
-        } \
-        tkd::__internal::Engine::PrintExitMessage(); \
-        return tkd::__internal::Engine::GetExitCode(); \
+        static_assert( \
+            std::is_base_of<tkd::IGame, GameClass>::value, \
+            "GameClass must be derived from tkd::IGame" \
+        ); \
+        return std::make_unique<GameClass>(); \
+    } \
+    extern "C" const char* TKD_GetEngineVersion(void) \
+    { \
+        return EngineVersion; \
     }
