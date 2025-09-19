@@ -126,6 +126,14 @@ FString& FString::operator=(std::string&& other)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString& FString::operator=(const char* other)
+{
+    _setLength(0);
+    _append(other);
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FString::~FString(void)
 {
     SafeDeleteArray(m_data);
