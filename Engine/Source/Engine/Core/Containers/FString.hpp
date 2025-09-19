@@ -35,8 +35,8 @@ public:
     /// \brief Member data.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    using sizeType = SizeT;         //<! Type alias for string size type.
-    static const SizeT NPOS = -1;   //<! The largest possible value.
+    using sizeType = SizeT;    //<! Type alias for string size type.
+    static const SizeT NPOS;   //<! The largest possible value.
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -1035,7 +1035,7 @@ private:
     /// \return The internal iterator type pointing to the first character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    inline StringIteratorType _iBegin(void) const;
+    StringIteratorType _iBegin(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the internal iterator type for the reverse beginning.
@@ -1043,7 +1043,7 @@ private:
     /// \return The internal iterator type pointing to the last character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    inline StringIteratorType _rBegin(void) const;
+    StringIteratorType _rBegin(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the internal iterator type for the end.
@@ -1051,7 +1051,7 @@ private:
     /// \return The internal iterator type pointing past the last character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    inline StringIteratorType _end(void) const;
+    StringIteratorType _end(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the length between two iterators.
@@ -1679,7 +1679,7 @@ private:
     /// \param other The C-string to append.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    inline void _append(const char* other);
+    void _append(const char* other);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Internal method to append a C-string with length.
@@ -2163,7 +2163,7 @@ public:
     /// \return The number of characters in the string.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    inline SizeT Size(void) const;
+    SizeT Size(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the maximum possible size of the string.
