@@ -13,20 +13,19 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 FSaveArchive::FSaveArchive(const FilePath& filePath, Int32 version)
-    : FArchive(
-          EArchiveMode::Saving,
-          [filePath, this](TKD_MAYBE_UNUSED FArchive& archive)
-          {
-              if (FileSystem::WriteBytesToFile(filePath, m_data))
-              {
-                  m_data.clear();
-                  m_position = 0;
-              }
-          },
-          true
-      )
+    : FArchive(EArchiveMode::Saving, true)
+    , m_filePath(filePath)
 {
     m_version = version;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FSaveArchive::~FSaveArchive()
+{
+    if (m_data.size() > 0)
+    {
+        FileSystem::WriteBytesToFile(m_filePath, m_data);
+    }
 }
 
 }   // namespace tkd

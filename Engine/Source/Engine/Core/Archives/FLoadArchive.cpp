@@ -13,14 +13,10 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 FLoadArchive::FLoadArchive(const FilePath& filePath, Int32 version)
-    : FArchive(
-          EArchiveMode::Loading,
-          [filePath, this](TKD_MAYBE_UNUSED FArchive& archive)
-          { m_data = FileSystem::ReadFileToBytes(filePath); },
-          true
-      )
+    : FArchive(EArchiveMode::Loading, true)
 {
     m_version = version;
+    m_data = FileSystem::ReadFileToBytes(filePath);
 }
 
 }   // namespace tkd

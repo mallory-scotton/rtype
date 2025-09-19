@@ -36,12 +36,6 @@ enum class EArchiveMode : UInt8
 ///////////////////////////////////////////////////////////////////////////////
 class FArchive
 {
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Alias Member
-    ///////////////////////////////////////////////////////////////////////////
-    using ArchiveFunction = std::function<void(FArchive&)>;
-
 protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -51,28 +45,22 @@ protected:
     EArchiveMode m_mode;         //<! Mode of the archive
     bool m_allowSeek;            //<! True if seeking is allowed
     SizeT m_position;            //<! Current position in the archive
-    ArchiveFunction m_func;      //<! Function to load/save the archive
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor.
     ///
     /// \param mode The mode of the archive (default is None).
-    /// \param func Optional function to initialize the archive (nullptr).
     /// \param allowSeek True if seeking is allowed (default is true).
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FArchive(
-        EArchiveMode mode = EArchiveMode::None,
-        const ArchiveFunction& func = nullptr,
-        bool allowSeek = true
-    );
+    FArchive(EArchiveMode mode = EArchiveMode::None, bool allowSeek = true);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Virtual destructor.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ~FArchive();
+    virtual ~FArchive() = default;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -85,6 +73,18 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FArchive& operator<<(FString& value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Overloaded operator to serialize/deserialize a std::string
+    /// object.
+    ///
+    /// \param value Reference to the std::string object to be
+    /// serialized/deserialized.
+    ///
+    /// \return Reference to the current FArchive object.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FArchive& operator<<(std::string& value);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Template function to serialize/deserialize trivially copyable

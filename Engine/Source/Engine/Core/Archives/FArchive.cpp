@@ -11,24 +11,13 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-FArchive::FArchive(
-    EArchiveMode mode, const ArchiveFunction& func, bool allowSeek
-)
+FArchive::FArchive(EArchiveMode mode, bool allowSeek)
     : m_data()
     , m_version(0)
     , m_mode(mode)
     , m_allowSeek(allowSeek)
     , m_position(0)
-    , m_func(func)
-{
-    if (EArchiveMode::Loading == m_mode && m_func) { m_func(*this); }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-FArchive::~FArchive()
-{
-    if (EArchiveMode::Saving == m_mode && m_func) { m_func(*this); }
-}
+{}
 
 ///////////////////////////////////////////////////////////////////////////////
 FArchive& FArchive::operator<<(FString& value)
@@ -39,11 +28,30 @@ FArchive& FArchive::operator<<(FString& value)
     if (m_mode == EArchiveMode::Loading)
     {
         value.Resize(length + 1, '\0');
-        Serialize(&value[0], length);
+        if (length > 0) { Serialize(&value[0], length); }
     }
     else if (m_mode == EArchiveMode::Saving)
     {
         if (length > 0) { Serialize(&value[0], length); }
+    }
+
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FArchive& FArchive::operator<<(std::string& value)
+{
+    SizeT length = value.length();
+
+    *this << length;
+    if (m_mode == EArchiveMode::Loading)
+    {
+        value.resize(length + 1, '\0');
+        if (length > 0) { Serialize(value.data(), length); }
+    }
+    else if (m_mode == EArchiveMode::Saving)
+    {
+        if (length > 0) { Serialize(value.data(), length); }
     }
 
     return *this;
