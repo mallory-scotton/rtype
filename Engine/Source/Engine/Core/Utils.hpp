@@ -8,4 +8,5 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Utils/EventEmitter.hpp>
 #include <Engine/Core/Utils/FileSystem.hpp>
+#include <Engine/Core/Utils/FLibrary.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
