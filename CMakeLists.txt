@@ -22,10 +22,13 @@ if(EXISTS ${CMAKE_BINARY_DIR}/conandeps.cmake)
     message(STATUS "Using Conan dependencies")
 endif()
 
+# Create output directories
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/libs)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Add subdirectories
 add_subdirectory(Engine)
 add_subdirectory(Game)
-add_subdirectory(Server)
 
 # Clang-Format target
 find_program(CLANG_FORMAT "clang-format")
