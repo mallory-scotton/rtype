@@ -14,6 +14,9 @@ endif()
 # Enable position independent code for shared library
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Options
+option(BUILD_TESTS "Build unit tests" ON)
+
 # Conan integration
 if(EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
     include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
@@ -25,6 +28,12 @@ endif()
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+
+# Find test dependencies if building tests
+if(BUILD_TESTS)
+    find_package(Catch2 REQUIRED)
+    enable_testing()
+endif()
 
 # Collect source files
 file(GLOB_RECURSE ENGINE_SOURCES 
@@ -134,3 +143,53 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/RTypeEngineConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RTypeEngine
 )
+
+# Build tests if enabled
+if(BUILD_TESTS)
+    # Collect test source files
+    file(GLOB_RECURSE TEST_SOURCES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp"
+    )
+
+    # Create test executable
+    add_executable(RTypeEngineTests ${TEST_SOURCES})
+
+    # Set target properties
+    set_target_properties(RTypeEngineTests PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Include directories for tests
+    target_include_directories(RTypeEngineTests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
+        ${CMAKE_CURRENT_SOURCE_DIR}/Tests
+    )
+
+    # Link libraries for tests
+    target_link_libraries(RTypeEngineTests PRIVATE
+        RTypeEngine
+        Catch2::Catch2
+    )
+
+    # Compiler-specific options for tests
+    target_compile_options(RTypeEngineTests PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4>
+        $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+        $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+    )
+
+    # Register test with CTest
+    include(CTest)
+    if(TARGET Catch2::Catch2)
+        # Catch2 v2 style
+        include(${CONAN_CATCH2_ROOT}/lib/cmake/Catch2/Catch.cmake OPTIONAL)
+        if(COMMAND catch_discover_tests)
+            catch_discover_tests(RTypeEngineTests)
+        else()
+            add_test(NAME RTypeEngineTests COMMAND RTypeEngineTests)
+        endif()
+    else()
+        # Fallback to simple test registration
+        add_test(NAME RTypeEngineTests COMMAND RTypeEngineTests)
+    endif()
+endif()
