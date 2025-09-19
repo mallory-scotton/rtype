@@ -37,7 +37,7 @@ target_include_directories(RTypeGame
 # Link libraries
 target_link_libraries(RTypeGame
     PRIVATE
-        RTypeEngine  # Link against our engine
+        RTypeEngineClient  # Link against client engine (with graphics)
         sfml-system
         sfml-window
         sfml-graphics

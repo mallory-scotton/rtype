@@ -46,22 +46,38 @@ file(GLOB_RECURSE ENGINE_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
 )
 
-# Create shared library
-add_library(RTypeEngine SHARED ${ENGINE_SOURCES})
+# Create shared library for client (with graphics)
+add_library(RTypeEngineClient SHARED ${ENGINE_SOURCES})
 
-# Set target properties
-set_target_properties(RTypeEngine PROPERTIES
+# Create shared library for server (without graphics)
+add_library(RTypeEngineServer SHARED ${ENGINE_SOURCES})
+
+# Set target properties for client
+set_target_properties(RTypeEngineClient PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
     PUBLIC_HEADER "${ENGINE_HEADERS}"
+    OUTPUT_NAME "RTypeEngineClient"
     # Set the output directory for the library
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# Include directories
-target_include_directories(RTypeEngine
+# Set target properties for server
+set_target_properties(RTypeEngineServer PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION 1
+    PUBLIC_HEADER "${ENGINE_HEADERS}"
+    OUTPUT_NAME "RTypeEngineServer"
+    # Set the output directory for the library
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+# Include directories for client
+target_include_directories(RTypeEngineClient
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Source>
         $<INSTALL_INTERFACE:include>
@@ -69,8 +85,17 @@ target_include_directories(RTypeEngine
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
-# Link libraries
-target_link_libraries(RTypeEngine
+# Include directories for server
+target_include_directories(RTypeEngineServer
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Source>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+# Link libraries for client (with all SFML components)
+target_link_libraries(RTypeEngineClient
     PUBLIC
         sfml-system
         sfml-window
@@ -79,8 +104,27 @@ target_link_libraries(RTypeEngine
         sfml-network
 )
 
-# Compiler-specific options
-target_compile_options(RTypeEngine PRIVATE
+# Link libraries for server (minimal SFML components)
+target_link_libraries(RTypeEngineServer
+    PUBLIC
+        sfml-system
+        sfml-network
+)
+
+# Define graphics support for client
+target_compile_definitions(RTypeEngineClient PUBLIC
+    TKD_ENGINE_WITH_GRAPHICS
+)
+
+# Compiler-specific options for client
+target_compile_options(RTypeEngineClient PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+)
+
+# Compiler-specific options for server
+target_compile_options(RTypeEngineServer PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
@@ -88,10 +132,16 @@ target_compile_options(RTypeEngine PRIVATE
 
 # Export symbols for Windows
 if(WIN32)
-    target_compile_definitions(RTypeEngine PRIVATE
+    target_compile_definitions(RTypeEngineClient PRIVATE
         ENGINE_EXPORTS
     )
-    target_compile_definitions(RTypeEngine PUBLIC
+    target_compile_definitions(RTypeEngineClient PUBLIC
+        $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SFML_STATIC>
+    )
+    target_compile_definitions(RTypeEngineServer PRIVATE
+        ENGINE_EXPORTS
+    )
+    target_compile_definitions(RTypeEngineServer PUBLIC
         $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SFML_STATIC>
     )
 endif()
@@ -99,17 +149,23 @@ endif()
 # Create lib directory if it doesn't exist
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Add custom command to ensure library is copied to Build/lib
-add_custom_command(TARGET RTypeEngine POST_BUILD
+# Add custom command to ensure libraries are copied to Build/lib
+add_custom_command(TARGET RTypeEngineClient POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lib
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RTypeEngine> ${CMAKE_BINARY_DIR}/lib/
-    COMMENT "Copying RTypeEngine library to Build/lib directory"
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RTypeEngineClient> ${CMAKE_BINARY_DIR}/lib/
+    COMMENT "Copying RTypeEngineClient library to Build/lib directory"
+)
+
+add_custom_command(TARGET RTypeEngineServer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lib
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:RTypeEngineServer> ${CMAKE_BINARY_DIR}/lib/
+    COMMENT "Copying RTypeEngineServer library to Build/lib directory"
 )
 
 # Installation rules
 include(GNUInstallDirs)
 
-install(TARGETS RTypeEngine
+install(TARGETS RTypeEngineClient RTypeEngineServer
     EXPORT RTypeEngineTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -165,9 +221,9 @@ if(BUILD_TESTS)
         ${CMAKE_CURRENT_SOURCE_DIR}/Tests
     )
 
-    # Link libraries for tests
+    # Link libraries for tests (use client version for full functionality)
     target_link_libraries(RTypeEngineTests PRIVATE
-        RTypeEngine
+        RTypeEngineClient
         Catch2::Catch2
     )
 

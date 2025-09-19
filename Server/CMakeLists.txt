@@ -37,7 +37,7 @@ target_include_directories(RTypeServer
 # Link libraries
 target_link_libraries(RTypeServer
     PRIVATE
-        RTypeEngine  # Link against our engine
+        RTypeEngineServer  # Link against server engine (without graphics)
         sfml-system
         sfml-network
 )
