@@ -27,13 +27,23 @@ class Engine
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using UThread = std::unique_ptr<FThread>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    static bool
-        s_isInitialized;     //<! Flag indicating if the engine is initialized
-    static int s_exitCode;   //<! Exit code of the engine
-    static bool s_isRunning;   //<! Flag indicating if the engine is running
-    static FString s_exitMessage;   //<! Exit message of the engine
+    static bool s_isInitialized;            //<! Flag indicating the init state
+    static int s_exitCode;                  //<! Exit code of the engine
+    static std::atomic<bool> s_isRunning;   //<! Flag indicating running state
+    static FString s_exitMessage;           //<! Exit message of the engine
+    static UThread s_mainThread;            //<! Main thread of the engine
+    static UThread s_networkThread;         //<! Network thread of the engine
+#if TKD_ENGINE_CLIENT
+    static UThread s_renderThread;          //<! Render thread of the engine
+#endif
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -43,6 +53,27 @@ public:
     using Window = tkd::__internal::Window;
 #endif
     using World = tkd::__internal::World;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Function executed by the main thread
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void MainThreadFunction(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Function executed by the network thread
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void NetworkThreadFunction(void);
+
+#if TKD_ENGINE_CLIENT
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Function executed by the render thread
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void RenderThreadFunction(void);
+#endif
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -149,7 +180,9 @@ using Engine = tkd::__internal::Engine;
         catch (const std::exception& e) \
         { \
             tkd::__internal::Engine::SetExitCode(TKD_EXIT_FAILURE); \
-            tkd::__internal::Engine::SetExitMessage("Unhandled exception: " + std::string(e.what())); \
+            tkd::__internal::Engine::SetExitMessage( \
+                tkd::FString("Unhandled exception: ") + tkd::FString(e.what()) \
+            ); \
         } \
         tkd::__internal::Engine::PrintExitMessage(); \
         return tkd::__internal::Engine::GetExitCode(); \
