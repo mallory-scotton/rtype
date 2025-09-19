@@ -169,7 +169,7 @@ bool FileSystem::CopyDirectory(
     {
         return false;
     }
-    if (fs::exists(destination, ec) && !fs::is_directory(destination, ec) ||
+    if ((fs::exists(destination, ec) && !fs::is_directory(destination, ec)) ||
         ec)
     {
         return false;
