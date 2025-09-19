@@ -167,12 +167,17 @@ using Engine = tkd::__internal::Engine;
 ///////////////////////////////////////////////////////////////////////////////
 #define TKD_EXPORT_WEAK \
     extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) TKD_WEAK; \
-    extern "C" const char* TKD_GetEngineVersion(void) TKD_WEAK;
+    extern "C" const char* TKD_GetEngineVersion(void) TKD_WEAK; \
+    extern "C" const char* TKD_GetGameName(void) TKD_WEAK; \
+    extern "C" const char* TKD_GetGameVersion(void) TKD_WEAK; \
+    extern "C" const char* TKD_GetGameDescription(void) TKD_WEAK;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main entry of the engine
 ///////////////////////////////////////////////////////////////////////////////
-#define TKD_EXPORT_GAME(GameClass, EngineVersion) \
+#define TKD_EXPORT_GAME(                                             \
+    GameClass, EngineVersion, GameName, GameVersion, GameDescription \
+) \
     extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) \
     { \
         static_assert( \
@@ -184,4 +189,16 @@ using Engine = tkd::__internal::Engine;
     extern "C" const char* TKD_GetEngineVersion(void) \
     { \
         return EngineVersion; \
+    } \
+    extern "C" const char* TKD_GetGameName(void) \
+    { \
+        return GameName; \
+    } \
+    extern "C" const char* TKD_GetGameVersion(void) \
+    { \
+        return GameVersion; \
+    } \
+    extern "C" const char* TKD_GetGameDescription(void) \
+    { \
+        return GameDescription; \
     }
