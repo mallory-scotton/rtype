@@ -11,5 +11,4 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Memory.hpp>
 #include <Engine/Core/Object.hpp>
-#include <Engine/Core/Serialization.hpp>
 #include <Engine/Core/Utils.hpp>
