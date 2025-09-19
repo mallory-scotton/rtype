@@ -6,9 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Core/Archives.hpp>
-#include <Engine/Core/Containers.hpp>
-#include <Engine/Core/Math.hpp>
-#include <Engine/Core/Memory.hpp>
-#include <Engine/Core/Object.hpp>
-#include <Engine/Core/Utils.hpp>
+#include <Engine/Core/Archives/FArchive.hpp>
+#include <Engine/Core/Archives/FLoadArchive.hpp>
+#include <Engine/Core/Archives/FSaveArchive.hpp>
