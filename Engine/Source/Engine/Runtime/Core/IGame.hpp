@@ -26,7 +26,6 @@ public:
     // Class Aliases
     ///////////////////////////////////////////////////////////////////////////
     typedef std::unique_ptr<IGame> (*CreateGameFunc)(void);
-    typedef void (*DestroyGameFunc)(IGame*);
 };
 
 }   // namespace tkd
