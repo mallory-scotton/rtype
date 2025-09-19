@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core.hpp>
 #include <Engine/Runtime.hpp>
 #include <Engine/Static/Window.hpp>
 #include <Engine/Static/World.hpp>
@@ -32,6 +33,7 @@ private:
         s_isInitialized;     //<! Flag indicating if the engine is initialized
     static int s_exitCode;   //<! Exit code of the engine
     static bool s_isRunning;   //<! Flag indicating if the engine is running
+    static FString s_exitMessage;   //<! Exit message of the engine
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -84,6 +86,28 @@ public:
     static int GetExitCode(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Print the engine's exit message
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void PrintExitMessage(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the engine's exit code
+    ///
+    /// \param code The exit code to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SetExitCode(int code);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the engine's exit message
+    ///
+    /// \param message The exit message to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SetExitMessage(const FString& message);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the game class to be used with the engine
     ///
     /// \tparam Game The game class to be used with the engine
@@ -113,11 +137,20 @@ using Engine = tkd::__internal::Engine;
 #define TKD_ENGINE_MAIN(Game) \
     int main(int argc, char* argv[]) \
     { \
-        if (tkd::__internal::Engine::Initialize(argc, argv)) \
+        try \
+        { \
+            if (tkd::__internal::Engine::Initialize(argc, argv)) \
         { \
             tkd::__internal::Engine::BindGameClass<Game>(); \
             tkd::__internal::Engine::Run(); \
             tkd::__internal::Engine::Shutdown(); \
         } \
+        } \
+        catch (const std::exception& e) \
+        { \
+            tkd::__internal::Engine::SetExitCode(TKD_EXIT_FAILURE); \
+            tkd::__internal::Engine::SetExitMessage("Unhandled exception: " + std::string(e.what())); \
+        } \
+        tkd::__internal::Engine::PrintExitMessage(); \
         return tkd::__internal::Engine::GetExitCode(); \
     }

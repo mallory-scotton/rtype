@@ -14,6 +14,7 @@ namespace tkd::__internal
 bool Engine::s_isInitialized = false;
 int Engine::s_exitCode = TKD_EXIT_SUCCESS;
 bool Engine::s_isRunning = false;
+FString Engine::s_exitMessage = "";
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Engine::Initialize(int argc, char* argv[])
@@ -49,6 +50,12 @@ bool Engine::IsInitialized(void) { return s_isInitialized; }
 void Engine::Run(void)
 {
     if (!s_isInitialized || s_isRunning) { return; }
+    if (World::Get() == nullptr)
+    {
+        s_exitCode = TKD_EXIT_FAILURE;
+        s_exitMessage = "No world loaded. Cannot run the engine.";
+        return;
+    }
 
     s_isRunning = true;
     // TODO: Main loop logic here (e.g., processing events, updating state,
@@ -75,5 +82,23 @@ void Engine::Run(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 int Engine::GetExitCode(void) { return s_exitCode; }
+
+///////////////////////////////////////////////////////////////////////////////
+void Engine::PrintExitMessage(void)
+{
+    std::ostream& out =
+        (s_exitCode == TKD_EXIT_SUCCESS) ? std::cout : std::cerr;
+
+    if (!s_exitMessage.IsEmpty()) { out << s_exitMessage << std::endl; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Engine::SetExitCode(int code) { s_exitCode = code; }
+
+///////////////////////////////////////////////////////////////////////////////
+void Engine::SetExitMessage(const FString& message)
+{
+    s_exitMessage = message;
+}
 
 }   // namespace tkd::__internal
