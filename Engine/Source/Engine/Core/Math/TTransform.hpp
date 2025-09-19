@@ -301,7 +301,7 @@ public:
 // Static Member Initialization
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-const TTransform<T> TTransform<T>::Identity;
+const TTransform<T> TTransform<T>::Identity = TTransform<T>();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Combine two transforms (this * other)
