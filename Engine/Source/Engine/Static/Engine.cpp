@@ -54,8 +54,31 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (s_isInitialized) { return false; }
 
-    (void)argc;
-    (void)argv;
+    FArgs& args = FArgs::GetInstance();
+
+    bool a_verbose = false;
+    bool a_debug = false;
+
+    args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
+    args.AddFlags("debug", "Enable debug mode", a_debug, false);
+
+#if TKD_ENGINE_SERVER
+    std::string a_host = "localhost";
+    UInt16 a_port = 8080;
+
+    args.AddFlags("host", "Server hostname or IP address", a_host, false);
+    args.AddFlags("port", "Server port number", a_port, false);
+#endif
+
+    if (!args.Process(argc, argv))
+    {
+        if (args.GetExitCode() != 0)
+        {
+            s_exitCode = args.GetExitCode();
+            s_exitMessage = "Failed to process command-line arguments.";
+        }
+        return false;
+    }
 
     // TODO: Initialization logic here (e.g., setting up subsystems, loading
     // resources)
