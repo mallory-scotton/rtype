@@ -111,9 +111,13 @@
 #if defined(TKD_ENGINE_WITH_GRAPHICS)
     #define TKD_ENGINE_SERVER false
     #define TKD_ENGINE_CLIENT true
+    #define TKD_ENGINE_IF_CLIENT(code) code
+    #define TKD_ENGINE_IF_SERVER(code)
 #else
     #define TKD_ENGINE_SERVER true
     #define TKD_ENGINE_CLIENT false
+    #define TKD_ENGINE_IF_CLIENT(code)
+    #define TKD_ENGINE_IF_SERVER(code) code
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
