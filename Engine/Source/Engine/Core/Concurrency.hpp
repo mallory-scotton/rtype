@@ -6,10 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Core/Archives.hpp>
-#include <Engine/Core/Concurrency.hpp>
-#include <Engine/Core/Containers.hpp>
-#include <Engine/Core/Math.hpp>
-#include <Engine/Core/Memory.hpp>
-#include <Engine/Core/Object.hpp>
-#include <Engine/Core/Utils.hpp>
+#include <Engine/Core/Concurrency/FMutex.hpp>
+#include <Engine/Core/Concurrency/FProcess.hpp>
+#include <Engine/Core/Concurrency/FThread.hpp>
+#include <Engine/Core/Concurrency/IMutex.hpp>
+#include <Engine/Core/Concurrency/IProcess.hpp>
+#include <Engine/Core/Concurrency/IThread.hpp>
