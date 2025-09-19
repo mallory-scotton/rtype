@@ -110,6 +110,22 @@ FString& FString::operator=(FString&& other)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString& FString::operator=(const std::string& other)
+{
+    _setLength(0);
+    _append(other.c_str(), other.length());
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FString& FString::operator=(std::string&& other)
+{
+    _setLength(0);
+    _append(other.c_str(), other.length());
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FString::~FString(void)
 {
     SafeDeleteArray(m_data);
@@ -234,7 +250,7 @@ FString& FString::Append(const FString& str, sizeType subPos, SizeT subLen)
     subLen = _getLength(str, subPos, subLen);
     _substr(buffer, str.m_data, subPos, subLen);
     _append(buffer, subLen);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -252,7 +268,7 @@ FString& FString::Append(const char* str, SizeT len)
 
     _substr(buffer, str, 0, len);
     _append(buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -263,7 +279,7 @@ FString& FString::Append(sizeType len, char filler)
 
     _allocCString(buffer, len, filler);
     _append(buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -277,7 +293,7 @@ FString& FString::Append(const ConstIterator first, const ConstIterator second)
         char* buffer = nullptr;
         _allocCString(buffer, len, first, second);
         _append(buffer, len);
-        SafeDelete(buffer);
+        SafeDeleteArray(buffer);
     }
     return *this;
 }
@@ -306,7 +322,7 @@ FString& FString::Insert(
     subLen = _getLength(other, subPos, subLen);
     _substr(buffer, other.m_data, subPos, subLen);
     _insertstr(pos, buffer, subLen);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -324,7 +340,7 @@ FString& FString::Insert(sizeType pos, const char* other, SizeT len)
 
     _substr(buffer, other, 0, len);
     _insertstr(pos, buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -335,7 +351,7 @@ FString& FString::Insert(sizeType pos, SizeT len, char filler)
 
     _allocCString(buffer, len, filler);
     _insertstr(pos, buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -346,7 +362,7 @@ void FString::Insert(Iterator ptr, SizeT len, char ch)
 
     _allocCString(buffer, len, ch);
     _insertstr(ptr.current.pos, buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -367,7 +383,7 @@ void FString::Insert(
     char* buffer = nullptr;
     _allocCString(buffer, len, first, second);
     _insertstr(ptr.current.pos, buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -423,7 +439,7 @@ FString& FString::Replace(
     subLen = _getLength(other, subPos, subLen);
     _substr(buffer, other.m_data, subPos, subLen);
     _replace(pos, len, buffer, ::strlen(buffer));
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -465,7 +481,7 @@ FString& FString::Replace(sizeType pos, SizeT len, SizeT n, char filler)
 
     _allocCString(buffer, n, filler);
     _replace(pos, len, buffer, n);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -477,7 +493,7 @@ FString&
 
     _allocCString(buffer, n, ch);
     _replace(it1.current.pos, _getLength(it1, it2), buffer, n);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -494,7 +510,7 @@ FString& FString::Replace(
 
     _allocCString(buffer, len, first, second);
     _replace(it1.current.pos, _getLength(it1, it2), buffer, len);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return *this;
 }
 
@@ -551,7 +567,7 @@ void FString::_insertstr(sizeType pos, const char* other, SizeT len)
         _clearStr(pos);
         _append(other, len);
         _append(buffer, ::strlen(buffer));
-        SafeDelete(buffer);
+        SafeDeleteArray(buffer);
     }
     else { _append(other, len); }
 }
@@ -591,7 +607,7 @@ void FString::_replace(sizeType pos, SizeT len, const char* other, SizeT n)
     _substr(rBuffer, other, 0, n);
     _append(rBuffer, n);
     _append(buffer, remainingLen);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     SafeDelete(rBuffer);
 }
 
@@ -772,7 +788,7 @@ FString FString::SubStr(sizeType pos, SizeT len) const
     len = _getLength(*this, pos, len);
     _substr(buffer, m_data, pos, len);
     FString toReturn(buffer);
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
     return toReturn;
 }
 
@@ -980,7 +996,7 @@ void FString::_setCapacity(const SizeT capacity)
         for (sizeType i = 0; i < m_length; ++i) { operator[](i) = buffer[i]; }
         operator[](m_length) = '\0';
     }
-    SafeDelete(buffer);
+    SafeDeleteArray(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

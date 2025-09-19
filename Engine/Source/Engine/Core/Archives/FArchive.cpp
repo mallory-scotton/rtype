@@ -38,9 +38,8 @@ FArchive& FArchive::operator<<(FString& value)
     *this << length;
     if (m_mode == EArchiveMode::Loading)
     {
-        std::vector<char> buffer(length + 1, '\0');
-        Serialize(buffer.data(), length);
-        value = FString(buffer.data(), length);
+        value.Resize(length + 1, '\0');
+        Serialize(&value[0], length);
     }
     else if (m_mode == EArchiveMode::Saving)
     {
