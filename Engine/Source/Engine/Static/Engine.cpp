@@ -5,6 +5,11 @@
 #include <Engine/Renderer.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
+// Weak declaration of game functions to be defined in the game
+///////////////////////////////////////////////////////////////////////////////
+TKD_EXPORT_WEAK
+
+///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd::__internal
@@ -20,6 +25,54 @@ Engine::UThread Engine::s_networkThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+void Engine::PrintStartupMessage(void)
+{
+    std::string gameName = "NOT_LOADED";
+    if (TKD_GetGameName)
+    {
+        std::string gameName = TKD_GetGameName();
+        std::transform(
+            gameName.begin(),
+            gameName.end(),
+            gameName.begin(),
+            [](unsigned char c) { return std::toupper(c); }
+        );
+        gameName.replace(gameName.find(' '), 1, "_");
+        gameName = "\"" + gameName + "\"";
+    }
+
+    std::cout << "████████╗██╗  ██╗██████╗\n"
+              << "╚══██╔══╝██║ ██╔╝██╔══██╗"
+              << " Initializing TKD Core Systems...\n"
+              << "   ██║   █████╔╝ ██║  ██║\n"
+              << "   ██║   ██╔═██╗ ██║  ██║"
+              << " Welcome, Developer.\n"
+              << "   ██║   ██║  ██╗██████╔╝\n"
+              << "   ╚═╝   ╚═╝  ╚═╝╚═════╝\n"
+              << std::endl;
+
+    std::cout << "+" << std::string(67, '-') << "+" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Engine Version : " TKD_VERSION_STRING << " |" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Game Module    : " + gameName << " |" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Lead Authors   : " TKD_ENGINE_GROUP << " |" << std::endl;
+    std::cout << "+" << std::string(67, '-') << "+" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Build Date     : " TKD_BUILD_DATE << " |" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Build Type     : " TKD_ENGINE_TYPE << " |" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " Website        : " TKD_ENGINE_WEBSITE << " |" << std::endl;
+    std::cout << "| " << std::setw(65) << std::left
+              << " System         : " TKD_SYSTEM_NAME << " |" << std::endl;
+    std::cout << "+" << std::string(67, '-') << "+" << std::endl;
+    std::cout << ">>> Type 'help' for a list of available console commands."
+              << std::endl;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::MainThreadFunction(void)
@@ -79,6 +132,8 @@ bool Engine::Initialize(int argc, char* argv[])
         }
         return false;
     }
+
+    PrintStartupMessage();
 
     // TODO: Initialization logic here (e.g., setting up subsystems, loading
     // resources)
