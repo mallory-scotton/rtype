@@ -29,6 +29,10 @@ FString::FString(void)
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(const FString& other)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     _append(other.m_data, other.m_length);
@@ -37,6 +41,10 @@ FString::FString(const FString& other)
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(const FString& other, sizeType pos, SizeT len)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     if (other.m_data && pos < other.m_length)
@@ -53,6 +61,10 @@ FString::FString(FString&& other) { *this = std::move(other); }
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(const char* other)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     _append(other);
@@ -61,6 +73,10 @@ FString::FString(const char* other)
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(const char* other, SizeT len)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     if (other) { _append(other, len); }
@@ -69,6 +85,10 @@ FString::FString(const char* other, SizeT len)
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(SizeT len, char filler)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     Append(len, filler);
@@ -77,6 +97,10 @@ FString::FString(SizeT len, char filler)
 ///////////////////////////////////////////////////////////////////////////////
 FString::FString(const ConstIterator first, const ConstIterator second)
 {
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
     _setCapacity(0);
     _setLength(0);
     Append(first, second);
