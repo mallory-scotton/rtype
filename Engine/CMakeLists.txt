@@ -222,7 +222,7 @@ write_basic_package_version_file(
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RTypeEngineConfig.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/TKDEngineConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/TKDEngineConfig.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/TKDEngine
 )
@@ -241,27 +241,27 @@ if(BUILD_TESTS)
     )
 
     # Create test executable
-    add_executable(RTypeEngineTests ${TEST_SOURCES})
+    add_executable(TKDEngineTests ${TEST_SOURCES})
 
     # Set target properties
-    set_target_properties(RTypeEngineTests PROPERTIES
+    set_target_properties(TKDEngineTests PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
     # Include directories for tests
-    target_include_directories(RTypeEngineTests PRIVATE
+    target_include_directories(TKDEngineTests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
         ${CMAKE_CURRENT_SOURCE_DIR}/Tests
     )
 
     # Link libraries for tests (use client version for full functionality)
-    target_link_libraries(RTypeEngineTests PRIVATE
+    target_link_libraries(TKDEngineTests PRIVATE
         TKDEngineClient
         Catch2::Catch2
     )
 
     # Compiler-specific options for tests
-    target_compile_options(RTypeEngineTests PRIVATE
+    target_compile_options(TKDEngineTests PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4>
         $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
         $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
@@ -273,12 +273,12 @@ if(BUILD_TESTS)
         # Catch2 v2 style
         include(${CONAN_CATCH2_ROOT}/lib/cmake/Catch2/Catch.cmake OPTIONAL)
         if(COMMAND catch_discover_tests)
-            catch_discover_tests(RTypeEngineTests)
+            catch_discover_tests(TKDEngineTests)
         else()
-            add_test(NAME RTypeEngineTests COMMAND RTypeEngineTests)
+            add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
         endif()
     else()
         # Fallback to simple test registration
-        add_test(NAME RTypeEngineTests COMMAND RTypeEngineTests)
+        add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
     endif()
 endif()
