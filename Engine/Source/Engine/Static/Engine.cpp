@@ -32,18 +32,23 @@ void Engine::PrintStartupMessage(void)
     std::string gameName = "NOT_LOADED";
     if (TKD_GetGameName)
     {
-        std::string gameName = TKD_GetGameName();
+        gameName = TKD_GetGameName();
         std::transform(
             gameName.begin(),
             gameName.end(),
             gameName.begin(),
             [](unsigned char c) { return std::toupper(c); }
         );
-        gameName.replace(gameName.find(' '), 1, "_");
+        size_t pos = gameName.find(' ');
+        while (pos != std::string::npos)
+        {
+            gameName.replace(pos, 1, "_");
+            pos = gameName.find(' ', pos + 1);
+        }
         gameName = "\"" + gameName + "\"";
     }
 
-    std::cout << "████████╗██╗  ██╗██████╗\n"
+    std::cout << "\n████████╗██╗  ██╗██████╗\n"
               << "╚══██╔══╝██║ ██╔╝██╔══██╗"
               << " Initializing TKD Core Systems...\n"
               << "   ██║   █████╔╝ ██║  ██║\n"
