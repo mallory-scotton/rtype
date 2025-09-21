@@ -41,7 +41,13 @@ public:
     /// \brief Default constructor, initializes to identity matrix.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3(void);
+    TMatrix3x3(void)
+        : m{
+            {1.0f, 0.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 0.0f, 1.0f}
+        }
+    {};
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Parameterized constructor to initialize matrix elements.
@@ -61,7 +67,13 @@ public:
         T m00, T m01, T m02,
         T m10, T m11, T m12,
         T m20, T m21, T m22
-    );
+    )
+        : m{
+            {m00, m01, m02},
+            {m10, m11, m12},
+            {m20, m21, m22}
+        }
+    {};
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Element access operator.
@@ -71,7 +83,10 @@ public:
     /// \return Reference to the element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T& operator()(std::size_t row, std::size_t col);
+    T& operator()(std::size_t row, std::size_t col)
+    {
+        return m[row][col];
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Const element access operator.
@@ -81,19 +96,32 @@ public:
     /// \return Const reference to the element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& operator()(std::size_t row, std::size_t col) const;
+    const T& operator()(std::size_t row, std::size_t col) const
+    {
+        return m[row][col];
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Sets the matrix to identity.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetIdentity();
+    void SetIdentity()
+    {
+        m[0][0] = 1.0f; m[0][1] = 0.0f; m[0][2] = 0.0f;
+        m[1][0] = 0.0f; m[1][1] = 1.0f; m[1][2] = 0.0f;
+        m[2][0] = 0.0f; m[2][1] = 0.0f; m[2][2] = 1.0f;
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Sets the matrix to zero.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetZero();
+    void SetZero()
+    {
+        m[0][0] = 0.0f; m[0][1] = 0.0f; m[0][2] = 0.0f;
+        m[1][0] = 0.0f; m[1][1] = 0.0f; m[1][2] = 0.0f;
+        m[2][0] = 0.0f; m[2][1] = 0.0f; m[2][2] = 0.0f;
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the determinant of the matrix.
@@ -101,7 +129,13 @@ public:
     /// \return The determinant value.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T Determinant() const;
+    T Determinant() const
+    {
+        return
+            m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+            m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+            m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the transpose of the matrix.
@@ -109,7 +143,14 @@ public:
     /// \return Transposed matrix.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> Transpose() const;
+    TMatrix3x3<T> Transpose() const
+    {
+        return TMatrix3x3<float>(
+            m[0][0], m[1][0], m[2][0],
+            m[0][1], m[1][1], m[2][1],
+            m[0][2], m[1][2], m[2][2]
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the inverse of the matrix.
@@ -118,7 +159,30 @@ public:
     /// \throws std::runtime_error if matrix is not invertible.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> Inverse() const;
+    TMatrix3x3<T> Inverse() const
+    {
+        float det = Determinant();
+        if (det == 0)
+        {
+            throw std::runtime_error("Matrix is not invertible");
+        }
+
+        float invDet = 1.0f / det;
+
+        return TMatrix3x3<float>(
+            (m[1][1] * m[2][2] - m[1][2] * m[2][1]) * invDet,
+            (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invDet,
+            (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invDet,
+
+            (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invDet,
+            (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invDet,
+            (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * invDet,
+
+            (m[1][0] * m[2][1] - m[1][1] * m[2][0]) * invDet,
+            (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * invDet,
+            (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * invDet
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Addition operator.
@@ -127,7 +191,14 @@ public:
     /// \return Result of addition.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> operator+(const TMatrix3x3<T>& other) const;
+    TMatrix3x3<T> operator+(const TMatrix3x3<T>& other) const
+    {
+        return TMatrix3x3<float>(
+            m[0][0] + other.m[0][0], m[0][1] + other.m[0][1], m[0][2] + other.m[0][2],
+            m[1][0] + other.m[1][0], m[1][1] + other.m[1][1], m[1][2] + other.m[1][2],
+            m[2][0] + other.m[2][0], m[2][1] + other.m[2][1], m[2][2] + other.m[2][2]
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Subtraction operator.
@@ -136,7 +207,14 @@ public:
     /// \return Result of subtraction.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> operator-(const TMatrix3x3<T>& other) const;
+    TMatrix3x3<T> operator-(const TMatrix3x3<T>& other) const
+    {
+        return TMatrix3x3<float>(
+            m[0][0] - other.m[0][0], m[0][1] - other.m[0][1], m[0][2] - other.m[0][2],
+            m[1][0] - other.m[1][0], m[1][1] - other.m[1][1], m[1][2] - other.m[1][2],
+            m[2][0] - other.m[2][0], m[2][1] - other.m[2][1], m[2][2] - other.m[2][2]
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Matrix multiplication operator.
@@ -145,7 +223,22 @@ public:
     /// \return Result of multiplication.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> operator*(const TMatrix3x3<T>& other) const;
+    TMatrix3x3<T> operator*(const TMatrix3x3<T>& other) const
+    {
+        return TMatrix3x3<float>(
+            m[0][0] * other.m[0][0] + m[0][1] * other.m[1][0] + m[0][2] * other.m[2][0],
+            m[0][0] * other.m[0][1] + m[0][1] * other.m[1][1] + m[0][2] * other.m[2][1],
+            m[0][0] * other.m[0][2] + m[0][1] * other.m[1][2] + m[0][2] * other.m[2][2],
+
+            m[1][0] * other.m[0][0] + m[1][1] * other.m[1][0] + m[1][2] * other.m[2][0],
+            m[1][0] * other.m[0][1] + m[1][1] * other.m[1][1] + m[1][2] * other.m[2][1],
+            m[1][0] * other.m[0][2] + m[1][1] * other.m[1][2] + m[1][2] * other.m[2][2],
+
+            m[2][0] * other.m[0][0] + m[2][1] * other.m[1][0] + m[2][2] * other.m[2][0],
+            m[2][0] * other.m[0][1] + m[2][1] * other.m[1][1] + m[2][2] * other.m[2][1],
+            m[2][0] * other.m[0][2] + m[2][1] * other.m[1][2] + m[2][2] * other.m[2][2]
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Scalar multiplication operator.
@@ -154,7 +247,14 @@ public:
     /// \return Result of multiplication.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMatrix3x3<T> operator*(T scalar) const;
+    TMatrix3x3<T> operator*(T scalar) const
+    {
+        return TMatrix3x3<float>(
+            m[0][0] * scalar, m[0][1] * scalar, m[0][2] * scalar,
+            m[1][0] * scalar, m[1][1] * scalar, m[1][2] * scalar,
+            m[2][0] * scalar, m[2][1] * scalar, m[2][2] * scalar
+        );
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Equality comparison operator.
@@ -163,7 +263,12 @@ public:
     /// \return True if matrices are equal, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool operator==(const TMatrix3x3<T>& other) const;
+    bool operator==(const TMatrix3x3<T>& other) const
+    {
+        return m[0][0] == other.m[0][0] && m[0][1] == other.m[0][1] && m[0][2] == other.m[0][2] &&
+               m[1][0] == other.m[1][0] && m[1][1] == other.m[1][1] && m[1][2] == other.m[1][2] &&
+               m[2][0] == other.m[2][0] && m[2][1] == other.m[2][1] && m[2][2] == other.m[2][2];
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Inequality comparison operator.
@@ -172,7 +277,10 @@ public:
     /// \return True if matrices are not equal, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool operator!=(const TMatrix3x3<T>& other) const;
+    bool operator!=(const TMatrix3x3<T>& other) const
+    {
+        return !(*this == other);
+    };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the trace of the matrix (sum of diagonal elements).
@@ -180,7 +288,10 @@ public:
     /// \return The trace value.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T Trace() const;
+    T Trace() const
+    {
+        return m[0][0] + m[1][1] + m[2][2];
+    };
 };
 
 ///////////////////////////////////////////////////////////////////////////
