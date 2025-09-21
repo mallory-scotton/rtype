@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
+#include <Engine/Network.hpp>
 #include <Engine/Renderer.hpp>
 #include <Engine/Runtime.hpp>
 #include <Engine/Static.hpp>
