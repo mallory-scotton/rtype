@@ -1,0 +1,130 @@
+///////////////////////////////////////////////////////////////////////////////
+// Header guard
+///////////////////////////////////////////////////////////////////////////////
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <atomic>
+#include <Engine/Config.hpp>
+#include <Engine/Core/Concurrency/FThread.hpp>
+#include <Engine/Network/Asio.hpp>
+#include <Engine/Network/FNetworkStatistics.hpp>
+#include <Engine/Network/IPacket.hpp>
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <unordered_map>
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace tkd
+///////////////////////////////////////////////////////////////////////////////
+namespace tkd
+{
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief
+///
+///////////////////////////////////////////////////////////////////////////////
+class FNetworkBase
+{
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Constants
+    ///////////////////////////////////////////////////////////////////////////
+    static constexpr SizeT MAX_PACKET_SIZE = 1452;
+
+protected:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    asio::io_context m_ioContext;               //<! ASIO IO context
+    std::unique_ptr<FSocket> m_socket;          //<! ASIO UDP socket
+    std::unique_ptr<FThread> m_networkThread;   //<! Network thread
+    std::atomic<bool> m_running;       //<! true if the network is running
+    FNetworkStatistics m_statistics;   //<! Network statistics
+    std::array<UInt8, MAX_PACKET_SIZE>
+        m_receiveBuffer;               //<! Buffer for receiving data
+    tkd::FEndpoint m_senderEndpoint;   //<! Endpoint of the sender
+    std::unordered_map<
+        UInt16,
+        std::function<void(const IPacket&, const FEndpoint&)>>
+        m_packetHandlers;   //<! Map of packet handlers
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Default constructor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FNetworkBase(void) = default;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual ~FNetworkBase();
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Start the network service, binding the socket and starting
+    /// the network thread
+    ///
+    /// \return true if the network started successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool Start(void) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Stop the network service, stopping the network thread and
+    /// closing the socket
+    ///
+    /// \return true if the network stopped successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Stop(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the network service is running
+    ///
+    /// \return true if the network service is running
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsRunning(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the network statistics
+    ///
+    /// \return const reference to the network statistics
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FNetworkStatistics& GetStatistics(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Register a packet handler for a specific packet type
+    ///
+    /// \param handler Function to call when a packet of the specified type is
+    /// received
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void RegisterPacketHandler(
+        std::function<void(const T&, const FEndpoint&)> handler
+    )
+    {
+        static_assert(
+            std::is_base_of<IPacket, T>::value, "T must derive from IPacket"
+        );
+
+        m_packetHandlers[T::GetStaticType()] =
+            [handler = std::move(handler
+             )](const IPacket& packet, const FEndpoint& endpoint)
+        {
+            const T* typedPacket = dynamic_cast<const T*>(&packet);
+            if (typedPacket) { handler(*typedPacket, endpoint); }
+        };
+    }
+};
+
+}   // namespace tkd
