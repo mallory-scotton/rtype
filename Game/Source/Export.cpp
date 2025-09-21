@@ -7,5 +7,9 @@
 // Export the game has shared library
 ///////////////////////////////////////////////////////////////////////////////
 TKD_EXPORT_GAME(
-    tkd::RTypeGame, "1.0.0", "R-Type", "1.0.0", "A classic arcade shooter game"
+    tkd::RTypeGame,                   //<! The game class
+    "1.0.0",                          //<! The engine version
+    "R-Type",                         //<! The game name
+    "1.0.0",                          //<! The game version
+    "A classic arcade shooter game"   //<! The game description
 );
