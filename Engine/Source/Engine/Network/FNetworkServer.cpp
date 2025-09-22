@@ -152,13 +152,20 @@ void FNetworkServer::OnPacketReceived(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::SetupDefaultHandlers(void)
 {
-    // Handle connection requests
-    // RegisterPacketHandler<ConnectPacket>(
-    //     [this](
-    //         const ConnectPacket& packet,
-    //         const asio::ip::udp::endpoint& endpoint
-    //     ) { HandleConnectRequest(packet, endpoint); }
-    // );
+    RegisterPacketHandler<Packets::Connect>(
+        [this](const Packets::Connect& packet, const FEndpoint& endpoint)
+        { HandleConnectPacket(packet, endpoint); }
+    );
+
+    RegisterPacketHandler<Packets::Disconnect>(
+        [this](const Packets::Disconnect& packet, const FEndpoint& endpoint)
+        { HandleDisconnectPacket(packet, endpoint); }
+    );
+
+    RegisterPacketHandler<Packets::HeartBeat>(
+        [this](const Packets::HeartBeat& packet, const FEndpoint& endpoint)
+        { HandleHeartbeatPacket(packet, endpoint); }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -277,6 +284,20 @@ void FNetworkServer::HandleConnectPacket(
     response.accepted = true;
 
     SendPacket(response, endpoint);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::HandleHeartbeatPacket(
+    const Packets::HeartBeat& packet, const FEndpoint& endpoint
+)
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+    auto it = m_connections.find(endpoint);
+    if (it != m_connections.end())
+    {
+        it->second->lastActivity = SteadyClock::now();
+    }
 }
 
 }   // namespace tkd

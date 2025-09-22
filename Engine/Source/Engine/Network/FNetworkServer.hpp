@@ -265,6 +265,17 @@ private:
     void HandleConnectPacket(
         const Packets::Connect& packet, const FEndpoint& endpoint
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a heartbeat packet from a client
+    ///
+    /// \param packet The received heartbeat packet
+    /// \param endpoint The endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleHeartbeatPacket(
+        const Packets::HeartBeat& packet, const FEndpoint& endpoint
+    );
 };
 
 }   // namespace tkd
