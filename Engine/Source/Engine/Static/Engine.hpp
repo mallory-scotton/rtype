@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Runtime.hpp>
+#include <Engine/Static/Network.hpp>
 #include <Engine/Static/Window.hpp>
 #include <Engine/Static/World.hpp>
 #include <type_traits>
@@ -40,7 +41,6 @@ private:
     static std::atomic<bool> s_isRunning;   //<! Flag indicating running state
     static FString s_exitMessage;           //<! Exit message of the engine
     static UThread s_mainThread;            //<! Main thread of the engine
-    static UThread s_networkThread;         //<! Network thread of the engine
 #if TKD_ENGINE_CLIENT
     static UThread s_renderThread;          //<! Render thread of the engine
 #endif
@@ -53,6 +53,7 @@ public:
     using Window = tkd::__internal::Window;
 #endif
     using World = tkd::__internal::World;
+    using Network = tkd::__internal::Network;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -60,12 +61,6 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static void MainThreadFunction(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Function executed by the network thread
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static void NetworkThreadFunction(void);
 
 #if TKD_ENGINE_CLIENT
     ///////////////////////////////////////////////////////////////////////////

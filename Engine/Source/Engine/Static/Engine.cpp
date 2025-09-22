@@ -21,7 +21,6 @@ int Engine::s_exitCode = TKD_EXIT_SUCCESS;
 std::atomic<bool> Engine::s_isRunning = false;
 FString Engine::s_exitMessage = "";
 Engine::UThread Engine::s_mainThread;
-Engine::UThread Engine::s_networkThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
@@ -86,12 +85,6 @@ void Engine::MainThreadFunction(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Engine::NetworkThreadFunction(void)
-{
-    // TODO: Implement network thread logic here
-}
-
-///////////////////////////////////////////////////////////////////////////////
 #if TKD_ENGINE_CLIENT
 void Engine::RenderThreadFunction(void)
 {
@@ -143,11 +136,14 @@ bool Engine::Initialize(int argc, char* argv[])
     // TODO: Initialization logic here (e.g., setting up subsystems, loading
     // resources)
 
+#if TKD_ENGINE_SERVER
+    // Initialize the network subsystem
+    Network::Initialize(a_port);
+#endif
+
     // Create the threads but do not start them yet
     s_mainThread =
         std::make_unique<FThread>(std::bind(&Engine::MainThreadFunction));
-    s_networkThread =
-        std::make_unique<FThread>(std::bind(&Engine::NetworkThreadFunction));
     TKD_ENGINE_IF_CLIENT({
         s_renderThread =
             std::make_unique<FThread>(std::bind(&Engine::RenderThreadFunction)
@@ -168,10 +164,6 @@ bool Engine::Shutdown(void)
 
     // Shutdown threads if they are running
     if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
-    if (s_networkThread && s_networkThread->running)
-    {
-        s_networkThread->Join();
-    }
     TKD_ENGINE_IF_CLIENT({
         if (s_renderThread && s_renderThread->running)
         {
@@ -201,7 +193,6 @@ void Engine::Run(void)
 
     // Start the threads
     s_mainThread->Start();
-    s_networkThread->Start();
     TKD_ENGINE_IF_CLIENT({ s_renderThread->Start(); })
 
     while (s_isRunning)
