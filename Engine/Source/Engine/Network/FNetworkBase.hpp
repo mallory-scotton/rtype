@@ -14,6 +14,7 @@
 #include <Engine/Network/FPacketHeader.hpp>
 #include <Engine/Network/FPacketManager.hpp>
 #include <Engine/Network/IPacket.hpp>
+#include <Engine/Network/Packets.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>

@@ -49,7 +49,13 @@ void FNetworkBase::StartReceive(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::InitializePacketManager(void) {}
+void FNetworkBase::InitializePacketManager(void)
+{
+    m_packetManager.RegisterPacket<Packets::Connect>();
+    m_packetManager.RegisterPacket<Packets::ConnectResponse>();
+    m_packetManager.RegisterPacket<Packets::Disconnect>();
+    m_packetManager.RegisterPacket<Packets::HeartBeat>();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkBase::SendPacket(const IPacket& packet, const FEndpoint& endpoint)
