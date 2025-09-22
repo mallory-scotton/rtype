@@ -18,12 +18,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(BUILD_TESTS "Build unit tests" ON)
 
 # Conan integration
-if(EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
-    include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
 endif()
 
-if(EXISTS ${CMAKE_BINARY_DIR}/conandeps.cmake)
-    include(${CMAKE_BINARY_DIR}/conandeps.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
 endif()
 
 # Find dependencies
@@ -100,18 +100,15 @@ target_include_directories(TKDEngineServer
 # Link libraries for client (with all SFML components)
 target_link_libraries(TKDEngineClient
     PUBLIC
-        sfml-system
-        sfml-window
-        sfml-graphics
-        sfml-audio
-        sfml-network
+        sfml::sfml
+        asio::asio
 )
 
 # Link libraries for server (minimal SFML components)
 target_link_libraries(TKDEngineServer
     PUBLIC
-        sfml-system
-        sfml-network
+        sfml::sfml
+        asio::asio
 )
 
 # Define graphics support for client
@@ -257,7 +254,7 @@ if(BUILD_TESTS)
     # Link libraries for tests (use client version for full functionality)
     target_link_libraries(TKDEngineTests PRIVATE
         TKDEngineClient
-        Catch2::Catch2
+        Catch2::Catch2WithMain
     )
 
     # Compiler-specific options for tests
@@ -269,14 +266,10 @@ if(BUILD_TESTS)
 
     # Register test with CTest
     include(CTest)
-    if(TARGET Catch2::Catch2)
-        # Catch2 v2 style
-        include(${CONAN_CATCH2_ROOT}/lib/cmake/Catch2/Catch.cmake OPTIONAL)
-        if(COMMAND catch_discover_tests)
-            catch_discover_tests(TKDEngineTests)
-        else()
-            add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
-        endif()
+    if(TARGET Catch2::Catch2WithMain)
+        # Catch2 v3 style
+        include(Catch)
+        catch_discover_tests(TKDEngineTests)
     else()
         # Fallback to simple test registration
         add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
