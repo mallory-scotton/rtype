@@ -168,3 +168,6 @@ cmake --build Build --config Release
 
 echo "=== Build completed successfully! ==="
 echo "Your built project should be available in the Build directory."
+
+echo "Available binaries:"
+find Build/bin -type f -executable -exec file {} \; | grep "executable" | awk -F: '{print "\t" $1}' | sed 's|Build/bin/||'
