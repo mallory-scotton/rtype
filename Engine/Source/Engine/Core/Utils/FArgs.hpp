@@ -109,6 +109,10 @@ public:
             {
                 reference = std::stod(value);
             }
+            else if constexpr (std::is_arithmetic_v<T>)
+            {
+                reference = static_cast<T>(std::stod(value));
+            }
             else if constexpr (std::is_same_v<T, bool>)
             {
                 reference = (value == "true" || value == "1");
@@ -119,15 +123,7 @@ public:
         flag.getter = [&reference]() -> std::string
         {
             if constexpr (std::is_same_v<T, std::string>) { return reference; }
-            else if constexpr (std::is_same_v<T, int>)
-            {
-                return std::to_string(reference);
-            }
-            else if constexpr (std::is_same_v<T, float>)
-            {
-                return std::to_string(reference);
-            }
-            else if constexpr (std::is_same_v<T, double>)
+            else if constexpr (std::is_arithmetic_v<T>)
             {
                 return std::to_string(reference);
             }
