@@ -10,6 +10,10 @@
 #include <Engine/Network/FPacketHeader.hpp>
 #include <Engine/Network/IPacket.hpp>
 #include <Engine/Network/TPacket.hpp>
+#include <functional>
+#include <memory>
+#include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,10 +29,66 @@ namespace tkd
 class FPacketManager
 {
 public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Alias
+    ///////////////////////////////////////////////////////////////////////////
+    using Factory = std::function<std::unique_ptr<IPacket>()>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    std::unordered_map<UInt16, Factory> m_factories;   //<! Packet factories
+    UInt32 m_sequenceNumber = 0;   //<! Sequence number for packets
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Register a packet type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void RegisterPacket(void)
+    {
+        static_assert(
+            std::is_base_of_v<IPacket, T>, "T must derive from IPacket"
+        );
+        uint16_t typeId = T::GetStaticType();
+        m_factories[typeId] = []() -> std::unique_ptr<IPacket>
+        { return std::make_unique<T>(); };
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param packet
+    ///
+    /// \return
+    ///
+    ///////////////////////////////////////////////////////////////////////////
     std::vector<UInt8> SerializePacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param data
+    /// \param size
+    /// \param outHeader
+    ///
+    /// \return
+    ///
+    ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<IPacket> DeserializePacket(
         const UInt8* data, SizeT size, FPacketHeader& outHeader
     );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current timestamp
+    ///
+    /// \return current timestamp in milliseconds
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UInt32 GetCurrentTimestamp(void) const;
 };
 
 }   // namespace tkd
