@@ -89,6 +89,31 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UInt32 GetCurrentTimestamp(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Calculate the checksum of the given data
+    ///
+    /// \param data The data to calculate the checksum for
+    /// \param size The size of the data
+    ///
+    /// \return The calculated checksum
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UInt32 CalculateChecksum(const UInt8* data, SizeT size) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Validate the checksum of the given data
+    ///
+    /// \param data The data to validate
+    /// \param size The size of the data
+    /// \param expectedChecksum The expected checksum value
+    ///
+    /// \return True if the checksum is valid, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool ValidateChecksum(
+        const UInt8* data, SizeT size, UInt32 expectedChecksum
+    ) const;
 };
 
 }   // namespace tkd

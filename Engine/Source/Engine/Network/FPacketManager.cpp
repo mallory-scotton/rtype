@@ -12,6 +12,25 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+UInt32 FPacketManager::CalculateChecksum(const UInt8* data, SizeT size) const
+{
+    // Simple CRC32-like checksum implementation
+    UInt32 checksum = 0xFFFFFFFF;
+
+    for (SizeT i = 0; i < size; ++i)
+    {
+        checksum ^= data[i];
+        for (int j = 0; j < 8; ++j)
+        {
+            if (checksum & 1) { checksum = (checksum >> 1) ^ 0xEDB88320; }
+            else { checksum >>= 1; }
+        }
+    }
+
+    return ~checksum;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::vector<UInt8> FPacketManager::SerializePacket(const IPacket& packet)
 {
     std::vector<UInt8> buffer;
@@ -40,7 +59,53 @@ std::vector<UInt8> FPacketManager::SerializePacket(const IPacket& packet)
     // Serialize packet data
     if (!packet.Serialize(writer)) { return {}; }
 
+    std::vector<UInt8> checksumBuffer;
+    FBinaryWriter checksumWriter(checksumBuffer);
+
+    checksumWriter.Write(header.magic);
+    checksumWriter.Write(header.protocolVersion);
+    checksumWriter.Write(header.flags);
+    checksumWriter.Write(header.packetType);
+    checksumWriter.Write(header.packetSize);
+    checksumWriter.Write(header.sequenceNumber);
+    checksumWriter.Write(header.timestamp);
+
+    const UInt8* packetDataStart = buffer.data() + FPacketHeader::SIZE;
+    SizeT packetDataSize = buffer.size() - FPacketHeader::SIZE;
+    checksumBuffer.insert(
+        checksumBuffer.end(), packetDataStart, packetDataStart + packetDataSize
+    );
+
+    header.checksum =
+        CalculateChecksum(checksumBuffer.data(), checksumBuffer.size());
+
+    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+    std::memcpy(
+        buffer.data() + checksumOffset, &header.checksum, sizeof(UInt32)
+    );
+
     return buffer;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FPacketManager::ValidateChecksum(
+    const UInt8* data, SizeT size, UInt32 expectedChecksum
+) const
+{
+    std::vector<UInt8> checksumBuffer;
+
+    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+
+    checksumBuffer.insert(checksumBuffer.end(), data, data + checksumOffset);
+
+    SizeT afterChecksumOffset = checksumOffset + sizeof(UInt32);
+    checksumBuffer.insert(
+        checksumBuffer.end(), data + afterChecksumOffset, data + size
+    );
+
+    UInt32 calculatedChecksum =
+        CalculateChecksum(checksumBuffer.data(), checksumBuffer.size());
+    return calculatedChecksum == expectedChecksum;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -75,6 +140,12 @@ std::unique_ptr<IPacket> FPacketManager::DeserializePacket(
         outHeader.packetSize != size)
     {
         return nullptr;
+    }
+
+    // Verify checksum
+    if (!ValidateChecksum(data, size, outHeader.checksum))
+    {
+        return nullptr;   // Checksum validation failed
     }
 
     // Find the appropriate factory for the packet type
