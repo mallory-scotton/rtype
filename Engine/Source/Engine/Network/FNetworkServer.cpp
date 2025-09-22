@@ -78,6 +78,7 @@ void FNetworkServer::Update(float deltaTime)
     auto now = SteadyClock::now();
 
     CheckConnectionTimeouts(now);
+    SendHeartbeats(now);
 
     m_lastUpdate = now;
 }
