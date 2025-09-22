@@ -109,13 +109,13 @@ public:
             {
                 reference = std::stod(value);
             }
-            else if constexpr (std::is_arithmetic_v<T>)
-            {
-                reference = static_cast<T>(std::stod(value));
-            }
             else if constexpr (std::is_same_v<T, bool>)
             {
                 reference = (value == "true" || value == "1");
+            }
+            else if constexpr (std::is_arithmetic_v<T>)
+            {
+                reference = static_cast<T>(std::stod(value));
             }
         };
 
@@ -123,13 +123,13 @@ public:
         flag.getter = [&reference]() -> std::string
         {
             if constexpr (std::is_same_v<T, std::string>) { return reference; }
-            else if constexpr (std::is_arithmetic_v<T>)
-            {
-                return std::to_string(reference);
-            }
             else if constexpr (std::is_same_v<T, bool>)
             {
                 return reference ? "true" : "false";
+            }
+            else if constexpr (std::is_arithmetic_v<T>)
+            {
+                return std::to_string(reference);
             }
             return "";
         };
@@ -186,6 +186,12 @@ public:
                     {
                         reference.push_back(item);
                     }
+                    else if constexpr (std::is_same_v<T, bool>)
+                    {
+                        return reference.push_back(
+                            item == "true" || item == "1"
+                        );
+                    }
                     else if constexpr (std::is_same_v<T, int>)
                     {
                         reference.push_back(std::stoi(item));
@@ -197,6 +203,12 @@ public:
                     else if constexpr (std::is_same_v<T, double>)
                     {
                         reference.push_back(std::stod(item));
+                    }
+                    else if constexpr (std::is_arithmetic_v<T>)
+                    {
+                        return reference.push_back(
+                            static_cast<T>(std::stod(value))
+                        );
                     }
                 }
             }
