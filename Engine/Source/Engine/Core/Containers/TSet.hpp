@@ -20,15 +20,11 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief A small, header-only set container inspired by Unreal Engine's TSet.
+/// \brief A unordered_set wrapper
 ///
-/// This class wraps `std::unordered_set` and exposes a subset of operations
-/// commonly used in engine code. It's implemented as a template and therefore
-/// header-only.
-///
-/// 	param KeyType The type of elements stored in the set.
-/// 	param Hash Hashing functor type (defaults to std::hash<KeyType>).
-/// 	param KeyEqual Equality comparator type (defaults to
+/// \param KeyType The type of elements stored in the set.
+/// \param Hash Hashing functor type (defaults to std::hash<KeyType>).
+/// \param KeyEqual Equality comparator type (defaults to
 /// std::equal_to<KeyType>).
 ///
 ///////////////////////////////////////////////////////////////////////////////
