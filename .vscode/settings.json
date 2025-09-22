@@ -80,5 +80,13 @@
 
   /* IDE Settings */
   "editor.minimap.enabled": false,
-  "explorer.compactFolders": false
+  "explorer.compactFolders": false,
+
+  /* C++ IntelliSense Settings */
+  "C_Cpp.intelliSenseEngine": "default",
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.autocomplete": "default",
+  "C_Cpp.suggestSnippets": true,
+  "cmake.configureOnOpen": false,
+  "cmake.buildDirectory": "${workspaceFolder}/Build"
 }
