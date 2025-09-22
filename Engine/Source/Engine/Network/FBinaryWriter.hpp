@@ -6,7 +6,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <cstring>
 #include <Engine/Config.hpp>
+#include <Engine/Core/Containers.hpp>
+#include <type_traits>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -15,10 +19,132 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief FBinaryWriter class for writing binary data to a buffer
+///
+/// This class provides methods to write various data types to a binary
+/// buffer, including primitive types, strings, and arrays. It ensures that
+/// the data is written in a consistent and efficient manner.
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class FBinaryWriter
-{};
+{
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    std::vector<UInt8>& m_buffer;   //<! Buffer to hold binary data
+    SizeT m_offset = 0;             //<! Current write offset in the buffer
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor
+    ///
+    /// \param buffer Reference to the buffer to write to
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    explicit FBinaryWriter(std::vector<UInt8>& buffer);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a trivially copyable value to the buffer
+    ///
+    /// \tparam T Type of the value to write
+    ///
+    /// \param value The value to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const T& value)
+    {
+        static_assert(
+            std::is_trivially_copyable_v<T>, "Type must be trivially copyable"
+        );
+        SizeT needed = m_offset + sizeof(T);
+        if (m_buffer.size() < needed) { m_buffer.resize(needed); }
+        std::memcpy(m_buffer.data() + m_offset, &value, sizeof(T));
+        m_offset += sizeof(T);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a vector of trivially copyable values to the buffer
+    ///
+    /// \tparam T Type of the values in the vector
+    ///
+    /// \param array The vector of values to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const std::vector<T>& array)
+    {
+        SizeT arraySize = array.size();
+        Write(arraySize);
+        if (arraySize > 0)
+        {
+            SizeT needed = m_offset + arraySize * sizeof(T);
+            if (m_buffer.size() < needed) { m_buffer.resize(needed); }
+            std::memcpy(
+                m_buffer.data() + m_offset, array.data(), arraySize * sizeof(T)
+            );
+            m_offset += arraySize * sizeof(T);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a vector of strings to the buffer
+    ///
+    /// \param array The vector of strings to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Write(const std::vector<std::string>& array);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a vector of strings to the buffer
+    ///
+    /// \param array The vector of strings to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Write(const std::vector<FString>& array);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a string to the buffer
+    ///
+    /// \param str The string to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Write(const std::string& str);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes an FString to the buffer
+    ///
+    /// \param str The FString to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Write(const FString& str);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Writes a byte array to the buffer
+    ///
+    /// \param data Pointer to the byte array
+    /// \param size Size of the byte array
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void WriteBytes(const UInt8* data, SizeT size);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the current write offset in the buffer
+    ///
+    /// \return The current write offset in the buffer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    SizeT GetOffset(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sets the current write offset in the buffer
+    ///
+    /// \param offset New write offset in the buffer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetOffset(SizeT offset);
+};
 
 }   // namespace tkd
