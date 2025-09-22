@@ -10,3 +10,4 @@
 #include <Engine/Core.hpp>
 #include <Engine/Renderer.hpp>
 #include <Engine/Runtime.hpp>
+#include <Engine/Static.hpp>

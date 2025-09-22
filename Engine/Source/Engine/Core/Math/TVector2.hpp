@@ -6,12 +6,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <cassert>
 #include <Engine/Config.hpp>
+#include <ostream>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
-#include <ostream>
-#include <cassert>
-#include <stdexcept>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -21,6 +21,7 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief A 2D vector template class for arithmetic types.
+///
 /// \tparam T The arithmetic type for the vector components.
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,7 +29,9 @@ template <typename T>
 class TVector2
 {
 public:
-    static_assert(std::is_arithmetic<T>::value, "T must be an arithmetic type");
+    static_assert(
+        std::is_arithmetic<T>::value, "T must be an arithmetic type"
+    );
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -41,29 +44,29 @@ public:
     #pragma GCC diagnostic ignored "-Wpedantic"
 #elif defined(_MSC_VER)
     #pragma warning(push)
-    #pragma warning(disable: 4201)
+    #pragma warning(disable : 4201)
 #endif
         struct
         {
-            T x;        //!< The x-component of the vector.
-            T y;        //!< The y-component of the vector.
+            T x;   //!< The x-component of the vector.
+            T y;   //!< The y-component of the vector.
         };
 #ifdef __GNUC__
     #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
-        T data[2];      //!< Array access to the components.
+        T data[2];   //!< Array access to the components.
     };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Member
     ///////////////////////////////////////////////////////////////////////////
-    static const TVector2 Zero;  //!< A vector with both components set to 0.
-    static const TVector2 One;   //!< A vector with both components set to 1.
-    static const TVector2 UnitX; //!< A unit vector along the x-axis (1, 0).
-    static const TVector2 UnitY; //!< A unit vector along the y-axis (0, 1).
+    static const TVector2 Zero;    //!< A vector with both components set to 0.
+    static const TVector2 One;     //!< A vector with both components set to 1.
+    static const TVector2 UnitX;   //!< A unit vector along the x-axis (1, 0).
+    static const TVector2 UnitY;   //!< A unit vector along the y-axis (0, 1).
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -114,6 +117,7 @@ public:
     /// casting to T.
     ///
     /// \tparam U The type of the components.
+    ///
     /// \param x The x-component.
     /// \param y The y-component.
     ///
@@ -129,6 +133,7 @@ public:
     /// casting to T.
     ///
     /// \tparam U The type of the other vector's components.
+    ///
     /// \param other The vector to copy from.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -143,12 +148,14 @@ public:
     /// \brief Copy assignment operator.
     ///
     /// \param other The vector to assign from.
+    ///
     /// \return Reference to this vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     TVector2& operator=(const TVector2& other)
     {
-        if (this != &other) {
+        if (this != &other)
+        {
             x = other.x;
             y = other.y;
         }
@@ -159,12 +166,14 @@ public:
     /// \brief Move assignment operator.
     ///
     /// \param other The vector to move from.
+    ///
     /// \return Reference to this vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     TVector2& operator=(TVector2&& other) noexcept
     {
-        if (this != &other) {
+        if (this != &other)
+        {
             x = std::move(other.x);
             y = std::move(other.y);
         }
@@ -175,6 +184,7 @@ public:
     /// \brief Accesses the component at the specified index.
     ///
     /// \param index The index (0 for x, 1 for y).
+    ///
     /// \return Reference to the component.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -188,6 +198,7 @@ public:
     /// \brief Accesses the component at the specified index (const version).
     ///
     /// \param index The index (0 for x, 1 for y).
+    ///
     /// \return Const reference to the component.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -253,10 +264,14 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Static Member Initialization
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T> const TVector2<T> TVector2<T>::Zero (0, 0);
-template <typename T> const TVector2<T> TVector2<T>::One  (1, 1);
-template <typename T> const TVector2<T> TVector2<T>::UnitX(1, 0);
-template <typename T> const TVector2<T> TVector2<T>::UnitY(0, 1);
+template <typename T>
+const TVector2<T> TVector2<T>::Zero(0, 0);
+template <typename T>
+const TVector2<T> TVector2<T>::One(1, 1);
+template <typename T>
+const TVector2<T> TVector2<T>::UnitX(1, 0);
+template <typename T>
+const TVector2<T> TVector2<T>::UnitY(0, 1);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Unary plus operator. Returns the vector unchanged.
@@ -978,4 +993,4 @@ std::ostream& operator<<(std::ostream& os, const TVector2<T>& vec)
     return os;
 }
 
-} // !namespace tkd
+}   // namespace tkd

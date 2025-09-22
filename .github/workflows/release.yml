@@ -1,0 +1,44 @@
+name: R-Type Release Workflow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  install-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # TODO: Add steps to install dependencies
+
+  build:
+    runs-on: ubuntu-latest
+    needs: install-dependencies
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+    # TODO: Add steps to build the project
+
+
+  package:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+    # TODO: Add steps to package the build artifacts
+
+  release:
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+    # TODO: Add steps to release the package

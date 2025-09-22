@@ -1,0 +1,73 @@
+name: 'Feature request'
+title: "[FEATURE] - YOUR_FEATURE_TITLE_HERE_REPLACE_ME"
+description: Suggest an idea for R-Type 🚀
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature for R-Type 🙌  
+
+        This issue tracker is for **feature requests and improvements** to the [R-Type GitHub repository](https://github.com/mallory-scotton/rtype/).  
+
+        Before submitting, please make sure to:
+         - Check the [Issues tab](https://github.com/mallory-scotton/rtype/issues?q=is%3Aissue+sort%3Aupdated-desc) to ensure the feature hasn’t been requested yet.
+         - Look through the [Discussions tab](https://github.com/mallory-scotton/rtype/discussions) for any ongoing conversations about it.  
+
+        The more details you provide, the easier it will be for the community and maintainers to understand and prioritize your request.
+  - type: input
+    id: featureName
+    attributes:
+      label: Feature Name
+      description: Provide a short, descriptive name for your requested feature.
+      placeholder: ex. Multiplayer lobby system
+    validations:
+      required: true
+  - type: textarea
+    id: problem_statement
+    attributes:
+      label: Problem or Motivation
+      description: Explain what problem this feature would solve, or why it would improve R-Type.
+      placeholder: |
+        Example:
+        - As a player, I find it difficult to...
+        - This feature would improve the game by...
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see, as clearly as possible.
+      placeholder: |
+        Example:
+        - Add a lobby screen where players can join before starting a game
+        - Implement a ranking system for multiplayer
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: If you’ve thought about other possible solutions, describe them here.
+      placeholder: |
+        Example:
+        - Instead of a lobby, add quick matchmaking
+        - Allow private invite-only sessions
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: Add any other context, screenshots, or examples that could help explain your feature request.
+      placeholder: |
+        Example:
+        - Links to similar implementations in other projects
+        - Mockups or diagrams
+  - type: checkboxes
+    id: code_of_conduct
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow R-Type's [Code of Conduct](https://github.com/mallory-scotton/rtype/blob/main/CODE_OF_CONDUCT.md).
+      options:
+        - label: I have read and agree to the Code of Conduct
+          required: true

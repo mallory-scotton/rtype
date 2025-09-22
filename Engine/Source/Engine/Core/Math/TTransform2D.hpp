@@ -19,4 +19,4 @@ template <typename T>
 class TTransform2D
 {};
 
-} // !namespace tkd
+}   // namespace tkd
