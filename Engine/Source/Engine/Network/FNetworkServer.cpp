@@ -73,7 +73,7 @@ bool FNetworkServer::Start(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkServer::Update(float deltaTime)
+void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
     auto now = SteadyClock::now();
 
@@ -136,9 +136,18 @@ std::vector<UInt32> FNetworkServer::GetConnectedClients(void) const
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::OnPacketReceived(
-    const FPacketHeader& packet, const FEndpoint& sender
+    const FPacketHeader& header, const FEndpoint& sender
 )
-{}
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+    auto it = m_connections.find(sender);
+    if (it != m_connections.end())
+    {
+        it->second->lastActivity = SteadyClock::now();
+        it->second->lastSequenceReceived = header.sequenceNumber;
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::SetupDefaultHandlers(void)
