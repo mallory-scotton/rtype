@@ -11,6 +11,8 @@
 #include <Engine/Core/Concurrency/FThread.hpp>
 #include <Engine/Network/Asio.hpp>
 #include <Engine/Network/FNetworkStatistics.hpp>
+#include <Engine/Network/FPacketHeader.hpp>
+#include <Engine/Network/FPacketManager.hpp>
 #include <Engine/Network/IPacket.hpp>
 #include <functional>
 #include <memory>
@@ -45,6 +47,7 @@ protected:
     std::unique_ptr<FThread> m_networkThread;   //<! Network thread
     std::atomic<bool> m_running;       //<! true if the network is running
     FNetworkStatistics m_statistics;   //<! Network statistics
+    FPacketManager m_packetManager;    //<! Packet manager
     std::array<UInt8, MAX_PACKET_SIZE>
         m_receiveBuffer;               //<! Buffer for receiving data
     tkd::FEndpoint m_senderEndpoint;   //<! Endpoint of the sender
@@ -150,6 +153,19 @@ public:
             if (typedPacket) { handler(*typedPacket, endpoint); }
         };
     }
+
+protected:
+    void InitializePacketManager(void);
+    bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
+    void StartReceive(void);
+    void HandleReceive(const asio::error_code& error, SizeT bytesReceived);
+    void ProcessReceivedData(
+        const UInt8* data, SizeT size, const FEndpoint& sender
+    );
+    virtual void
+        OnPacketReceived(const FPacketHeader& header, const FEndpoint& sender);
+    void RunNetworkThread(void);
+    UInt32 GetCurrentTimestamp(void) const;
 };
 
 }   // namespace tkd
