@@ -113,6 +113,12 @@ bool Engine::Initialize(int argc, char* argv[])
     args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
     args.AddFlags("debug", "Enable debug mode", a_debug, false);
 
+    std::string a_gameModule;
+    if (!TKD_CreateGame)
+    {
+        args.AddFlags("game", "Path to the game module", a_gameModule, true);
+    }
+
 #if TKD_ENGINE_SERVER
     std::string a_host = "localhost";
     UInt16 a_port = 8080;
