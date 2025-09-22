@@ -18,7 +18,11 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Class for reading binary data from a buffer
+///
+/// This class provides methods to read various data types from a binary
+/// buffer, including primitive types, strings, and arrays. It ensures that
+/// the data is read in a consistent and efficient manner.
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class FBinaryReader
