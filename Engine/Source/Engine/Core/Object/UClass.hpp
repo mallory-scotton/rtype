@@ -10,8 +10,8 @@
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Object/UProperty.hpp>
-#include <vector>
 #include <functional>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -26,50 +26,6 @@ namespace tkd
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class UClass
-{
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    FString className;                          //<! Name of the class.
-    UClass* superClass;                         //<! Pointer to the superclass.
-    std::vector<UProperty*> properties;         //<! List of properties of the class.
-    std::function<UObject*()> createInstance;   //<! Function to create an instance of the class.
+{};
 
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Constructor for UClass.
-    ///
-    /// \param name The name of the class.
-    /// \param super A pointer to the superclass, or nullptr if there is no
-    /// superclass.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    UClass(const FString& name, UClass* super = nullptr);
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Sets the function used to create instances of this class.
-    ///
-    /// \tparam T The type of the class for which to set the creation function.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    void SetCreateFunction(void)
-    {
-        createInstance = []() { return new T(); };
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Determines if this class is a child of the specified class.
-    ///
-    /// \param other The class to check against.
-    ///
-    /// \return True if this class is a child of the specified class, false
-    /// otherwise.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    Bool IsChildOf(const UClass* other) const;
-};
-
-} // !namespace tkd
+}   // namespace tkd
