@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <asio.hpp>
 #include <Engine/Config.hpp>
+#include <Engine/Network/Asio.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -26,13 +27,13 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 struct FConnectionInformation
 {
-    asio::ip::udp::endpoint endpoint;   //<! Remote endpoint
-    UInt32 clientID = 0;                //<! Unique client identifier
-    UInt32 lastSequenceReceived = 0;    //<! Last sequence number received
-    UInt32 lastSequenceSent = 0;        //<! Last sequence number sent
-    TimePoint lastActivity;             //<! Last activity timestamp
-    Float32 rtt = 0.0f;                 //<! Round trip time in milliseconds
-    bool connected = false;             //<! Connection status
+    FEndpoint endpoint;                //<! Remote endpoint
+    UInt32 clientID = 0;               //<! Unique client identifier
+    UInt32 lastSequenceReceived = 0;   //<! Last sequence number received
+    UInt32 lastSequenceSent = 0;       //<! Last sequence number sent
+    TimePoint lastActivity;            //<! Last activity timestamp
+    Float32 rtt = 0.0f;                //<! Round trip time in milliseconds
+    bool connected = false;            //<! Connection status
 };
 
 }   // namespace tkd
