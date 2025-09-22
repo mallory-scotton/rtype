@@ -133,12 +133,13 @@ bool Engine::Initialize(int argc, char* argv[])
 
     PrintStartupMessage();
 
-    // TODO: Initialization logic here (e.g., setting up subsystems, loading
-    // resources)
-
 #if TKD_ENGINE_SERVER
-    // Initialize the network subsystem
-    Network::Initialize(a_port);
+    if (!Network::Initialize(a_port))
+    {
+        s_exitCode = TKD_EXIT_FAILURE;
+        s_exitMessage = "Failed to initialize the network subsystem.";
+        return false;
+    }
 #endif
 
     // Create the threads but do not start them yet
@@ -159,8 +160,9 @@ bool Engine::Shutdown(void)
 {
     if (!s_isInitialized) { return false; }
 
-    // TODO: Shutdown logic here (e.g., releasing resources, shutting down
-    // subsystems)
+#if TKD_ENGINE_SERVER
+    Network::Shutdown();
+#endif
 
     // Shutdown threads if they are running
     if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
