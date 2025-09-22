@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FPacketManager.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <Engine/Network/FPacketHeader.hpp>
 #include <Engine/Network/TPacket.hpp>
 

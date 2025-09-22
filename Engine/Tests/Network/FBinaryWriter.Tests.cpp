@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FBinaryWriter.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Network/FBinaryReader.hpp>
 
@@ -28,7 +28,7 @@ TEST_CASE("FBinaryWriter Tests", "[FBinaryWriter]")
         REQUIRE(buffer.size() == sizeof(int));
 
         FBinaryReader reader(buffer.data(), buffer.size());
-        int readValue;
+        int readValue = 0;
         REQUIRE(reader.Read(readValue));
         REQUIRE(readValue == 42);
     }
@@ -47,9 +47,9 @@ TEST_CASE("FBinaryWriter Tests", "[FBinaryWriter]")
         writer.Write(uintVal);
 
         FBinaryReader reader(buffer.data(), buffer.size());
-        int readInt;
-        float readFloat;
-        UInt32 readUInt;
+        int readInt = 0;
+        float readFloat = 0.0f;
+        UInt32 readUInt = 0;
 
         REQUIRE(reader.Read(readInt));
         REQUIRE(reader.Read(readFloat));
@@ -191,7 +191,7 @@ TEST_CASE("FBinaryWriter Tests", "[FBinaryWriter]")
         writer.Write(value2);
 
         FBinaryReader reader(buffer.data(), buffer.size());
-        int readValue;
+        int readValue = 0;
         REQUIRE(reader.Read(readValue));
         REQUIRE(readValue == 200);
     }
