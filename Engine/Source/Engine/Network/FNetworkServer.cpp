@@ -228,4 +228,55 @@ void FNetworkServer::SendHeartbeats(const TimePoint& now)
     lastHeartbeat = now;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::HandleDisconnectPacket(
+    const Packets::Disconnect& packet, const FEndpoint& endpoint
+)
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+    auto it = m_connections.find(endpoint);
+    if (it != m_connections.end())
+    {
+        uint32_t clientID = it->second->clientID;
+        m_connections.erase(it);
+        m_clientIDToEndpoint.erase(clientID);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::HandleConnectPacket(
+    const Packets::Connect& packet, const FEndpoint& endpoint
+)
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+    // Check if client is already connected
+    auto it = m_connections.find(endpoint);
+    if (it != m_connections.end() && it->second->connected)
+    {
+        return;   // Already connected
+    }
+
+    // Create new connection
+    auto connection = std::make_unique<FConnectionInformation>();
+    connection->endpoint = endpoint;
+    connection->clientID = m_nextClientID++;
+    connection->lastActivity = SteadyClock::now();
+    connection->connected = true;
+
+    uint32_t assignedClientId = connection->clientID;
+
+    // Store connection
+    m_connections[endpoint] = std::move(connection);
+    m_clientIDToEndpoint[assignedClientId] = endpoint;
+
+    // Send response
+    Packets::ConnectResponse response;
+    response.clientID = assignedClientId;
+    response.accepted = true;
+
+    SendPacket(response, endpoint);
+}
+
 }   // namespace tkd
