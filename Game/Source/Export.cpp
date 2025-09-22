@@ -8,7 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 TKD_EXPORT_GAME(
     tkd::RTypeGame,                   //<! The game class
-    "1.0.0",                          //<! The engine version
+    TKD_VERSION_STRING,               //<! The engine version
     "R-Type",                         //<! The game name
     "1.0.0",                          //<! The game version
     "A classic arcade shooter game"   //<! The game description
