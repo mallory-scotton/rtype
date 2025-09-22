@@ -136,4 +136,9 @@ if %errorlevel% neq 0 (
 
 echo === Build completed successfully! ===
 echo Your built project should be available in the Build directory.
+
+echo Available binaries:
+for /r Build\bin %%f in (*.exe) do (
+    echo     %%~nxf
+)
 pause
