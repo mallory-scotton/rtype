@@ -33,9 +33,12 @@ struct FPacketHeader
     UInt16 packetSize = 0;                       //<! Packet size
     UInt32 sequenceNumber = 0;                   //<! Sequence number
     UInt32 timestamp = 0;                        //<! Timestamp
+    UInt16 flags = 0;                            //<! Flags for additional info
+    UInt32 magic = 0xDEADBEEF;                   //<! Magic number
+    UInt32 checksum = 0;                         //<! Checksum for integrity
 
     // Total size of the packet header in bytes
-    static constexpr SizeT SIZE = sizeof(UInt32) * 3 + sizeof(UInt16) * 2;
+    static constexpr SizeT SIZE = sizeof(UInt32) * 5 + sizeof(UInt16) * 3;
 };
 
 }   // namespace tkd
