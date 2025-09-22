@@ -1,16 +1,9 @@
 {
-  /* C++ Formatting */
-  "C_Cpp.clang_format_style": "file",
-  "C_Cpp.clang_format_fallbackStyle": "LLVM",
-  "C_Cpp.autoAddFileAssociations": false,
-
   /* Language Specific Configuration */
   "[cpp]": {
     "editor.tabSize": 4,
     "prettier.useTabs": false,
-    "editor.rulers": [79],
-    "editor.defaultFormatter": "xaver.clang-format",
-    "editor.formatOnSave": true
+    "editor.rulers": [79]
   },
   "[c]": {
     "editor.tabSize": 4,

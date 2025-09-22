@@ -19,4 +19,4 @@ template <typename T>
 class TMatrix4x4
 {};
 
-}   // namespace tkd
+} // !namespace tkd

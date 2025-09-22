@@ -55,4 +55,4 @@ using FSquared = TSquare<double>;
 using FSquarei = TSquare<int>;
 using FSquareu = TSquare<unsigned int>;
 
-}   // namespace tkd
+} // !namespace tkd

@@ -19,4 +19,4 @@ template <typename T>
 class TVector4
 {};
 
-}   // namespace tkd
+} // !namespace tkd

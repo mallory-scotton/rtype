@@ -26,19 +26,3 @@ endif()
 add_subdirectory(Engine)
 add_subdirectory(Game)
 add_subdirectory(Server)
-
-# Clang-Format target
-find_program(CLANG_FORMAT "clang-format")
-if(CLANG_FORMAT)
-    file(GLOB_RECURSE ALL_CXX_SOURCE_FILES
-        ${CMAKE_SOURCE_DIR}/*.cpp
-        ${CMAKE_SOURCE_DIR}/*.h
-    )
-    
-    add_custom_target(
-        format
-        COMMAND ${CLANG_FORMAT}
-        -i
-        ${ALL_CXX_SOURCE_FILES}
-    )
-endif()

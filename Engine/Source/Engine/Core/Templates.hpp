@@ -6,7 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
-#include <Engine/Core.hpp>
-#include <Engine/Renderer.hpp>
-#include <Engine/Runtime.hpp>
+#include <Engine/Core/Templates/Delegate.hpp>
+#include <Engine/Core/Templates/Function.hpp>
+#include <Engine/Core/Templates/TypeTraits.hpp>

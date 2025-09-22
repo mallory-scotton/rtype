@@ -14,7 +14,7 @@
 /// \param x Pointer to the object to be deleted.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-#define SafeDelete(x) if (x) { delete x; x = nullptr; }
+#define SafeDelete(x) { delete x; x = nullptr; }
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Safely deletes a dynamically allocated array and sets the pointer
@@ -27,4 +27,4 @@
 /// \param x Pointer to the array to be deleted.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-#define SafeDeleteArray(x) if (x) { delete[] x; x = nullptr; }
+#define SafeDeleteArray(x) { delete[] x; x = nullptr; }

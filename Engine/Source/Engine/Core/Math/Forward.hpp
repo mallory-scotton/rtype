@@ -97,4 +97,4 @@ using FVector4d = TVector4<double>;
 using FVector4i = TVector4<int>;
 using FVector4u = TVector4<unsigned int>;
 
-}   // namespace tkd
+} // !namespace tkd

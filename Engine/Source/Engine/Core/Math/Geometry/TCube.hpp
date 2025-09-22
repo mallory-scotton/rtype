@@ -19,4 +19,4 @@ template <typename T>
 class TCube
 {};
 
-}   // namespace tkd
+} // !namespace tkd

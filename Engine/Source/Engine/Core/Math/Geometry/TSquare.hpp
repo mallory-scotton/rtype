@@ -19,4 +19,4 @@ template <typename T>
 class TSquare
 {};
 
-}   // namespace tkd
+} // !namespace tkd

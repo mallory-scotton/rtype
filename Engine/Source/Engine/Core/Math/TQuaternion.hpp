@@ -19,4 +19,4 @@ template <typename T>
 class TQuaternion
 {};
 
-}   // namespace tkd
+} // !namespace tkd
