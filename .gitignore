@@ -17,8 +17,6 @@
 *.temp
 *.swp
 *.swo
-*.dat
-*.bak
 
 # Compilation directories
 Build/

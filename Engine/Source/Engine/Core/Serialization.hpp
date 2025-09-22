@@ -6,7 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
-#include <Engine/Core.hpp>
-#include <Engine/Renderer.hpp>
-#include <Engine/Runtime.hpp>
+#include <Engine/Core/Serialization/Archive.hpp>
+#include <Engine/Core/Serialization/BinaryArchive.hpp>
+#include <Engine/Core/Serialization/JsonArchive.hpp>

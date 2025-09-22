@@ -19,4 +19,4 @@ template <typename T>
 class TTransform
 {};
 
-}   // namespace tkd
+} // !namespace tkd

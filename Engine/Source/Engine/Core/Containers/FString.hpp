@@ -6,11 +6,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <cstdlib>
-#include <cstring>
 #include <Engine/Config.hpp>
 #include <iostream>
 #include <utility>
+#include <cstdlib>
+#include <cstring>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -35,18 +35,18 @@ public:
     /// \brief Member data.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    using sizeType = SizeT;    //<! Type alias for string size type.
-    static const SizeT NPOS;   //<! The largest possible value.
+    using sizeType = SizeT;        //<! Type alias for string size type.
+    static const SizeT NPOS = -1;  //<! The largest possible value.
 
 private:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Private member data.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    char* m_data = nullptr;   //<! Pointer to the character array.
-    SizeT m_length = 0;       //<! Length of the string.
-    SizeT m_capacity = 0;     //<! Capacity of the string.
-    SizeT m_increment = 15;   //<! Increment size for capacity growth.
+    char* m_data = nullptr;     //<! Pointer to the character array.
+    SizeT m_length = 0;         //<! Length of the string.
+    SizeT m_capacity = 0;       //<! Capacity of the string.
+    SizeT m_increment = 15;     //<! Increment size for capacity growth.
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief A structure used for iterating over the string.
@@ -62,9 +62,9 @@ private:
         /// to the size.
         ///
         ///////////////////////////////////////////////////////////////////////
-        char* first;         //<! Pointer to the first character in the string.
-        const SizeT* size;   //<! Pointer to the size of the string.
-        sizeType pos;        //<! Current position in the string.
+        char* first;        //<! Pointer to the first character in the string.
+        const SizeT* size;  //<! Pointer to the size of the string.
+        sizeType pos;       //<! Current position in the string.
 
         ///////////////////////////////////////////////////////////////////////
         /// \brief Default constructor.
@@ -77,8 +77,10 @@ private:
         /// \param p Current position in the string.
         ///
         ///////////////////////////////////////////////////////////////////////
-        StringIteratorType(
-            char* f = nullptr, const SizeT* s = nullptr, sizeType p = 0
+        StringIteratorType (
+            char* f = nullptr,
+            const SizeT* s = nullptr,
+            sizeType p = 0
         )
             : first(f)
             , size(s)
@@ -239,7 +241,7 @@ public:
         /// \brief Protected member data.
         ///
         ///////////////////////////////////////////////////////////////////////
-        StringIteratorType current;   //<! Current iterator state.
+        StringIteratorType current; //<! Current iterator state.
 
         ///////////////////////////////////////////////////////////////////////
         /// \brief Retrieve the character at the current iterator position.
@@ -393,14 +395,14 @@ public:
         /// offset.
         ///
         ///////////////////////////////////////////////////////////////////////
-        const char& operator[](int index) const;
+        const char& operator[] (int index) const;
 
         ///////////////////////////////////////////////////////////////////////
         /// \brief Pre-increment operator to move the iterator to the next
         /// position.
         ///
-        /// Advances the iterator to the next character in the String and
-        /// allows write access.
+        /// Advances the iterator to the next character in the String and allows
+        /// write access.
         ///
         /// \return A reference to the incremented iterator.
         ///
@@ -546,7 +548,7 @@ public:
         /// offset.
         ///
         ///////////////////////////////////////////////////////////////////////
-        const char& operator[](int index) const;
+        const char& operator[] (int index) const;
 
         ///////////////////////////////////////////////////////////////////////
         /// \brief Pre-increment operator to move the reverse iterator to the
@@ -1035,7 +1037,7 @@ private:
     /// \return The internal iterator type pointing to the first character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    StringIteratorType _iBegin(void) const;
+    inline StringIteratorType _iBegin(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the internal iterator type for the reverse beginning.
@@ -1043,7 +1045,7 @@ private:
     /// \return The internal iterator type pointing to the last character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    StringIteratorType _rBegin(void) const;
+    inline StringIteratorType _rBegin(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the internal iterator type for the end.
@@ -1051,7 +1053,7 @@ private:
     /// \return The internal iterator type pointing past the last character.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    StringIteratorType _end(void) const;
+    inline StringIteratorType _end(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Calculates the length between two iterators.
@@ -1088,26 +1090,6 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FString& operator=(FString&& other);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Assignment operator from std::string.
-    ///
-    /// \param other The std::string to copy from.
-    ///
-    /// \return A reference to this string.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    FString& operator=(const std::string& other);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Move assignment operator from std::string.
-    ///
-    /// \param other The std::string to move from.
-    ///
-    /// \return A reference to this string.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    FString& operator=(std::string&& other);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -1161,8 +1143,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Greater than operator.
     ///
-    /// Compares if the left string is lexicographically greater than the
-    /// right.
+    /// Compares if the left string is lexicographically greater than the right.
     ///
     /// \param lhs The left-hand side string.
     /// \param rhs The right-hand side string.
@@ -1175,8 +1156,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Less than or equal operator.
     ///
-    /// Compares if the left string is lexicographically less than or equal to
-    /// the right.
+    /// Compares if the left string is lexicographically less than or equal to the right.
     ///
     /// \param lhs The left-hand side string.
     /// \param rhs The right-hand side string.
@@ -1189,8 +1169,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Greater than or equal operator.
     ///
-    /// Compares if the left string is lexicographically greater than or equal
-    /// to the right.
+    /// Compares if the left string is lexicographically greater than or equal to the right.
     ///
     /// \param lhs The left-hand side string.
     /// \param rhs The right-hand side string.
@@ -1206,8 +1185,7 @@ private:
     ///
     /// \param rhs The string to compare with.
     ///
-    /// \return A negative value if this < rhs, 0 if equal, positive if this >
-    /// rhs.
+    /// \return A negative value if this < rhs, 0 if equal, positive if this > rhs.
     ///
     ///////////////////////////////////////////////////////////////////////////
     int _compare(const FString& rhs) const;
@@ -1238,8 +1216,7 @@ public:
     char& operator[](sizeType index);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Accesses a character at the specified index with bounds checking
-    /// (const).
+    /// \brief Accesses a character at the specified index with bounds checking (const).
     ///
     /// \param index The index of the character to access.
     ///
@@ -1249,8 +1226,7 @@ public:
     const char& At(sizeType index) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Accesses a character at the specified index with bounds
-    /// checking.
+    /// \brief Accesses a character at the specified index with bounds checking.
     ///
     /// \param index The index of the character to access.
     ///
@@ -1426,7 +1402,10 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FString& Insert(
-        sizeType pos, const FString& other, sizeType subPos, SizeT subLen
+        sizeType pos,
+        const FString& other,
+        sizeType subPos,
+        SizeT subLen
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1486,8 +1465,7 @@ public:
     Iterator Insert(Iterator ptr, char ch);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Inserts characters from an iterator range at the iterator
-    /// position.
+    /// \brief Inserts characters from an iterator range at the iterator position.
     ///
     /// \param ptr The position to insert at.
     /// \param first The beginning of the range to insert.
@@ -1495,7 +1473,9 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void Insert(
-        Iterator ptr, const ConstIterator first, const ConstIterator last
+        Iterator ptr,
+        const ConstIterator first,
+        const ConstIterator last
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1552,8 +1532,7 @@ public:
     /// \return A reference to this string.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FString&
-        Replace(ConstIterator it1, ConstIterator it2, const FString& other);
+    FString& Replace(ConstIterator it1, ConstIterator it2, const FString& other);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Replaces characters with a substring of another string.
@@ -1562,8 +1541,7 @@ public:
     /// \param len The number of characters to replace.
     /// \param other The string to replace with.
     /// \param subPos The starting position in the replacement string.
-    /// \param subLen The number of characters to use from the replacement
-    /// string.
+    /// \param subLen The number of characters to use from the replacement string.
     ///
     /// \return A reference to this string.
     ///
@@ -1614,8 +1592,7 @@ public:
     FString& Replace(sizeType pos, SizeT len, const char* other, SizeT n);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Replaces characters in iterator range with C-string of specified
-    /// length.
+    /// \brief Replaces characters in iterator range with C-string of specified length.
     ///
     /// \param it1 The beginning of the range to replace.
     /// \param it2 The end of the range to replace.
@@ -1626,7 +1603,10 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FString& Replace(
-        ConstIterator it1, ConstIterator it2, const char* other, SizeT n
+        ConstIterator it1,
+        ConstIterator it2,
+        const char* other,
+        SizeT n
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1643,8 +1623,7 @@ public:
     FString& Replace(sizeType pos, SizeT len, SizeT n, char filler);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Replaces characters in iterator range with multiple identical
-    /// characters.
+    /// \brief Replaces characters in iterator range with multiple identical characters.
     ///
     /// \param it1 The beginning of the range to replace.
     /// \param it2 The end of the range to replace.
@@ -1654,12 +1633,10 @@ public:
     /// \return A reference to this string.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FString&
-        Replace(ConstIterator it1, ConstIterator it2, sizeType n, char ch);
+    FString& Replace(ConstIterator it1, ConstIterator it2, sizeType n, char ch);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Replaces characters in iterator range with characters from
-    /// another range.
+    /// \brief Replaces characters in iterator range with characters from another range.
     ///
     /// \param it1 The beginning of the range to replace.
     /// \param it2 The end of the range to replace.
@@ -1699,7 +1676,7 @@ private:
     /// \param other The C-string to append.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void _append(const char* other);
+    inline void _append(const char* other);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Internal method to append a C-string with length.
@@ -1739,7 +1716,10 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void _substr(
-        char*& buffer, const char* other, sizeType pos = 0, SizeT len = NPOS
+        char*& buffer,
+        const char* other,
+        sizeType pos = 0,
+        SizeT len = NPOS
     ) const;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -1772,7 +1752,11 @@ private:
     /// \return The actual length of the substring.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeT _getLength(const FString& str, sizeType pos, SizeT len = NPOS) const;
+    SizeT _getLength(
+        const FString& str,
+        sizeType pos,
+        SizeT len = NPOS
+    ) const;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -1908,8 +1892,7 @@ public:
     sizeType FindFirstOf(const char* other, sizeType pos = 0) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Finds the first occurrence of any character from a C-string with
-    /// length.
+    /// \brief Finds the first occurrence of any character from a C-string with length.
     ///
     /// \param other The C-string containing characters to search for.
     /// \param pos The position to start searching from.
@@ -1954,8 +1937,7 @@ public:
     sizeType FindLastOf(const char* other, sizeType pos = NPOS) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Finds the last occurrence of any character from a C-string with
-    /// length.
+    /// \brief Finds the last occurrence of any character from a C-string with length.
     ///
     /// \param other The C-string containing characters to search for.
     /// \param pos The position to start searching from (backward).
@@ -1983,8 +1965,7 @@ public:
     /// \param other The string containing characters to exclude.
     /// \param pos The position to start searching from.
     ///
-    /// \return The position of the first non-matching character, or NPOS if
-    /// not found.
+    /// \return The position of the first non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindFirstNotOf(const FString& other, sizeType pos = 0) const;
@@ -1995,8 +1976,7 @@ public:
     /// \param other The C-string containing characters to exclude.
     /// \param pos The position to start searching from.
     ///
-    /// \return The position of the first non-matching character, or NPOS if
-    /// not found.
+    /// \return The position of the first non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindFirstNotOf(const char* other, sizeType pos = 0) const;
@@ -2008,8 +1988,7 @@ public:
     /// \param pos The position to start searching from.
     /// \param n The number of characters in the C-string.
     ///
-    /// \return The position of the first non-matching character, or NPOS if
-    /// not found.
+    /// \return The position of the first non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindFirstNotOf(const char* other, sizeType pos, sizeType n) const;
@@ -2020,8 +1999,7 @@ public:
     /// \param ch The character to exclude.
     /// \param pos The position to start searching from.
     ///
-    /// \return The position of the first non-matching character, or NPOS if
-    /// not found.
+    /// \return The position of the first non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindFirstNotOf(char ch, sizeType pos = 0) const;
@@ -2032,8 +2010,7 @@ public:
     /// \param other The string containing characters to exclude.
     /// \param pos The position to start searching from (backward).
     ///
-    /// \return The position of the last non-matching character, or NPOS if not
-    /// found.
+    /// \return The position of the last non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindLastNotOf(const FString& other, sizeType pos = NPOS) const;
@@ -2044,8 +2021,7 @@ public:
     /// \param other The C-string containing characters to exclude.
     /// \param pos The position to start searching from (backward).
     ///
-    /// \return The position of the last non-matching character, or NPOS if not
-    /// found.
+    /// \return The position of the last non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindLastNotOf(const char* other, sizeType pos = NPOS) const;
@@ -2057,8 +2033,7 @@ public:
     /// \param pos The position to start searching from (backward).
     /// \param n The number of characters in the C-string.
     ///
-    /// \return The position of the last non-matching character, or NPOS if not
-    /// found.
+    /// \return The position of the last non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindLastNotOf(const char* other, sizeType pos, sizeType n) const;
@@ -2069,8 +2044,7 @@ public:
     /// \param ch The character to exclude.
     /// \param pos The position to start searching from (backward).
     ///
-    /// \return The position of the last non-matching character, or NPOS if not
-    /// found.
+    /// \return The position of the last non-matching character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
     sizeType FindLastNotOf(char ch, sizeType pos = NPOS) const;
@@ -2134,9 +2108,8 @@ private:
     /// \return The position of the found character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    sizeType _findFirstOf(
-        const char* other, SizeT len, sizeType pos, bool IsTrue
-    ) const;
+    sizeType _findFirstOf(const char* other, SizeT len, sizeType pos,
+        bool IsTrue) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Internal method to find the last occurrence of any character.
@@ -2149,9 +2122,8 @@ private:
     /// \return The position of the found character, or NPOS if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    sizeType _findLastOf(
-        const char* other, SizeT len, sizeType pos, bool IsTrue
-    ) const;
+    sizeType _findLastOf(const char* other, SizeT len, sizeType pos,
+        bool IsTrue) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Internal method to compare for character finding.
@@ -2165,7 +2137,10 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool _findOfCompare(
-        const char* other, SizeT len, sizeType pos, bool IsTrue
+        const char* other,
+        SizeT len,
+        sizeType pos,
+        bool IsTrue
     ) const;
 
 public:
@@ -2183,7 +2158,7 @@ public:
     /// \return The number of characters in the string.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeT Size(void) const;
+    inline SizeT Size(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the maximum possible size of the string.
@@ -2202,8 +2177,7 @@ public:
     void Resize(SizeT n);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Resizes the string to the specified length with a filler
-    /// character.
+    /// \brief Resizes the string to the specified length with a filler character.
     ///
     /// \param n The new length of the string.
     /// \param filler The character to fill any new positions.
@@ -2214,8 +2188,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the current capacity of the string.
     ///
-    /// \return The number of characters the string can hold without
-    /// reallocation.
+    /// \return The number of characters the string can hold without reallocation.
     ///
     ///////////////////////////////////////////////////////////////////////////
     SizeT Capacity(void) const;
@@ -2479,4 +2452,4 @@ std::ostream& operator>>(std::ostream& is, FString& str);
 ///////////////////////////////////////////////////////////////////////////////
 std::istream& getline(std::istream is, FString& str, char delim = '\n');
 
-}   // namespace tkd
+} // !namespace tkd

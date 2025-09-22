@@ -22,4 +22,4 @@ namespace tkd
 class UObject
 {};
 
-}   // namespace tkd
+} // !namespace tkd

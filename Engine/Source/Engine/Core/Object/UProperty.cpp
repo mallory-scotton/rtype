@@ -10,25 +10,10 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-UProperty::UProperty(
-    const FString& name,
-    const std::type_index& type,
-    SizeT offset,
-    EPropertyFlags flags
-)
-    : m_name(name)
-    , m_type(type)
-    , m_offset(offset)
-    , m_flags(flags)
+UProperty::UProperty(const FString& name, const FString& type, SizeT offset)
+    : propertyName(name)
+    , propertyType(type)
+    , offset(offset)
 {}
 
-///////////////////////////////////////////////////////////////////////////////
-const FString& UProperty::GetName(void) const { return m_name; }
-
-///////////////////////////////////////////////////////////////////////////////
-const std::type_index& UProperty::GetType(void) const { return m_type; }
-
-///////////////////////////////////////////////////////////////////////////////
-SizeT UProperty::GetOffset(void) const { return m_offset; }
-
-}   // namespace tkd
+} // !namespace tkd
