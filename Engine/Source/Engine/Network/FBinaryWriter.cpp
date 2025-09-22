@@ -53,7 +53,7 @@ void FBinaryWriter::Write(const FString& str)
     {
         SizeT needed = m_offset + strSize;
         if (m_buffer.size() < needed) { m_buffer.resize(needed); }
-        std::memcpy(m_buffer.data() + m_offset, str.CStr(), strSize);
+        std::memcpy(m_buffer.data() + m_offset, str.Data(), strSize);
         m_offset += strSize;
     }
 }
