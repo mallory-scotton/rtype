@@ -19,6 +19,7 @@ namespace tkd
 ///
 ///////////////////////////////////////////////////////////////////////////////
 constexpr UInt32 PROTOCOL_VERSION = 1;
+constexpr UInt32 MAGIC_NUMBER = 0xDEADBEEF;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Packet flags enumeration
@@ -37,7 +38,7 @@ enum class EPacketFlags : UInt16
 ///////////////////////////////////////////////////////////////////////////////
 struct FPacketHeader
 {
-    UInt32 magic = 0xDEADBEEF;                   //<! Magic number
+    UInt32 magic = MAGIC_NUMBER;                 //<! Magic number
     UInt32 protocolVersion = PROTOCOL_VERSION;   //<! Protocol version
     UInt16 flags = 0;                            //<! Flags for additional info
     UInt16 packetType = 0;                       //<! Packet type
