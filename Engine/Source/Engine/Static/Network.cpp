@@ -26,9 +26,15 @@ bool Network::Initialize(UInt16 port)
         return false;
     }
 
-    std::cout << "[Network] Server initialized on port " << port << std::endl;
-
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Network::Shutdown(void)
+{
+    if (s_server == nullptr) { return; }
+    s_server->Stop();
+    s_server = nullptr;
 }
 
 #endif
@@ -37,6 +43,9 @@ bool Network::Initialize(UInt16 port)
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Network::Initialize(UInt16 port) { return true; }
+
+///////////////////////////////////////////////////////////////////////////////
+void Network::Shutdown(void) {}
 
 #endif
 
