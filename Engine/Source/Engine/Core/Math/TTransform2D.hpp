@@ -9,6 +9,7 @@
 #include "TVector2.hpp"
 #include "TRotator2D.hpp"
 #include <type_traits>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -404,6 +405,29 @@ template <typename T>
 bool operator!=(const TTransform2D<T>& lhs, const TTransform2D<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output stream operator for TTransform2D
+///
+/// \tparam T The type of the transform components
+/// \param os The output stream
+/// \param transform The transform to output
+/// \return Reference to the output stream
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const TTransform2D<T>& transform)
+{
+    const auto& pos = transform.GetPosition();
+    const auto& rot = transform.GetRotation();
+    const auto& scale = transform.GetScale();
+    
+    os << "Transform2D(Position: (" << pos.x << ", " << pos.y << "), ";
+    os << "Rotation: " << rot.GetAngle() << ", ";
+    os << "Scale: (" << scale.x << ", " << scale.y << "))";
+    
+    return os;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

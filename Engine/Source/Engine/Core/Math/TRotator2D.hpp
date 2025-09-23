@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <type_traits>
 #include <cmath>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -327,6 +328,22 @@ template <typename T>
 bool operator!=(const TRotator2D<T>& lhs, const TRotator2D<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output stream operator for TRotator2D
+///
+/// \tparam T The type of the rotator components
+/// \param os The output stream
+/// \param rotator The rotator to output
+/// \return Reference to the output stream
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const TRotator2D<T>& rotator)
+{
+    os << "Rotator2D(Angle: " << rotator.GetAngle() << ")";
+    return os;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

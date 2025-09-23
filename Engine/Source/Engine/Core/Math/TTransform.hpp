@@ -9,6 +9,7 @@
 #include "TVector3.hpp"
 #include "TRotator.hpp"
 #include <type_traits>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -445,6 +446,29 @@ template <typename T>
 bool operator!=(const TTransform<T>& lhs, const TTransform<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output stream operator for TTransform position
+///
+/// \tparam T The type of the transform components
+/// \param os The output stream
+/// \param transform The transform to output position from
+/// \return Reference to the output stream
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const TTransform<T>& transform)
+{
+    const auto& pos = transform.GetPosition();
+    const auto& rot = transform.GetRotation();
+    const auto& scale = transform.GetScale();
+    
+    os << "Transform(Position: (" << pos.x << ", " << pos.y << ", " << pos.z << "), ";
+    os << "Rotation: (" << rot.GetPitch() << ", " << rot.GetYaw() << ", " << rot.GetRoll() << "), ";
+    os << "Scale: (" << scale.x << ", " << scale.y << ", " << scale.z << "))";
+    
+    return os;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -9,6 +9,7 @@
 #include "TVector3.hpp"
 #include <type_traits>
 #include <cmath>
+#include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -402,6 +403,24 @@ template <typename T>
 bool operator!=(const TRotator<T>& lhs, const TRotator<T>& rhs)
 {
     return !(lhs == rhs);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Output stream operator for TRotator
+///
+/// \tparam T The type of the rotator components
+/// \param os The output stream
+/// \param rotator The rotator to output
+/// \return Reference to the output stream
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const TRotator<T>& rotator)
+{
+    os << "Rotator(Pitch: " << rotator.GetPitch() 
+       << ", Yaw: " << rotator.GetYaw() 
+       << ", Roll: " << rotator.GetRoll() << ")";
+    return os;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
