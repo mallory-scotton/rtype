@@ -7,9 +7,9 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include "TVector3.hpp"
-#include <type_traits>
 #include <cmath>
 #include <iostream>
+#include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -41,9 +41,9 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Member variables
     ///////////////////////////////////////////////////////////////////////////
-    T m_pitch;    ///< Rotation around Y-axis (degrees)
-    T m_yaw;      ///< Rotation around Z-axis (degrees)
-    T m_roll;     ///< Rotation around X-axis (degrees)
+    T m_pitch;   ///< Rotation around Y-axis (degrees)
+    T m_yaw;     ///< Rotation around Z-axis (degrees)
+    T m_roll;    ///< Rotation around X-axis (degrees)
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -57,9 +57,13 @@ private:
     {
         T normalized = std::fmod(angle, static_cast<T>(360));
         if (normalized > static_cast<T>(180))
+        {
             normalized -= static_cast<T>(360);
+        }
         else if (normalized <= static_cast<T>(-180))
+        {
             normalized += static_cast<T>(360);
+        }
         return normalized;
     }
 
@@ -170,10 +174,7 @@ public:
     /// \return The pitch value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& GetPitch(void) const
-    {
-        return m_pitch;
-    }
+    const T& GetPitch(void) const { return m_pitch; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the yaw component
@@ -181,10 +182,7 @@ public:
     /// \return The yaw value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& GetYaw(void) const
-    {
-        return m_yaw;
-    }
+    const T& GetYaw(void) const { return m_yaw; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the roll component
@@ -192,10 +190,7 @@ public:
     /// \return The roll value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& GetRoll(void) const
-    {
-        return m_roll;
-    }
+    const T& GetRoll(void) const { return m_roll; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the pitch component
@@ -203,10 +198,7 @@ public:
     /// \param pitch The new pitch value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetPitch(const T& pitch)
-    {
-        m_pitch = NormalizeAngle(pitch);
-    }
+    void SetPitch(const T& pitch) { m_pitch = NormalizeAngle(pitch); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the yaw component
@@ -214,10 +206,7 @@ public:
     /// \param yaw The new yaw value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetYaw(const T& yaw)
-    {
-        m_yaw = NormalizeAngle(yaw);
-    }
+    void SetYaw(const T& yaw) { m_yaw = NormalizeAngle(yaw); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the roll component
@@ -225,10 +214,7 @@ public:
     /// \param roll The new roll value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetRoll(const T& roll)
-    {
-        m_roll = NormalizeAngle(roll);
-    }
+    void SetRoll(const T& roll) { m_roll = NormalizeAngle(roll); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if this is an identity rotation
@@ -238,8 +224,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     bool IsIdentity(void) const
     {
-        return m_pitch == static_cast<T>(0) &&
-               m_yaw == static_cast<T>(0) &&
+        return m_pitch == static_cast<T>(0) && m_yaw == static_cast<T>(0) &&
                m_roll == static_cast<T>(0);
     }
 
@@ -262,7 +247,9 @@ public:
     /// \return True if rotators are equal within tolerance
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool Equals(const TRotator& other, const T& tolerance = static_cast<T>(1e-6)) const
+    bool Equals(
+        const TRotator& other, const T& tolerance = static_cast<T>(1e-6)
+    ) const
     {
         return std::abs(m_pitch - other.m_pitch) <= tolerance &&
                std::abs(m_yaw - other.m_yaw) <= tolerance &&
@@ -307,11 +294,12 @@ public:
     /// \param roll Roll rotation to add (degrees)
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void Rotate(TRotator<T>& rotator, const T& pitch, const T& yaw, const T& roll)
+    static void Rotate(
+        TRotator<T>& rotator, const T& pitch, const T& yaw, const T& roll
+    )
     {
         rotator.Rotate(TRotator<T>(pitch, yaw, roll));
     }
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -333,7 +321,8 @@ template <typename T>
 TRotator<T> operator+(const TRotator<T>& lhs, const TRotator<T>& rhs)
 {
     TRotator<T> result = lhs;
-    result.Rotate(rhs);  // Use the same logic as operator+=
+    result.Rotate(rhs);   // Use the same logic as operator+
+
     return result;
 }
 
@@ -351,7 +340,7 @@ TRotator<T> operator+(const TRotator<T>& lhs, const T& rhs)
 {
     TRotator<T> result = lhs;
     TRotator<T> righthandside = TRotator(rhs, rhs, rhs);
-    result.Rotate(righthandside);  // Use the same logic as operator+=
+    result.Rotate(righthandside);   // Use the same logic as operator+=
 
     return result;
 }
@@ -385,9 +374,8 @@ TRotator<T>& operator+=(TRotator<T>& lhs, const TRotator<T>& rhs)
 template <typename T>
 bool operator==(const TRotator<T>& lhs, const TRotator<T>& rhs)
 {
-    return (lhs.GetPitch() == rhs.GetPitch() &&
-           lhs.GetYaw() == rhs.GetYaw() &&
-           lhs.GetRoll() == rhs.GetRoll());
+    return lhs.GetPitch() == rhs.GetPitch() && lhs.GetYaw() == rhs.GetYaw() &&
+           lhs.GetRoll() == rhs.GetRoll();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -417,9 +405,10 @@ bool operator!=(const TRotator<T>& lhs, const TRotator<T>& rhs)
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const TRotator<T>& rotator)
 {
-    os << "Rotator(Pitch: " << rotator.GetPitch() 
-       << ", Yaw: " << rotator.GetYaw() 
-       << ", Roll: " << rotator.GetRoll() << ")";
+    os << "Rotator(Pitch: " << rotator.GetPitch()
+       << ", Yaw: " << rotator.GetYaw() << ", Roll: " << rotator.GetRoll()
+       << ")";
+
     return os;
 }
 
