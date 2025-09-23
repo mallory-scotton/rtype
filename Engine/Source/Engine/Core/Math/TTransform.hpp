@@ -240,6 +240,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to scale a transform
+    ///
+    /// \param transform The transform to scale
+    /// \param scaleFactor Multiplier to current scale
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Scale(TTransform<T>& transform, const T& scaleFactor)
+    {
+        transform.Scale(scaleFactor);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief scale up or down current scale
     ///
     /// \param scaleFactor Vector multiplier to current scale
@@ -248,6 +260,18 @@ public:
     void Scale(const TVector3<T>& scaleFactors)
     {
         m_scale *= scaleFactors;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to scale a transform
+    ///
+    /// \param transform The transform to scale
+    /// \param scaleFactor Multiplier to current scale
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Scale(TTransform<T>& transform, const TVector3<T>& scaleFactors)
+    {
+        transform.Scale(scaleFactors);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -262,6 +286,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to translate a transform by scalar
+    ///
+    /// \param transform The transform to translate
+    /// \param translateFactor Scalar addition to current position
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Translate(TTransform<T>& transform, const T& translateFactor)
+    {
+        transform.Translate(translateFactor);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Change position based off old position
     ///
     /// \param translateFactor vector Addition to current position
@@ -270,6 +306,18 @@ public:
     void Translate(const TVector3<T>& translateFactor)
     {
         m_position += translateFactor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to translate a transform by vector
+    ///
+    /// \param transform The transform to translate
+    /// \param translateVector Vector addition to current position
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Translate(TTransform<T>& transform, const TVector3<T>& translateVector)
+    {
+        transform.Translate(translateVector);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -284,6 +332,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a transform by rotator
+    ///
+    /// \param transform The transform to rotate
+    /// \param rotation The rotation to add to current rotation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TTransform<T>& transform, const TRotator<T>& rotation)
+    {
+        transform.Rotate(rotation);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Rotate by individual Euler angles
     ///
     /// \param pitch Pitch rotation to add (degrees)
@@ -294,6 +354,20 @@ public:
     void Rotate(const T& pitch, const T& yaw, const T& roll)
     {
         m_rotation += TRotator<T>(pitch, yaw, roll);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a transform by individual angles
+    ///
+    /// \param transform The transform to rotate
+    /// \param pitch Pitch rotation to add (degrees)
+    /// \param yaw Yaw rotation to add (degrees)
+    /// \param roll Roll rotation to add (degrees)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TTransform<T>& transform, const T& pitch, const T& yaw, const T& roll)
+    {
+        transform.Rotate(pitch, yaw, roll);
     }
 };
 
@@ -316,7 +390,9 @@ template <typename T>
 TTransform<T> operator*(const TTransform<T>& lhs, const TTransform<T>& rhs)
 {
     // Transform composition: first apply rhs, then lhs
-    TVector3<T> newPosition = lhs.GetPosition() + lhs.GetRotation().RotateVector(rhs.GetPosition() * lhs.GetScale());
+    TVector3<T> newPosition = lhs.GetPosition() +
+        lhs.GetRotation().RotateVector(rhs.GetPosition() *
+        lhs.GetScale());
     TRotator<T> newRotation = lhs.GetRotation() * rhs.GetRotation();
     TVector3<T> newScale = lhs.GetScale() * rhs.GetScale();
 

@@ -240,6 +240,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to scale a transform by scalar
+    ///
+    /// \param transform The transform to scale
+    /// \param scaleFactor Multiplier to current scale
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Scale(TTransform2D<T>& transform, const T& scaleFactor)
+    {
+        transform.Scale(scaleFactor);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief scale up or down current scale
     ///
     /// \param scaleFactor Vector multiplier to current scale
@@ -248,6 +260,18 @@ public:
     void Scale(const TVector2<T>& scaleFactors)
     {
         m_scale *= scaleFactors;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to scale a transform by vector
+    ///
+    /// \param transform The transform to scale
+    /// \param scaleFactors Vector multiplier to current scale
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Scale(TTransform2D<T>& transform, const TVector2<T>& scaleFactors)
+    {
+        transform.Scale(scaleFactors);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -262,6 +286,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to translate a transform by scalar
+    ///
+    /// \param transform The transform to translate
+    /// \param translateFactor Scalar addition to current position
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Translate(TTransform2D<T>& transform, const T& translateFactor)
+    {
+        transform.Translate(translateFactor);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Change position based off old position
     ///
     /// \param translateFactor vector Addition to current position
@@ -270,6 +306,18 @@ public:
     void Translate(const TVector2<T>& translateFactor)
     {
         m_position += translateFactor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to translate a transform by vector
+    ///
+    /// \param transform The transform to translate
+    /// \param translateVector Vector addition to current position
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Translate(TTransform2D<T>& transform, const TVector2<T>& translateVector)
+    {
+        transform.Translate(translateVector);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -284,6 +332,18 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a transform by rotator
+    ///
+    /// \param transform The transform to rotate
+    /// \param rotation The rotation to add to current rotation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TTransform2D<T>& transform, const TRotator2D<T>& rotation)
+    {
+        transform.Rotate(rotation);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Rotate by angle
     ///
     /// \param angle Angle rotation to add (degrees)
@@ -293,6 +353,19 @@ public:
     {
         m_rotation += TRotator2D<T>(angle);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a transform by angle
+    ///
+    /// \param transform The transform to rotate
+    /// \param angle Angle rotation to add (degrees)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TTransform2D<T>& transform, const T& angle)
+    {
+        transform.Rotate(angle);
+    }
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
