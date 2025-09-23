@@ -6,10 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include "TVector3.hpp"
 #include "TRotator.hpp"
-#include <type_traits>
+#include "TVector3.hpp"
 #include <iostream>
+#include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -26,7 +26,6 @@ namespace tkd
 template <typename T>
 class TTransform
 {
-
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Members
@@ -37,9 +36,9 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Member variables
     ///////////////////////////////////////////////////////////////////////////
-    TVector3<T> m_position;    ///< Position in 3D space
-    TRotator<T> m_rotation;    ///< Rotation component
-    TVector3<T> m_scale;       ///< Scale component
+    TVector3<T> m_position;   ///< Position in 3D space
+    TRotator<T> m_rotation;   ///< Rotation component
+    TVector3<T> m_scale;      ///< Scale component
 
 public:
     static_assert(
@@ -65,7 +64,11 @@ public:
     /// \param scale The scale component
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TTransform(const TVector3<T>& position, const TRotator<T>& rotation, const TVector3<T>& scale)
+    TTransform(
+        const TVector3<T>& position,
+        const TRotator<T>& rotation,
+        const TVector3<T>& scale
+    )
         : m_position(position)
         , m_rotation(rotation)
         , m_scale(scale)
@@ -109,7 +112,7 @@ public:
         , m_scale(other.GetScale())
     {}
 
-    public:
+public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Copy assignment operator
     ///
@@ -146,17 +149,14 @@ public:
         return *this;
     }
 
-    public:
+public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the position component
     ///
     /// \return Const reference to the position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TVector3<T>& GetPosition(void) const
-    {
-        return m_position;
-    }
+    const TVector3<T>& GetPosition(void) const { return m_position; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the rotation component
@@ -164,10 +164,7 @@ public:
     /// \return Const reference to the rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TRotator<T>& GetRotation(void) const
-    {
-        return m_rotation;
-    }
+    const TRotator<T>& GetRotation(void) const { return m_rotation; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the scale component
@@ -175,10 +172,7 @@ public:
     /// \return Const reference to the scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TVector3<T>& GetScale(void) const
-    {
-        return m_scale;
-    }
+    const TVector3<T>& GetScale(void) const { return m_scale; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the position component
@@ -186,10 +180,7 @@ public:
     /// \param position The new position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetPosition(const TVector3<T>& position)
-    {
-        m_position = position;
-    }
+    void SetPosition(const TVector3<T>& position) { m_position = position; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the rotation component
@@ -197,10 +188,7 @@ public:
     /// \param rotation The new rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetRotation(const TRotator<T>& rotation)
-    {
-        m_rotation = rotation;
-    }
+    void SetRotation(const TRotator<T>& rotation) { m_rotation = rotation; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the scale component
@@ -208,10 +196,7 @@ public:
     /// \param scale The new scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetScale(const TVector3<T>& scale)
-    {
-        m_scale = scale;
-    }
+    void SetScale(const TVector3<T>& scale) { m_scale = scale; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform scale
@@ -235,10 +220,7 @@ public:
     /// \param scaleFactor Multiplier to current scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Scale(const T& scaleFactor)
-    {
-        m_scale *= scaleFactor;
-    }
+    void Scale(const T& scaleFactor) { m_scale *= scaleFactor; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to scale a transform
@@ -258,10 +240,7 @@ public:
     /// \param scaleFactor Vector multiplier to current scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Scale(const TVector3<T>& scaleFactors)
-    {
-        m_scale *= scaleFactors;
-    }
+    void Scale(const TVector3<T>& scaleFactors) { m_scale *= scaleFactors; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to scale a transform
@@ -270,7 +249,8 @@ public:
     /// \param scaleFactor Multiplier to current scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void Scale(TTransform<T>& transform, const TVector3<T>& scaleFactors)
+    static void
+        Scale(TTransform<T>& transform, const TVector3<T>& scaleFactors)
     {
         transform.Scale(scaleFactors);
     }
@@ -281,10 +261,7 @@ public:
     /// \param translateFactor Addition to current position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Translate(const T& translateFactor)
-    {
-        m_position += translateFactor;
-    }
+    void Translate(const T& translateFactor) { m_position += translateFactor; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to translate a transform by scalar
@@ -316,7 +293,8 @@ public:
     /// \param translateVector Vector addition to current position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void Translate(TTransform<T>& transform, const TVector3<T>& translateVector)
+    static void
+        Translate(TTransform<T>& transform, const TVector3<T>& translateVector)
     {
         transform.Translate(translateVector);
     }
@@ -327,10 +305,7 @@ public:
     /// \param rotation The rotation to add to current rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Rotate(const TRotator<T>& rotation)
-    {
-        m_rotation += rotation;
-    }
+    void Rotate(const TRotator<T>& rotation) { m_rotation += rotation; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to rotate a transform by rotator
@@ -366,7 +341,9 @@ public:
     /// \param roll Roll rotation to add (degrees)
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void Rotate(TTransform<T>& transform, const T& pitch, const T& yaw, const T& roll)
+    static void Rotate(
+        TTransform<T>& transform, const T& pitch, const T& yaw, const T& roll
+    )
     {
         transform.Rotate(pitch, yaw, roll);
     }
@@ -391,13 +368,13 @@ template <typename T>
 TTransform<T> operator*(const TTransform<T>& lhs, const TTransform<T>& rhs)
 {
     // Transform composition: first apply rhs, then lhs
-    TVector3<T> newPosition = lhs.GetPosition() +
-        lhs.GetRotation().RotateVector(rhs.GetPosition() *
-        lhs.GetScale());
+    TVector3<T> newPosition =
+        lhs.GetPosition() +
+        lhs.GetRotation().RotateVector(rhs.GetPosition() * lhs.GetScale());
     TRotator<T> newRotation = lhs.GetRotation() * rhs.GetRotation();
     TVector3<T> newScale = lhs.GetScale() * rhs.GetScale();
 
-    return (TTransform<T>(newPosition, newRotation, newScale));
+    return TTransform<T>(newPosition, newRotation, newScale);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -463,11 +440,13 @@ std::ostream& operator<<(std::ostream& os, const TTransform<T>& transform)
     const auto& pos = transform.GetPosition();
     const auto& rot = transform.GetRotation();
     const auto& scale = transform.GetScale();
-    
-    os << "Transform(Position: (" << pos.x << ", " << pos.y << ", " << pos.z << "), ";
-    os << "Rotation: (" << rot.GetPitch() << ", " << rot.GetYaw() << ", " << rot.GetRoll() << "), ";
+
+    os << "Transform(Position: (" << pos.x << ", " << pos.y << ", " << pos.z
+       << "), ";
+    os << "Rotation: (" << rot.GetPitch() << ", " << rot.GetYaw() << ", "
+       << rot.GetRoll() << "), ";
     os << "Scale: (" << scale.x << ", " << scale.y << ", " << scale.z << "))";
-    
+
     return os;
 }
 

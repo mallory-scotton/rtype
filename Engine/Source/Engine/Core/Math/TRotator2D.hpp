@@ -6,9 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <type_traits>
 #include <cmath>
 #include <iostream>
+#include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -40,7 +40,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Member variables
     ///////////////////////////////////////////////////////////////////////////
-    T m_angle;    ///< Rotation angle (degrees)
+    T m_angle;   ///< Rotation angle (degrees)
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -54,9 +54,13 @@ private:
     {
         T normalized = std::fmod(angle, static_cast<T>(360));
         if (normalized > static_cast<T>(180))
+        {
             normalized -= static_cast<T>(360);
+        }
         else if (normalized <= static_cast<T>(-180))
+        {
             normalized += static_cast<T>(360);
+        }
         return normalized;
     }
 
@@ -121,10 +125,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TRotator2D& operator=(const TRotator2D& other)
     {
-        if (this != &other)
-        {
-            m_angle = other.m_angle;
-        }
+        if (this != &other) { m_angle = other.m_angle; }
         return *this;
     }
 
@@ -137,10 +138,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TRotator2D& operator=(TRotator2D&& other) noexcept
     {
-        if (this != &other)
-        {
-            m_angle = other.m_angle;
-        }
+        if (this != &other) { m_angle = other.m_angle; }
         return *this;
     }
 
@@ -151,10 +149,7 @@ public:
     /// \return The angle value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& GetAngle(void) const
-    {
-        return m_angle;
-    }
+    const T& GetAngle(void) const { return m_angle; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the angle component
@@ -162,10 +157,7 @@ public:
     /// \param angle The new angle value in degrees
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetAngle(const T& angle)
-    {
-        m_angle = NormalizeAngle(angle);
-    }
+    void SetAngle(const T& angle) { m_angle = NormalizeAngle(angle); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if this is an identity rotation
@@ -173,19 +165,13 @@ public:
     /// \return True if angle is zero
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool IsIdentity(void) const
-    {
-        return m_angle == static_cast<T>(0);
-    }
+    bool IsIdentity(void) const { return m_angle == static_cast<T>(0); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Reset to identity rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Reset(void)
-    {
-        m_angle = static_cast<T>(0);
-    }
+    void Reset(void) { m_angle = static_cast<T>(0); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check equality with tolerance
@@ -195,7 +181,9 @@ public:
     /// \return True if rotators are equal within tolerance
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool Equals(const TRotator2D& other, const T& tolerance = static_cast<T>(1e-6)) const
+    bool Equals(
+        const TRotator2D& other, const T& tolerance = static_cast<T>(1e-6)
+    ) const
     {
         return std::abs(m_angle - other.m_angle) <= tolerance;
     }
@@ -238,7 +226,6 @@ public:
     {
         rotator.Rotate(TRotator2D<T>(angle));
     }
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,7 +247,7 @@ template <typename T>
 TRotator2D<T> operator+(const TRotator2D<T>& lhs, const TRotator2D<T>& rhs)
 {
     TRotator2D<T> result = lhs;
-    result.Rotate(rhs);  // Use the same logic as operator+=
+    result.Rotate(rhs);   // Use the same logic as operator+=
     return result;
 }
 
@@ -278,7 +265,7 @@ TRotator2D<T> operator+(const TRotator2D<T>& lhs, const T& rhs)
 {
     TRotator2D<T> result = lhs;
     TRotator2D<T> righthandside = TRotator2D<T>(rhs);
-    result.Rotate(righthandside);  // Use the same logic as operator+=
+    result.Rotate(righthandside);   // Use the same logic as operator+=
 
     return result;
 }
@@ -312,7 +299,7 @@ TRotator2D<T>& operator+=(TRotator2D<T>& lhs, const TRotator2D<T>& rhs)
 template <typename T>
 bool operator==(const TRotator2D<T>& lhs, const TRotator2D<T>& rhs)
 {
-    return (lhs.GetAngle() == rhs.GetAngle());
+    return lhs.GetAngle() == rhs.GetAngle();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
