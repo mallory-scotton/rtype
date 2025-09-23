@@ -281,6 +281,36 @@ public:
         m_roll = NormalizeAngle(m_roll + rotator.m_roll);
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    // Static utility functions
+    ///////////////////////////////////////////////////////////////////////////
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a rotator by another rotator
+    ///
+    /// \param rotator The rotator to rotate
+    /// \param rotation The rotation to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TRotator<T>& rotator, const TRotator<T>& rotation)
+    {
+        rotator.Rotate(rotation);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static method to rotate a rotator by individual angles
+    ///
+    /// \param rotator The rotator to rotate
+    /// \param pitch Pitch rotation to add (degrees)
+    /// \param yaw Yaw rotation to add (degrees)
+    /// \param roll Roll rotation to add (degrees)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Rotate(TRotator<T>& rotator, const T& pitch, const T& yaw, const T& roll)
+    {
+        rotator.Rotate(TRotator<T>(pitch, yaw, roll));
+    }
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
