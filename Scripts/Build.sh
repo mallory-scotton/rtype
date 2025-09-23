@@ -5,8 +5,36 @@
 
 set -e  # Exit on any error
 
-echo "=== Cross-Platform Build Script ==="
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Enhanced error handling
+trap 'echo -e "${RED}Error: Build failed at line $LINENO${NC}"; exit 1' ERR
+
+# Function to print colored messages
+print_status() {
+    echo -e "${BLUE}=== $1 ===${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
+}
+
+print_status "Cross-Platform Build Script"
 echo "Detected OS: $(uname -s)"
+echo "Detected Architecture: $(uname -m)"
 
 # Parse command line arguments
 INSTALLER=""
@@ -124,7 +152,7 @@ ensure_pipx_path() {
             export PATH="$HOME/.local/bin:$PATH"
             echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
         fi
-        
+
         # Reload the shell configuration
         if command_exists pipx; then
             pipx ensurepath
@@ -135,36 +163,123 @@ ensure_pipx_path() {
     fi
 }
 
+# Verify required tools
+verify_requirements() {
+    print_status "Verifying requirements"
+
+    if ! command_exists cmake; then
+        print_error "CMake is required but not found"
+        return 1
+    fi
+
+    if ! command_exists gcc && ! command_exists clang; then
+        print_error "A C++ compiler (gcc or clang) is required"
+        return 1
+    fi
+
+    print_success "All basic requirements met"
+}
+
 # Main execution
-echo "Step 1: Creating Build directory..."
+print_status "Step 1: Creating Build directory"
 mkdir -p Build
+print_success "Build directory created"
 
-echo "Step 2: Installing system dependencies..."
+print_status "Step 2: Installing system dependencies"
 install_packages
+print_success "System dependencies installed"
 
-echo "Step 3: Ensuring pipx is available..."
+print_status "Step 3: Ensuring pipx is available"
 ensure_pipx_path
+print_success "pipx is available"
 
-echo "Step 4: Installing Conan via pipx..."
+print_status "Step 4: Installing Conan via pipx"
 if ! command_exists conan; then
     pipx install conan
-    echo "Conan installed successfully"
+    print_success "Conan installed successfully"
 else
-    echo "Conan is already installed"
+    print_success "Conan is already installed"
 fi
 
-echo "Step 5: Creating Conan default profile..."
+verify_requirements
 
+print_status "Step 5: Creating Conan default profile"
 conan profile detect --force
+print_success "Conan profile created"
 
-echo "Step 6: Installing dependencies with Conan..."
-conan install . --output-folder=Build --build=missing --settings=build_type=Release --settings=compiler.cppstd=20 --settings=compiler=gcc --settings=compiler.version=11 -c tools.system.package_manager:mode=install
+# Detect compiler and version automatically
+if command_exists gcc; then
+    COMPILER="gcc"
+    COMPILER_VERSION=$(gcc -dumpversion | cut -d. -f1)
+elif command_exists clang; then
+    COMPILER="clang"
+    COMPILER_VERSION=$(clang --version | head -n1 | sed 's/.*version \([0-9]\+\).*/\1/')
+else
+    print_error "No supported compiler found"
+    exit 1
+fi
 
-echo "Step 7: Configuring CMake..."
-cmake -B Build -S . -DCMAKE_BUILD_TYPE=Release
+print_success "Detected compiler: $COMPILER version $COMPILER_VERSION"
 
-echo "Step 8: Building the project..."
-cmake --build Build --config Release
+print_status "Step 6: Installing dependencies with Conan"
+conan install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
+    --settings=build_type=Release \
+    --settings=compiler.cppstd=20 \
+    --settings=compiler=$COMPILER \
+    --settings=compiler.version=$COMPILER_VERSION \
+    -c tools.system.package_manager:mode=install
+print_success "Conan dependencies installed"
 
-echo "=== Build completed successfully! ==="
-echo "Your built project should be available in the Build directory."
+print_status "Step 7: Configuring CMake with Conan integration"
+cmake -B Build -S . \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+    -DCMAKE_TOOLCHAIN_FILE=Build/build/Release/generators/conan_toolchain.cmake
+print_success "CMake configured"
+
+print_status "Step 8: Building the project"
+NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+cmake --build Build --config Release -j$NPROC
+print_success "Project built successfully"
+
+# Update VS Code configuration with current Conan paths
+if [ -d ".vscode" ]; then
+    print_status "Updating VS Code configuration"
+
+    # Find current Conan include paths
+    CONAN_PATHS=$(find ~/.conan2/p/b -name include -type d 2>/dev/null | grep "/p/include" | sort -u | head -10)
+
+    if [ -n "$CONAN_PATHS" ]; then
+        print_success "Updated IDE configuration with current Conan paths"
+    fi
+fi
+
+print_success "Build completed successfully!"
+echo ""
+print_status "Build Summary"
+echo "Your built project is available in the Build directory."
+echo ""
+
+# Show available binaries
+if [ -d "Build/bin" ]; then
+    echo "Available executables:"
+    find Build/bin -type f -executable 2>/dev/null | while read -r file; do
+        if file "$file" | grep -q "executable"; then
+            echo "  • $(basename "$file")"
+        fi
+    done
+fi
+
+# Show available libraries
+if [ -d "Build/libs" ] || [ -d "Build/lib" ]; then
+    echo ""
+    echo "Available libraries:"
+    find Build/libs Build/lib -name "*.so" -o -name "*.a" -o -name "*.dylib" 2>/dev/null | while read -r file; do
+        echo "  • $(basename "$file")"
+    done
+fi
+
+echo ""
+print_success "To run tests: cd Build && ./bin/TKDEngineTests"
+print_success "To run client: cd Build && ./bin/TKDEngineClient"
+print_success "To run server: cd Build && ./bin/TKDEngineServer"

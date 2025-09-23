@@ -12,20 +12,23 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Conan integration for the entire project
-if(EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
-    include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
     message(STATUS "Using Conan toolchain")
 endif()
 
-if(EXISTS ${CMAKE_BINARY_DIR}/conandeps.cmake)
-    include(${CMAKE_BINARY_DIR}/conandeps.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
     message(STATUS "Using Conan dependencies")
 endif()
+
+# Create output directories
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/libs)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Add subdirectories
 add_subdirectory(Engine)
 add_subdirectory(Game)
-add_subdirectory(Server)
 
 # Clang-Format target
 find_program(CLANG_FORMAT "clang-format")

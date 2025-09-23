@@ -119,7 +119,7 @@ public:
         ///////////////////////////////////////////////////////////////////////
         template <typename T>
         static constexpr bool IsValidEventType =
-            (std::disjunction_v<std::is_same<T, EventTypes>...>);
+            (std::disjunction_v<std::is_same<std::decay_t<T>, EventTypes>...>);
 
     public:
         ///////////////////////////////////////////////////////////////////////
@@ -704,45 +704,28 @@ protected:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Helper to convert a TEvents struct to a TEventEmitter
+/// \brief Helper to detect if first template argument is a tuple
 ///
-/// \tparam Tuple Tuple of event types from TEvents::All
-///
-///////////////////////////////////////////////////////////////////////////////
-template <typename Tuple>
-struct TupleToTEventEmitter;
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Helper to convert a tuple of types to a TEventEmitter
-///
-/// \tparam Ts Variadic template parameters representing event types
+/// \tparam EventTypes Variadic template parameters
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <typename... Ts>
-struct TupleToTEventEmitter<std::tuple<Ts...>>
+template <typename... EventTypes>
+struct TEventEmitterHelper
 {
-    using type = TEventEmitter<Ts...>;
+    using type = __internal::TEventEmitter<EventTypes...>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Helper to detect if a type is a tuple
+/// \brief Specialization for tuple as first argument
 ///
-/// \tparam T First type parameter (could be tuple or first event type)
-///
-///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-struct IsTuple : std::false_type
-{};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Helper to detect if a type is a tuple
-///
-/// \tparam T First type parameter (could be tuple or first event type)
+/// \tparam Ts Types in the tuple
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <typename... Ts>
-struct IsTuple<std::tuple<Ts...>> : std::true_type
-{};
+struct TEventEmitterHelper<std::tuple<Ts...>>
+{
+    using type = __internal::TEventEmitter<Ts...>;
+};
 
 }   // namespace __internal
 
@@ -754,10 +737,8 @@ struct IsTuple<std::tuple<Ts...>> : std::true_type
 /// \tparam EventTypes Additional event types (empty for tuple case)
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, typename... EventTypes>
-using TEventEmitter = std::conditional_t<
-    __internal::IsTuple<T>::value && sizeof...(EventTypes) == 0,
-    typename __internal::TupleToTEventEmitter<T>::type,
-    __internal::TEventEmitter<T, EventTypes...>>;
+template <typename... EventTypes>
+using TEventEmitter =
+    typename __internal::TEventEmitterHelper<EventTypes...>::type;
 
 }   // namespace tkd

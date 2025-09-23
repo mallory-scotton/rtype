@@ -7,3 +7,5 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Core.hpp>
+#include <Engine/Runtime/Time.hpp>
+#include <Engine/Runtime/World.hpp>

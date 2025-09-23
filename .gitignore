@@ -39,3 +39,6 @@ vgcore.*
 .env
 .env.*
 !.env.example
+
+# IDE files
+compile_commands.json

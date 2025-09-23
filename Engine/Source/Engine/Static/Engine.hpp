@@ -7,7 +7,9 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core.hpp>
 #include <Engine/Runtime.hpp>
+#include <Engine/Static/Network.hpp>
 #include <Engine/Static/Window.hpp>
 #include <Engine/Static/World.hpp>
 #include <type_traits>
@@ -26,12 +28,22 @@ class Engine
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using UThread = std::unique_ptr<FThread>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    static bool
-        s_isInitialized;     //<! Flag indicating if the engine is initialized
-    static int s_exitCode;   //<! Exit code of the engine
-    static bool s_isRunning;   //<! Flag indicating if the engine is running
+    static bool s_isInitialized;            //<! Flag indicating the init state
+    static int s_exitCode;                  //<! Exit code of the engine
+    static std::atomic<bool> s_isRunning;   //<! Flag indicating running state
+    static FString s_exitMessage;           //<! Exit message of the engine
+    static UThread s_mainThread;            //<! Main thread of the engine
+#if TKD_ENGINE_CLIENT
+    static UThread s_renderThread;          //<! Render thread of the engine
+#endif
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -41,6 +53,28 @@ public:
     using Window = tkd::__internal::Window;
 #endif
     using World = tkd::__internal::World;
+    using Network = tkd::__internal::Network;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Function executed by the main thread
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void MainThreadFunction(void);
+
+#if TKD_ENGINE_CLIENT
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Function executed by the render thread
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void RenderThreadFunction(void);
+#endif
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Print the engine's startup message
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void PrintStartupMessage(void);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -84,6 +118,28 @@ public:
     static int GetExitCode(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Print the engine's exit message
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void PrintExitMessage(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the engine's exit code
+    ///
+    /// \param code The exit code to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SetExitCode(int code);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the engine's exit message
+    ///
+    /// \param message The exit message to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SetExitMessage(const FString& message);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the game class to be used with the engine
     ///
     /// \tparam Game The game class to be used with the engine
@@ -108,16 +164,42 @@ public:
 using Engine = tkd::__internal::Engine;
 
 ///////////////////////////////////////////////////////////////////////////////
+// Weak symbols for game creation and destruction
+///////////////////////////////////////////////////////////////////////////////
+#define TKD_EXPORT_WEAK \
+    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) TKD_WEAK; \
+    extern "C" std::string TKD_GetEngineVersion(void) TKD_WEAK; \
+    extern "C" std::string TKD_GetGameName(void) TKD_WEAK; \
+    extern "C" std::string TKD_GetGameVersion(void) TKD_WEAK; \
+    extern "C" std::string TKD_GetGameDescription(void) TKD_WEAK;
+
+///////////////////////////////////////////////////////////////////////////////
 // Main entry of the engine
 ///////////////////////////////////////////////////////////////////////////////
-#define TKD_ENGINE_MAIN(Game) \
-    int main(int argc, char* argv[]) \
+#define TKD_EXPORT_GAME(                                             \
+    GameClass, EngineVersion, GameName, GameVersion, GameDescription \
+) \
+    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) \
     { \
-        if (tkd::__internal::Engine::Initialize(argc, argv)) \
-        { \
-            tkd::__internal::Engine::BindGameClass<Game>(); \
-            tkd::__internal::Engine::Run(); \
-            tkd::__internal::Engine::Shutdown(); \
-        } \
-        return tkd::__internal::Engine::GetExitCode(); \
+        static_assert( \
+            std::is_base_of<tkd::IGame, GameClass>::value, \
+            "GameClass must be derived from tkd::IGame" \
+        ); \
+        return std::make_unique<GameClass>(); \
+    } \
+    extern "C" std::string TKD_GetEngineVersion(void) \
+    { \
+        return EngineVersion; \
+    } \
+    extern "C" std::string TKD_GetGameName(void) \
+    { \
+        return GameName; \
+    } \
+    extern "C" std::string TKD_GetGameVersion(void) \
+    { \
+        return GameVersion; \
+    } \
+    extern "C" std::string TKD_GetGameDescription(void) \
+    { \
+        return GameDescription; \
     }

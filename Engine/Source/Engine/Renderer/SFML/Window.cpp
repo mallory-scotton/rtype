@@ -8,7 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd::SFML
 {
-
+#if TKD_ENGINE_CLIENT
 ///////////////////////////////////////////////////////////////////////////////
 Window::Window(
     const FString& title,
@@ -282,5 +282,6 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
     // Display the contents of the window
     m_window->display();
 }
+#endif
 
 }   // namespace tkd::SFML

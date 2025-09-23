@@ -9,8 +9,9 @@
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/IWindow.hpp>
 #include <memory>
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
+#if TKD_ENGINE_CLIENT
+    #include <SFML/Graphics.hpp>
+    #include <SFML/Window.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -216,3 +217,4 @@ public:
 };
 
 }   // namespace tkd::SFML
+#endif

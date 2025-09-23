@@ -149,7 +149,7 @@ public:
     {
         m_instance.reset();
         // Reset the once_flag by reconstructing it
-        m_onceFlag = std::once_flag{};
+        new (&m_onceFlag) std::once_flag();
     }
 
     ///////////////////////////////////////////////////////////////////////////

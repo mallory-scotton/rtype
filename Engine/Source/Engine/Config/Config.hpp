@@ -9,13 +9,12 @@
 #define TKD_VERSION_MAJOR      1
 #define TKD_VERSION_MINOR      0
 #define TKD_VERSION_PATCH      0
+#define TKD_VERSION_TYPE       "alpha"
+#define TKD_VERSION_STRING     "1.0.0-alpha"
 #define TKD_VERSION_IS_RELEASE false
-
-///////////////////////////////////////////////////////////////////////////////
-// Version String
-///////////////////////////////////////////////////////////////////////////////
-#define TKD_SHORT_VERSION_STRING TKD_VERSION_MAJOR "." TKD_VERSION_MINOR
-#define TKD_VERSION_STRING TKD_SHORT_VERSION_STRING "." TKD_VERSION_PATCH
+#define TKD_ENGINE_GROUP       "TekyoDrift"
+#define TKD_ENGINE_WEBSITE     "https://github.com/mallory-scotton/rtype"
+#define TKD_BUILD_DATE         __DATE__ " @ " __TIME__ " UTC"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
@@ -25,10 +24,24 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// Identify the architecture
+///////////////////////////////////////////////////////////////////////////////
+#if defined(__x86_64__) || defined(_M_X64)
+    #define ARCH_NAME " (x86_64)"
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    #define ARCH_NAME " (arm64)"
+#elif defined(__i386__) || defined(_M_IX86)
+    #define ARCH_NAME " (x86 32-bit)"
+#else
+    #define ARCH_NAME ""
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // Identify the operating system
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(_WIN32)
     #define TKD_SYSTEM_WINDOWS
+    #define TKD_SYSTEM_NAME "Windows"
     #ifndef NOMINMAX
         #define NOMINMAX
     #endif
@@ -36,27 +49,45 @@
     #include "TargetConditionals.h"
     #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
         #define TKD_SYSTEM_IOS
+        #define TKD_SYSTEM_NAME "iOS" ARCH_NAME
     #elif TARGET_OS_MAC
         #define TKD_SYSTEM_MACOS
+        #define TKD_SYSTEM_NAME "macOS" ARCH_NAME
     #else
         #error This Apple operating system is not supported by TKD library
     #endif
 #elif defined(__unix__)
     #if defined(__ANDROID__)
         #define TKD_SYSTEM_ANDROID
+        #define TKD_SYSTEM_NAME "Android" ARCH_NAME
     #elif defined(__linux__)
         #define TKD_SYSTEM_LINUX
+        #define TKD_SYSTEM_NAME "Linux" ARCH_NAME
     #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
         #define TKD_SYSTEM_FREEBSD
+        #define TKD_SYSTEM_NAME "FreeBSD" ARCH_NAME
     #elif defined(__OpenBSD__)
         #define TKD_SYSTEM_OPENBSD
+        #define TKD_SYSTEM_NAME "OpenBSD" ARCH_NAME
     #elif defined(__NetBSD__)
         #define TKD_SYSTEM_NETBSD
+        #define TKD_SYSTEM_NAME "NetBSD" ARCH_NAME
     #else
         #error This UNIX operating system is not supported by TKD library
     #endif
 #else
     #error This operating system is not supported by TKD library
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Weak linking support
+///////////////////////////////////////////////////////////////////////////////
+#if defined(__GNUC__) || defined(__clang__)
+    #define TKD_WEAK __attribute__((__weak__))
+#elif defined(_MSC_VER)
+    #define TKD_WEAK __declspec(selectany)
+#else
+    #define TKD_WEAK
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,9 +142,15 @@
 #if defined(TKD_ENGINE_WITH_GRAPHICS)
     #define TKD_ENGINE_SERVER false
     #define TKD_ENGINE_CLIENT true
+    #define TKD_ENGINE_IF_CLIENT(code) code
+    #define TKD_ENGINE_IF_SERVER(code)
+    #define TKD_ENGINE_TYPE "Client"
 #else
     #define TKD_ENGINE_SERVER true
     #define TKD_ENGINE_CLIENT false
+    #define TKD_ENGINE_IF_CLIENT(code)
+    #define TKD_ENGINE_IF_SERVER(code) code
+    #define TKD_ENGINE_TYPE "Server"
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
