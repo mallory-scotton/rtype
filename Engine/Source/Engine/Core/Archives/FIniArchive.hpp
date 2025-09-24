@@ -238,6 +238,49 @@ public:
         {
             return ConvertTo<T>();
         }
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Convert the value to the specified type using template
+        /// magic, returning a default value if conversion fails
+        ///
+        /// \tparam T The type to convert to
+        ///
+        /// \param defaultValue
+        ///
+        /// \return The converted value or the default value if conversion
+        /// fails
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        template <typename T>
+        T As(const T& defaultValue) const
+        {
+            return AsOr<T>(defaultValue);
+        }
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Convert the value to the specified type using template
+        /// magic, returning a default value if conversion fails
+        ///
+        /// \tparam T The type to convert to
+        ///
+        /// \param defaultValue
+        ///
+        /// \return The converted value or the default value if conversion
+        /// fails
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        template <typename T>
+        T AsOr(const T& defaultValue) const
+        {
+            try
+            {
+                return ConvertTo<T>();
+            }
+            catch (const std::exception&)
+            {
+                return defaultValue;
+            }
+        }
     };
 
     ///////////////////////////////////////////////////////////////////////////
