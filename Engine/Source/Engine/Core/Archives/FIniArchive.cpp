@@ -27,6 +27,13 @@ FIniArchive::Value::operator bool(void) const { return ConvertTo<bool>(); }
 FIniArchive::Value::operator float(void) const { return ConvertTo<float>(); }
 
 ///////////////////////////////////////////////////////////////////////////////
+FIniArchive::Value& FIniArchive::Value::operator=(const std::string& value)
+{
+    m_value = value;
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool operator==(const FIniArchive::Value& lhs, const FIniArchive::Value& rhs)
 {
     return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);

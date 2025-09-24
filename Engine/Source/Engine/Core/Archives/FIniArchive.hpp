@@ -124,6 +124,33 @@ public:
         ///////////////////////////////////////////////////////////////////////
         operator float(void) const;
 
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Assign a string value
+        ///
+        /// \param value The string value to assign
+        ///
+        /// \return Reference to this Value
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Value& operator=(const std::string& value);
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Assign a value using template magic
+        ///
+        /// \tparam T The type of the value to assign
+        ///
+        /// \param value The value to assign
+        ///
+        /// \return Reference to this Value
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        template <typename T>
+        Value& operator=(const T& value)
+        {
+            *this = Value(value);
+            return *this;
+        }
+
     private:
         ///////////////////////////////////////////////////////////////////////
         /// \brief Convert the value to the specified type using template magic
