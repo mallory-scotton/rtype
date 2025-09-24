@@ -7,5 +7,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Archives/FArchive.hpp>
+#include <Engine/Core/Archives/FIniArchive.hpp>
 #include <Engine/Core/Archives/FLoadArchive.hpp>
 #include <Engine/Core/Archives/FSaveArchive.hpp>
