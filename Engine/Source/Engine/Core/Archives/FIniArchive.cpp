@@ -59,6 +59,27 @@ std::string FIniArchive::Section::NormalizeKey(const std::string& key) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FIniArchive::Section::Set(const std::string& key, const Value& value)
+{
+    std::string normalizedKey = NormalizeKey(key);
+    if (m_keys.find(normalizedKey) == m_keys.end())
+    {
+        m_keyOrder.push_back(key);
+    }
+    m_keys[normalizedKey] = value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+std::optional<FIniArchive::Value>
+    FIniArchive::Section::Get(const std::string& key) const
+{
+    std::string normalizedKey = NormalizeKey(key);
+    auto it = m_keys.find(normalizedKey);
+    return (it != m_keys.end()) ? std::make_optional(it->second)
+                                : std::nullopt;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool operator==(const FIniArchive::Value& lhs, const FIniArchive::Value& rhs)
 {
     return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);

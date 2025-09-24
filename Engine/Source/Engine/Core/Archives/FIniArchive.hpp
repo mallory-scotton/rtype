@@ -10,6 +10,7 @@
 #include <cctype>
 #include <Engine/Config.hpp>
 #include <exception>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
@@ -339,6 +340,46 @@ public:
         ///
         ///////////////////////////////////////////////////////////////////////
         std::string NormalizeKey(const std::string& key) const;
+
+    public:
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Set a key-value pair in the section
+        ///
+        /// \param key The key to set
+        /// \param value The value to set
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        void Set(const std::string& key, const Value& value);
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Get a value by key
+        ///
+        /// \param key The key to get
+        ///
+        /// \return The value associated with the key, if it exists
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        std::optional<Value> Get(const std::string& key) const;
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Get a value by key, returning a default value if the key
+        /// does not exist
+        ///
+        /// \tparam T The type to get
+        ///
+        /// \param key The key to get
+        /// \param defaultValue The default value to return if the key does not
+        /// exist
+        ///
+        /// \return The value associated with the key or the default value
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        template <typename T>
+        T GetOr(const std::string& key, const T& defaultValue) const
+        {
+            auto value = Get(key);
+            return value ? value->AsOr<T>(defaultValue) : defaultValue;
+        }
     };
 };
 
