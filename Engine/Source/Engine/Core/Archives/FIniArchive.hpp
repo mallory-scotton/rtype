@@ -12,6 +12,9 @@
 #include <exception>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -303,11 +306,40 @@ public:
     };
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Section class representing a section in the INI file
     ///
     ///////////////////////////////////////////////////////////////////////////
     class Section
-    {};
+    {
+    private:
+        ///////////////////////////////////////////////////////////////////////
+        // Class Members
+        ///////////////////////////////////////////////////////////////////////
+        std::unordered_map<std::string, Value> m_keys;   //<! Key-value pairs
+        std::vector<std::string> m_keyOrder;             //<! Order of keys
+        bool m_caseSensitive;   //<! Case sensitivity flag
+
+    public:
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Default constructor
+        ///
+        /// \param caseSensitive True if the section is case sensitive, false
+        /// otherwise
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Section(bool caseSensitive = false);
+
+    private:
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Normalize a key based on the case sensitivity setting
+        ///
+        /// \param key The key to normalize
+        ///
+        /// \return The normalized key
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        std::string NormalizeKey(const std::string& key) const;
+    };
 };
 
 ///////////////////////////////////////////////////////////////////////////////

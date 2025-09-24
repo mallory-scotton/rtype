@@ -43,6 +43,22 @@ const std::string& FIniArchive::Value::Str(void) const noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FIniArchive::Section::Section(bool caseSensitive)
+    : m_caseSensitive(caseSensitive)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
+std::string FIniArchive::Section::NormalizeKey(const std::string& key) const
+{
+    if (m_caseSensitive) { return key; }
+    std::string normalized = key;
+    std::transform(
+        normalized.begin(), normalized.end(), normalized.begin(), ::tolower
+    );
+    return normalized;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool operator==(const FIniArchive::Value& lhs, const FIniArchive::Value& rhs)
 {
     return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
