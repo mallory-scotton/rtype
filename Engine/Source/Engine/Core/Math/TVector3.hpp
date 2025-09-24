@@ -1016,4 +1016,381 @@ std::ostream& operator<<(std::ostream& os, const TVector3<T>& vec)
     return os;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Adds two vectors component-wise.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return The resulting vector after addition.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Add(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(a.x + b.x, a.y + b.y, a.z + b.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Subtracts one vector from another component-wise.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return The resulting vector after subtraction.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Subtract(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Multiplies two vectors component-wise.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return The resulting vector after multiplication.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Multiply(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(a.x * b.x, a.y * b.y, a.z * b.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Divides one vector by another component-wise.
+///
+/// \param T The type of the vector components.
+/// \param a The numerator vector.
+/// \param b The denominator vector (must not contain zeros).
+/// \return The resulting vector after division.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Divide(const TVector3<T>& a, const TVector3<T>& b)
+{
+    assert(b.x != T(0) && b.y != T(0) && b.z != T(0));
+    return TVector3<T>(a.x / b.x, a.y / b.y, a.z / b.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Performs a multiply-add operation on vectors: a * b + c.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector (multiplicand).
+/// \param b The second vector (multiplier).
+/// \param c The vector to be added.
+/// \return The resulting vector after the multiply-add operation.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> MultiplyAdd(
+    const TVector3<T>& a, const TVector3<T>& b, const TVector3<T>& c
+)
+{
+    return TVector3<T>(a.x * b.x + c.x, a.y * b.y + c.y, a.z * b.z + c.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the 3D cross product of two vectors.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return The resulting vector of the cross product.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Cross(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(
+        a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Projects vector a onto vector b.
+///
+/// \param T The type of the vector components.
+/// \param a The vector to project.
+/// \param b The vector onto which a is projected (must not be the zero
+/// vector).
+/// \return The projected vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Project(const TVector3<T>& a, const TVector3<T>& b)
+{
+    T dot = a.x * b.x + a.y * b.y + a.z * b.z;
+    T lenSq = b.x * b.x + b.y * b.y + b.z * b.z;
+    assert(lenSq != T(0));
+    T scale = dot / lenSq;
+    return TVector3<T>(b.x * scale, b.y * scale, b.z * scale);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Reflects vector a around a normal vector n.
+///
+/// \param T The type of the vector components.
+/// \param a The incident vector.
+/// \param n The normal vector (assumed to be normalized).
+/// \return The reflected vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Reflect(const TVector3<T>& a, const TVector3<T>& n)
+{
+    T dot = a.x * n.x + a.y * n.y + a.z * n.z;
+    return TVector3<T>(
+        a.x - 2 * dot * n.x, a.y - 2 * dot * n.y, a.z - 2 * dot * n.z
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the Euclidean distance between two vectors.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return The distance between the two vectors.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+T Distance(const TVector3<T>& a, const TVector3<T>& b)
+{
+    T dx = a.x - b.x;
+    T dy = a.y - b.y;
+    T dz = a.z - b.z;
+    return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the length (magnitude) of a vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return The length of the vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+T Length(const TVector3<T>& v)
+{
+    return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Returns the component-wise absolute value of a vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return The vector with absolute values of each component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Absolute(const TVector3<T>& v)
+{
+    return TVector3<T>(std::abs(v.x), std::abs(v.y), std::abs(v.z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Normalizes a vector to unit length.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector (must not be the zero vector).
+/// \return The normalized vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Normalize(const TVector3<T>& v)
+{
+    T len = Length(v);
+    assert(len != T(0));
+    return TVector3<T>(v.x / len, v.y / len, v.z / len);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the component-wise minimum of two vectors.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return A vector containing the minimum of each component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Minimum(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(
+        std::min(a.x, b.x), std::min(a.y, b.y), std::min(a.z, b.z)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the component-wise maximum of two vectors.
+///
+/// \param T The type of the vector components.
+/// \param a The first vector.
+/// \param b The second vector.
+/// \return A vector containing the maximum of each component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Maximum(const TVector3<T>& a, const TVector3<T>& b)
+{
+    return TVector3<T>(
+        std::max(a.x, b.x), std::max(a.y, b.y), std::max(a.z, b.z)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies floor operation component-wise to a vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return The floored vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Floor(const TVector3<T>& v)
+{
+    return TVector3<T>(std::floor(v.x), std::floor(v.y), std::floor(v.z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies ceil operation component-wise to a vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return The ceiled vector.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Ceil(const TVector3<T>& v)
+{
+    return TVector3<T>(std::ceil(v.x), std::ceil(v.y), std::ceil(v.z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Computes the fractional part of each component of a vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return The fractional part of the vector components.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Fraction(const TVector3<T>& v)
+{
+    return TVector3<T>(
+        v.x - std::floor(v.x), v.y - std::floor(v.y), v.z - std::floor(v.z)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies the modulo operation to each component of the vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \param m The modulo value.
+/// \return A vector where each component is v mod m.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Modulo(const TVector3<T>& v, const T& m)
+{
+    return TVector3<T>(
+        std::fmod(v.x, m), std::fmod(v.y, m), std::fmod(v.z, m)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Wraps each component of the vector within a specified range [min,
+/// max).
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \param min The minimum value of the range.
+/// \param max The maximum value of the range.
+/// \return A vector with components wrapped into the [min, max) interval.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Wrap(const TVector3<T>& v, const T& min, const T& max)
+{
+    auto wrap = [](T val, T min, T max)
+    {
+        T range = max - min;
+        return min + std::fmod(std::fmod(val - min, range) + range, range);
+    };
+    return TVector3<T>(
+        wrap(v.x, min, max), wrap(v.y, min, max), wrap(v.z, min, max)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Snaps each component of the vector to a multiple of the given step.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \param step The snapping step.
+/// \return A vector with each component rounded to the nearest multiple of
+/// step.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Snap(const TVector3<T>& v, const T& step)
+{
+    auto snap = [](T val, T step) { return std::round(val / step) * step; };
+    return TVector3<T>(snap(v.x, step), snap(v.y, step), snap(v.z, step));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies the sine function to each component of the vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return A vector where each component is the sine of the original
+/// component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Sine(const TVector3<T>& v)
+{
+    return TVector3<T>(std::sin(v.x), std::sin(v.y), std::sin(v.z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies the cosine function to each component of the vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return A vector where each component is the cosine of the original
+/// component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Cosine(const TVector3<T>& v)
+{
+    return TVector3<T>(std::cos(v.x), std::cos(v.y), std::cos(v.z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Applies the tangent function to each component of the vector.
+///
+/// \param T The type of the vector components.
+/// \param v The input vector.
+/// \return A vector where each component is the tangent of the original
+/// component.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+TVector3<T> Tangent(const TVector3<T>& v)
+{
+    return TVector3<T>(std::tan(v.x), std::tan(v.y), std::tan(v.z));
+}
+
 }   // namespace tkd
