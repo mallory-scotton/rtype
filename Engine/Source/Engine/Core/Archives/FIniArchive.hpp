@@ -6,7 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <algorithm>
+#include <cctype>
 #include <Engine/Config.hpp>
+#include <exception>
 #include <string>
 #include <type_traits>
 
@@ -188,7 +191,7 @@ public:
                 }
                 catch (const std::exception&)
                 {
-                    throw std::exception(
+                    throw std::runtime_error(
                         "Cannot convert '" + m_value + "' to integer type"
                     );
                 }
@@ -209,7 +212,7 @@ public:
                 }
                 catch (const std::exception&)
                 {
-                    throw std::exception(
+                    throw std::runtime_error(
                         "Cannot convert '" + m_value +
                         "' to floating point type"
                     );
@@ -289,6 +292,14 @@ public:
         ///
         ///////////////////////////////////////////////////////////////////////
         bool Empty(void) const noexcept;
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Get the string representation of the value
+        ///
+        /// \return The string representation of the value
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        const std::string& Str(void) const noexcept;
     };
 
     ///////////////////////////////////////////////////////////////////////////
