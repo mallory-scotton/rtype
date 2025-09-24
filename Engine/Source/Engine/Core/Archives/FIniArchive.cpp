@@ -37,6 +37,12 @@ FIniArchive::Value& FIniArchive::Value::operator=(const std::string& value)
 bool FIniArchive::Value::Empty(void) const noexcept { return m_value.empty(); }
 
 ///////////////////////////////////////////////////////////////////////////////
+const std::string& FIniArchive::Value::Str(void) const noexcept
+{
+    return m_value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool operator==(const FIniArchive::Value& lhs, const FIniArchive::Value& rhs)
 {
     return static_cast<std::string>(lhs) == static_cast<std::string>(rhs);
