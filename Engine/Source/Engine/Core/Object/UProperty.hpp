@@ -66,7 +66,9 @@ public:
         : m_name(name)
         , m_value(value)
         , m_owner(owner)
-    {}
+    {
+        m_owner.RegisterProperty(this);
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
