@@ -141,6 +141,18 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual UObject& GetOwner(void) override { return m_owner; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the property path in the format "OwnerID/PropertyName".
+    ///
+    /// \return The property path as a FString.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FString GetPropertyPath(void) const override
+    {
+        // TODO: Fix this to use UUID instead of UInt64
+        return std::to_string(m_owner.GetObjectID()) + "/" + m_name;
+    }
 };
 
 }   // namespace tkd
