@@ -7,7 +7,10 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core.hpp>
+#include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -21,7 +24,42 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 class UWorld : public ITickable
 {
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    std::vector<std::shared_ptr<AActor>>
+        m_actors;   //<! The list of actors in the world
+
 public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor of type T in the world
+    ///
+    /// \tparam T The type of actor to spawn
+    ///
+    /// \param transform The transform of the actor
+    ///
+    /// \return A pointer to the spawned actor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    T* SpawnActor(const FTransform& transform = FTransform())
+    {
+        m_actors.push_back(std::make_shared<T>());
+        T* actor = static_cast<T*>(m_actors.back().get());
+        actor->SetTransform(transform);
+        actor->BeginPlay();
+        return actor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Destroy an actor in the world
+    ///
+    /// \param actor A pointer to the actor to destroy
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void DestroyActor(AActor* actor);
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is first created
     ///

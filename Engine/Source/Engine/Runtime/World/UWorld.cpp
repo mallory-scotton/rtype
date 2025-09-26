@@ -10,12 +10,39 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::BeginPlay(void) {}
+void UWorld::DestroyActor(AActor* actor)
+{
+    auto it = std::find(
+        m_actors.begin(),
+        m_actors.end(),
+        [actor](const std::shared_ptr<AActor>& a) { return a.get() == actor; }
+    );
+    if (it != m_actors.end())
+    {
+        (*it)->EndPlay();
+        m_actors.erase(it);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::Tick(Float32 deltaTime) {}
+void UWorld::BeginPlay(void)
+{
+    for (const auto& actor: m_actors) { actor->BeginPlay(); }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::EndPlay(void) {}
+void UWorld::Tick(Float32 deltaTime)
+{
+    for (const auto& actor: m_actors)
+    {
+        if (actor->IsActive()) { actor->Tick(deltaTime); }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::EndPlay(void)
+{
+    for (const auto& actor: m_actors) { actor->EndPlay(); }
+}
 
 }   // namespace tkd
