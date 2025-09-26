@@ -240,6 +240,7 @@ void FNetworkServer::HandleDisconnectPacket(
     const Packets::Disconnect& packet, const FEndpoint& endpoint
 )
 {
+    TKD_UNUSED(packet);
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
     auto it = m_connections.find(endpoint);
@@ -256,6 +257,7 @@ void FNetworkServer::HandleConnectPacket(
     const Packets::Connect& packet, const FEndpoint& endpoint
 )
 {
+    TKD_UNUSED(packet);
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
     // Check if client is already connected
@@ -291,6 +293,7 @@ void FNetworkServer::HandleHeartbeatPacket(
     const Packets::HeartBeat& packet, const FEndpoint& endpoint
 )
 {
+    TKD_UNUSED(packet);
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
     auto it = m_connections.find(endpoint);
