@@ -72,19 +72,19 @@ install_packages() {
         case $INSTALLER in
             zypper)
                 sudo zypper refresh
-                sudo zypper install -y python3-pip cmake gcc-c++ make
+                sudo zypper install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
                 ;;
             dnf)
-                sudo dnf install -y python3-pip cmake gcc-c++ make
+                sudo dnf install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
                 ;;
             apt)
                 sudo apt update
-                sudo apt install -y pipx python3-pip cmake build-essential
+                sudo apt install -y pipx python3-pip cmake build-essential pkg-config
                 ;;
             yum)
-                sudo yum install -y python3-pip cmake gcc-c++ make
+                sudo yum install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
                 ;;
             pacman)
@@ -92,7 +92,7 @@ install_packages() {
                 ;;
             brew)
                 if [[ "$OSTYPE" == "darwin"* ]]; then
-                    brew install pipx cmake
+                    brew install pipx cmake pkg-config
                 else
                     echo "brew is not supported on this OS"
                     exit 1
@@ -108,19 +108,19 @@ install_packages() {
             echo "Installing packages for Linux..."
             if command_exists zypper; then
                 sudo zypper refresh
-                sudo zypper install -y python3-pip cmake gcc-c++ make
+                sudo zypper install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
             elif command_exists dnf; then
-                sudo dnf install -y python3-pip cmake gcc-c++ make
+                sudo dnf install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
             elif command_exists apt; then
                 sudo apt update
-                sudo apt install -y pipx python3-pip cmake build-essential
+                sudo apt install -y pipx python3-pip cmake build-essential pkg-config
             elif command_exists yum; then
-                sudo yum install -y python3-pip cmake gcc-c++ make
+                sudo yum install -y python3-pip cmake gcc-c++ make pkg-config
                 python3 -m pip install --user pipx
             elif command_exists pacman; then
-                sudo pacman -S --noconfirm python-pipx cmake base-devel
+                sudo pacman -S --noconfirm python-pipx cmake base-devel pkg-config
             else
                 echo "Unsupported Linux distribution. Please install pipx and cmake manually."
                 exit 1
@@ -128,11 +128,11 @@ install_packages() {
         elif [[ "$OSTYPE" == "darwin"* ]]; then
             echo "Installing packages for macOS..."
             if command_exists brew; then
-                brew install pipx cmake
+                brew install pipx cmake pkg-config pkg-config
             else
                 echo "Homebrew not found. Installing Homebrew first..."
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                brew install pipx cmake
+                brew install pipx cmake pkg-config pkg-config
             fi
         else
             echo "Unsupported operating system: $OSTYPE"
@@ -202,9 +202,9 @@ else
 fi
 
 verify_requirements
-
+CONAN=$(which conan)
 print_status "Step 5: Creating Conan default profile"
-conan profile detect --force
+sudo -E $CONAN profile detect --force
 print_success "Conan profile created"
 
 # Detect compiler and version automatically
@@ -222,7 +222,7 @@ fi
 print_success "Detected compiler: $COMPILER version $COMPILER_VERSION"
 
 print_status "Step 6: Installing dependencies with Conan"
-conan install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
+sudo -E $CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
     --settings=build_type=Release \
     --settings=compiler.cppstd=20 \
     --settings=compiler=$COMPILER \
