@@ -53,6 +53,28 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get all actors of type T in the world
+    ///
+    /// \tparam T The type of actor to get
+    ///
+    /// \return A vector of pointers to the actors of type T
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    std::vector<T*> GetActorsOfClass(void) const
+    {
+        std::vector<T*> actors;
+        for (const auto& actor: m_actors)
+        {
+            if (auto castedActor = dynamic_cast<T*>(actor.get()))
+            {
+                actors.push_back(castedActor);
+            }
+        }
+        return actors;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Destroy an actor in the world
     ///
     /// \param actor A pointer to the actor to destroy
