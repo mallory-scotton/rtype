@@ -461,7 +461,11 @@ bool operator!=(const FIniArchive::Value& lhs, const std::string& rhs);
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator==(const FIniArchive::Value& lhs, const T& rhs)
+typename std::enable_if_t<
+    !std::is_same_v<T, FIniArchive::Value> &&
+        !std::is_same_v<T, std::string> && std::is_arithmetic_v<T>,
+    bool>
+    operator==(const FIniArchive::Value& lhs, const T& rhs)
 {
     return lhs.As<T>() == rhs;
 }
@@ -478,7 +482,11 @@ bool operator==(const FIniArchive::Value& lhs, const T& rhs)
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-bool operator!=(const FIniArchive::Value& lhs, const T& rhs)
+typename std::enable_if_t<
+    !std::is_same_v<T, FIniArchive::Value> &&
+        !std::is_same_v<T, std::string> && std::is_arithmetic_v<T>,
+    bool>
+    operator!=(const FIniArchive::Value& lhs, const T& rhs)
 {
     return !(lhs == rhs);
 }
