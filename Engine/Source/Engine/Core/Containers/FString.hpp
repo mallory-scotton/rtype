@@ -2488,6 +2488,28 @@ FString operator+(const FString& lhs, char rhs);
 FString operator+(char lhs, const FString& rhs);
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Addition operator for FString and std::string.
+///
+/// \param lhs The left-hand side FString.
+/// \param rhs The right-hand-side std::string.
+///
+/// \return A new FString containing the concatenation.
+///
+///////////////////////////////////////////////////////////////////////////////
+FString operator+(const FString& lhs, const std::string& rhs);
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Addition operator for std::string and FString.
+///
+/// \param lhs The left-hand side std::string.
+/// \param rhs The right-hand-side FString.
+///
+/// \return A new FString containing the concatenation.
+///
+///////////////////////////////////////////////////////////////////////////////
+FString operator+(const std::string& lhs, const FString& rhs);
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Output stream operator for FString.
 ///
 /// \param os The output stream.

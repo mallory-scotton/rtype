@@ -1632,6 +1632,22 @@ FString operator+(char lhs, const FString& rhs)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString operator+(const FString& lhs, const std::string& rhs)
+{
+    FString toReturn = lhs;
+    toReturn += rhs.c_str();
+    return toReturn;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FString operator+(const std::string& lhs, const FString& rhs)
+{
+    FString toReturn = lhs.c_str();
+    toReturn += rhs;
+    return toReturn;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::ostream& operator<<(std::ostream& os, const FString& str)
 {
     for (size_t i = 0; i < str.Length(); i++) { os << str[i]; }
