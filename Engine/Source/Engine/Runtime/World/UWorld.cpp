@@ -10,6 +10,12 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+UWorld::UWorld(void)
+    : m_actors()
+    , m_worldTime(0.0f)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
 void UWorld::DestroyActor(AActor* actor)
 {
     auto it = std::find(
@@ -33,6 +39,7 @@ void UWorld::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::Tick(Float32 deltaTime)
 {
+    m_worldTime += deltaTime;
     for (const auto& actor: m_actors)
     {
         if (actor->IsActive()) { actor->Tick(deltaTime); }
@@ -44,5 +51,8 @@ void UWorld::EndPlay(void)
 {
     for (const auto& actor: m_actors) { actor->EndPlay(); }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+float UWorld::GetWorldTime(void) const { return m_worldTime; }
 
 }   // namespace tkd
