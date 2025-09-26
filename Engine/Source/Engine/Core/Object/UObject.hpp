@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Utils/FUUID.hpp>
 #include <string>
 #include <vector>
 
@@ -32,17 +33,10 @@ class UObject
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
-    // Static Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    static UInt64 s_nextObjectID;   //<! Static member to track the next
-                                    // available object ID.
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UInt64 m_objectID;   //<! Unique identifier for the object.
-    FString m_name;      //<! Name of the object.
+    UUID m_objectID;   //<! Unique identifier for the object.
+    FString m_name;    //<! Name of the object.
     std::vector<IProperty*> m_properties;   //<! List of properties associated
                                             // with the object.
 
@@ -58,7 +52,7 @@ public:
     /// \brief Conversion operator to UInt64.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    operator UInt64(void) const;
+    operator UUID::DataType(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Conversion operator to FString.
@@ -79,7 +73,7 @@ public:
     /// \return The unique object ID.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    UInt64 GetObjectID(void) const;
+    std::string GetObjectID(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Gets the name of the object.
