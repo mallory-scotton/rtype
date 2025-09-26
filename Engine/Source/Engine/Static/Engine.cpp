@@ -24,6 +24,7 @@ Engine::UThread Engine::s_mainThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
+FEngineSettings Engine::Settings = FEngineSettings();
 UWorld Engine::World = UWorld();
 
 ///////////////////////////////////////////////////////////////////////////////
