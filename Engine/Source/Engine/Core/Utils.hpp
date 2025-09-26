@@ -10,4 +10,5 @@
 #include <Engine/Core/Utils/FArgs.hpp>
 #include <Engine/Core/Utils/FileSystem.hpp>
 #include <Engine/Core/Utils/FLibrary.hpp>
+#include <Engine/Core/Utils/FUUID.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
