@@ -6,5 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Runtime/Core/AGameMode.hpp>
-#include <Engine/Runtime/Core/IGame.hpp>
+#include <Engine/Runtime/Input/InputAction.hpp>
+#include <Engine/Runtime/Input/InputAxis.hpp>
+#include <Engine/Runtime/Input/InputManager.hpp>

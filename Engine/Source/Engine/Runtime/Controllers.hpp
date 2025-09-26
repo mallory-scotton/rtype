@@ -6,5 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Runtime/Core/AGameMode.hpp>
-#include <Engine/Runtime/Core/IGame.hpp>
+#include <Engine/Runtime/Controllers/AAIController.hpp>
+#include <Engine/Runtime/Controllers/ANetworkController.hpp>
+#include <Engine/Runtime/Controllers/APlayerController.hpp>
