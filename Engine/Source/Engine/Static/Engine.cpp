@@ -33,7 +33,6 @@ void Engine::PrintStartupMessage(void)
     std::string gameName = "NOT_LOADED";
     if (TKD_GetEngineSettings)
     {
-        Settings = TKD_GetEngineSettings();
         gameName = Settings.game.title.empty() ? "NOT_SPECIFIED"
                                                : Settings.game.title;
         std::transform(
@@ -109,6 +108,8 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (s_isInitialized) { return false; }
 
+    if (TKD_GetEngineSettings) { Settings = TKD_GetEngineSettings(); }
+
     FArgs& args = FArgs::GetInstance();
 
     bool a_verbose = false;
@@ -121,6 +122,17 @@ bool Engine::Initialize(int argc, char* argv[])
     if (!TKD_CreateGame)
     {
         args.AddFlags("game", "Path to the game module", a_gameModule, true);
+    }
+    else
+    {
+        if (Settings.version != TKD_VERSION_STRING)
+        {
+            s_exitCode = TKD_EXIT_FAILURE;
+            s_exitMessage = "Game module version mismatch. Expected " +
+                            std::string(TKD_VERSION_STRING) + ", got " +
+                            Settings.version + ".";
+            return false;
+        }
     }
 
 #if TKD_ENGINE_SERVER
