@@ -150,8 +150,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     virtual FString GetPropertyPath(void) const override
     {
-        // TODO: Fix this to use UUID instead of UInt64
-        return "<None>";
+        return m_owner.GetObjectID() + "/" + m_name;
     }
 };
 
