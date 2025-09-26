@@ -18,7 +18,7 @@ UWorld::UWorld(void)
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::DestroyActor(AActor* actor)
 {
-    auto it = std::find(
+    auto it = std::find_if(
         m_actors.begin(),
         m_actors.end(),
         [actor](const std::shared_ptr<AActor>& a) { return a.get() == actor; }
