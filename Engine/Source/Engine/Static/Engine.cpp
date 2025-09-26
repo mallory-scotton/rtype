@@ -190,12 +190,12 @@ bool Engine::IsInitialized(void) { return s_isInitialized; }
 void Engine::Run(void)
 {
     if (!s_isInitialized || s_isRunning) { return; }
-    // if (World::Get() == nullptr)
-    //{
-    //     s_exitCode = TKD_EXIT_FAILURE;
-    //     s_exitMessage = "No world loaded. Cannot run the engine.";
-    //     return;
-    // }
+    if (World::Get() == nullptr)
+    {
+        s_exitCode = TKD_EXIT_FAILURE;
+        s_exitMessage = "No world loaded. Cannot run the engine.";
+        return;
+    }
 
     s_isRunning = true;
 
