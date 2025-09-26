@@ -28,7 +28,7 @@ private:
     // Static Members
     ///////////////////////////////////////////////////////////////////////////
     static std::vector<std::unique_ptr<UWorld>> s_worlds;
-    static UWorld* s_currentWorld;
+    static std::unique_ptr<UWorld> s_currentWorld;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -51,10 +51,17 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename Actor>
-    Bool SpawnActor(UClass* actorClass, const FTransform2D& spawnTransform)
+    Bool SpawnActor(const FTransform& spawnTransform)
     {
-        TKD_UNUSED(actorClass);
-        TKD_UNUSED(spawnTransform);
+        static_assert(
+            std::is_base_of<AActor, Actor>::value,
+            "Actor must be a subclass of AActor"
+        );
+        if (s_currentWorld)
+        {
+            s_currentWorld->SpawnActor<Actor>(spawnTransform);
+            return true;
+        }
         return false;
     }
 };
