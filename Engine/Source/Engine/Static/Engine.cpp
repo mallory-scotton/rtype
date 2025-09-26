@@ -24,6 +24,7 @@ Engine::UThread Engine::s_mainThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
+UWorld Engine::World = UWorld();
 
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::PrintStartupMessage(void)
@@ -190,12 +191,6 @@ bool Engine::IsInitialized(void) { return s_isInitialized; }
 void Engine::Run(void)
 {
     if (!s_isInitialized || s_isRunning) { return; }
-    if (World::Get() == nullptr)
-    {
-        s_exitCode = TKD_EXIT_FAILURE;
-        s_exitMessage = "No world loaded. Cannot run the engine.";
-        return;
-    }
 
     s_isRunning = true;
 
