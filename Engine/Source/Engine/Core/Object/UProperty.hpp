@@ -151,7 +151,7 @@ public:
     virtual FString GetPropertyPath(void) const override
     {
         // TODO: Fix this to use UUID instead of UInt64
-        return std::to_string(m_owner.GetObjectID()) + "/" + m_name;
+        return "<None>";
     }
 };
 
