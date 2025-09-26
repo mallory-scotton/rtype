@@ -31,9 +31,11 @@ UWorld Engine::World = UWorld();
 void Engine::PrintStartupMessage(void)
 {
     std::string gameName = "NOT_LOADED";
-    if (TKD_GetGameName)
+    if (TKD_GetEngineSettings)
     {
-        gameName = TKD_GetGameName();
+        Settings = TKD_GetEngineSettings();
+        gameName = Settings.game.title.empty() ? "NOT_SPECIFIED"
+                                               : Settings.game.title;
         std::transform(
             gameName.begin(),
             gameName.end(),
