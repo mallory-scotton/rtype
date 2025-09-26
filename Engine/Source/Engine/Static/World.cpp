@@ -11,9 +11,9 @@ namespace tkd::__internal
 
 ///////////////////////////////////////////////////////////////////////////////
 std::vector<std::unique_ptr<UWorld>> World::s_worlds = {};
-UWorld* World::s_currentWorld = nullptr;
+std::unique_ptr<UWorld> World::s_currentWorld = nullptr;
 
 ///////////////////////////////////////////////////////////////////////////////
-UWorld* World::Get(void) { return s_currentWorld; }
+UWorld* World::Get(void) { return s_currentWorld.get(); }
 
 }   // namespace tkd::__internal
