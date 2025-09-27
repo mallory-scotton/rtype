@@ -17,11 +17,11 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Template array container with fixed size at compile time.
 ///
-/// \tparam Ty The type of elements stored in the array.
+/// \tparam T The type of elements stored in the array.
 /// \tparam N The number of elements in the array.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
+template <typename T, std::size_t N>
 class TArray
 {
 public:
@@ -31,7 +31,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Type definitions
     ///////////////////////////////////////////////////////////////////////////
-    using value_type = Ty;
+    using value_type = T;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using reference = value_type&;
@@ -399,11 +399,11 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 // Specialization for zero-sized arrays
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty>
-class TArray<Ty, 0>
+template <typename T>
+class TArray<T, 0>
 {
 public:
-    using value_type = Ty;
+    using value_type = T;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     using reference = value_type&;
@@ -500,21 +500,540 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// Specialization for 2-element array with named access
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class TArray<T, 2>
+{
+public:
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    union
+    {
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
+#endif
+        struct
+        {
+            T x;   //!< The first component.
+            T y;   //!< The second component.
+        };
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
+        T data_[2];   //!< Array access to the components.
+    };
+
+public:
+    TArray() = default;
+
+    TArray(std::initializer_list<value_type> init)
+    {
+        std::copy(
+            init.begin(),
+            init.begin() + std::min(init.size(), size_t(2)),
+            data_
+        );
+        if (init.size() < 2)
+        {
+            std::fill(data_ + init.size(), data_ + 2, value_type{});
+        }
+    }
+
+    TArray(const TArray& other)
+    {
+        std::copy(other.begin(), other.end(), data_);
+    }
+
+    TArray(TArray&& other) noexcept
+    {
+        std::move(other.begin(), other.end(), data_);
+    }
+
+    TArray& operator=(const TArray& other)
+    {
+        if (this != &other) { std::copy(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    TArray& operator=(TArray&& other) noexcept
+    {
+        if (this != &other) { std::move(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    reference operator[](size_type index) { return data_[index]; }
+
+    const_reference operator[](size_type index) const { return data_[index]; }
+
+    reference at(size_type pos)
+    {
+        if (pos >= 2)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    const_reference at(size_type pos) const
+    {
+        if (pos >= 2)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    reference front() { return data_[0]; }
+
+    const_reference front() const { return data_[0]; }
+
+    reference back() { return data_[1]; }
+
+    const_reference back() const { return data_[1]; }
+
+    pointer data() { return data_; }
+
+    const_pointer data() const { return data_; }
+
+    iterator begin() { return data_; }
+
+    const_iterator begin() const { return data_; }
+
+    const_iterator cbegin() const { return data_; }
+
+    iterator end() { return data_ + 2; }
+
+    const_iterator end() const { return data_ + 2; }
+
+    const_iterator cend() const { return data_ + 2; }
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+
+    const_reverse_iterator rbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    const_reverse_iterator crbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+
+    const_reverse_iterator rend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr bool empty() const noexcept { return false; }
+
+    constexpr size_type size() const noexcept { return 2; }
+
+    constexpr size_type max_size() const noexcept { return 2; }
+
+    void fill(const value_type& value) { std::fill(data_, data_ + 2, value); }
+
+    void swap(TArray& other) noexcept(std::is_nothrow_swappable_v<value_type>)
+    {
+        std::swap_ranges(data_, data_ + 2, other.data_);
+    }
+
+    [[deprecated("Use fill() instead")]] void assign(const value_type& value)
+    {
+        fill(value);
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Specialization for 3-element array with named access
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class TArray<T, 3>
+{
+public:
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    union
+    {
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
+#endif
+        struct
+        {
+            T x;   //!< The first component.
+            T y;   //!< The second component.
+            T z;   //!< The third component.
+        };
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
+        T data_[3];   //!< Array access to the components.
+    };
+
+public:
+    TArray() = default;
+
+    TArray(std::initializer_list<value_type> init)
+    {
+        std::copy(
+            init.begin(),
+            init.begin() + std::min(init.size(), size_t(3)),
+            data_
+        );
+        if (init.size() < 3)
+        {
+            std::fill(data_ + init.size(), data_ + 3, value_type{});
+        }
+    }
+
+    TArray(const TArray& other)
+    {
+        std::copy(other.begin(), other.end(), data_);
+    }
+
+    TArray(TArray&& other) noexcept
+    {
+        std::move(other.begin(), other.end(), data_);
+    }
+
+    TArray& operator=(const TArray& other)
+    {
+        if (this != &other) { std::copy(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    TArray& operator=(TArray&& other) noexcept
+    {
+        if (this != &other) { std::move(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    reference operator[](size_type index) { return data_[index]; }
+
+    const_reference operator[](size_type index) const { return data_[index]; }
+
+    reference at(size_type pos)
+    {
+        if (pos >= 3)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    const_reference at(size_type pos) const
+    {
+        if (pos >= 3)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    reference front() { return data_[0]; }
+
+    const_reference front() const { return data_[0]; }
+
+    reference back() { return data_[2]; }
+
+    const_reference back() const { return data_[2]; }
+
+    pointer data() { return data_; }
+
+    const_pointer data() const { return data_; }
+
+    iterator begin() { return data_; }
+
+    const_iterator begin() const { return data_; }
+
+    const_iterator cbegin() const { return data_; }
+
+    iterator end() { return data_ + 3; }
+
+    const_iterator end() const { return data_ + 3; }
+
+    const_iterator cend() const { return data_ + 3; }
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+
+    const_reverse_iterator rbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    const_reverse_iterator crbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+
+    const_reverse_iterator rend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr bool empty() const noexcept { return false; }
+
+    constexpr size_type size() const noexcept { return 3; }
+
+    constexpr size_type max_size() const noexcept { return 3; }
+
+    void fill(const value_type& value) { std::fill(data_, data_ + 3, value); }
+
+    void swap(TArray& other) noexcept(std::is_nothrow_swappable_v<value_type>)
+    {
+        std::swap_ranges(data_, data_ + 3, other.data_);
+    }
+
+    [[deprecated("Use fill() instead")]] void assign(const value_type& value)
+    {
+        fill(value);
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// Specialization for 4-element array with named access
+///////////////////////////////////////////////////////////////////////////////
+template <typename T>
+class TArray<T, 4>
+{
+public:
+    using value_type = T;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*;
+    using const_pointer = const value_type*;
+    using iterator = pointer;
+    using const_iterator = const_pointer;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    union
+    {
+#ifdef __GNUC__
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 4201)
+#endif
+        struct
+        {
+            T x;   //!< The first component.
+            T y;   //!< The second component.
+            T z;   //!< The third component.
+            T w;   //!< The fourth component.
+        };
+#ifdef __GNUC__
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
+        T data_[4];   //!< Array access to the components.
+    };
+
+public:
+    TArray() = default;
+
+    TArray(std::initializer_list<value_type> init)
+    {
+        std::copy(
+            init.begin(),
+            init.begin() + std::min(init.size(), size_t(4)),
+            data_
+        );
+        if (init.size() < 4)
+        {
+            std::fill(data_ + init.size(), data_ + 4, value_type{});
+        }
+    }
+
+    TArray(const TArray& other)
+    {
+        std::copy(other.begin(), other.end(), data_);
+    }
+
+    TArray(TArray&& other) noexcept
+    {
+        std::move(other.begin(), other.end(), data_);
+    }
+
+    TArray& operator=(const TArray& other)
+    {
+        if (this != &other) { std::copy(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    TArray& operator=(TArray&& other) noexcept
+    {
+        if (this != &other) { std::move(other.begin(), other.end(), data_); }
+        return *this;
+    }
+
+    reference operator[](size_type index) { return data_[index]; }
+
+    const_reference operator[](size_type index) const { return data_[index]; }
+
+    reference at(size_type pos)
+    {
+        if (pos >= 4)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    const_reference at(size_type pos) const
+    {
+        if (pos >= 4)
+        {
+            throw std::out_of_range("TArray::at: index out of range");
+        }
+        return data_[pos];
+    }
+
+    reference front() { return data_[0]; }
+
+    const_reference front() const { return data_[0]; }
+
+    reference back() { return data_[3]; }
+
+    const_reference back() const { return data_[3]; }
+
+    pointer data() { return data_; }
+
+    const_pointer data() const { return data_; }
+
+    iterator begin() { return data_; }
+
+    const_iterator begin() const { return data_; }
+
+    const_iterator cbegin() const { return data_; }
+
+    iterator end() { return data_ + 4; }
+
+    const_iterator end() const { return data_ + 4; }
+
+    const_iterator cend() const { return data_ + 4; }
+
+    reverse_iterator rbegin() { return reverse_iterator(end()); }
+
+    const_reverse_iterator rbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    const_reverse_iterator crbegin() const
+    {
+        return const_reverse_iterator(end());
+    }
+
+    reverse_iterator rend() { return reverse_iterator(begin()); }
+
+    const_reverse_iterator rend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    const_reverse_iterator crend() const
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr bool empty() const noexcept { return false; }
+
+    constexpr size_type size() const noexcept { return 4; }
+
+    constexpr size_type max_size() const noexcept { return 4; }
+
+    void fill(const value_type& value) { std::fill(data_, data_ + 4, value); }
+
+    void swap(TArray& other) noexcept(std::is_nothrow_swappable_v<value_type>)
+    {
+        std::swap_ranges(data_, data_ + 4, other.data_);
+    }
+
+    [[deprecated("Use fill() instead")]] void assign(const value_type& value)
+    {
+        fill(value);
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // Non-member functions
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Checks if two arrays are equal.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if all corresponding elements are equal.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator==(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator==(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
@@ -522,15 +1041,15 @@ bool operator==(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Checks if two arrays are not equal.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if any corresponding elements are not equal.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator!=(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator!=(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return !(lhs == rhs);
 }
@@ -538,15 +1057,15 @@ bool operator!=(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Lexicographically compares two arrays.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if lhs is lexicographically less than rhs.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator<(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator<(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return std::lexicographical_compare(
         lhs.begin(), lhs.end(), rhs.begin(), rhs.end()
@@ -556,15 +1075,15 @@ bool operator<(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Lexicographically compares two arrays.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if lhs is lexicographically less than or equal to rhs.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator<=(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator<=(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return !(rhs < lhs);
 }
@@ -572,15 +1091,15 @@ bool operator<=(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Lexicographically compares two arrays.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if lhs is lexicographically greater than rhs.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator>(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator>(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return rhs < lhs;
 }
@@ -588,30 +1107,30 @@ bool operator>(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Lexicographically compares two arrays.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 /// \return True if lhs is lexicographically greater than or equal to rhs.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-bool operator>=(const TArray<Ty, N>& lhs, const TArray<Ty, N>& rhs)
+template <typename T, std::size_t N>
+bool operator>=(const TArray<T, N>& lhs, const TArray<T, N>& rhs)
 {
     return !(lhs < rhs);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////gi////////////////////////////////////////////////////
 /// \brief Swaps the contents of two arrays.
 ///
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param lhs The first array.
 /// \param rhs The second array.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-void swap(TArray<Ty, N>& lhs, TArray<Ty, N>& rhs) noexcept(
+template <typename T, std::size_t N>
+void swap(TArray<T, N>& lhs, TArray<T, N>& rhs) noexcept(
     noexcept(lhs.swap(rhs))
 )
 {
@@ -622,14 +1141,14 @@ void swap(TArray<Ty, N>& lhs, TArray<Ty, N>& rhs) noexcept(
 /// \brief Gets a reference to the element at the specified index.
 ///
 /// \tparam I The index.
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param arr The array.
 /// \return Reference to the element at index I.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <std::size_t I, class Ty, std::size_t N>
-constexpr Ty& get(TArray<Ty, N>& arr) noexcept
+template <std::size_t I, typename T, std::size_t N>
+constexpr T& get(TArray<T, N>& arr) noexcept
 {
     static_assert(I < N, "Index out of bounds");
     return arr[I];
@@ -639,14 +1158,14 @@ constexpr Ty& get(TArray<Ty, N>& arr) noexcept
 /// \brief Gets a const reference to the element at the specified index.
 ///
 /// \tparam I The index.
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param arr The array.
 /// \return Const reference to the element at index I.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <std::size_t I, class Ty, std::size_t N>
-constexpr const Ty& get(const TArray<Ty, N>& arr) noexcept
+template <std::size_t I, typename T, std::size_t N>
+constexpr const T& get(const TArray<T, N>& arr) noexcept
 {
     static_assert(I < N, "Index out of bounds");
     return arr[I];
@@ -656,49 +1175,17 @@ constexpr const Ty& get(const TArray<Ty, N>& arr) noexcept
 /// \brief Gets an rvalue reference to the element at the specified index.
 ///
 /// \tparam I The index.
-/// \tparam Ty The element type.
+/// \tparam T The element type.
 /// \tparam N The array size.
 /// \param arr The array.
 /// \return Rvalue reference to the element at index I.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <std::size_t I, class Ty, std::size_t N>
-constexpr Ty&& get(TArray<Ty, N>&& arr) noexcept
+template <std::size_t I, typename T, std::size_t N>
+constexpr T&& get(TArray<T, N>&& arr) noexcept
 {
     static_assert(I < N, "Index out of bounds");
     return std::move(arr[I]);
 }
 
 }   // namespace tkd
-
-///////////////////////////////////////////////////////////////////////////////
-// Standard library integration
-///////////////////////////////////////////////////////////////////////////////
-namespace std
-{
-///////////////////////////////////////////////////////////////////////////
-/// \brief Tuple size specialization for TArray.
-///
-/// \tparam Ty The element type.
-/// \tparam N The array size.
-///
-///////////////////////////////////////////////////////////////////////////
-template <class Ty, std::size_t N>
-struct tuple_size<tkd::TArray<Ty, N>> : integral_constant<std::size_t, N>
-{};
-
-///////////////////////////////////////////////////////////////////////////
-/// \brief Tuple element specialization for TArray.
-///
-/// \tparam I The index.
-/// \tparam Ty The element type.
-/// \tparam N The array size.
-///
-///////////////////////////////////////////////////////////////////////////
-template <std::size_t I, class Ty, std::size_t N>
-struct tuple_element<I, tkd::TArray<Ty, N>>
-{
-    static_assert(I < N, "Index out of bounds");
-    using type = Ty;
-};
-}   // namespace std
