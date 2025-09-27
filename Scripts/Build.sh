@@ -177,6 +177,16 @@ verify_requirements() {
         return 1
     fi
 
+    if ! command_exists pipx; then
+        print_error "pipx is required but not found"
+        return 1
+    fi
+
+    if ! command_exists conan; then
+        print_error "Conan is required but not found"
+        return 1
+    fi
+
     print_success "All basic requirements met"
 }
 
