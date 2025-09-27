@@ -214,7 +214,14 @@ fi
 verify_requirements
 CONAN=$(which conan)
 print_status "Step 5: Creating Conan default profile"
-sudo -E $CONAN profile detect --force
+if [ -z "$CONAN" ]; then
+    print_error "Conan installation not found"
+    exit 1
+fi
+if [ ! -f "/root/.conan2/profiles/default" ]; then
+    print_warning "Conan default profile not found. Writing..."
+    sudo -E $CONAN profile detect --force
+fi
 print_success "Conan profile created"
 
 # Detect compiler and version automatically
