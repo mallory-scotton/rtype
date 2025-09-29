@@ -10,6 +10,10 @@
 *.pak
 *.uasset
 
+# ImGui files
+imgui.ini
+imgui_log.txt
+
 # Logs and databases
 *.log
 *.sqlite
