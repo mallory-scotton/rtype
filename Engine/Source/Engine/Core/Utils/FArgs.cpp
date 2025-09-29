@@ -59,7 +59,7 @@ bool FArgs::Process(int argc, char* argv[])
     {
         std::string arg = argv[i];
 
-        if (arg == "--help" || arg == "-help")
+        if (arg == "--help" || arg == "-help" || arg == "-h")
         {
             PrintUsage(argv[0]);
             m_exitCode = 0;
@@ -75,6 +75,26 @@ bool FArgs::Process(int argc, char* argv[])
         }
 
         size_t flagIndex = it->second;
+
+        if (m_flags[flagIndex].getter() == "true" ||
+            m_flags[flagIndex].getter() == "false")
+        {
+            // Boolean flag, toggle the value
+            m_flags[flagIndex].setter("true");
+            m_flags[flagIndex].found = true;
+
+            if (i + 1 < argc)
+            {
+                std::string nextArg = argv[i + 1];
+                if (nextArg == "true" || nextArg == "false" ||
+                    nextArg == "1" || nextArg == "0")
+                {
+                    ++i;   // Skip the next argument
+                }
+            }
+
+            continue;
+        }
 
         if (i + 1 >= argc)
         {
