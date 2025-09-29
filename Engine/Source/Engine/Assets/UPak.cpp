@@ -256,8 +256,9 @@ std::unique_ptr<UAsset> UPak::CreateAsset(const FString& uuid)
     const FPakEntry& entry = it->second;
 
     // Create asset with metadata only
-    auto asset = std::make_unique<UAsset>(m_path);
-    asset->SetMetadata(entry.uuid, entry.name, entry.type);
+    auto asset = std::make_unique<UAsset>(
+        this, entry.uuid, entry.name, entry.type, entry.offset, entry.size
+    );
 
     // Load the data from pak
     std::vector<Byte> data;
