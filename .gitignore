@@ -6,6 +6,10 @@
 *.d
 *.out
 
+# Packaged assets
+*.pak
+*.uasset
+
 # Logs and databases
 *.log
 *.sqlite
