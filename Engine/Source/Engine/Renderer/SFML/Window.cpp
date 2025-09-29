@@ -2,6 +2,12 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Window.hpp>
+#include <Engine/Static/Engine.hpp>
+#if TKD_ENGINE_CLIENT
+    #include <imgui-SFML.h>
+    #include <imgui.h>
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -58,6 +64,12 @@ bool Window::Open(void)
         ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
     );
 
+    // Initialize ImGui-SFML if in debug build
+    if (Engine::IsDebugBuild())
+    {
+        if (!ImGui::SFML::Init(*m_window)) { return false; }
+    }
+
     // Check if the window was created successfully
     if (!m_window || !m_window->isOpen()) { return false; }
 
@@ -81,6 +93,9 @@ bool Window::Close(void)
     // Close the SFML window
     m_window->close();
     m_window.reset();
+
+    // Shutdown ImGui-SFML if in debug build
+    if (Engine::IsDebugBuild()) { ImGui::SFML::Shutdown(); }
 
     // Emit the Closed event
     this->Emit(Events::Closed{});
@@ -242,10 +257,20 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
         this->Emit(Events::Moved{ oldPosition, m_position });
     }
 
+    sf::Time delta = m_clock.restart();
+
+    // Update ImGui-SFML if in debug build
+    if (Engine::IsDebugBuild()) { ImGui::SFML::Update(*m_window, delta); }
+
     // Process SFML events
     sf::Event event;
     while (m_window->pollEvent(event))
     {
+        if (Engine::IsDebugBuild())
+        {
+            ImGui::SFML::ProcessEvent(*m_window, event);
+        }
+
         switch (event.type)
         {
         case sf::Event::Closed: this->Close(); return;
@@ -278,6 +303,9 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
 
     // Call the provided drawing function
     drawFunction();
+
+    // Render ImGui if in debug build
+    if (Engine::IsDebugBuild()) { ImGui::SFML::Render(*m_window); }
 
     // Display the contents of the window
     m_window->display();
