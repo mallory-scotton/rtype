@@ -30,6 +30,7 @@ typedef unsigned long long UInt64;   // [0; 18,446,744,073,709,551,615]
 typedef float Float32;               // IEEE 754 single precision
 typedef double Float64;              // IEEE 754 double precision
 typedef bool Bool;                   // true or false
+typedef unsigned char Byte;          // 8 bits
 
 ///////////////////////////////////////////////////////////////////////////////
 // SizeT Type
