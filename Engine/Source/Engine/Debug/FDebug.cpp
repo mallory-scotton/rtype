@@ -184,12 +184,13 @@ void FDebug::Show(void)
 
         // Spacer to push info to the right
         float windowWidth = ImGui::GetWindowWidth();
-        float infoWidth = 180.0f;
+        float infoWidth =
+            std::string(TKD_VERSION_STRING).length() * 8.0f + 180.0f;
         ImGui::SetCursorPosX(windowWidth - infoWidth);
 
         // Engine info on the right side
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.8f, 0.6f, 1.0f));
-        ImGui::Text("TKD Engine | Debug Mode");
+        ImGui::Text("TKD Engine (%s) | Debug Mode", TKD_VERSION_STRING);
         ImGui::PopStyleColor();
 
         ImGui::EndMainMenuBar();
