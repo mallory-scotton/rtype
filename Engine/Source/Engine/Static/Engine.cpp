@@ -24,6 +24,7 @@ Engine::UThread Engine::s_mainThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
+bool Engine::s_isDebugBuild = true;
 FEngineSettings Engine::Settings = FEngineSettings();
 UWorld Engine::World = UWorld();
 
@@ -108,7 +109,11 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (s_isInitialized) { return false; }
 
-    if (TKD_GetEngineSettings) { Settings = TKD_GetEngineSettings(); }
+    if (TKD_GetEngineSettings)
+    {
+        Settings = TKD_GetEngineSettings();
+        s_isDebugBuild = false;
+    }
 
     FArgs& args = FArgs::GetInstance();
 
@@ -201,6 +206,9 @@ bool Engine::Shutdown(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Engine::IsInitialized(void) { return s_isInitialized; }
+
+///////////////////////////////////////////////////////////////////////////////
+bool Engine::IsDebugBuild(void) { return s_isDebugBuild; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::Run(void)
