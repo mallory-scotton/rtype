@@ -110,27 +110,17 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (s_isInitialized) { return false; }
 
-    if (TKD_GetEngineSettings)
-    {
-        Settings = TKD_GetEngineSettings();
-        s_isDebugBuild = false;
-    }
-
     FArgs& args = FArgs::GetInstance();
 
     bool a_verbose = false;
     bool a_debug = false;
-
-    args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
-    args.AddFlags("debug", "Enable debug mode", a_debug, false);
-
     std::string a_gameModule;
-    if (!TKD_CreateGame)
+
+    if (TKD_GetEngineSettings)
     {
-        args.AddFlags("game", "Path to the game module", a_gameModule, true);
-    }
-    else
-    {
+        s_isDebugBuild = false;
+        Settings = TKD_GetEngineSettings();
+
         if (Settings.version != TKD_VERSION_STRING)
         {
             s_exitCode = TKD_EXIT_FAILURE;
@@ -139,7 +129,17 @@ bool Engine::Initialize(int argc, char* argv[])
                             Settings.version + ".";
             return false;
         }
+
+        args.AddFlags("debug", "Enable debug mode", s_isDebugBuild, false);
     }
+    else
+    {
+        s_isDebugBuild = true;
+        args.AddFlags("game", "Path to the game module", a_gameModule, true);
+    }
+
+    args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
+    args.AddFlags("debug", "Enable debug mode", a_debug, false);
 
 #if TKD_ENGINE_SERVER
     std::string a_host = "localhost";
