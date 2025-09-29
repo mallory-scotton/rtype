@@ -53,6 +53,20 @@ UAsset::UAsset(
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
+UAsset::UAsset()
+    : m_uuid("")
+    , m_type(EAssetType::Unknown)
+    , m_size(0)
+    , m_name("")
+    , m_path("")
+    , m_isLoaded(false)
+    , m_data()
+    , m_source(EAssetSource::Standalone)
+    , m_pakFile(nullptr)
+    , m_pakOffset(0)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
 bool UAsset::Load(void)
 {
     // Already loaded
