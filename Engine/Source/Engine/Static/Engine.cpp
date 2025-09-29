@@ -114,7 +114,6 @@ bool Engine::Initialize(int argc, char* argv[])
     FArgs& args = FArgs::GetInstance();
 
     bool a_verbose = false;
-    bool a_debug = false;
     std::string a_gameModule;
 
     // Load game settings if the function is available
@@ -141,7 +140,6 @@ bool Engine::Initialize(int argc, char* argv[])
     }
 
     args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
-    args.AddFlags("debug", "Enable debug mode", a_debug, false);
 
 #if TKD_ENGINE_SERVER
     std::string a_host = "localhost";
