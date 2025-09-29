@@ -211,6 +211,11 @@ else
     print_success "Conan is already installed"
 fi
 
+if command_exists gcc-13.4; then
+    export CC=/usr/bin/gcc-13.4
+    export CXX=/usr/bin/g++-13.4
+fi
+
 verify_requirements
 CONAN=$(which conan)
 print_status "Step 5: Creating Conan default profile"
@@ -220,7 +225,7 @@ if [ -z "$CONAN" ]; then
 fi
 if [ ! -f "/root/.conan2/profiles/default" ]; then
     print_warning "Conan default profile not found. Writing..."
-    sudo -E $CONAN profile detect --force
+    $CONAN profile detect --force
 fi
 print_success "Conan profile created"
 
@@ -239,7 +244,10 @@ fi
 print_success "Detected compiler: $COMPILER version $COMPILER_VERSION"
 
 print_status "Step 6: Installing dependencies with Conan"
-sudo -E $CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
+if command_exists gcc-13.4; then
+    COMPILER_VERSION=13
+fi
+$CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
     --settings=build_type=Release \
     --settings=compiler.cppstd=20 \
     --settings=compiler=$COMPILER \
