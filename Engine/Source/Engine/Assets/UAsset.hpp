@@ -237,6 +237,22 @@ public:
     const std::vector<Byte>& GetData(void) const { return m_data; }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the source type of the asset.
+    ///
+    /// \return The source type (Standalone or Package).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    EAssetSource GetSource(void) const { return m_source; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if the asset is from a pak file.
+    ///
+    /// \return True if from pak, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsFromPak(void) const { return m_source == EAssetSource::Package; }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Sets the asset data (copy version).
     ///
     /// \param data The data to set for this asset.
