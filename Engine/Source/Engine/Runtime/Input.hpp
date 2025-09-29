@@ -6,6 +6,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Runtime/Input/InputAction.hpp>
-#include <Engine/Runtime/Input/InputAxis.hpp>
-#include <Engine/Runtime/Input/InputManager.hpp>
+#include <Engine/Runtime/Input/FInputManager.hpp>
+#include <Engine/Runtime/Input/UInputAction.hpp>
+#include <Engine/Runtime/Input/UInputAxis.hpp>
