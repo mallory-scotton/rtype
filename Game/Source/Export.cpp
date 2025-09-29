@@ -54,8 +54,31 @@ TKD_EXPORT_GAME(
             .enableGamepad = true,
             .mouseSensitivity = 1.0f,
             .invertYAxis = false,
-            .inputActions = {},
-            .inputAxes = {},
+            .inputActions = {
+                { "Fire", {
+                    tkd::EInput::Mouse_Left,
+                    tkd::EInput::GamePadAxis_RightTrigger,
+                    tkd::EInput::Keyboard_Space
+                } }
+            },
+            .inputAxes = {
+                { "HorizontalMoves", {
+                    { tkd::EInput::Keyboard_A, -1.0f },
+                    { tkd::EInput::Keyboard_D, 1.0f },
+                    { tkd::EInput::Keyboard_Left, -1.0f },
+                    { tkd::EInput::Keyboard_Right, 1.0f },
+                    { tkd::EInput::GamePadAxis_LeftX, -1.0f },
+                    { tkd::EInput::GamePadAxis_RightX, 1.0f },
+                } },
+                { "VerticalMoves", {
+                    { tkd::EInput::Keyboard_W, -1.0f },
+                    { tkd::EInput::Keyboard_S, 1.0f },
+                    { tkd::EInput::Keyboard_Up, -1.0f },
+                    { tkd::EInput::Keyboard_Down, 1.0f },
+                    { tkd::EInput::GamePadAxis_LeftY, -1.0f },
+                    { tkd::EInput::GamePadAxis_RightY, 1.0f },
+                } }
+            },
         },
         .accessibility = {
             .highContrastMode = false,
