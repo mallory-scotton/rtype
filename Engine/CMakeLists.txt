@@ -28,6 +28,8 @@ endif()
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+find_package(imgui REQUIRED)
+find_package(ImGui-SFML REQUIRED)
 
 # Find test dependencies if building tests
 if(BUILD_TESTS)
@@ -102,6 +104,8 @@ target_link_libraries(TKDEngineClient
     PUBLIC
         sfml::sfml
         asio::asio
+        imgui::imgui
+        ImGui-SFML::ImGui-SFML
 )
 
 # Link libraries for server (minimal SFML components)
