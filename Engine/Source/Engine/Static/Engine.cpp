@@ -98,6 +98,7 @@ void Engine::RenderThreadFunction(void)
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
+        window->Draw([]() {});
     }
 
     s_isRunning = false;
