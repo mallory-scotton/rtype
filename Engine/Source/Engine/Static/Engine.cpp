@@ -103,8 +103,11 @@ void Engine::RenderThreadFunction(void)
         window->Draw(
             []()
             {
-                debug::FDebug& debug = debug::FDebug::GetInstance();
-                debug.Show();
+                if (Engine::IsDebugBuild())
+                {
+                    debug::FDebug& debug = debug::FDebug::GetInstance();
+                    debug.Show();
+                }
             }
         );
     }
