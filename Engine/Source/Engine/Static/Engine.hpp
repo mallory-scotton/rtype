@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Runtime.hpp>
+#include <Engine/Runtime/Input.hpp>
 #include <Engine/Static/Network.hpp>
 #include <Engine/Static/Window.hpp>
 #include <type_traits>
@@ -60,6 +61,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     static FEngineSettings Settings;   //<! The engine settings
     static UWorld World;               //<! The current world instance
+    static FInputManager Inputs;       //<! The input manager instance
 
 private:
     ///////////////////////////////////////////////////////////////////////////

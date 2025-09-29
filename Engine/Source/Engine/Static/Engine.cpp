@@ -27,6 +27,7 @@ Engine::UThread Engine::s_renderThread;
 bool Engine::s_isDebugBuild = true;
 FEngineSettings Engine::Settings = FEngineSettings();
 UWorld Engine::World = UWorld();
+FInputManager Engine::Inputs = FInputManager();
 
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::PrintStartupMessage(void)
@@ -116,6 +117,7 @@ bool Engine::Initialize(int argc, char* argv[])
     bool a_debug = false;
     std::string a_gameModule;
 
+    // Load game settings if the function is available
     if (TKD_GetEngineSettings)
     {
         s_isDebugBuild = false;
@@ -149,8 +151,10 @@ bool Engine::Initialize(int argc, char* argv[])
     args.AddFlags("port", "Server port number", a_port, false);
 #endif
 
+    // Try to process command-line arguments
     if (!args.Process(argc, argv))
     {
+        // Error processing arguments
         if (args.GetExitCode() != 0)
         {
             s_exitCode = args.GetExitCode();
@@ -159,9 +163,14 @@ bool Engine::Initialize(int argc, char* argv[])
         return false;
     }
 
+    // Print startup message
     PrintStartupMessage();
 
+    // Initialize input manager
+    Inputs.Initialize(Settings);
+
 #if TKD_ENGINE_SERVER
+    // Initialize network subsystem if in server mode
     if (!Network::Initialize(a_port))
     {
         s_exitCode = TKD_EXIT_FAILURE;
@@ -179,6 +188,7 @@ bool Engine::Initialize(int argc, char* argv[])
             );
     })
 
+    // Mark the engine as initialized
     s_isInitialized = true;
     return s_isInitialized;
 }
