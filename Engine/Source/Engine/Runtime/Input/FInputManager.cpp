@@ -17,15 +17,15 @@ void FInputManager::Initialize(const FEngineSettings& settings)
 
     for (const auto& [actionName, inputs]: settings.inputs.inputActions)
     {
-        UInputAction action(actionName, inputs);
-        m_actions.push_back(std::move(action));
+        m_actions.emplace_back(actionName, inputs);
     }
 
     for (const auto& [axisName, inputAndScale]: settings.inputs.inputAxes)
     {
-        UInputAxis axis(axisName, inputAndScale);
-        m_axes.push_back(std::move(axis));
+        m_axes.emplace_back(axisName, inputAndScale);
     }
+
+    m_initialized = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
