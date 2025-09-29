@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Debug.hpp>
 #include <Engine/Renderer.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,7 +100,13 @@ void Engine::RenderThreadFunction(void)
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
-        window->Draw([]() {});
+        window->Draw(
+            []()
+            {
+                debug::FEngineSettingsDebug debug;
+                debug.Show();
+            }
+        );
     }
 
     s_isRunning = false;
