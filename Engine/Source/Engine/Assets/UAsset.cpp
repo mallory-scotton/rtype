@@ -58,58 +58,9 @@ bool UAsset::Load(void)
     // Already loaded
     if (m_isLoaded) { return true; }
 
-    // Open file in binary mode
-    std::ifstream file(m_path, std::ios::binary);
-    if (!file.is_open()) { return false; }
-
-    // Read magic number
-    UInt32 magic;
-    file.read(reinterpret_cast<char*>(&magic), sizeof(magic));
-    if (magic != __internal::UASSET_MAGIC) { return false; }
-
-    // Read version
-    UInt16 version;
-    file.read(reinterpret_cast<char*>(&version), sizeof(version));
-    if (version != __internal::UASSET_VERSION) { return false; }
-
-    // Skip to data section (after header)
-    // Read asset type
-    UInt8 assetType;
-    file.read(reinterpret_cast<char*>(&assetType), sizeof(assetType));
-
-    // Read and skip UUID
-    UInt32 uuidLen;
-    file.read(reinterpret_cast<char*>(&uuidLen), sizeof(uuidLen));
-    file.seekg(uuidLen, std::ios::cur);
-
-    // Read and skip name
-    UInt32 nameLen;
-    file.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
-    file.seekg(nameLen, std::ios::cur);
-
-    // Read and skip path
-    UInt32 pathLen;
-    file.read(reinterpret_cast<char*>(&pathLen), sizeof(pathLen));
-    file.seekg(pathLen, std::ios::cur);
-
-    // Read data size
-    UInt64 dataSize;
-    file.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
-
-    // Allocate and read data
-    if (dataSize > 0)
-    {
-        m_data.resize(static_cast<SizeT>(dataSize));
-        file.read(reinterpret_cast<char*>(m_data.data()), dataSize);
-
-        if (!file)
-        {
-            m_data.clear();
-            return false;
-        }
-    }
-
-    m_isLoaded = true;
+    // Load based on source type
+    if (m_source == EAssetSource::Package) { return LoadFromPak(); }
+    else { return LoadFromFile(); }
     return true;
 }
 
@@ -275,6 +226,76 @@ void UAsset::SetMetadata(
     m_uuid = uuid;
     m_name = name;
     m_type = type;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool UAsset::LoadFromFile(void)
+{
+    // Open file in binary mode
+    std::ifstream file(m_path, std::ios::binary);
+    if (!file.is_open()) { return false; }
+
+    // Read magic number
+    UInt32 magic;
+    file.read(reinterpret_cast<char*>(&magic), sizeof(magic));
+    if (magic != __internal::UASSET_MAGIC) { return false; }
+
+    // Read version
+    UInt16 version;
+    file.read(reinterpret_cast<char*>(&version), sizeof(version));
+    if (version != __internal::UASSET_VERSION) { return false; }
+
+    // Skip to data section (after header)
+    // Read asset type
+    UInt8 assetType;
+    file.read(reinterpret_cast<char*>(&assetType), sizeof(assetType));
+
+    // Read and skip UUID
+    UInt32 uuidLen;
+    file.read(reinterpret_cast<char*>(&uuidLen), sizeof(uuidLen));
+    file.seekg(uuidLen, std::ios::cur);
+
+    // Read and skip name
+    UInt32 nameLen;
+    file.read(reinterpret_cast<char*>(&nameLen), sizeof(nameLen));
+    file.seekg(nameLen, std::ios::cur);
+
+    // Read and skip path
+    UInt32 pathLen;
+    file.read(reinterpret_cast<char*>(&pathLen), sizeof(pathLen));
+    file.seekg(pathLen, std::ios::cur);
+
+    // Read data size
+    UInt64 dataSize;
+    file.read(reinterpret_cast<char*>(&dataSize), sizeof(dataSize));
+
+    // Allocate and read data
+    if (dataSize > 0)
+    {
+        m_data.resize(static_cast<SizeT>(dataSize));
+        file.read(reinterpret_cast<char*>(m_data.data()), dataSize);
+
+        if (!file)
+        {
+            m_data.clear();
+            return false;
+        }
+    }
+
+    m_isLoaded = true;
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool UAsset::LoadFromPak(void)
+{
+    if (!m_pakFile) { return false; }
+
+    // Load data from pak file using the UUID
+    if (!m_pakFile->LoadAssetData(m_uuid, m_data)) { return false; }
+
+    m_isLoaded = true;
+    return true;
 }
 
 }   // namespace tkd
