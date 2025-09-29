@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Assets/UAsset.hpp>
 #include <cstring>
+#include <Engine/Assets/UPak.hpp>
 #include <fstream>
 #include <stdexcept>
 
@@ -29,6 +30,27 @@ UAsset::UAsset(const FilePath& uassetPath)
         );
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+UAsset::UAsset(
+    UPak* pakFile,
+    const FString& uuid,
+    const FString& name,
+    EAssetType type,
+    UInt64 offset,
+    UInt64 size
+)
+    : m_uuid(uuid)
+    , m_type(type)
+    , m_size(static_cast<SizeT>(size))
+    , m_name(name)
+    , m_path(pakFile ? pakFile->GetPath() : FilePath())
+    , m_isLoaded(false)
+    , m_data()
+    , m_source(EAssetSource::Package)
+    , m_pakFile(pakFile)
+    , m_pakOffset(offset)
+{}
 
 ///////////////////////////////////////////////////////////////////////////////
 bool UAsset::Load(void)
