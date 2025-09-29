@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <memory>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,6 +16,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
+
+///////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+///////////////////////////////////////////////////////////////////////////////
+class UPak;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace __internal
@@ -47,7 +53,35 @@ enum class EAssetType : UInt8
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration of asset source types
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EAssetSource : UInt8
+{
+    Standalone,   //<! Asset loaded from standalone .uasset file
+    Package       //<! Asset loaded from .pak package file
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Class representing an asset in the engine.
+///
+/// The UAsset class handles asset metadata and data management. By default,
+/// only the header (metadata) is loaded to efficiently track assets. The
+/// actual asset data can be loaded/unloaded on demand.
+///
+/// Assets can be loaded from either:
+/// - Standalone .uasset files
+/// - Packaged .pak files (more efficient for distribution)
+///
+/// File Format (.uasset):
+/// - Magic Number (4 bytes): 0x54455355 ("USET")
+/// - Version (2 bytes): Format version
+/// - Asset Type (1 byte): EAssetType enum value
+/// - UUID Length (4 bytes) + UUID Data (variable)
+/// - Name Length (4 bytes) + Name Data (variable)
+/// - Path Length (4 bytes) + Path Data (variable)
+/// - Data Size (8 bytes): Size of asset data in bytes
+/// - Asset Data (variable): Raw binary data
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class UAsset
@@ -63,19 +97,59 @@ private:
     FilePath m_path;            //<! File path of the asset.
     bool m_isLoaded;            //<! Flag indicating if the asset is loaded.
     std::vector<Byte> m_data;   //<! Raw data of the asset.
+    EAssetSource m_source;      //<! Source type of the asset.
+    UPak* m_pakFile;            //<! Pointer to pak file if from package.
+    UInt64 m_pakOffset;         //<! Offset in pak file.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Constructor for UAsset.
+    /// \brief Constructor for UAsset from standalone file.
+    ///
+    /// Parses the asset file header to extract metadata without loading
+    /// the full asset data.
     ///
     /// \param uassetPath The file path to the asset.
+    ///
+    /// \throws std::runtime_error if the asset file cannot be parsed.
     ///
     ///////////////////////////////////////////////////////////////////////////
     UAsset(const FilePath& uassetPath);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor for UAsset from pak file.
+    ///
+    /// Creates an asset reference that will load data from a pak file
+    /// at the specified offset when Load() is called.
+    ///
+    /// \param pakFile Pointer to the parent pak file.
+    /// \param uuid Unique identifier of the asset.
+    /// \param name Name of the asset.
+    /// \param type Type of the asset.
+    /// \param offset Offset in the pak file where data is stored.
+    /// \param size Size of the asset data.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UAsset(
+        UPak* pakFile,
+        const FString& uuid,
+        const FString& name,
+        EAssetType type,
+        UInt64 offset,
+        UInt64 size
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Default constructor for manual setup.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UAsset();
+
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Loads the asset data from the file.
+    /// \brief Loads the asset data from the file or pak.
+    ///
+    /// Reads the complete asset data into memory. If the asset is already
+    /// loaded, this function returns true immediately.
     ///
     /// \return True if the asset was loaded successfully, false otherwise.
     ///
@@ -84,6 +158,9 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Unloads the asset data, freeing associated resources.
+    ///
+    /// Clears the asset data from memory while preserving metadata. The
+    /// asset can be reloaded later using Load().
     ///
     /// \return True if the asset was unloaded successfully, false otherwise.
     ///
