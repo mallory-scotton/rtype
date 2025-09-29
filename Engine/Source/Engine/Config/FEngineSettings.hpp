@@ -112,7 +112,7 @@ public:
         bool invertYAxis = false;        //<! Invert Y-axis for mouse/gamepad
         std::unordered_map<std::string, std::vector<EInput>>
             inputActions = {};           //<! Action mappings
-        std::unordered_map<std::string, std::vector<std::pair<EInput, EInput>>>
+        std::unordered_map<std::string, std::vector<std::pair<EInput, float>>>
             inputAxes = {};              //<! Axis mappings
     } inputs;
 
