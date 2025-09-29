@@ -6,5 +6,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Renderer/Enumerations.hpp>
+#include <Engine/Renderer/FRenderStates.hpp>
+#include <Engine/Renderer/FView.hpp>
+#include <Engine/Renderer/IRenderer.hpp>
+#include <Engine/Renderer/IRenderTarget.hpp>
+#include <Engine/Renderer/IShader.hpp>
+#include <Engine/Renderer/ITexture.hpp>
 #include <Engine/Renderer/IWindow.hpp>
 #include <Engine/Renderer/SFML.hpp>
