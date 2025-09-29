@@ -214,7 +214,7 @@ bool UPak::Create(const FilePath& pakPath, const std::vector<UAsset*>& assets)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool UPak::AddAsset(UAsset* asset)
+bool UPak::AddAsset(TKD_MAYBE_UNUSED UAsset* asset)
 {
     // Not implemented - would require pak file reconstruction
     // For now, use Create() with all assets
