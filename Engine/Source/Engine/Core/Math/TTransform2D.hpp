@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <cmath>
+#include <Engine/Core/Math/Geometry/TRectangle.hpp>
 #include <Engine/Core/Math/TMatrix3x3.hpp>
 #include <Engine/Core/Math/TRotator2D.hpp>
 #include <Engine/Core/Math/TVector2.hpp>
@@ -229,6 +230,33 @@ public:
         return *this;
     }
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multiply this transform with another transform
+    ///
+    /// \param other The other transform to multiply with
+    /// \return The combined transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T> operator*(const TTransform2D<T>& other) const
+    {
+        TTransform2D<T> result;
+        result.m_matrix = m_matrix * other.m_matrix;
+        return result;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multiply this transform with another transform in place
+    ///
+    /// \param other The other transform to multiply with
+    /// \return Reference to this transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T>& operator*=(const TTransform2D<T>& other)
+    {
+        m_matrix = m_matrix * other.m_matrix;
+        return *this;
+    }
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the position component
@@ -319,6 +347,7 @@ public:
     /// \brief Transform a point by this transformation
     ///
     /// \param point The point to transform
+    ///
     /// \return The transformed point
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -335,6 +364,7 @@ public:
     /// \brief Transform a vector by this transformation (ignores translation)
     ///
     /// \param vector The vector to transform
+    ///
     /// \return The transformed vector
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -346,30 +376,29 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Multiply this transform with another transform
+    /// \brief Transform a rectangle by this transformation
     ///
-    /// \param other The other transform to multiply with
-    /// \return The combined transform
+    /// \param rect The rectangle to transform
+    ///
+    /// \return The transformed rectangle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TTransform2D<T> operator*(const TTransform2D<T>& other) const
+    TRectangle<T> TransformRectangle(const TRectangle<T>& rect) const
     {
-        TTransform2D<T> result;
-        result.m_matrix = m_matrix * other.m_matrix;
-        return result;
-    }
+        TVector2<T> position = TVector2<T>(rect.left, rect.top);
+        TVector2<T> corners[4] = { position,
+                                   position + TVector2<T>(rect.width, 0),
+                                   position + TVector2<T>(0, rect.height),
+                                   position +
+                                       TVector2<T>(rect.width, rect.height) };
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Multiply this transform with another transform in place
-    ///
-    /// \param other The other transform to multiply with
-    /// \return Reference to this transform
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TTransform2D<T>& operator*=(const TTransform2D<T>& other)
-    {
-        m_matrix = m_matrix * other.m_matrix;
-        return *this;
+        TRectangle<T> result;
+        for (const auto& corner: corners)
+        {
+            TVector2<T> transformedCorner = TransformPoint(corner);
+            result.Expand(transformedCorner);
+        }
+        return result;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -384,11 +413,6 @@ public:
         result.m_matrix = m_matrix.Inverse();
         return result;
     }
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Static utility functions
-    ///////////////////////////////////////////////////////////////////////////
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Scale up or down current scale
@@ -555,8 +579,10 @@ const TTransform2D<T> TTransform2D<T>::Identity = TTransform2D<T>();
 /// \brief Check if two transforms are equal
 ///
 /// \tparam T The type of the transform components
+///
 /// \param lhs The left-hand side transform
 /// \param rhs The right-hand side transform
+///
 /// \return True if transforms are equal
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -572,8 +598,10 @@ bool operator==(const TTransform2D<T>& lhs, const TTransform2D<T>& rhs)
 /// \brief Check if two transforms are not equal
 ///
 /// \tparam T The type of the transform components
+///
 /// \param lhs The left-hand side transform
 /// \param rhs The right-hand side transform
+///
 /// \return True if transforms are not equal
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -587,8 +615,10 @@ bool operator!=(const TTransform2D<T>& lhs, const TTransform2D<T>& rhs)
 /// \brief Output stream operator for TTransform2D
 ///
 /// \tparam T The type of the transform components
+///
 /// \param os The output stream
 /// \param transform The transform to output
+///
 /// \return Reference to the output stream
 ///
 ///////////////////////////////////////////////////////////////////////////////
