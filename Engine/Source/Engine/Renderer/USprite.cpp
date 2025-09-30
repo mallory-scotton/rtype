@@ -75,7 +75,7 @@ void USprite::SetPosition(const FVector2f& position)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetPosition(void) const
+FVector2f USprite::GetPosition(void) const
 {
     return m_transform.GetPosition();
 }
@@ -96,10 +96,7 @@ float USprite::GetRotation(void) const
 void USprite::SetScale(const FVector2f& scale) { m_transform.SetScale(scale); }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetScale(void) const
-{
-    return m_transform.GetScale();
-}
+FVector2f USprite::GetScale(void) const { return m_transform.GetScale(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void USprite::SetOrigin(const FVector2f& origin)
