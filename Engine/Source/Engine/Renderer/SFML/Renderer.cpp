@@ -18,6 +18,7 @@ Renderer::Renderer(IWindow* window)
     : m_window(reinterpret_cast<sf::RenderWindow*>(window->GetNativeHandle()))
     , m_currentTarget(m_window)
     , m_currentView(/*FView::GetDefaultView()*/)
+    , m_cachedStates(sf::RenderStates::Default)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,8 +59,16 @@ void Renderer::Draw(
 {
     if (vertices == nullptr || vertexCount == 0) { return; }
     SetupSFMLStates(states);
+
+    std::vector<sf::Vertex> sfmlVertices;
+    sfmlVertices.reserve(vertexCount);
+    for (UInt32 i = 0; i < vertexCount; ++i)
+    {
+        sfmlVertices.push_back(ToSFMLVertex(vertices[i]));
+    }
+
     m_currentTarget->draw(
-        reinterpret_cast<const sf::Vertex*>(vertices),
+        sfmlVertices.data(),
         vertexCount,
         ToSFMLPrimitiveType(type),
         m_cachedStates
@@ -167,7 +176,10 @@ sf::PrimitiveType Renderer::ToSFMLPrimitiveType(EPrimitiveType type)
 ///////////////////////////////////////////////////////////////////////////////
 sf::Color Renderer::ToSFMLColor(const FColor& color)
 {
-    return sf::Color(color.r, color.g, color.b, color.a);
+    FLinearColor linearColor = static_cast<FLinearColor>(color);
+    return sf::Color(
+        linearColor.r, linearColor.g, linearColor.b, linearColor.a
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -194,9 +206,23 @@ sf::View Renderer::ToSFMLView(const FView& view)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+sf::Transform Renderer::ToSFMLTransform(const FTransform2D& transform)
+{
+    FVector2f position = transform.GetPosition();
+    float rotation = transform.GetRotation().GetAngle();
+    FVector2f scale = transform.GetScale();
+    sf::Transform sfmlTransform;
+    sfmlTransform.translate(position.x, position.y);
+    sfmlTransform.rotate(rotation);
+    sfmlTransform.scale(scale.x, scale.y);
+    return sfmlTransform;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void Renderer::SetupSFMLStates(const FRenderStates& states)
 {
     m_cachedStates.blendMode = ToSFMLBlendMode(states.blendMode);
+    m_cachedStates.transform = ToSFMLTransform(states.transform);
     // TODO: Handle transform, texture, and shader
 }
 
