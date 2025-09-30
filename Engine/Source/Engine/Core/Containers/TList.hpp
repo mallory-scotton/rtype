@@ -29,11 +29,14 @@ template <typename T>
 class TList
 {
 public:
-    using value_type = T;
-    using size_type = std::size_t;
-    using difference_type = std::ptrdiff_t;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using ValueType = T;
+    using SizeType = std::size_t;
+    using DifferenceType = std::ptrdiff_t;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -42,160 +45,324 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     struct Node
     {
-        Node* Prev = nullptr;
-        Node* Next = nullptr;
-        value_type Value;
+    public:
+        ///////////////////////////////////////////////////////////////////////
+        // Class Member
+        ///////////////////////////////////////////////////////////////////////
+        Node* prev = nullptr;
+        Node* next = nullptr;
+        ValueType value;
 
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Constructor that forwards arguments to construct the node's
+        ///
+        /// \tparam Args The types of arguments to forward.
+        ///
+        /// \param args The arguments to forward to the value constructor.
+        ///
+        ///////////////////////////////////////////////////////////////////////
         template <class... Args>
         explicit Node(Args&&... args)
-            : Prev(nullptr)
-            , Next(nullptr)
-            , Value(std::forward<Args>(args)...)
+            : prev(nullptr)
+            , next(nullptr)
+            , value(std::forward<Args>(args)...)
         {}
     };
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    Node* m_head = nullptr;   //<! The head node.
+    Node* m_tail = nullptr;   //<! The tail node.
+    SizeType m_size = 0;      //<! Number of elements in the list.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Bidirectional iterator for TList.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    class iterator
+    class Iterator
     {
+    private:
+        ///////////////////////////////////////////////////////////////////////
+        // Class Member
+        ///////////////////////////////////////////////////////////////////////
         friend class TList;
-        Node* node_ = nullptr;
+        Node* m_node = nullptr;
 
     public:
-        using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = TList::value_type;
-        using difference_type = TList::difference_type;
-        using pointer = value_type*;
-        using reference = value_type&;
+        ///////////////////////////////////////////////////////////////////////
+        // Class Aliases
+        ///////////////////////////////////////////////////////////////////////
+        using IteratorCategory = std::bidirectional_iterator_tag;
+        using ValueType = TList::ValueType;
+        using DifferenceType = TList::DifferenceType;
+        using Pointer = ValueType*;
+        using Reference = ValueType&;
 
-        iterator() = default;
+    public:
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Default constructor.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Iterator(void) = default;
 
-        explicit iterator(Node* n)
-            : node_(n)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Constructor that initializes the iterator to point to a
+        /// node.
+        ///
+        /// \param n The node to point to.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        explicit Iterator(Node* node)
+            : m_node(node)
         {}
 
-        reference operator*() const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Dereference operator.
+        ///
+        /// \return Reference to the element's value.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Reference operator*(void) const
         {
-            assert(node_ && "Dereferencing end iterator");
-            return node_->Value;
+            assert(m_node && "Dereferencing end iterator");
+            return m_node->Value;
         }
 
-        pointer operator->() const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Access the member of the element pointed to by the iterator.
+        ///
+        /// \return Pointer to the element's value.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Pointer operator->(void) const
         {
-            assert(node_ && "Dereferencing end iterator");
-            return std::addressof(node_->Value);
+            assert(m_node && "Dereferencing end iterator");
+            return std::addressof(m_node->Value);
         }
 
-        iterator& operator++()
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Increment operator (prefix).
+        ///
+        /// \return Reference to this iterator after incrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Iterator& operator++(void)
         {
-            assert(node_ && "Incrementing end iterator");
-            node_ = node_->Next;
+            assert(m_node && "Incrementing end iterator");
+            m_node = m_node->Next;
             return *this;
         }
 
-        iterator operator++(int)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Increment operator (postfix).
+        ///
+        /// \return A copy of the iterator before incrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Iterator operator++(int)
         {
-            iterator tmp = *this;
+            Iterator tmp = *this;
             ++*this;
             return tmp;
         }
 
-        iterator& operator--()
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Decrement operator (prefix).
+        ///
+        /// \return Reference to this iterator after decrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Iterator& operator--(void)
         {
-            assert(node_ && node_->Prev && "Decrementing begin iterator");
-            node_ = node_->Prev;
+            assert(m_node && m_node->Prev && "Decrementing begin iterator");
+            m_node = m_node->Prev;
             return *this;
         }
 
-        iterator operator--(int)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Decrement operator (postfix).
+        ///
+        /// \return A copy of the iterator before decrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Iterator operator--(int)
         {
-            iterator tmp = *this;
+            Iterator tmp = *this;
             --*this;
             return tmp;
         }
 
-        bool operator==(const iterator& o) const { return node_ == o.node_; }
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Checks equality between two iterators.
+        ///
+        /// \param o The other iterator to compare with.
+        ///
+        /// \return True if the iterators point to the same node.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        bool operator==(const Iterator& o) const { return m_node == o.m_node; }
 
-        bool operator!=(const iterator& o) const { return node_ != o.node_; }
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Checks inequality between two iterators.
+        ///
+        /// \param o The other iterator to compare with.
+        ///
+        /// \return True if the iterators point to different nodes.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        bool operator!=(const Iterator& o) const { return m_node != o.m_node; }
     };
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Const bidirectional iterator for TList.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    class const_iterator
+    class ConstIterator
     {
+    private:
+        ///////////////////////////////////////////////////////////////////////
+        // Class Member
+        ///////////////////////////////////////////////////////////////////////
         friend class TList;
-        const Node* node_ = nullptr;
+        const Node* m_node = nullptr;
 
     public:
-        using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = TList::value_type;
-        using difference_type = TList::difference_type;
-        using pointer = const value_type*;
-        using reference = const value_type&;
+        ///////////////////////////////////////////////////////////////////////
+        // Class Member
+        ///////////////////////////////////////////////////////////////////////
+        using IteratorCategory = std::bidirectional_iterator_tag;
+        using ValueType = TList::ValueType;
+        using DifferenceType = TList::DifferenceType;
+        using Pointer = const ValueType*;
+        using Reference = const ValueType&;
 
-        const_iterator() = default;
+    public:
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Default constructor.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator(void) = default;
 
-        explicit const_iterator(const Node* n)
-            : node_(n)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Constructor that initializes the iterator to point to a
+        /// specific node.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        explicit ConstIterator(const Node* node)
+            : m_node(node)
         {}
 
-        const_iterator(const iterator& it)
-            : node_(it.node_)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Import an Iterator as a ConstIterator.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator(const Iterator& it)
+            : m_node(it.m_node)
         {}
 
-        reference operator*() const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Dereference operator.
+        ///
+        /// \return Reference to the element's value.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Reference operator*(void) const
         {
-            assert(node_ && "Dereferencing end iterator");
-            return node_->Value;
+            assert(m_node && "Dereferencing end iterator");
+            return m_node->Value;
         }
 
-        pointer operator->() const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Access the member of the element pointed to by the iterator.
+        ///
+        /// \return Pointer to the element's value.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        Pointer operator->(void) const
         {
-            assert(node_ && "Dereferencing end iterator");
-            return std::addressof(node_->Value);
+            assert(m_node && "Dereferencing end iterator");
+            return std::addressof(m_node->Value);
         }
 
-        const_iterator& operator++()
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Increment operator (prefix).
+        ///
+        /// \return Reference to this iterator after incrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator& operator++(void)
         {
-            assert(node_ && "Incrementing end iterator");
-            node_ = node_->Next;
+            assert(m_node && "Incrementing end iterator");
+            m_node = m_node->Next;
             return *this;
         }
 
-        const_iterator operator++(int)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Increment operator (postfix).
+        ///
+        /// \return A copy of the iterator before incrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator operator++(int)
         {
-            const_iterator tmp = *this;
+            ConstIterator tmp = *this;
             ++*this;
             return tmp;
         }
 
-        const_iterator& operator--()
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Decrement operator (prefix).
+        ///
+        /// \return Reference to this iterator after decrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator& operator--(void)
         {
-            assert(node_ && node_->Prev && "Decrementing begin iterator");
-            node_ = node_->Prev;
+            assert(m_node && m_node->Prev && "Decrementing begin iterator");
+            m_node = m_node->Prev;
             return *this;
         }
 
-        const_iterator operator--(int)
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Decrement operator (postfix).
+        ///
+        /// \return A copy of the iterator before decrementing.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        ConstIterator operator--(int)
         {
-            const_iterator tmp = *this;
+            ConstIterator tmp = *this;
             --*this;
             return tmp;
         }
 
-        bool operator==(const const_iterator& o) const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Checks equality between two const iterators.
+        ///
+        /// \param o The other iterator to compare with.
+        ///
+        /// \return True if the iterators point to the same node.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        bool operator==(const ConstIterator& o) const
         {
-            return node_ == o.node_;
+            return m_node == o.m_node;
         }
 
-        bool operator!=(const const_iterator& o) const
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Checks inequality between two const iterators.
+        ///
+        /// \param o The other iterator to compare with.
+        ///
+        /// \return True if the iterators point to different nodes.
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        bool operator!=(const ConstIterator& o) const
         {
-            return node_ != o.node_;
+            return m_node != o.m_node;
         }
     };
 
@@ -204,13 +371,13 @@ public:
     /// \brief Default constructor. Creates an empty list.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TList() noexcept = default;
+    TList(void) noexcept = default;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor. Cleans up all nodes.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ~TList() noexcept { clear(); }
+    ~TList() noexcept { Clear(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Copy constructor. Creates a copy of another list.
@@ -219,11 +386,11 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TList(const TList& other)
-        : Head(nullptr)
-        , Tail(nullptr)
-        , Size(0)
+        : m_head(nullptr)
+        , m_tail(nullptr)
+        , m_size(0)
     {
-        for (const auto& item: other) { push_back(item); }
+        for (const auto& item: other) { PushBack(item); }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -238,8 +405,8 @@ public:
     {
         if (this != &other)
         {
-            clear();
-            for (const auto& item: other) { push_back(item); }
+            Clear();
+            for (const auto& item: other) { PushBack(item); }
         }
         return *this;
     }
@@ -251,12 +418,12 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TList(TList&& other) noexcept
-        : Head(other.Head)
-        , Tail(other.Tail)
-        , Size(other.Size)
+        : m_head(other.m_head)
+        , m_tail(other.m_tail)
+        , m_size(other.m_size)
     {
-        other.Head = other.Tail = nullptr;
-        other.Size = 0;
+        other.m_head = other.m_tail = nullptr;
+        other.m_size = 0;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -271,12 +438,12 @@ public:
     {
         if (this != &other)
         {
-            clear();
-            Head = other.Head;
-            Tail = other.Tail;
-            Size = other.Size;
-            other.Head = other.Tail = nullptr;
-            other.Size = 0;
+            Clear();
+            m_head = other.m_head;
+            m_tail = other.m_tail;
+            m_size = other.m_size;
+            other.m_head = other.m_tail = nullptr;
+            other.m_size = 0;
         }
         return *this;
     }
@@ -287,10 +454,10 @@ public:
     /// \return Reference to the first element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    reference front()
+    Reference Front(void)
     {
-        assert(Head && "TList::front on empty list");
-        return Head->Value;
+        assert(m_head && "TList::front on empty list");
+        return m_head->Value;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -299,10 +466,10 @@ public:
     /// \return Const reference to the first element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_reference front() const
+    ConstReference Front(void) const
     {
-        assert(Head && "TList::front on empty list");
-        return Head->Value;
+        assert(m_head && "TList::front on empty list");
+        return m_head->Value;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -311,10 +478,10 @@ public:
     /// \return Reference to the last element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    reference back()
+    Reference Back(void)
     {
-        assert(Tail && "TList::back on empty list");
-        return Tail->Value;
+        assert(m_tail && "TList::back on empty list");
+        return m_tail->Value;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -323,10 +490,10 @@ public:
     /// \return Const reference to the last element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_reference back() const
+    ConstReference Back(void) const
     {
-        assert(Tail && "TList::back on empty list");
-        return Tail->Value;
+        assert(m_tail && "TList::back on empty list");
+        return m_tail->Value;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -335,7 +502,7 @@ public:
     /// \return True if the list is empty.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool empty() const noexcept { return Size == 0; }
+    bool Empty(void) const noexcept { return m_size == 0; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns the number of elements in the list.
@@ -343,7 +510,7 @@ public:
     /// \return The number of elements.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    size_type size() const noexcept { return Size; }
+    SizeType Size(void) const noexcept { return m_size; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Constructs an element at the front of the list.
@@ -355,7 +522,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <class... Args>
-    iterator push_front(Args&&... args)
+    Iterator PushFront(Args&&... args)
     {
         Node* n = nullptr;
         try
@@ -368,12 +535,12 @@ public:
             throw;
         }
 
-        n->Next = Head;
-        if (Head) { Head->Prev = n; }
-        Head = n;
-        if (!Tail) { Tail = n; }
-        ++Size;
-        return iterator(n);
+        n->Next = m_head;
+        if (m_head) { m_head->Prev = n; }
+        m_head = n;
+        if (!m_tail) { m_tail = n; }
+        ++m_size;
+        return Iterator(n);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -386,7 +553,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <class... Args>
-    iterator push_back(Args&&... args)
+    Iterator PushBack(Args&&... args)
     {
         Node* n = nullptr;
         try
@@ -399,42 +566,42 @@ public:
             throw;
         }
 
-        n->Prev = Tail;
-        if (Tail) { Tail->Next = n; }
-        Tail = n;
-        if (!Head) { Head = n; }
-        ++Size;
-        return iterator(n);
+        n->Prev = m_tail;
+        if (m_tail) { m_tail->Next = n; }
+        m_tail = n;
+        if (!m_head) { m_head = n; }
+        ++m_size;
+        return Iterator(n);
     }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Removes the first element from the list.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void pop_front()
+    void PopFront(void)
     {
-        assert(Head && "TList::pop_front on empty list");
-        Node* n = Head;
-        Head = Head->Next;
-        if (Head) { Head->Prev = nullptr; }
-        else { Tail = nullptr; }
+        assert(m_head && "TList::pop_front on empty list");
+        Node* n = m_head;
+        m_head = m_head->Next;
+        if (m_head) { m_head->Prev = nullptr; }
+        else { m_tail = nullptr; }
         delete n;
-        --Size;
+        --m_size;
     }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Removes the last element from the list.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void pop_back()
+    void PopBack(void)
     {
-        assert(Tail && "TList::pop_back on empty list");
-        Node* n = Tail;
-        Tail = Tail->Prev;
-        if (Tail) { Tail->Next = nullptr; }
-        else { Head = nullptr; }
+        assert(m_tail && "TList::pop_back on empty list");
+        Node* n = m_tail;
+        m_tail = m_tail->Prev;
+        if (m_tail) { m_tail->Next = nullptr; }
+        else { m_head = nullptr; }
         delete n;
-        --Size;
+        --m_size;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -445,7 +612,7 @@ public:
     /// \return Iterator to the inserted element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator AddHead(const value_type& value) { return push_front(value); }
+    Iterator AddHead(const ValueType& value) { return PushFront(value); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Adds an element to the back of the list.
@@ -455,7 +622,7 @@ public:
     /// \return Iterator to the inserted element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator AddTail(const value_type& value) { return push_back(value); }
+    Iterator AddTail(const ValueType& value) { return PushBack(value); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Constructs an element at the front of the list.
@@ -467,9 +634,9 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <class... Args>
-    iterator EmplaceHead(Args&&... args)
+    Iterator EmplaceHead(Args&&... args)
     {
-        return push_front(std::forward<Args>(args)...);
+        return PushFront(std::forward<Args>(args)...);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -482,9 +649,9 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <class... Args>
-    iterator EmplaceTail(Args&&... args)
+    Iterator EmplaceTail(Args&&... args)
     {
-        return push_back(std::forward<Args>(args)...);
+        return PushBack(std::forward<Args>(args)...);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -493,11 +660,11 @@ public:
     /// \return The value of the removed element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    value_type RemoveHead()
+    ValueType RemoveHead(void)
     {
-        assert(Head && "TList::RemoveHead on empty list");
-        value_type result = std::move(Head->Value);
-        pop_front();
+        assert(m_head && "TList::RemoveHead on empty list");
+        ValueType result = std::move(m_head->Value);
+        PopFront();
         return result;
     }
 
@@ -507,11 +674,11 @@ public:
     /// \return The value of the removed element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    value_type RemoveTail()
+    ValueType RemoveTail(void)
     {
-        assert(Tail && "TList::RemoveTail on empty list");
-        value_type result = std::move(Tail->Value);
-        pop_back();
+        assert(m_tail && "TList::RemoveTail on empty list");
+        ValueType result = std::move(m_tail->Value);
+        PopBack();
         return result;
     }
 
@@ -523,13 +690,13 @@ public:
     /// \return Iterator to the found element, or end() if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator Find(const value_type& value)
+    Iterator Find(const ValueType& value)
     {
-        for (Node* cur = Head; cur != nullptr; cur = cur->Next)
+        for (Node* cur = m_head; cur != nullptr; cur = cur->Next)
         {
-            if (cur->Value == value) { return iterator(cur); }
+            if (cur->Value == value) { return Iterator(cur); }
         }
-        return end();
+        return End();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -540,13 +707,13 @@ public:
     /// \return Const iterator to the found element, or end() if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator Find(const value_type& value) const
+    ConstIterator Find(const ValueType& value) const
     {
-        for (const Node* cur = Head; cur != nullptr; cur = cur->Next)
+        for (const Node* cur = m_head; cur != nullptr; cur = cur->Next)
         {
-            if (cur->Value == value) { return const_iterator(cur); }
+            if (cur->Value == value) { return ConstIterator(cur); }
         }
-        return end();
+        return End();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -557,9 +724,9 @@ public:
     /// \return True if the value is found in the list.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool Contains(const value_type& value) const
+    bool Contains(const ValueType& value) const
     {
-        return Find(value) != end();
+        return Find(value) != End();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -568,7 +735,7 @@ public:
     /// \return The number of elements.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    size_type Num() const noexcept { return size(); }
+    SizeType Num(void) const noexcept { return Size(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Checks if the list is empty.
@@ -576,13 +743,7 @@ public:
     /// \return True if the list is empty.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool IsEmpty() const noexcept { return empty(); }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Clears the list of all elements.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void Empty() { clear(); }
+    bool IsEmpty(void) const noexcept { return Empty(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a pointer to the head node.
@@ -590,7 +751,7 @@ public:
     /// \return Pointer to the head node.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    Node* GetHead() noexcept { return Head; }
+    Node* GetHead(void) noexcept { return m_head; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const pointer to the head node.
@@ -598,7 +759,7 @@ public:
     /// \return Const pointer to the head node.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const Node* GetHead() const noexcept { return Head; }
+    const Node* GetHead(void) const noexcept { return m_head; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a pointer to the tail node.
@@ -606,7 +767,7 @@ public:
     /// \return Pointer to the tail node.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    Node* GetTail() noexcept { return Tail; }
+    Node* GetTail(void) noexcept { return m_tail; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const pointer to the tail node.
@@ -614,7 +775,7 @@ public:
     /// \return Const pointer to the tail node.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const Node* GetTail() const noexcept { return Tail; }
+    const Node* GetTail() const noexcept { return m_tail; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Inserts an element before the specified position.
@@ -625,9 +786,9 @@ public:
     /// \return Iterator to the inserted element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator InsertBefore(const iterator& pos, const value_type& value)
+    Iterator InsertBefore(const Iterator& pos, const ValueType& value)
     {
-        return insert(pos, value);
+        return Insert(pos, value);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -638,7 +799,7 @@ public:
     /// \return Iterator to the element after the removed one.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator RemoveNode(const iterator& pos) { return erase(pos); }
+    Iterator RemoveNode(const Iterator& pos) { return Erase(pos); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Inserts an element before the specified position.
@@ -649,9 +810,9 @@ public:
     /// \return Iterator to the inserted element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator insert(const iterator& pos, const value_type& value)
+    Iterator Insert(const Iterator& pos, const ValueType& value)
     {
-        if (pos.node_ == nullptr) { return push_back(value); }
+        if (pos.node_ == nullptr) { return PushBack(value); }
         Node* cur = pos.node_;
         Node* n = nullptr;
         try
@@ -667,10 +828,10 @@ public:
         n->Prev = cur->Prev;
         n->Next = cur;
         if (cur->Prev) { cur->Prev->Next = n; }
-        else { Head = n; }
+        else { m_head = n; }
         cur->Prev = n;
-        ++Size;
-        return iterator(n);
+        ++m_size;
+        return Iterator(n);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -684,11 +845,11 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <class... Args>
-    iterator emplace(const iterator& pos, Args&&... args)
+    Iterator Emplace(const Iterator& pos, Args&&... args)
     {
         if (pos.node_ == nullptr)
         {
-            return push_back(std::forward<Args>(args)...);
+            return PushBack(std::forward<Args>(args)...);
         }
         Node* cur = pos.node_;
         Node* n = nullptr;
@@ -705,10 +866,10 @@ public:
         n->Prev = cur->Prev;
         n->Next = cur;
         if (cur->Prev) { cur->Prev->Next = n; }
-        else { Head = n; }
+        else { m_head = n; }
         cur->Prev = n;
-        ++Size;
-        return iterator(n);
+        ++m_size;
+        return Iterator(n);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -719,17 +880,17 @@ public:
     /// \return Iterator to the element after the removed one.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator erase(const iterator& pos)
+    Iterator Erase(const Iterator& pos)
     {
         Node* cur = pos.node_;
-        if (!cur) { return iterator(nullptr); }
-        iterator nextIt(cur->Next);
+        if (!cur) { return Iterator(nullptr); }
+        Iterator nextIt(cur->Next);
         if (cur->Prev) { cur->Prev->Next = cur->Next; }
-        else { Head = cur->Next; }
+        else { m_head = cur->Next; }
         if (cur->Next) { cur->Next->Prev = cur->Prev; }
-        else { Tail = cur->Prev; }
+        else { m_tail = cur->Prev; }
         delete cur;
-        --Size;
+        --m_size;
         return nextIt;
     }
 
@@ -737,17 +898,17 @@ public:
     /// \brief Removes all elements from the list.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void clear() noexcept
+    void Clear(void) noexcept
     {
-        Node* cur = Head;
+        Node* cur = m_head;
         while (cur)
         {
             Node* next = cur->Next;
             delete cur;
             cur = next;
         }
-        Head = Tail = nullptr;
-        Size = 0;
+        m_head = m_tail = nullptr;
+        m_size = 0;
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -756,12 +917,12 @@ public:
     /// \param other The list to swap with.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void swap(TList& other) noexcept
+    void Swap(TList& other) noexcept
     {
         if (this == &other) { return; }
-        std::swap(Head, other.Head);
-        std::swap(Tail, other.Tail);
-        std::swap(Size, other.Size);
+        std::swap(m_head, other.m_head);
+        std::swap(m_tail, other.m_tail);
+        std::swap(m_size, other.m_size);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -770,7 +931,7 @@ public:
     /// \return Iterator to the first element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator begin() noexcept { return iterator(Head); }
+    Iterator Begin(void) noexcept { return Iterator(m_head); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const iterator to the beginning of the list.
@@ -778,7 +939,7 @@ public:
     /// \return Const iterator to the first element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator begin() const noexcept { return const_iterator(Head); }
+    ConstIterator Begin(void) const noexcept { return ConstIterator(m_head); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const iterator to the beginning of the list.
@@ -786,7 +947,7 @@ public:
     /// \return Const iterator to the first element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator cbegin() const noexcept { return const_iterator(Head); }
+    ConstIterator CBegin(void) const noexcept { return ConstIterator(m_head); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns an iterator to the end of the list.
@@ -794,7 +955,7 @@ public:
     /// \return Iterator to one past the last element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator end() noexcept { return iterator(nullptr); }
+    Iterator End(void) noexcept { return Iterator(nullptr); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const iterator to the end of the list.
@@ -802,7 +963,7 @@ public:
     /// \return Const iterator to one past the last element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator end() const noexcept { return const_iterator(nullptr); }
+    ConstIterator End(void) const noexcept { return ConstIterator(nullptr); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Returns a const iterator to the end of the list.
@@ -810,12 +971,7 @@ public:
     /// \return Const iterator to one past the last element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator cend() const noexcept { return const_iterator(nullptr); }
-
-private:
-    Node* Head = nullptr;
-    Node* Tail = nullptr;
-    size_type Size = 0;
+    ConstIterator CEnd(void) const noexcept { return ConstIterator(nullptr); }
 };
 
 }   // namespace tkd
