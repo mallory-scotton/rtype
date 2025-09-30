@@ -46,7 +46,6 @@ FView Renderer::GetDefaultView(void) const
         sfmlView.getSize().x,
         sfmlView.getSize().y
     ));
-    return FView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
