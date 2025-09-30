@@ -9,6 +9,8 @@
 namespace tkd::SFML
 {
 
+#if TKD_ENGINE_CLIENT
+
 ///////////////////////////////////////////////////////////////////////////////
 Texture::Texture(void)
     : m_texture(nullptr)
@@ -145,5 +147,7 @@ void Texture::ApplySettings(void)
 {
     // TODO: Implement settings application
 }
+
+#endif
 
 }   // namespace tkd::SFML

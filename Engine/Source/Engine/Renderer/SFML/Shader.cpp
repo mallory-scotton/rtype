@@ -9,6 +9,8 @@
 namespace tkd::SFML
 {
 
+#if TKD_ENGINE_CLIENT
+
 ///////////////////////////////////////////////////////////////////////////////
 Shader::Shader(void)
     : m_shader(nullptr)
@@ -168,5 +170,7 @@ void* Shader::GetNativeHandle(void) const
 
 ///////////////////////////////////////////////////////////////////////////////
 sf::Shader* Shader::GetSFMLShader(void) const { return m_shader.get(); }
+
+#endif
 
 }   // namespace tkd::SFML

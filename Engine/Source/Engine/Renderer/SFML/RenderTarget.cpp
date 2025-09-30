@@ -9,6 +9,8 @@
 namespace tkd::SFML
 {
 
+#if TKD_ENGINE_CLIENT
+
 ///////////////////////////////////////////////////////////////////////////////
 RenderTarget::RenderTarget(void)
     : m_renderTexture(nullptr)
@@ -85,5 +87,7 @@ TKD_NODISCARD sf::RenderTexture* RenderTarget::GetSFMLRenderTexture(void) const
 {
     return m_renderTexture.get();
 }
+
+#endif
 
 }   // namespace tkd::SFML
