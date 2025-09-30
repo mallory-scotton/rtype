@@ -95,6 +95,8 @@ void Engine::MainThreadFunction(void)
 void Engine::RenderThreadFunction(void)
 {
     std::unique_ptr<IWindow> window = std::make_unique<SFML::Window>("TKD");
+    std::unique_ptr<IRenderer> renderer =
+        std::make_unique<SFML::Renderer>(window.get());
 
     while (s_isRunning && window->IsOpen())
     {
