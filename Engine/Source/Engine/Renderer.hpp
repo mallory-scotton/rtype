@@ -8,7 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/Enumerations.hpp>
 #include <Engine/Renderer/FRenderStates.hpp>
-#include <Engine/Renderer/FVertexArray.hpp>
+#include <Engine/Renderer/FVertex2DArray.hpp>
 #include <Engine/Renderer/FView.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
 #include <Engine/Renderer/IRenderTarget.hpp>
