@@ -25,10 +25,10 @@ void AActor::Tick(TKD_MAYBE_UNUSED Float32 deltaTime) {}
 void AActor::EndPlay(void) {}
 
 ///////////////////////////////////////////////////////////////////////////////
-const FTransform2D& AActor::GetTransform(void) const { return m_transform; }
+const FTransform& AActor::GetTransform(void) const { return m_transform; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::SetTransform(const FTransform2D& transform)
+void AActor::SetTransform(const FTransform& transform)
 {
     m_transform = transform;
 }

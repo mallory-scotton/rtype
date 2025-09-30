@@ -6,6 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Config/Config.hpp>
+#include <Engine/Config/EInputs.hpp>
+#include <Engine/Config/FEngineSettings.hpp>
 #include <Engine/Config/Macros.hpp>
 #include <Engine/Config/Types.hpp>
-#include <Engine/Config/Config.hpp>

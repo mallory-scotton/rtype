@@ -56,7 +56,7 @@ protected:
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-class Singleton : public Instantiable
+class TSingleton : public Instantiable
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -70,13 +70,13 @@ protected:
     /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    Singleton(void) = default;
+    TSingleton(void) = default;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default destructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual ~Singleton() = default;
+    virtual ~TSingleton() = default;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -165,9 +165,9 @@ public:
 // Static member definitions (must be in header for templates)
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T>
-std::unique_ptr<T> Singleton<T>::m_instance = nullptr;
+std::unique_ptr<T> TSingleton<T>::m_instance = nullptr;
 
 template <typename T>
-std::once_flag Singleton<T>::m_onceFlag;
+std::once_flag TSingleton<T>::m_onceFlag;
 
 }   // namespace tkd

@@ -6,4 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Renderer/SFML/Renderer.hpp>
+#include <Engine/Renderer/SFML/RenderTarget.hpp>
+#include <Engine/Renderer/SFML/Shader.hpp>
+#include <Engine/Renderer/SFML/Texture.hpp>
 #include <Engine/Renderer/SFML/Window.hpp>

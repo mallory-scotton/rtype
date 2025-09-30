@@ -8,9 +8,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Object/UObject.hpp>
-#include <Engine/Core/Object/UProperty.hpp>
 #include <functional>
+#include <unordered_map>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,6 +27,88 @@ namespace tkd
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class UClass
-{};
+{
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using Creator = std::function<UObject*(void)>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    FString m_name;                         //<! The name of the class
+    UClass* m_super;                        //<! Pointer to the superclass
+    std::vector<IProperty*> m_properties;   //<! List of properties
+    Creator m_createInstance;               //<! Function to create an instance
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor for UClass.
+    ///
+    /// \param name The name of the class.
+    /// \param super Pointer to the superclass (default is nullptr).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UClass(const FString& name, UClass* super = nullptr);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the function to create an instance of the class.
+    ///
+    /// \tparam T The type of the class to create.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void SetCreateFunction(void)
+    {
+        m_createInstance = []() -> UObject* { return new T(); };
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if this class is a child of another class.
+    ///
+    /// \param other Pointer to the other UClass to check against.
+    ///
+    /// \return True if this class is a child of the other class, false
+    /// otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsChildOf(UClass* other) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the name of the class.
+    ///
+    /// \return The name of the class.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FString& GetName(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the superclass of the class.
+    ///
+    /// \return Pointer to the superclass UClass, or nullptr if there is none.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const UClass* GetSuper(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the list of properties associated with the class.
+    ///
+    /// \return A constant reference to the vector of property pointers.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const std::vector<IProperty*>& GetProperties(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create an instance of the class.
+    ///
+    /// \return Pointer to the newly created UObject instance, or nullptr if
+    /// the instance could not be created.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UObject* CreateInstance(void) const;
+};
 
 }   // namespace tkd

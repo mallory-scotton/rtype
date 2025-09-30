@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Debug.hpp>
 #include <Engine/Renderer.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,14 +25,19 @@ Engine::UThread Engine::s_mainThread;
 #if TKD_ENGINE_CLIENT
 Engine::UThread Engine::s_renderThread;
 #endif
+bool Engine::s_isDebugBuild = true;
+FEngineSettings Engine::Settings = FEngineSettings();
+UWorld Engine::World = UWorld();
+FInputManager Engine::Inputs = FInputManager();
 
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::PrintStartupMessage(void)
 {
     std::string gameName = "NOT_LOADED";
-    if (TKD_GetGameName)
+    if (TKD_GetEngineSettings)
     {
-        gameName = TKD_GetGameName();
+        gameName = Settings.game.title.empty() ? "NOT_SPECIFIED"
+                                               : Settings.game.title;
         std::transform(
             gameName.begin(),
             gameName.end(),
@@ -94,6 +100,16 @@ void Engine::RenderThreadFunction(void)
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
+        window->Draw(
+            []()
+            {
+                if (Engine::IsDebugBuild())
+                {
+                    debug::FDebug& debug = debug::FDebug::GetInstance();
+                    debug.Show();
+                }
+            }
+        );
     }
 
     s_isRunning = false;
@@ -108,16 +124,32 @@ bool Engine::Initialize(int argc, char* argv[])
     FArgs& args = FArgs::GetInstance();
 
     bool a_verbose = false;
-    bool a_debug = false;
-
-    args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
-    args.AddFlags("debug", "Enable debug mode", a_debug, false);
-
     std::string a_gameModule;
-    if (!TKD_CreateGame)
+
+    // Load game settings if the function is available
+    if (TKD_GetEngineSettings)
     {
+        s_isDebugBuild = false;
+        Settings = TKD_GetEngineSettings();
+
+        if (Settings.version != TKD_VERSION_STRING)
+        {
+            s_exitCode = TKD_EXIT_FAILURE;
+            s_exitMessage = "Game module version mismatch. Expected " +
+                            std::string(TKD_VERSION_STRING) + ", got " +
+                            Settings.version + ".";
+            return false;
+        }
+
+        args.AddFlags("debug", "Enable debug mode", s_isDebugBuild, false);
+    }
+    else
+    {
+        s_isDebugBuild = true;
         args.AddFlags("game", "Path to the game module", a_gameModule, true);
     }
+
+    args.AddFlags("verbose", "Enable verbose logging", a_verbose, false);
 
 #if TKD_ENGINE_SERVER
     std::string a_host = "localhost";
@@ -127,8 +159,10 @@ bool Engine::Initialize(int argc, char* argv[])
     args.AddFlags("port", "Server port number", a_port, false);
 #endif
 
+    // Try to process command-line arguments
     if (!args.Process(argc, argv))
     {
+        // Error processing arguments
         if (args.GetExitCode() != 0)
         {
             s_exitCode = args.GetExitCode();
@@ -137,9 +171,14 @@ bool Engine::Initialize(int argc, char* argv[])
         return false;
     }
 
+    // Print startup message
     PrintStartupMessage();
 
+    // Initialize input manager
+    Inputs.Initialize(Settings);
+
 #if TKD_ENGINE_SERVER
+    // Initialize network subsystem if in server mode
     if (!Network::Initialize(a_port))
     {
         s_exitCode = TKD_EXIT_FAILURE;
@@ -157,6 +196,7 @@ bool Engine::Initialize(int argc, char* argv[])
             );
     })
 
+    // Mark the engine as initialized
     s_isInitialized = true;
     return s_isInitialized;
 }
@@ -187,15 +227,12 @@ bool Engine::Shutdown(void)
 bool Engine::IsInitialized(void) { return s_isInitialized; }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool Engine::IsDebugBuild(void) { return s_isDebugBuild; }
+
+///////////////////////////////////////////////////////////////////////////////
 void Engine::Run(void)
 {
     if (!s_isInitialized || s_isRunning) { return; }
-    // if (World::Get() == nullptr)
-    //{
-    //     s_exitCode = TKD_EXIT_FAILURE;
-    //     s_exitMessage = "No world loaded. Cannot run the engine.";
-    //     return;
-    // }
 
     s_isRunning = true;
 

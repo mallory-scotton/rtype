@@ -59,6 +59,18 @@ FString::FString(const FString& other, sizeType pos, SizeT len)
 FString::FString(FString&& other) { *this = std::move(other); }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString::FString(const std::string& other)
+{
+    m_data = nullptr;
+    m_length = 0;
+    m_capacity = 0;
+    m_increment = 15;
+    _setCapacity(0);
+    _setLength(0);
+    _append(other.c_str(), other.length());
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FString::FString(const char* other)
 {
     m_data = nullptr;
@@ -661,6 +673,9 @@ const char* FString::CStr(void) const
     }
     return m_data;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+std::string FString::ToStdString(void) const { return std::string(CStr()); }
 
 ///////////////////////////////////////////////////////////////////////////////
 char* FString::Data(void) { return m_data; }
@@ -1612,6 +1627,22 @@ FString operator+(char lhs, const FString& rhs)
 {
     FString toReturn;
     toReturn += lhs;
+    toReturn += rhs;
+    return toReturn;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FString operator+(const FString& lhs, const std::string& rhs)
+{
+    FString toReturn = lhs;
+    toReturn += rhs.c_str();
+    return toReturn;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FString operator+(const std::string& lhs, const FString& rhs)
+{
+    FString toReturn = lhs.c_str();
     toReturn += rhs;
     return toReturn;
 }

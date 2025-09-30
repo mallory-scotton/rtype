@@ -7,5 +7,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Object/UClass.hpp>
+#include <Engine/Core/Object/UFunction.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Object/UProperty.hpp>

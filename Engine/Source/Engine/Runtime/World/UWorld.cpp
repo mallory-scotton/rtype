@@ -10,12 +10,49 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::BeginPlay(void) {}
+UWorld::UWorld(void)
+    : m_actors()
+    , m_worldTime(0.0f)
+{}
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::Tick(Float32 deltaTime) {}
+void UWorld::DestroyActor(AActor* actor)
+{
+    auto it = std::find_if(
+        m_actors.begin(),
+        m_actors.end(),
+        [actor](const std::shared_ptr<AActor>& a) { return a.get() == actor; }
+    );
+    if (it != m_actors.end())
+    {
+        (*it)->EndPlay();
+        m_actors.erase(it);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWorld::EndPlay(void) {}
+void UWorld::BeginPlay(void)
+{
+    for (const auto& actor: m_actors) { actor->BeginPlay(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::Tick(Float32 deltaTime)
+{
+    m_worldTime += deltaTime;
+    for (const auto& actor: m_actors)
+    {
+        if (actor->IsActive()) { actor->Tick(deltaTime); }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::EndPlay(void)
+{
+    for (const auto& actor: m_actors) { actor->EndPlay(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+float UWorld::GetWorldTime(void) const { return m_worldTime; }
 
 }   // namespace tkd

@@ -8,6 +8,7 @@
         "${workspaceFolder}/Engine/Tests",
         "${workspaceFolder}/Game/Source",
         "~/.conan2/p/b/**/p/include",
+        "/root/.conan2/p/b/**/p/include",
         "/usr/include/**"
       ],
       "defines": [

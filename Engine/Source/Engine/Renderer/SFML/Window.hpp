@@ -30,6 +30,7 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<sf::RenderWindow> m_window;   //<! The SFML window instance
+    sf::Clock m_clock;                            //<! Clock for timing
     EWindowState m_state;                         //<! The current window state
     FVector2i m_position;    //<! The current window position
     FVector2u m_dimension;   //<! The current window dimensions

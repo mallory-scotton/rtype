@@ -9,4 +9,3 @@
 #include <Engine/Static/Engine.hpp>
 #include <Engine/Static/Network.hpp>
 #include <Engine/Static/Window.hpp>
-#include <Engine/Static/World.hpp>

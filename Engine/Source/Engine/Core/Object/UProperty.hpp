@@ -8,8 +8,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Object/UObject.hpp>
-#include <typeindex>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -30,36 +30,68 @@ enum class EPropertyFlags : UInt32
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Class representing a property with a name, type, and offset.
+/// \brief Template class for UProperty with type and flags.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UProperty
+template <typename T, UInt32 Flags = static_cast<UInt32>(EPropertyFlags::None)>
+class UProperty : public IProperty
 {
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using ValueType = T;                    //<! Alias for the property type.
+    using ThisType = UProperty<T, Flags>;   //<! Alias for this class type.
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;           //<! Name of the property
-    std::type_index m_type;   //<! Type of the property
-    SizeT m_offset;   //<! Offset of the property in the containing class
-    EPropertyFlags m_flags;   //<! Flags associated with the property
+    FString m_name;      //<! The name of the property.
+    ValueType m_value;   //<! The value of the property.
+    UObject& m_owner;    //<! Pointer to the owning UObject.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Constructor for UProperty.
     ///
-    /// \param name Name of the property
-    /// \param type Type of the property
-    /// \param offset Offset of the property in the containing class
-    /// \param flags Flags associated with the property
+    /// \param owner The owning UObject.
+    /// \param name The name of the property.
+    /// \param value The initial value of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
     UProperty(
-        const FString& name,
-        const std::type_index& type,
-        SizeT offset,
-        EPropertyFlags flags = EPropertyFlags::None
-    );
+        UObject& owner, const FString& name = "<Unnamed>", const T& value = T()
+    )
+        : m_name(name)
+        , m_value(value)
+        , m_owner(owner)
+    {
+        m_owner.RegisterProperty(this);
+    }
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Conversion operator to the property value type.
+    ///
+    /// \return The value of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    operator T(void) const { return m_value; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Assignment operator to set the property value.
+    ///
+    /// \param value The new value to assign to the property.
+    ///
+    /// \return Reference to this UProperty instance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T& operator=(const T& value)
+    {
+        m_value = value;
+        return *this;
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -68,131 +100,57 @@ public:
     /// \return The name of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const FString& GetName(void) const;
+    virtual const FString& GetName(void) const override { return m_name; }
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets the type of the property.
+    /// \brief Sets the name of the property.
     ///
-    /// \return The type of the property.
+    /// \param name The new name for the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::type_index& GetType(void) const;
+    virtual void SetName(const FString& name) override { m_name = name; }
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets the offset of the property in the containing class.
+    /// \brief Gets the value of the property.
     ///
-    /// \return The offset of the property.
+    /// \return The value of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeT GetOffset(void) const;
+    const T& GetValue(void) const { return m_value; }
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets a pointer to the value of the property for a given UObject
-    /// instance.
+    /// \brief Gets the value of the property.
     ///
-    /// \tparam T The type to which the property value should be cast.
-    ///
-    /// \param obj Pointer to the UObject instance.
-    ///
-    /// \return A pointer to the value of the property cast to the specified
-    /// type T.
+    /// \return The value of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    T* GetValuePtr(UObject* obj) const
+    T& GetValue(void) { return m_value; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the owner UObject of the property.
+    ///
+    /// \return The owner UObject of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual const UObject& GetOwner(void) const override { return m_owner; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the owner UObject of the property.
+    ///
+    /// \return The owner UObject of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual UObject& GetOwner(void) override { return m_owner; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the property path in the format "OwnerID/PropertyName".
+    ///
+    /// \return The property path as a FString.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FString GetPropertyPath(void) const override
     {
-        if (obj == nullptr) { return nullptr; }
-        auto* baseAddress = reinterpret_cast<UInt8*>(obj);
-        return reinterpret_cast<T*>(baseAddress + m_offset);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets a const pointer to the value of the property for a given
-    ///
-    /// \tparam T The type to which the property value should be cast.
-    ///
-    /// \param obj Pointer to the UObject instance.
-    ///
-    /// \return A const pointer to the value of the property cast to the
-    /// specified type T.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    const T* GetValuePtr(const UObject* obj) const
-    {
-        if (obj == nullptr) { return nullptr; }
-        auto* baseAddress = reinterpret_cast<const UInt8*>(obj);
-        return reinterpret_cast<const T*>(baseAddress + m_offset);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets a reference to the value of the property for a given
-    ///
-    /// \tparam T The type to which the property value should be cast.
-    ///
-    /// \param obj Pointer to the UObject instance.
-    ///
-    /// \return A reference to the value of the property cast to the specified
-    /// type T.
-    ///
-    /// \throws std::runtime_error if the obj pointer is null.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    T& GetValue(UObject* obj) const
-    {
-        if (obj == nullptr)
-        {
-            throw std::runtime_error("Null object pointer");
-        }
-        auto* baseAddress = reinterpret_cast<UInt8*>(obj);
-        return *reinterpret_cast<T*>(baseAddress + m_offset);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets a const reference to the value of the property for a given
-    ///
-    /// \tparam T The type to which the property value should be cast.
-    ///
-    /// \param obj Pointer to the UObject instance.
-    ///
-    /// \return A const reference to the value of the property cast to the
-    /// specified type T.
-    ///
-    /// \throws std::runtime_error if the obj pointer is null.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    const T& GetValue(const UObject* obj) const
-    {
-        if (obj == nullptr)
-        {
-            throw std::runtime_error("Null object pointer");
-        }
-        auto* baseAddress = reinterpret_cast<const UInt8*>(obj);
-        return *reinterpret_cast<const T*>(baseAddress + m_offset);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Sets the value of the property for a given UObject instance.
-    ///
-    /// \tparam T The type of the value to set.
-    ///
-    /// \param obj Pointer to the UObject instance.
-    /// \param value The new value to set.
-    ///
-    /// \throws std::runtime_error if the obj pointer is null.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    void SetValue(UObject* obj, const T& value) const
-    {
-        if (obj == nullptr)
-        {
-            throw std::runtime_error("Null object pointer");
-        }
-        auto* baseAddress = reinterpret_cast<UInt8*>(obj);
-        *reinterpret_cast<T*>(baseAddress + m_offset) = value;
+        return m_owner.GetObjectID() + "/" + m_name;
     }
 };
 

@@ -42,7 +42,7 @@ void Network::Shutdown(void)
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-bool Network::Initialize(UInt16 port) { return true; }
+bool Network::Initialize(TKD_MAYBE_UNUSED UInt16 port) { return true; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Network::Shutdown(void) {}

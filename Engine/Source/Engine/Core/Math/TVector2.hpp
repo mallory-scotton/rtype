@@ -48,25 +48,25 @@ public:
 #endif
         struct
         {
-            T x;   //!< The x-component of the vector.
-            T y;   //!< The y-component of the vector.
+            T x;   //<! The x-component of the vector.
+            T y;   //<! The y-component of the vector.
         };
 #ifdef __GNUC__
     #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
-        T data[2];   //!< Array access to the components.
+        T data[2];   //<! Array access to the components.
     };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Member
     ///////////////////////////////////////////////////////////////////////////
-    static const TVector2 Zero;    //!< A vector with both components set to 0.
-    static const TVector2 One;     //!< A vector with both components set to 1.
-    static const TVector2 UnitX;   //!< A unit vector along the x-axis (1, 0).
-    static const TVector2 UnitY;   //!< A unit vector along the y-axis (0, 1).
+    static const TVector2 Zero;    //<! A vector with both components set to 0.
+    static const TVector2 One;     //<! A vector with both components set to 1.
+    static const TVector2 UnitX;   //<! A unit vector along the x-axis (1, 0).
+    static const TVector2 UnitY;   //<! A unit vector along the y-axis (0, 1).
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -76,6 +76,17 @@ public:
     TVector2(void)
         : x(0)
         , y(0)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructs a vector with all components set to the same value.
+    ///
+    /// \param all All the components.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2(const T& all)
+        : x(all)
+        , y(all)
     {}
 
     ///////////////////////////////////////////////////////////////////////////
