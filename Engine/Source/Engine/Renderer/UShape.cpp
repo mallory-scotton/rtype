@@ -36,7 +36,7 @@ TKD_NODISCARD float UShape::GetMiterLimit(void) const { return m_miterLimit; }
 void UShape::SetFillColor(const FColor& color)
 {
     m_fillColor = color;
-    m_vertices.ForEach([&color](FVertex2D& vertex) { vertex.color = color; });
+    for (auto& vertex: m_vertices) { vertex.color = color; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,8 +49,7 @@ TKD_NODISCARD const FColor& UShape::GetFillColor(void) const
 void UShape::SetOutlineColor(const FColor& color)
 {
     m_outlineColor = color;
-    m_outlineVertices.ForEach([&color](FVertex2D& vertex)
-                              { vertex.color = color; });
+    for (auto& vertex: m_outlineVertices) { vertex.color = color; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -260,8 +259,7 @@ void UShape::UpdateGeometry(void)
 
     m_vertices[0].position = m_insideBounds.GetCenter();
 
-    m_vertices.ForEach([this](FVertex2D& vertex)
-                       { vertex.color = m_fillColor; });
+    for (auto& vertex: m_vertices) { vertex.color = m_fillColor; }
     UpdateUVs();
     UpdateOutlineGeometry();
 }
@@ -352,8 +350,7 @@ void UShape::UpdateOutlineGeometry(void)
     m_outlineVertices[outlineIndex++].position = m_outlineVertices[0].position;
     m_outlineVertices[outlineIndex++].position = m_outlineVertices[1].position;
 
-    m_outlineVertices.ForEach([this](FVertex2D& vertex)
-                              { vertex.color = m_outlineColor; });
+    for (auto& vertex: m_outlineVertices) { vertex.color = m_outlineColor; }
 
     m_bounds = m_outlineVertices.GetBounds();
 }
@@ -376,16 +373,13 @@ void UShape::UpdateUVs(void)
         size.x > 0 ? size.x : 1.f, size.y > 0 ? size.y : 1.f
     );
 
-    m_vertices.ForEach(
-        [&convertexTextureRect, &safeInsideSize, this](FVertex2D& vertex)
-        {
-            const FVector2f ratio =
-                (vertex.position - m_insideBounds.GetPosition()) /
-                safeInsideSize;
-            vertex.uv = convertexTextureRect.GetPosition() +
-                        convertexTextureRect.GetSize() * ratio;
-        }
-    );
+    for (auto& vertex: m_vertices)
+    {
+        const FVector2f ratio =
+            (vertex.position - m_insideBounds.GetPosition()) / safeInsideSize;
+        vertex.uv = convertexTextureRect.GetPosition() +
+                    convertexTextureRect.GetSize() * ratio;
+    }
 }
 
 }   // namespace tkd

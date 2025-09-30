@@ -245,12 +245,28 @@ public:
     Iterator Begin(void) { return m_data.begin(); }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get an iterator to the beginning of the vector.
+    ///
+    /// \return An iterator to the beginning of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Iterator begin(void) { return m_data.begin(); }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a constant iterator to the beginning of the vector.
     ///
     /// \return A constant iterator to the beginning of the vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     ConstIterator Begin(void) const { return m_data.begin(); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a constant iterator to the beginning of the vector.
+    ///
+    /// \return A constant iterator to the beginning of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator begin(void) const { return m_data.begin(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get an iterator to the end of the vector.
@@ -261,12 +277,28 @@ public:
     Iterator End(void) { return m_data.end(); }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get an iterator to the end of the vector.
+    ///
+    /// \return An iterator to the end of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Iterator end(void) { return m_data.end(); }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a constant iterator to the end of the vector.
     ///
     /// \return A constant iterator to the end of the vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     ConstIterator End(void) const { return m_data.end(); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a constant iterator to the end of the vector.
+    ///
+    /// \return A constant iterator to the end of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator end(void) const { return m_data.end(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a reverse iterator to the beginning of the vector.
@@ -277,12 +309,28 @@ public:
     RIterator RBegin(void) { return m_data.rbegin(); }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a reverse iterator to the beginning of the vector.
+    ///
+    /// \return A reverse iterator to the beginning of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RIterator rbegin(void) { return m_data.rbegin(); }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a constant reverse iterator to the beginning of the vector.
     ///
     /// \return A constant reverse iterator to the beginning of the vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     RConstIterator RBegin(void) const { return m_data.rbegin(); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a constant reverse iterator to the beginning of the vector.
+    ///
+    /// \return A constant reverse iterator to the beginning of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RConstIterator rbegin(void) const { return m_data.rbegin(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a reverse iterator to the end of the vector.
@@ -293,12 +341,28 @@ public:
     RIterator REnd(void) { return m_data.rend(); }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a reverse iterator to the end of the vector.
+    ///
+    /// \return A reverse iterator to the end of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RIterator rend(void) { return m_data.rend(); }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a constant reverse iterator to the end of the vector.
     ///
     /// \return A constant reverse iterator to the end of the vector.
     ///
     ///////////////////////////////////////////////////////////////////////////
     RConstIterator REnd(void) const { return m_data.rend(); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a constant reverse iterator to the end of the vector.
+    ///
+    /// \return A constant reverse iterator to the end of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RConstIterator rend(void) const { return m_data.rend(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a reference to the first element of the vector.
