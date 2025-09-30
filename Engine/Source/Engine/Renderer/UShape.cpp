@@ -75,6 +75,7 @@ TKD_NODISCARD const ITexture* UShape::GetTexture(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetPosition(const FVector2f& position)
 {
+    TKD_UNUSED(position);
     // TODO: Change with real transform operation
     // m_transform.SetPosition(position);
     m_needsUpdate = true;
@@ -91,6 +92,7 @@ TKD_NODISCARD const FVector2f& UShape::GetPosition(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetRotation(float rotation)
 {
+    TKD_UNUSED(rotation);
     // TODO: Change with real transform operation
     // m_transform.SetRotation(rotation);
     m_needsUpdate = true;
@@ -107,6 +109,7 @@ TKD_NODISCARD float UShape::GetRotation(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetScale(const FVector2f& scale)
 {
+    TKD_UNUSED(scale);
     // TODO: Change with real transform operation
     // m_transform.SetScale(scale);
     m_needsUpdate = true;
@@ -115,6 +118,7 @@ void UShape::SetScale(const FVector2f& scale)
 ///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD const FVector2f& UShape::GetScale(void) const
 {
+    TKD_UNUSED(m_transform);
     // TODO: Change with real transform operation
     return FVector2f::One;
     // return m_transform.GetScale();
@@ -123,6 +127,7 @@ TKD_NODISCARD const FVector2f& UShape::GetScale(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetOrigin(const FVector2f& origin)
 {
+    TKD_UNUSED(origin);
     // TODO: Change with real transform operation
     // m_transform.SetOrigin(origin);
     m_needsUpdate = true;
