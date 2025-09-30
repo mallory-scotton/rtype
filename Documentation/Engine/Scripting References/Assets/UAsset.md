@@ -35,7 +35,8 @@ enum class EAssetType : UInt8
     Unknown = 0,   // Unknown asset type
     Level,         // Level/map asset
     Texture,       // Texture/image asset
-    Audio          // Audio/sound asset
+    Audio,         // Audio/sound asset
+    Shader,        // Shader program asset
 };
 ```
 
