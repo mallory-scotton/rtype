@@ -98,18 +98,26 @@ void Engine::RenderThreadFunction(void)
     std::unique_ptr<IRenderer> renderer =
         std::make_unique<SFML::Renderer>(window.get());
 
+    URectangleShape rect;
+
+    rect.SetFillColor(FColor::Green);
+    rect.SetSize(FVector2f(100.0f, 100.0f));
+    rect.SetPosition(FVector2f(200.0f, 200.0f));
+
     while (s_isRunning && window->IsOpen())
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
         window->Draw(
-            []()
+            [&rect, &renderer]()
             {
                 if (Engine::IsDebugBuild())
                 {
                     debug::FDebug& debug = debug::FDebug::GetInstance();
                     debug.Show();
                 }
+
+                rect.Draw(renderer.get());
             }
         );
     }
