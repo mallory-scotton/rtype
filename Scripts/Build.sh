@@ -39,6 +39,7 @@ echo "Detected Architecture: $(uname -m)"
 # Parse command line arguments
 INSTALLER=""
 SKIP_PACKAGE_INSTALLATION=false
+SKIP_CONAN_INSTALLATION=false
 CLEAN_BUILD=false
 PRINT_HELP=false
 while [[ $# -gt 0 ]]; do
@@ -49,6 +50,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --skip-package-installation)
             SKIP_PACKAGE_INSTALLATION=true
+            shift
+            ;;
+        --skip-conan-installation)
+            SKIP_CONAN_INSTALLATION=true
             shift
             ;;
         --clean)
@@ -72,6 +77,7 @@ if [ "$PRINT_HELP" = true ]; then
     echo "Options:"
     echo "  --installer=<installer>          Specify package manager (zypper, dnf, apt, yum, pacman, brew)"
     echo "  --skip-package-installation      Skip installation of system packages"
+    echo "  --skip-conan-installation        Skip installation of Conan dependencies"
     echo "  --clean                          Clean existing Build directory before building"
     echo "  --help                           Show this help message"
     exit 0
@@ -281,12 +287,16 @@ print_status "Step 6: Installing dependencies with Conan"
 if command_exists gcc-13.4; then
     COMPILER_VERSION=13
 fi
-$CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
-    --settings=build_type=Release \
-    --settings=compiler.cppstd=20 \
-    --settings=compiler=$COMPILER \
-    --settings=compiler.version=$COMPILER_VERSION \
-    -c tools.system.package_manager:mode=install
+if [ "$SKIP_CONAN_INSTALLATION" = true ]; then
+    print_warning "Skipping Conan dependencies installation as per user request."
+else
+    $CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
+        --settings=build_type=Release \
+        --settings=compiler.cppstd=20 \
+        --settings=compiler=$COMPILER \
+        --settings=compiler.version=$COMPILER_VERSION \
+        -c tools.system.package_manager:mode=install
+fi
 print_success "Conan dependencies installed"
 
 print_status "Step 7: Configuring CMake with Conan integration"
