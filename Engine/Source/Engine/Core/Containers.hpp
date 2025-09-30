@@ -11,3 +11,4 @@
 #include <Engine/Core/Containers/TArray.hpp>
 #include <Engine/Core/Containers/TMap.hpp>
 #include <Engine/Core/Containers/TSet.hpp>
+#include <Engine/Core/Containers/TVector.hpp>
