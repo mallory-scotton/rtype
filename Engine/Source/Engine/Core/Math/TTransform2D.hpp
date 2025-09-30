@@ -6,8 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include "TRotator2D.hpp"
-#include "TVector2.hpp"
+#include <cmath>
+#include <Engine/Core/Math/TMatrix3x3.hpp>
+#include <Engine/Core/Math/TRotator2D.hpp>
+#include <Engine/Core/Math/TVector2.hpp>
 #include <iostream>
 #include <type_traits>
 
@@ -27,6 +29,11 @@ template <typename T>
 class TTransform2D
 {
 public:
+    static_assert(
+        std::is_arithmetic<T>::value, "T must be an arithmetic type"
+    );
+
+public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Members
     ///////////////////////////////////////////////////////////////////////////
@@ -36,14 +43,103 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Member variables
     ///////////////////////////////////////////////////////////////////////////
-    TVector2<T> m_position;     ///< Position in 2D space
-    TRotator2D<T> m_rotation;   ///< Rotation component
-    TVector2<T> m_scale;        ///< Scale component
+    TMatrix3x3<T> m_matrix;   ///<! Transformation matrix
 
-public:
-    static_assert(
-        std::is_arithmetic<T>::value, "T must be an arithmetic type"
-    );
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update matrix from position, rotation, and scale components
+    ///
+    /// \param position The position component
+    /// \param rotation The rotation component
+    /// \param scale The scale component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateMatrix(
+        const TVector2<T>& position,
+        const TRotator2D<T>& rotation,
+        const TVector2<T>& scale
+    )
+    {
+        // Convert angle from degrees to radians
+        T angleRad =
+            rotation.GetAngle() * static_cast<T>(M_PI) / static_cast<T>(180.0);
+        T cosAngle = std::cos(angleRad);
+        T sinAngle = std::sin(angleRad);
+
+        // Build transformation matrix: T * R * S
+        // [sx*cos  -sy*sin   tx]
+        // [sx*sin   sy*cos   ty]
+        // [   0        0      1]
+        m_matrix = TMatrix3x3<T>(
+            scale.x * cosAngle,
+            -scale.y * sinAngle,
+            position.x,
+            scale.x * sinAngle,
+            scale.y * cosAngle,
+            position.y,
+            static_cast<T>(0),
+            static_cast<T>(0),
+            static_cast<T>(1)
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract position from matrix
+    ///
+    /// \return The position component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> ExtractPosition(void) const
+    {
+        return TVector2<T>(m_matrix(0, 2), m_matrix(1, 2));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract rotation from matrix
+    ///
+    /// \return The rotation component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TRotator2D<T> ExtractRotation(void) const
+    {
+        // Extract scale to normalize rotation components
+        TVector2<T> scale = ExtractScale();
+
+        // Avoid division by zero
+        if (scale.x == static_cast<T>(0) || scale.y == static_cast<T>(0))
+        {
+            return TRotator2D<T>();
+        }
+
+        // Normalize rotation components
+        T cosAngle = m_matrix(0, 0) / scale.x;
+        T sinAngle = m_matrix(1, 0) / scale.x;
+
+        // Calculate angle from normalized components
+        T angleRad = std::atan2(sinAngle, cosAngle);
+        T angleDeg = angleRad * static_cast<T>(180.0) / static_cast<T>(M_PI);
+
+        return TRotator2D<T>(angleDeg);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract scale from matrix
+    ///
+    /// \return The scale component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> ExtractScale(void) const
+    {
+        // Calculate scale as magnitude of transformation vectors
+        T scaleX = std::sqrt(
+            m_matrix(0, 0) * m_matrix(0, 0) + m_matrix(1, 0) * m_matrix(1, 0)
+        );
+        T scaleY = std::sqrt(
+            m_matrix(0, 1) * m_matrix(0, 1) + m_matrix(1, 1) * m_matrix(1, 1)
+        );
+
+        return TVector2<T>(scaleX, scaleY);
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -51,9 +147,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D(void)
-        : m_position(TVector2<T>::Zero)
-        , m_rotation()
-        , m_scale(TVector2<T>::One)
+        : m_matrix(TMatrix3x3<T>::Identity)
     {}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -69,10 +163,9 @@ public:
         const TRotator2D<T>& rotation,
         const TVector2<T>& scale
     )
-        : m_position(position)
-        , m_rotation(rotation)
-        , m_scale(scale)
-    {}
+    {
+        UpdateMatrix(position, rotation, scale);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Copy constructor
@@ -81,9 +174,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D(const TTransform2D& other)
-        : m_position(other.m_position)
-        , m_rotation(other.m_rotation)
-        , m_scale(other.m_scale)
+        : m_matrix(other.m_matrix)
     {}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -93,9 +184,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D(TTransform2D&& other) noexcept
-        : m_position(std::move(other.m_position))
-        , m_rotation(std::move(other.m_rotation))
-        , m_scale(std::move(other.m_scale))
+        : m_matrix(std::move(other.m_matrix))
     {}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -107,10 +196,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     template <typename U>
     TTransform2D(const TTransform2D<U>& other)
-        : m_position(other.GetPosition())
-        , m_rotation(other.GetRotation())
-        , m_scale(other.GetScale())
-    {}
+    {
+        UpdateMatrix(
+            other.GetPosition(), other.GetRotation(), other.GetScale()
+        );
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -122,12 +212,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D& operator=(const TTransform2D& other)
     {
-        if (this != &other)
-        {
-            m_position = other.m_position;
-            m_rotation = other.m_rotation;
-            m_scale = other.m_scale;
-        }
+        if (this != &other) { m_matrix = other.m_matrix; }
         return *this;
     }
 
@@ -140,12 +225,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D& operator=(TTransform2D&& other) noexcept
     {
-        if (this != &other)
-        {
-            m_position = std::move(other.m_position);
-            m_rotation = std::move(other.m_rotation);
-            m_scale = std::move(other.m_scale);
-        }
+        if (this != &other) { m_matrix = std::move(other.m_matrix); }
         return *this;
     }
 
@@ -153,26 +233,26 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the position component
     ///
-    /// \return Const reference to the position
+    /// \return The position component
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TVector2<T>& GetPosition(void) const { return m_position; }
+    TVector2<T> GetPosition(void) const { return ExtractPosition(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the rotation component
     ///
-    /// \return Const reference to the rotation
+    /// \return The rotation component
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TRotator2D<T>& GetRotation(void) const { return m_rotation; }
+    TRotator2D<T> GetRotation(void) const { return ExtractRotation(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the scale component
     ///
-    /// \return Const reference to the scale
+    /// \return The scale component
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TVector2<T>& GetScale(void) const { return m_scale; }
+    TVector2<T> GetScale(void) const { return ExtractScale(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the position component
@@ -180,7 +260,10 @@ public:
     /// \param position The new position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetPosition(const TVector2<T>& position) { m_position = position; }
+    void SetPosition(const TVector2<T>& position)
+    {
+        UpdateMatrix(position, ExtractRotation(), ExtractScale());
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the rotation component
@@ -188,7 +271,10 @@ public:
     /// \param rotation The new rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetRotation(const TRotator2D<T>& rotation) { m_rotation = rotation; }
+    void SetRotation(const TRotator2D<T>& rotation)
+    {
+        UpdateMatrix(ExtractPosition(), rotation, ExtractScale());
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the scale component
@@ -196,7 +282,10 @@ public:
     /// \param scale The new scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetScale(const TVector2<T>& scale) { m_scale = scale; }
+    void SetScale(const TVector2<T>& scale)
+    {
+        UpdateMatrix(ExtractPosition(), ExtractRotation(), scale);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform scale
@@ -206,7 +295,94 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void SetScale(const T& uniformScale)
     {
-        m_scale = TVector2<T>(uniformScale, uniformScale);
+        TVector2<T> scale(uniformScale, uniformScale);
+        UpdateMatrix(ExtractPosition(), ExtractRotation(), scale);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the transformation matrix
+    ///
+    /// \return Const reference to the transformation matrix
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const TMatrix3x3<T>& GetMatrix(void) const { return m_matrix; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the transformation matrix directly
+    ///
+    /// \param matrix The new transformation matrix
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetMatrix(const TMatrix3x3<T>& matrix) { m_matrix = matrix; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a point by this transformation
+    ///
+    /// \param point The point to transform
+    /// \return The transformed point
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> TransformPoint(const TVector2<T>& point) const
+    {
+        T x = m_matrix(0, 0) * point.x + m_matrix(0, 1) * point.y +
+              m_matrix(0, 2);
+        T y = m_matrix(1, 0) * point.x + m_matrix(1, 1) * point.y +
+              m_matrix(1, 2);
+        return TVector2<T>(x, y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a vector by this transformation (ignores translation)
+    ///
+    /// \param vector The vector to transform
+    /// \return The transformed vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> TransformVector(const TVector2<T>& vector) const
+    {
+        T x = m_matrix(0, 0) * vector.x + m_matrix(0, 1) * vector.y;
+        T y = m_matrix(1, 0) * vector.x + m_matrix(1, 1) * vector.y;
+        return TVector2<T>(x, y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multiply this transform with another transform
+    ///
+    /// \param other The other transform to multiply with
+    /// \return The combined transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T> operator*(const TTransform2D<T>& other) const
+    {
+        TTransform2D<T> result;
+        result.m_matrix = m_matrix * other.m_matrix;
+        return result;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multiply this transform with another transform in place
+    ///
+    /// \param other The other transform to multiply with
+    /// \return Reference to this transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T>& operator*=(const TTransform2D<T>& other)
+    {
+        m_matrix = m_matrix * other.m_matrix;
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the inverse of this transformation
+    ///
+    /// \return The inverse transformation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T> Inverse(void) const
+    {
+        TTransform2D<T> result;
+        result.m_matrix = m_matrix.Inverse();
+        return result;
     }
 
 public:
@@ -220,7 +396,12 @@ public:
     /// \param scaleFactor Multiplier to current scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Scale(const T& scaleFactor) { m_scale *= scaleFactor; }
+    void Scale(const T& scaleFactor)
+    {
+        TVector2<T> currentScale = ExtractScale();
+        currentScale *= scaleFactor;
+        UpdateMatrix(ExtractPosition(), ExtractRotation(), currentScale);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to scale a transform by scalar
@@ -237,10 +418,15 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief scale up or down current scale
     ///
-    /// \param scaleFactor Vector multiplier to current scale
+    /// \param scaleFactors Vector multiplier to current scale
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Scale(const TVector2<T>& scaleFactors) { m_scale *= scaleFactors; }
+    void Scale(const TVector2<T>& scaleFactors)
+    {
+        TVector2<T> currentScale = ExtractScale();
+        currentScale *= scaleFactors;
+        UpdateMatrix(ExtractPosition(), ExtractRotation(), currentScale);
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to scale a transform by vector
@@ -261,7 +447,12 @@ public:
     /// \param translateFactor Addition to current position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Translate(const T& translateFactor) { m_position += translateFactor; }
+    void Translate(const T& translateFactor)
+    {
+        TVector2<T> currentPosition = ExtractPosition();
+        currentPosition += translateFactor;
+        UpdateMatrix(currentPosition, ExtractRotation(), ExtractScale());
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to translate a transform by scalar
@@ -283,7 +474,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void Translate(const TVector2<T>& translateFactor)
     {
-        m_position += translateFactor;
+        TVector2<T> currentPosition = ExtractPosition();
+        currentPosition += translateFactor;
+        UpdateMatrix(currentPosition, ExtractRotation(), ExtractScale());
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -306,7 +499,12 @@ public:
     /// \param rotation The rotation to add to current rotation
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Rotate(const TRotator2D<T>& rotation) { m_rotation += rotation; }
+    void Rotate(const TRotator2D<T>& rotation)
+    {
+        TRotator2D<T> currentRotation = ExtractRotation();
+        currentRotation += rotation;
+        UpdateMatrix(ExtractPosition(), currentRotation, ExtractScale());
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to rotate a transform by rotator
@@ -327,7 +525,12 @@ public:
     /// \param angle Angle rotation to add (degrees)
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Rotate(const T& angle) { m_rotation += TRotator2D<T>(angle); }
+    void Rotate(const T& angle)
+    {
+        TRotator2D<T> currentRotation = ExtractRotation();
+        currentRotation += TRotator2D<T>(angle);
+        UpdateMatrix(ExtractPosition(), currentRotation, ExtractScale());
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Static method to rotate a transform by angle
@@ -402,11 +605,5 @@ std::ostream& operator<<(std::ostream& os, const TTransform2D<T>& transform)
 
     return os;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-// Type aliases
-///////////////////////////////////////////////////////////////////////////////
-using Transform2D = TTransform2D<float>;
-using Transform2Dd = TTransform2D<double>;
 
 }   // namespace tkd
