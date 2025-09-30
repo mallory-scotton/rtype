@@ -155,6 +155,61 @@ public:
     {
         return sf::Rect<T>(rect.left, rect.top, rect.width, rect.height);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD 3x3 matrix to an SFML 3x3 matrix
+    ///
+    /// \param mat The TKD 3x3 matrix to convert
+    ///
+    /// \return The converted SFML matrix
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static sf::Glsl::Mat3 Convert(const TMatrix3x3<T>& mat)
+    {
+        return sf::Glsl::Mat3(
+            mat.data[0][0],
+            mat.data[0][1],
+            mat.data[0][2],
+            mat.data[1][0],
+            mat.data[1][1],
+            mat.data[1][2],
+            mat.data[2][0],
+            mat.data[2][1],
+            mat.data[2][2]
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD 4x4 matrix to an SFML 4x4 matrix
+    ///
+    /// \param mat The TKD 4x4 matrix to convert
+    ///
+    /// \return The converted SFML matrix
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static sf::Glsl::Mat4 Convert(const TMatrix4x4<T>& mat)
+    {
+        return sf::Glsl::Mat4(
+            mat.data[0][0],
+            mat.data[0][1],
+            mat.data[0][2],
+            mat.data[0][3],
+            mat.data[1][0],
+            mat.data[1][1],
+            mat.data[1][2],
+            mat.data[1][3],
+            mat.data[2][0],
+            mat.data[2][1],
+            mat.data[2][2],
+            mat.data[2][3],
+            mat.data[3][0],
+            mat.data[3][1],
+            mat.data[3][2],
+            mat.data[3][3]
+        );
+    }
 };
 
 }   // namespace tkd::SFML
