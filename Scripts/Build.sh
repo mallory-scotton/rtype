@@ -71,6 +71,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+if [ "$CLEAN_BUILD" = true ]; then
+    SKIP_CONAN_INSTALLATION=false
+fi
+
 if [ "$PRINT_HELP" = true ]; then
     echo "Usage: ./Scripts/Build.sh [options]"
     echo ""
