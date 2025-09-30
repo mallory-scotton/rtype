@@ -40,6 +40,7 @@ echo "Detected Architecture: $(uname -m)"
 INSTALLER=""
 SKIP_PACKAGE_INSTALLATION=false
 CLEAN_BUILD=false
+PRINT_HELP=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --installer=*)
@@ -54,12 +55,27 @@ while [[ $# -gt 0 ]]; do
             CLEAN_BUILD=true
             shift
             ;;
+        --help)
+            PRINT_HELP=true
+            shift
+            ;;
         *)
             echo "Unknown option: $1"
             exit 1
             ;;
     esac
 done
+
+if [ "$PRINT_HELP" = true ]; then
+    echo "Usage: ./Scripts/Build.sh [options]"
+    echo ""
+    echo "Options:"
+    echo "  --installer=<installer>          Specify package manager (zypper, dnf, apt, yum, pacman, brew)"
+    echo "  --skip-package-installation      Skip installation of system packages"
+    echo "  --clean                          Clean existing Build directory before building"
+    echo "  --help                           Show this help message"
+    exit 0
+fi
 
 # Copy Pre-Commit Hook to .git/hooks
 if [ -d ".git" ]; then
