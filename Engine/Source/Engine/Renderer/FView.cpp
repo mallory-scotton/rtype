@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/FView.hpp>
+#include <cmath>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -58,7 +59,11 @@ void FView::SetSize(float width, float height)
 void FView::SetSize(const FVector2& size) { m_size = size; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FView::SetRotation(float angle) { m_rotation = angle; }
+void FView::SetRotation(float angle)
+{
+    m_rotation = std::fmod(angle, 360.f);
+    if (m_rotation < 0) { m_rotation += 360.f; }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void FView::SetRotation(const FRotator2D& rotation)
