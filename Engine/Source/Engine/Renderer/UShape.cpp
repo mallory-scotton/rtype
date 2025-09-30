@@ -81,7 +81,7 @@ void UShape::SetPosition(const FVector2f& position)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD const FVector2f& UShape::GetPosition(void) const
+TKD_NODISCARD FVector2f UShape::GetPosition(void) const
 {
     return m_transform.GetPosition();
 }
@@ -107,7 +107,7 @@ void UShape::SetScale(const FVector2f& scale)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD const FVector2f& UShape::GetScale(void) const
+TKD_NODISCARD FVector2f UShape::GetScale(void) const
 {
     return m_transform.GetScale();
 }
