@@ -15,5 +15,6 @@
 #include <Engine/Renderer/ITexture.hpp>
 #include <Engine/Renderer/IWindow.hpp>
 #include <Engine/Renderer/SFML.hpp>
+#include <Engine/Renderer/Shapes.hpp>
 #include <Engine/Renderer/UShape.hpp>
 #include <Engine/Renderer/USprite.hpp>
