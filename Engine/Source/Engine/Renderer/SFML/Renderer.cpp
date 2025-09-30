@@ -190,6 +190,7 @@ sf::View Renderer::ToSFMLView(const FView& view)
         rect.left + rect.width / 2.0f, rect.top + rect.height / 2.0f
     );
     sfmlView.setSize(rect.width, rect.height);
+    sfmlView.setRotation(view.GetRotation());
     return sfmlView;
 }
 
