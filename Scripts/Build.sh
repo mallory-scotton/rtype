@@ -38,10 +38,20 @@ echo "Detected Architecture: $(uname -m)"
 
 # Parse command line arguments
 INSTALLER=""
+SKIP_PACKAGE_INSTALLATION=false
+CLEAN_BUILD=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --installer=*)
             INSTALLER="${1#*=}"
+            shift
+            ;;
+        --skip-package-installation)
+            SKIP_PACKAGE_INSTALLATION=true
+            shift
+            ;;
+        --clean)
+            CLEAN_BUILD=true
             shift
             ;;
         *)
@@ -192,11 +202,19 @@ verify_requirements() {
 
 # Main execution
 print_status "Step 1: Creating Build directory"
+if [ "$CLEAN_BUILD" = true ] && [ -d "Build" ]; then
+    rm -rf Build
+    print_warning "Cleaned existing Build directory"
+fi
 mkdir -p Build
 print_success "Build directory created"
 
 print_status "Step 2: Installing system dependencies"
-install_packages
+if [ "$SKIP_PACKAGE_INSTALLATION" = false ]; then
+    install_packages
+else
+    print_warning "Skipping package installation as per user request."
+fi
 print_success "System dependencies installed"
 
 print_status "Step 3: Ensuring pipx is available"
