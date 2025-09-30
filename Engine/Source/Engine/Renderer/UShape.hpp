@@ -29,13 +29,14 @@ protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    FTransform2D m_transform;     //<! Shape transform
-    FColor m_fillColor;           //<! Fill color
-    FColor m_outlineColor;        //<! Outline color
-    float m_outlineThickness;     //<! Outline thickness
-    EBlendMode m_blendMode;       //<! Blend mode
-    const ITexture* m_texture;    //<! Optional texture
-    mutable bool m_needsUpdate;   //<! Flag for vertex update
+    FTransform2D m_transform;                    //<! Shape transform
+    FColor m_fillColor;                          //<! Fill color
+    FColor m_outlineColor;                       //<! Outline color
+    float m_outlineThickness;                    //<! Outline thickness
+    EBlendMode m_blendMode;                      //<! Blend mode
+    const ITexture* m_texture;                   //<! Optional texture
+    mutable bool m_needsUpdate;                  //<! Flag for vertex update
+    mutable std::vector<FVertex2D> m_vertices;   //<! Vertex array
 
 public:
     ///////////////////////////////////////////////////////////////////////////
