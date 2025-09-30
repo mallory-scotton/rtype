@@ -19,7 +19,18 @@ UShape::UShape(void)
     , m_origin(FVector2f::Zero)
     , m_vertices(EPrimitiveType::TriangleFan)
     , m_outlineVertices(EPrimitiveType::TriangleStrip)
+    , m_miterLimit(10.0f)
 {}
+
+///////////////////////////////////////////////////////////////////////////////
+void UShape::SetMiterLimit(float limit)
+{
+    m_miterLimit = limit;
+    UpdateOutlineGeometry();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TKD_NODISCARD float UShape::GetMiterLimit(void) const { return m_miterLimit; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetFillColor(const FColor& color)
@@ -264,6 +275,96 @@ void UShape::UpdateOutlineGeometry(void)
         m_bounds = m_insideBounds;
         return;
     }
+
+    const SizeT count = m_vertices.Size() - 2;
+    m_outlineVertices.Resize((count + 1) * 2);
+
+    const bool flipNormals = [this, count]()
+    {
+        const FVector2f p0 = m_vertices[0].position;
+        for (SizeT i = 0; i < count; i++)
+        {
+            const FVector2f p1 = m_vertices[i + 1].position;
+            const FVector2f p2 = m_vertices[i + 2].position;
+            const float product = (p1 - p0).Cross(p2 - p0);
+            if (product == 0.f) { continue; }
+            return product > 0.f;
+        }
+        return true;
+    }();
+
+    SizeT outlineIndex = 0;
+    for (SizeT i = 0; i < count; i++)
+    {
+        const SizeT index = i + 1;
+
+        const FVector2f p0 = (i == 0) ? m_vertices[count].position
+                                      : m_vertices[index - 1].position;
+        const FVector2f p1 = m_vertices[index].position;
+        const FVector2f p2 = m_vertices[index + 1].position;
+
+        const FVector2f d1 = ComputeDirection(p0, p1);
+        const FVector2f d2 = ComputeDirection(p1, p2);
+
+        const FVector2f n1 =
+            flipNormals ? -d1.Perpendicular() : d1.Perpendicular();
+        const FVector2f n2 =
+            flipNormals ? -d2.Perpendicular() : d2.Perpendicular();
+
+        const float twoCos2 = 1.f + n1.Dot(n2);
+        const float squaredLengthRatio =
+            m_miterLimit * m_miterLimit * twoCos2 / 2.f;
+        const bool isConvexCorner = d1.Dot(n2) * m_outlineThickness >= 0.f;
+        const bool needsBevel =
+            twoCos2 == 0.0f || (squaredLengthRatio < 1.f && isConvexCorner);
+
+        if (needsBevel)
+        {
+            m_outlineVertices.Resize(m_outlineVertices.Size() + 2);
+
+            const float twoSin2 = 1.F - n1.Dot(n2);
+            const FVector2f direction = (n2 - n1) / twoSin2;
+            const FVector2f extrusion =
+                (flipNormals != (d1.Dot(n2) >= 0.f) ? direction : -direction)
+                    .Perpendicular();
+
+            const float sin = std::sqrt(twoSin2 * 0.5f);
+            const float u = m_miterLimit * sin;
+            const float v = 1.f - std::sqrt(squaredLengthRatio);
+
+            m_outlineVertices[outlineIndex++].position = p1;
+            m_outlineVertices[outlineIndex++].position =
+                p1 + (u * extrusion - v * direction) * m_outlineThickness;
+            m_outlineVertices[outlineIndex++].position = p1;
+            m_outlineVertices[outlineIndex++].position =
+                p1 + (u * extrusion + v * direction) * m_outlineThickness;
+        }
+        else
+        {
+            const FVector2f extrusion = (n1 + n2) / twoCos2;
+
+            m_outlineVertices[outlineIndex++].position = p1;
+            m_outlineVertices[outlineIndex++].position =
+                p1 + extrusion * m_outlineThickness;
+        }
+    }
+
+    m_outlineVertices[outlineIndex++].position = m_outlineVertices[0].position;
+    m_outlineVertices[outlineIndex++].position = m_outlineVertices[1].position;
+
+    m_outlineVertices.ForEach([this](FVertex2D& vertex)
+                              { vertex.color = m_outlineColor; });
+
+    m_bounds = m_outlineVertices.GetBounds();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FVector2f UShape::ComputeDirection(FVector2f p1, FVector2f p2)
+{
+    FVector2f direction = p2 - p1;
+    const float length = direction.Length();
+    if (length != 0.f) { direction /= length; }
+    return direction;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

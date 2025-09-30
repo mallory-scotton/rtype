@@ -41,6 +41,7 @@ protected:
     FRectanglei m_textureRect;          //<! Texture rectangle
     FRectanglef m_insideBounds;         //<! Cached inside bounds
     FRectanglef m_bounds;               //<! Cached outside bounds
+    float m_miterLimit;                 //<! Miter limit for outline joins
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -56,6 +57,22 @@ public:
     virtual ~UShape() = default;
 
 public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the miter limit for outline joins
+    ///
+    /// \param limit Miter limit (default is 10.0f)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetMiterLimit(float limit);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the miter limit for outline joins
+    ///
+    /// \return Current miter limit
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD float GetMiterLimit(void) const;
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the fill color
     ///
@@ -279,6 +296,18 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void UpdateUVs(void);
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Compute the direction vector from p1 to p2
+    ///
+    /// \param p1 First point
+    /// \param p2 Second point
+    ///
+    /// \return Normalized direction vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FVector2f ComputeDirection(FVector2f p1, FVector2f p2);
 };
 
 }   // namespace tkd
