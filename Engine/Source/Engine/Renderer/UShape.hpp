@@ -198,6 +198,14 @@ public:
     TKD_NODISCARD const FTransform2D& GetTransform(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the origin transform
+    ///
+    /// \return Current transform with origin applied
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD FTransform2D GetOriginTransform(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the blend mode
     ///
     /// \param blendMode Blend mode to use

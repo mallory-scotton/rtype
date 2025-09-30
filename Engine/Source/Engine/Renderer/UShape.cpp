@@ -139,6 +139,14 @@ TKD_NODISCARD const FTransform2D& UShape::GetTransform(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+TKD_NODISCARD FTransform2D UShape::GetOriginTransform(void) const
+{
+    FTransform2D originTransform = m_transform;
+    originTransform.Translate((GetLocalBounds().GetSize() * 0.5f) - m_origin);
+    return originTransform;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UShape::SetBlendMode(EBlendMode blendMode)
 {
     m_blendMode = blendMode;
