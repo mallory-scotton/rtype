@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/Enumerations.hpp>
+#include <Engine/Renderer/FVertex2DArray.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
 #include <Engine/Renderer/ITexture.hpp>
 #include <vector>
@@ -29,15 +30,17 @@ protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    FTransform2D m_transform;                    //<! Shape transform
-    FColor m_fillColor;                          //<! Fill color
-    FColor m_outlineColor;                       //<! Outline color
-    float m_outlineThickness;                    //<! Outline thickness
-    EBlendMode m_blendMode;                      //<! Blend mode
-    const ITexture* m_texture;                   //<! Optional texture
-    FVector2f m_origin;                          //<! Shape origin
-    mutable bool m_needsUpdate;                  //<! Flag for vertex update
-    mutable std::vector<FVertex2D> m_vertices;   //<! Vertex array
+    FTransform2D m_transform;           //<! Shape transform
+    FColor m_fillColor;                 //<! Fill color
+    FColor m_outlineColor;              //<! Outline color
+    float m_outlineThickness;           //<! Outline thickness
+    const ITexture* m_texture;          //<! Optional texture
+    FVector2f m_origin;                 //<! Shape origin
+    FVertex2DArray m_vertices;          //<! Vertex array
+    FVertex2DArray m_outlineVertices;   //<! Vertex array for outline
+    FRectanglei m_textureRect;          //<! Texture rectangle
+    FRectanglef m_insideBounds;         //<! Cached inside bounds
+    FRectanglef m_bounds;               //<! Cached outside bounds
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -105,9 +108,10 @@ public:
     /// \brief Set the texture
     ///
     /// \param texture Texture to apply (nullptr for none)
+    /// \param resetRect Whether to reset the texture rectangle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetTexture(const ITexture* texture);
+    void SetTexture(const ITexture* texture, bool resetRect = true);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the texture
@@ -206,28 +210,12 @@ public:
     TKD_NODISCARD FTransform2D GetOriginTransform(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the blend mode
-    ///
-    /// \param blendMode Blend mode to use
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetBlendMode(EBlendMode blendMode);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the blend mode
-    ///
-    /// \return Current blend mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD EBlendMode GetBlendMode(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get local bounds
     ///
     /// \return Local bounding rectangle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FRectangle GetLocalBounds(void) const = 0;
+    TKD_NODISCARD FRectangle GetLocalBounds(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get global bounds
@@ -235,7 +223,33 @@ public:
     /// \return Global bounding rectangle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FRectangle GetGlobalBounds(void) const = 0;
+    TKD_NODISCARD FRectangle GetGlobalBounds(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get point count
+    ///
+    /// \return Number of points
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual SizeT GetPointCount(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a specific point
+    ///
+    /// \param index Point index
+    ///
+    /// \return Point at the given index
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual FVector2f GetPoint(SizeT index) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the geometric center of the shape
+    ///
+    /// \return Geometric center point
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual FVector2f GetGeometricCenter(void) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Draw the shape
@@ -244,16 +258,27 @@ public:
     /// \param states Additional render states
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Draw(
-        IRenderer* renderer, const FRenderStates& states = FRenderStates()
-    ) const = 0;
+    void Draw(IRenderer& renderer, FRenderStates states = FRenderStates())
+        const;
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Update internal geometry
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void UpdateGeometry(void) const = 0;
+    void UpdateGeometry(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update outline geometry
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateOutlineGeometry(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update fill geometry
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateUVs(void);
 };
 
 }   // namespace tkd
