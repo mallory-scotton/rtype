@@ -74,4 +74,97 @@ void URectangleShape::Draw(IRenderer* renderer, const FRenderStates& states)
     );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void URectangleShape::UpdateGeometry(void) const
+{
+    m_vertices.clear();
+
+    if (m_size.x == 0.f || m_size.y == 0.f) { return; }
+    if (m_outlineThickness > 0.f)
+    {
+        m_vertices.resize(8);
+
+        // Define the four corners of the outer rectangle
+        FVector2f halfSize = m_size * 0.5f;
+        FVector2f halfOutline = halfSize + FVector2f(m_outlineThickness);
+        m_vertices[0] = FVertex2D(
+            FVector2f(-halfOutline.x, -halfOutline.y),
+            m_outlineColor,
+            FVector2f(0.0f, 0.0f)
+        );   // Top-left outer
+
+        m_vertices[1] = FVertex2D(
+            FVector2f(halfOutline.x, -halfOutline.y),
+            m_outlineColor,
+            FVector2f(1.0f, 0.0f)
+        );   // Top-right outer
+
+        m_vertices[2] = FVertex2D(
+            FVector2f(halfOutline.x, halfOutline.y),
+            m_outlineColor,
+            FVector2f(1.0f, 1.0f)
+        );   // Bottom-right outer
+
+        m_vertices[3] = FVertex2D(
+            FVector2f(-halfOutline.x, halfOutline.y),
+            m_outlineColor,
+            FVector2f(0.0f, 1.0f)
+        );   // Bottom-left outer
+
+        // Define the four corners of the inner rectangle
+        m_vertices[4] = FVertex2D(
+            FVector2f(-halfSize.x, -halfSize.y),
+            m_fillColor,
+            FVector2f(0.0f, 0.0f)
+        );   // Top-left inner
+
+        m_vertices[5] = FVertex2D(
+            FVector2f(halfSize.x, -halfSize.y),
+            m_fillColor,
+            FVector2f(1.0f, 0.0f)
+        );   // Top-right inner
+
+        m_vertices[6] = FVertex2D(
+            FVector2f(halfSize.x, halfSize.y),
+            m_fillColor,
+            FVector2f(1.0f, 1.0f)
+        );   // Bottom-right inner
+
+        m_vertices[7] = FVertex2D(
+            FVector2f(-halfSize.x, halfSize.y),
+            m_fillColor,
+            FVector2f(0.0f, 1.0f)
+        );   // Bottom-left inner
+    }
+    else
+    {
+        m_vertices.resize(4);
+
+        // Define the four corners of the rectangle
+        FVector2f halfSize = m_size * 0.5f;
+        m_vertices[0] = FVertex2D(
+            FVector2f(-halfSize.x, -halfSize.y),
+            m_fillColor,
+            FVector2f(0.0f, 0.0f)
+        );   // Top-left
+        m_vertices[1] = FVertex2D(
+            FVector2f(halfSize.x, -halfSize.y),
+            m_fillColor,
+            FVector2f(1.0f, 0.0f)
+        );   // Top-right
+        m_vertices[2] = FVertex2D(
+            FVector2f(halfSize.x, halfSize.y),
+            m_fillColor,
+            FVector2f(1.0f, 1.0f)
+        );   // Bottom-right
+        m_vertices[3] = FVertex2D(
+            FVector2f(-halfSize.x, halfSize.y),
+            m_fillColor,
+            FVector2f(0.0f, 1.0f)
+        );   // Bottom-left
+    }
+
+    m_needsUpdate = false;
+}
+
 }   // namespace tkd
