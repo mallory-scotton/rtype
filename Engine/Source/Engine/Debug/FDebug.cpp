@@ -128,6 +128,20 @@ void FDebug::Show(void)
             }
 
             ImGui::Unindent(10.0f);
+            ImGui::Separator();
+
+            // Debug section
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "Debug");
+            ImGui::Indent(10.0f);
+
+            if (ImGui::MenuItem(
+                    "Input Debugger", "Ctrl+Shift+B", m_showInputDebug
+                ))
+            {
+                m_showInputDebug = !m_showInputDebug;
+            }
+
+            ImGui::Unindent(10.0f);
             ImGui::PopStyleColor();
             ImGui::EndMenu();
         }
@@ -204,9 +218,15 @@ void FDebug::Show(void)
     {
         m_showEngineSettings = !m_showEngineSettings;
     }
+    else if (ImGui::IsKeyPressed(ImGuiKey_B) && ImGui::GetIO().KeyCtrl &&
+             ImGui::GetIO().KeyShift)
+    {
+        m_showInputDebug = !m_showInputDebug;
+    }
 
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(); }
+    if (m_showInputDebug) { m_inputsDebug.Show(); }
 
     // TODO: Add other debug windows when implemented
     // if (m_showPerformanceMonitor) { /* show performance monitor */ }

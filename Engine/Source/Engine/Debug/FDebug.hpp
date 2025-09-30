@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
 #include <Engine/Debug/FEngineSettingsDebug.hpp>
+#include <Engine/Debug/FInputsDebug.hpp>
 #include <Engine/Debug/IDebugInterface.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
@@ -41,11 +42,13 @@ private:
     bool m_showCameraDebug = false;          //<! Show camera debug flag
     bool m_showNetworkMonitor = false;       //<! Show network monitor flag
     bool m_showPacketInspector = false;      //<! Show packet inspector flag
+    bool m_showInputDebug = false;           //<! Show input debug flag
 
     ///////////////////////////////////////////////////////////////////////////
     // Debug Interface Instances
     ///////////////////////////////////////////////////////////////////////////
     FEngineSettingsDebug m_engineSettings;   //<! Engine settings instance
+    FInputsDebug m_inputsDebug;              //<! Inputs debug instance
 
 private:
     ///////////////////////////////////////////////////////////////////////////
