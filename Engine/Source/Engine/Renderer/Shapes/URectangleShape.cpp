@@ -64,7 +64,8 @@ void URectangleShape::Draw(IRenderer* renderer, const FRenderStates& states)
         finalStates.blendMode = m_blendMode;
     }
     if (m_texture != nullptr) { finalStates.texture = m_texture; }
-    // finalStates.transform = states.transform * m_transform;
+    finalStates.transform = m_transform;
+    finalStates.transform.Translate((m_size * 0.5f) - m_origin);
 
     renderer->Draw(
         m_vertices.data(),
