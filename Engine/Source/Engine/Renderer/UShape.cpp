@@ -184,6 +184,48 @@ void UShape::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FVector2f UShape::GetGeometricCenter(void) const
+{
+    const SizeT count = GetPointCount();
+
+    switch (count)
+    {
+    case 0: return FVector2f::Zero;
+    case 1: return GetPoint(0);
+    case 2: return (GetPoint(0) + GetPoint(1)) * 0.5f;
+    default:
+    {
+        FVector2f centroid;
+        float twiceArea = 0.0f;
+
+        FVector2f previousPoint = GetPoint(count - 1);
+        for (SizeT i = 0; i < count; i++)
+        {
+            const FVector2f currentPoint = GetPoint(i);
+            const float product = previousPoint.Cross(currentPoint);
+            twiceArea += product;
+            centroid += (previousPoint + currentPoint) * product;
+            previousPoint = currentPoint;
+        }
+
+        if (twiceArea != 0.f) { return centroid / 3.f / twiceArea; }
+
+        FVector2f minPoint = GetPoint(0);
+        FVector2f maxPoint = minPoint;
+        for (SizeT i = 1; i < count; i++)
+        {
+            const FVector2f point = GetPoint(i);
+            minPoint.x = std::min(minPoint.x, point.x);
+            minPoint.y = std::min(minPoint.y, point.y);
+            maxPoint.x = std::max(maxPoint.x, point.x);
+            maxPoint.y = std::max(maxPoint.y, point.y);
+        }
+        return (minPoint + maxPoint) * 0.5f;
+    }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UShape::UpdateGeometry(void)
 {
     const SizeT count = GetPointCount();

@@ -249,7 +249,7 @@ public:
     /// \return Geometric center point
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FVector2f GetGeometricCenter(void) const = 0;
+    TKD_NODISCARD virtual FVector2f GetGeometricCenter(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Draw the shape
