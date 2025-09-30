@@ -99,6 +99,7 @@ void Engine::RenderThreadFunction(void)
         std::make_unique<SFML::Renderer>(window.get());
 
     URectangleShape rect;
+    UCircleShape circle;
 
     rect.SetFillColor(FColor::Green);
     rect.SetSize(FVector2f(100.0f, 100.0f));
@@ -106,12 +107,18 @@ void Engine::RenderThreadFunction(void)
     rect.SetOutlineThickness(5.f);
     rect.SetOutlineColor(FColor::Red);
 
+    circle.SetFillColor(FColor::Blue);
+    circle.SetRadius(50.0f);
+    circle.SetPosition(FVector2f(400.0f, 400.0f));
+    circle.SetOutlineThickness(5.f);
+    circle.SetOutlineColor(FColor::Yellow);
+
     while (s_isRunning && window->IsOpen())
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
         window->Draw(
-            [&rect, &renderer]()
+            [&rect, &circle, &renderer]()
             {
                 if (Engine::IsDebugBuild())
                 {
@@ -120,6 +127,7 @@ void Engine::RenderThreadFunction(void)
                 }
 
                 rect.Draw(*renderer);
+                circle.Draw(*renderer);
             }
         );
     }
