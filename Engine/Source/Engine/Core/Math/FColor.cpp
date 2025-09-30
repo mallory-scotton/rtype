@@ -12,14 +12,14 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-const FColor FColor::White(1.f, 1.f, 1.f);
-const FColor FColor::Black(0.f, 0.f, 0.f);
-const FColor FColor::Red(1.f, 0.f, 0.f);
-const FColor FColor::Green(0.f, 1.f, 0.f);
-const FColor FColor::Blue(0.f, 0.f, 1.f);
-const FColor FColor::Yellow(1.f, 1.f, 0.f);
-const FColor FColor::Cyan(0.f, 1.f, 1.f);
-const FColor FColor::Magenta(1.f, 0.f, 1.f);
+const FColor FColor::White(1.f, 1.f, 1.f, 1.f);
+const FColor FColor::Black(0.f, 0.f, 0.f, 1.f);
+const FColor FColor::Red(1.f, 0.f, 0.f, 1.f);
+const FColor FColor::Green(0.f, 1.f, 0.f, 1.f);
+const FColor FColor::Blue(0.f, 0.f, 1.f, 1.f);
+const FColor FColor::Yellow(1.f, 1.f, 0.f, 1.f);
+const FColor FColor::Cyan(0.f, 1.f, 1.f, 1.f);
+const FColor FColor::Magenta(1.f, 0.f, 1.f, 1.f);
 const FColor FColor::Transparent(0.f, 0.f, 0.f, 0.f);
 
 ///////////////////////////////////////////////////////////////////////////////
