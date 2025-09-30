@@ -226,6 +226,9 @@ bool Engine::Shutdown(void)
 {
     if (!s_isInitialized) { return false; }
 
+    // Signal threads to stop
+    s_isRunning = false;
+
 #if TKD_ENGINE_SERVER
     Network::Shutdown();
 #endif

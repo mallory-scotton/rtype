@@ -68,7 +68,11 @@ bool Window::Open(void)
     // Initialize ImGui-SFML if in debug build
     if (Engine::IsDebugBuild())
     {
-        if (!ImGui::SFML::Init(*m_window)) { return false; }
+        if (!ImGui::SFML::Init(*m_window))
+        {
+            m_window->close();
+            return false;
+        }
     }
 
     // Check if the window was created successfully
@@ -91,12 +95,12 @@ bool Window::Close(void)
     // Check if the window is open
     if (!IsOpen()) { return false; }
 
+    // Shutdown ImGui-SFML if in debug build
+    if (Engine::IsDebugBuild()) { ImGui::SFML::Shutdown(); }
+
     // Close the SFML window
     m_window->close();
     m_window.reset();
-
-    // Shutdown ImGui-SFML if in debug build
-    if (Engine::IsDebugBuild()) { ImGui::SFML::Shutdown(); }
 
     // Emit the Closed event
     this->Emit(Events::Closed{});
