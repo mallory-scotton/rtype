@@ -35,6 +35,7 @@ protected:
     float m_outlineThickness;                    //<! Outline thickness
     EBlendMode m_blendMode;                      //<! Blend mode
     const ITexture* m_texture;                   //<! Optional texture
+    FVector2f m_origin;                          //<! Shape origin
     mutable bool m_needsUpdate;                  //<! Flag for vertex update
     mutable std::vector<FVertex2D> m_vertices;   //<! Vertex array
 

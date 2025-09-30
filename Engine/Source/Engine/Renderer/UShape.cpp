@@ -17,6 +17,7 @@ UShape::UShape(void)
     , m_outlineThickness(0.0f)
     , m_blendMode(EBlendMode::Alpha)
     , m_texture(nullptr)
+    , m_origin(FVector2f::Zero)
     , m_needsUpdate(true)
 {}
 
@@ -114,18 +115,14 @@ TKD_NODISCARD const FVector2f& UShape::GetScale(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::SetOrigin(const FVector2f& origin)
 {
-    TKD_UNUSED(origin);
-    // TODO: Change with real transform operation
-    // m_transform.SetOrigin(origin);
+    m_origin = origin;
     m_needsUpdate = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD const FVector2f& UShape::GetOrigin(void) const
 {
-    // TODO: Change with real transform operation
-    return FVector2f::Zero;
-    // return m_transform.GetOrigin();
+    return m_origin;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
