@@ -8,4 +8,5 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Debug/FDebug.hpp>
 #include <Engine/Debug/FEngineSettingsDebug.hpp>
+#include <Engine/Debug/FInputsDebug.hpp>
 #include <Engine/Debug/IDebugInterface.hpp>
