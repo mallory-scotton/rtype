@@ -117,7 +117,7 @@ void Engine::RenderThreadFunction(void)
                     debug.Show();
                 }
 
-                rect.Draw(renderer.get());
+                rect.Draw(*renderer);
             }
         );
     }
