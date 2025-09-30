@@ -14,7 +14,7 @@ namespace tkd::SFML
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-Renderer::Renderer(Window* window)
+Renderer::Renderer(IWindow* window)
     : m_window(reinterpret_cast<sf::RenderWindow*>(window->GetNativeHandle()))
     , m_currentTarget(m_window)
     , m_currentView(/*FView::GetDefaultView()*/)
@@ -40,12 +40,12 @@ const FView& Renderer::GetView(void) const { return m_currentView; }
 FView Renderer::GetDefaultView(void) const
 {
     sf::View sfmlView = m_currentTarget->getDefaultView();
-    // return FView(FRectangle(
-    //     sfmlView.getCenter().x - sfmlView.getSize().x / 2.0f,
-    //     sfmlView.getCenter().y - sfmlView.getSize().y / 2.0f,
-    //     sfmlView.getSize().x,
-    //     sfmlView.getSize().y
-    // ));
+    return FView(FRectangle(
+        sfmlView.getCenter().x - sfmlView.getSize().x / 2.0f,
+        sfmlView.getCenter().y - sfmlView.getSize().y / 2.0f,
+        sfmlView.getSize().x,
+        sfmlView.getSize().y
+    ));
     return FView();
 }
 

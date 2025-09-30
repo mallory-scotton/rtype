@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
+#include <Engine/Renderer/IWindow.hpp>
 #include <stack>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
@@ -46,7 +47,7 @@ public:
     /// \param window SFML window to render to
     ///
     ///////////////////////////////////////////////////////////////////////////
-    explicit Renderer(Window* window);
+    Renderer(IWindow* window);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor
