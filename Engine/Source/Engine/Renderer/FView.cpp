@@ -14,26 +14,27 @@ FView::FView(void)
     : m_center(FVector2::Zero)
     , m_size(FVector2::Zero)
     , m_rotation(0.0f)
-    , m_viewport(FRectangle::Zero)
-{}
+    , m_viewport(FRectangle(0, 0, 1, 1))
+{
+    Reset(FRectangle(0, 0, 1000, 1000));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 FView::FView(const FRectangle& rectangle)
-    : m_center(
-          rectangle.left + rectangle.width * 0.5f,
-          rectangle.top + rectangle.height * 0.5f
-      )
-    , m_size(rectangle.width, rectangle.height)
+    : m_center(FVector2::Zero)
+    , m_size(FVector2::Zero)
     , m_rotation(0.0f)
-    , m_viewport(FRectangle::Zero)
-{}
+    , m_viewport(FRectangle(0, 0, 1, 1))
+{
+    Reset(rectangle);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 FView::FView(const FVector2& center, const FVector2& size)
     : m_center(center)
     , m_size(size)
     , m_rotation(0.0f)
-    , m_viewport(FRectangle::Zero)
+    , m_viewport(FRectangle(0, 0, 1, 1))
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
