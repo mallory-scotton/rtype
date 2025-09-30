@@ -218,6 +218,16 @@ private:
     static sf::View ToSFMLView(const FView& view);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert transform to SFML transform
+    ///
+    /// \param transform Transform
+    ///
+    /// \return SFML transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Transform ToSFMLTransform(const FTransform2D& transform);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Setup SFML render states from our render states
     ///
     /// \param states Render states
