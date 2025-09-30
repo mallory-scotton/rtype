@@ -51,23 +51,23 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    using KeyT = KeyType;            //!< Key type.
-    using ValueT = ValueType;        //!< Value type.
+    using KeyT = KeyType;            //<! Key type.
+    using ValueT = ValueType;        //<! Value type.
     using PairType = std::pair<const KeyType, ValueType>;
-    using SizeType = std::size_t;    //!< Size type.
-    using HashType = Hash;           //!< Hash functor type.
-    using KeyEqualType = KeyEqual;   //!< Key equality functor type.
+    using SizeType = std::size_t;    //<! Size type.
+    using HashType = Hash;           //<! Hash functor type.
+    using KeyEqualType = KeyEqual;   //<! Key equality functor type.
 
-    using underlying_type =
+    using UnderlyingType =
         std::unordered_map<KeyType, ValueType, Hash, KeyEqual>;
-    using iterator = typename underlying_type::iterator;
-    using const_iterator = typename underlying_type::const_iterator;
+    using Iterator = typename UnderlyingType::iterator;
+    using ConstIterator = typename UnderlyingType::const_iterator;
 
-public:
+private:
     ///////////////////////////////////////////////////////////////////////////
-    // Static Member
+    // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    // (No static members for now)
+    UnderlyingType m_map;   //<! The underlying container.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -76,7 +76,7 @@ public:
     /// \return A default-constructed, empty `TMap`.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TMap()
+    TMap(void)
         : m_map()
     {}
 
@@ -86,6 +86,7 @@ public:
     ///
     /// \param bucketCount Number of buckets to reserve in the underlying
     /// container.
+    ///
     /// \return A `TMap` with reserved capacity for `bucketCount` buckets.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,7 @@ public:
     /// \brief Constructs a map from an initializer list of key/value pairs.
     ///
     /// \param init Initializer list of pairs to insert into the map.
+    ///
     /// \return A `TMap` containing the elements from `init`.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -108,6 +110,7 @@ public:
     /// \brief Copy constructor.
     ///
     /// \param other The map to copy from.
+    ///
     /// \return A copy of `other`.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -117,6 +120,7 @@ public:
     /// \brief Move constructor.
     ///
     /// \param other The map to move from.
+    ///
     /// \return A `TMap` that has taken ownership of `other`'s contents.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -126,6 +130,7 @@ public:
     /// \brief Copy assignment operator.
     ///
     /// \param other The map to copy from.
+    ///
     /// \return Reference to this `TMap` after copy.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -135,6 +140,7 @@ public:
     /// \brief Move assignment operator.
     ///
     /// \param other The map to move from.
+    ///
     /// \return Reference to this `TMap` after move.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -155,6 +161,7 @@ public:
     ///
     /// \param key The key to insert.
     /// \param value The value to insert.
+    ///
     /// \return True if the pair was inserted; false if key already existed.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -170,6 +177,7 @@ public:
     ///
     /// \param key The key to insert (rvalue).
     /// \param value The value to insert (rvalue).
+    ///
     /// \return True if the pair was inserted; false if key already existed.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -186,6 +194,7 @@ public:
     ///
     /// \param key The key for the element.
     /// \param args Arguments forwarded to `ValueType` constructor.
+    ///
     /// \return True if the element was inserted; false if an element with
     /// the same key already existed.
     ///
@@ -206,6 +215,7 @@ public:
     /// removed.
     ///
     /// \param key The key to remove.
+    ///
     /// \return True if an element was removed; false if key was not present.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -217,12 +227,13 @@ public:
     /// \return This function does not return a value.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Clear() { m_map.clear(); }
+    void Clear(void) { m_map.clear(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check whether the map contains `key`.
     ///
     /// \param key The key to search for.
+    ///
     /// \return True if the key is present, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -237,7 +248,7 @@ public:
     /// \return The number of elements in the map.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeType Num() const noexcept { return m_map.size(); }
+    SizeType Size(void) const noexcept { return m_map.size(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Whether the map is empty.
@@ -245,12 +256,13 @@ public:
     /// \return True if the map contains no elements; false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool Empty() const noexcept { return m_map.empty(); }
+    bool Empty(void) const noexcept { return m_map.empty(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Reserve buckets for at least `count` elements.
     ///
     /// \param count The number of elements to reserve space for.
+    ///
     /// \return This function does not return a value.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -262,7 +274,10 @@ public:
     /// \return The number of buckets used by the underlying unordered_map.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeType GetBucketCount() const noexcept { return m_map.bucket_count(); }
+    SizeType GetBucketCount(void) const noexcept
+    {
+        return m_map.bucket_count();
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Iterator access.
@@ -270,17 +285,47 @@ public:
     /// \return Iterators to iterate over the contained elements.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator begin() noexcept { return m_map.begin(); }
+    Iterator Begin(void) noexcept { return m_map.begin(); }
 
-    iterator end() noexcept { return m_map.end(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Iterator End(void) noexcept { return m_map.end(); }
 
-    const_iterator begin() const noexcept { return m_map.begin(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator Begin(void) const noexcept { return m_map.begin(); }
 
-    const_iterator end() const noexcept { return m_map.end(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator End(void) const noexcept { return m_map.end(); }
 
-    const_iterator cbegin() const noexcept { return m_map.cbegin(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator CBegin(void) const noexcept { return m_map.cbegin(); }
 
-    const_iterator cend() const noexcept { return m_map.cend(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator CEnd(void) const noexcept { return m_map.cend(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Extract the underlying std::unordered_map by moving it out.
@@ -289,12 +334,13 @@ public:
     /// `TMap`.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    underlying_type&& ExtractUnderlying() && { return std::move(m_map); }
+    UnderlyingType&& ExtractUnderlying() && { return std::move(m_map); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Find the value for `key`.
     ///
     /// \param key The key to find.
+    ///
     /// \return Pointer to the value if found, `nullptr` otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -308,6 +354,7 @@ public:
     /// \brief Find the value for `key` (const version).
     ///
     /// \param key The key to find.
+    ///
     /// \return Const pointer to the value if found, `nullptr` otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -324,6 +371,7 @@ public:
     ///
     /// \param key The key to find or add.
     /// \param defaultValue The default value to insert if missing.
+    ///
     /// \return Reference to the existing or newly inserted value.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -342,6 +390,7 @@ public:
     /// are overwritten with values from `other`.
     ///
     /// \param other The other map whose elements will be added to this map.
+    ///
     /// \return Number of elements actually added (new keys inserted).
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -364,6 +413,7 @@ public:
     /// \param other The other map to intersect with.
     /// \param out Output map that will contain intersection results (cleared
     /// first).
+    ///
     /// \return Number of elements in the intersection.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -388,6 +438,7 @@ public:
     /// (overwrites existing values).
     ///
     /// \param other Map whose elements will be inserted into this map.
+    ///
     /// \return Reference to this map after insertion.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -402,6 +453,7 @@ public:
     /// maps with equal values.
     ///
     /// \param other Map to intersect with.
+    ///
     /// \return Reference to this map after intersection.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -424,6 +476,7 @@ public:
     /// (keys present in other) from this map.
     ///
     /// \param other Map whose keys will be removed from this map.
+    ///
     /// \return Reference to this map after removal.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -460,24 +513,14 @@ public:
         for (const auto& kv: m_map) { out.push_back(kv.second); }
         return out;
     }
-
-private:
-    underlying_type m_map;   //!< The underlying container.
 };
-
-}   // namespace tkd
-
-///////////////////////////////////////////////////////////////////////////////
-// Free operators and comparisons for TMap
-///////////////////////////////////////////////////////////////////////////////
-namespace tkd
-{
 
 /////////////////////////////////////////////////////////////////////////////
 /// \brief Return a new map containing the union of `lho` and `rho`.
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return A new `TMap` containing elements present in either `lho` or `rho`.
 ///
 /////////////////////////////////////////////////////////////////////////////
@@ -502,6 +545,7 @@ TMap<KeyType, ValueType, Hash, KeyEqual> operator|(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return A new `TMap` containing elements present in both `lho` and `rho`.
 ///
 /////////////////////////////////////////////////////////////////////////////
@@ -526,6 +570,7 @@ TMap<KeyType, ValueType, Hash, KeyEqual> operator&(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return A new `TMap` containing elements present in `lho` but not in
 /// `rho`.
 ///
@@ -551,6 +596,7 @@ TMap<KeyType, ValueType, Hash, KeyEqual> operator-(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return True if both maps have the same keys and corresponding values
 /// are equal, false otherwise.
 ///
@@ -580,6 +626,7 @@ bool operator==(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return True if the maps are not equal; false otherwise.
 ///
 /////////////////////////////////////////////////////////////////////////////
