@@ -71,48 +71,34 @@ const FColor& USprite::GetColor(void) const { return m_color; }
 ///////////////////////////////////////////////////////////////////////////////
 void USprite::SetPosition(const FVector2f& position)
 {
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetPosition(position);
+    m_transform.SetPosition(position);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const FVector2f& USprite::GetPosition(void) const
 {
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetPosition();
-    static const FVector2f defaultPosition(0.0f, 0.0f);
-    return defaultPosition;
+    return m_transform.GetPosition();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void USprite::SetRotation(float rotation)
 {
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetRotation(rotation);
+    m_transform.SetRotation(rotation);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 float USprite::GetRotation(void) const
 {
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetRotation();
-    return 0.0f;
+    return m_transform.GetRotation().GetAngle();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::SetScale(const FVector2f& scale)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetScale(scale);
-}
+void USprite::SetScale(const FVector2f& scale) { m_transform.SetScale(scale); }
 
 ///////////////////////////////////////////////////////////////////////////////
 const FVector2f& USprite::GetScale(void) const
 {
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetScale();
-    static const FVector2f defaultScale(1.0f, 1.0f);
-    return defaultScale;
+    return m_transform.GetScale();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
