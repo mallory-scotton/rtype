@@ -103,6 +103,8 @@ void Engine::RenderThreadFunction(void)
     rect.SetFillColor(FColor::Green);
     rect.SetSize(FVector2f(100.0f, 100.0f));
     rect.SetPosition(FVector2f(200.0f, 200.0f));
+    rect.SetOutlineThickness(5.f);
+    rect.SetOutlineColor(FColor::Red);
 
     while (s_isRunning && window->IsOpen())
     {
