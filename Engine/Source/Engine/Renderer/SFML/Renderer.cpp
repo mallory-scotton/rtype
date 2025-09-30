@@ -92,10 +92,8 @@ void Renderer::SetRenderTarget(IRenderTarget* target)
     if (target == nullptr) { m_currentTarget = m_window; }
     else
     {
-        // TODO: Implement render target handling
-        // m_currentTarget = reinterpret_cast<sf::RenderTarget*>(
-        //     target->GetNativeHandle()
-        // );
+        m_currentTarget =
+            reinterpret_cast<sf::RenderTarget*>(target->GetNativeHandle());
     }
     // Reset view to default when changing target
     m_currentView = FView();
@@ -187,10 +185,11 @@ sf::Vertex Renderer::ToSFMLVertex(const FVertex2D& vertex)
 sf::View Renderer::ToSFMLView(const FView& view)
 {
     sf::View sfmlView;
-    // TODO: Convert FView to sf::View properly
-    // FRectangle rect = view.GetViewport();
-    // sfmlView.setCenter(rect.x + rect.width / 2.0f, rect.y + rect.height
-    // / 2.0f); sfmlView.setSize(rect.width, rect.height);
+    FRectangle rect = view.GetViewport();
+    sfmlView.setCenter(
+        rect.left + rect.width / 2.0f, rect.top + rect.height / 2.0f
+    );
+    sfmlView.setSize(rect.width, rect.height);
     return sfmlView;
 }
 
