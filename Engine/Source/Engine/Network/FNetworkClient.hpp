@@ -40,19 +40,6 @@ enum class EConnectionState : UInt32
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Disconnection reason codes
-///
-///////////////////////////////////////////////////////////////////////////////
-enum class EDisconnectionReason : UInt32
-{
-    Unknown = 0,    //<! No specific reason
-    Timeout = 1,    //<! Disconnected due to timeout
-    Kicked = 2,     //<! Disconnected by server (kicked)
-    Shutdown = 3,   //<! Disconnected due to server shutdown
-    Error = 4       //<! Disconnected due to an error
-};
-
-///////////////////////////////////////////////////////////////////////////////
 /// \brief Event types for network client
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,7 +113,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     FEndpoint m_serverEndpoint;                        //<! Server endpoint
     EConnectionState m_connectionState;                //<! Current connection state
-    std::optional<UInt32> m_clientID;                  //<! ID assigned by server
+    UInt32 m_clientID;                                //<! ID assigned by server
     std::unique_ptr<FConnectionInformation> m_connection;  //<! Connection info
     mutable std::mutex m_connectionMutex;              //<! Mutex for connection data
     TimePoint m_lastUpdate;                            //<! Last update timestamp
