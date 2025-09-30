@@ -272,6 +272,27 @@ public:
         --(*this);
         return temp;
     }
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Calculates the dot product with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The dot product.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Dot(const TVector2& other) const { return x * other.x + y * other.y; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Calculates the cross product with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The scalar cross product result.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Cross(const TVector2& other) const { return x * other.y - y * other.x; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
