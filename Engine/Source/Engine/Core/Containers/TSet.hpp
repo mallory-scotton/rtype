@@ -43,20 +43,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    using ElementType = KeyType;     //!< Element type stored in the set.
-    using SizeType = std::size_t;    //!< Size type.
-    using HashType = Hash;           //!< Hash functor type.
-    using KeyEqualType = KeyEqual;   //!< Key equality functor type.
+    using ElementType = KeyType;     //<! Element type stored in the set.
+    using SizeType = std::size_t;    //<! Size type.
+    using HashType = Hash;           //<! Hash functor type.
+    using KeyEqualType = KeyEqual;   //<! Key equality functor type.
+    using UnderlyingType = std::unordered_set<KeyType, Hash, KeyEqual>;
+    using Iterator = typename UnderlyingType::iterator;
+    using ConstIterator = typename UnderlyingType::const_iterator;
 
-    using underlying_type = std::unordered_set<KeyType, Hash, KeyEqual>;
-    using iterator = typename underlying_type::iterator;
-    using const_iterator = typename underlying_type::const_iterator;
-
-public:
+private:
     ///////////////////////////////////////////////////////////////////////////
-    // Static Member
+    // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    // (No static members for now)
+    UnderlyingType m_set;   //<! The underlying container.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -65,7 +64,7 @@ public:
     /// \return A default-constructed, empty `TSet`.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TSet()
+    TSet(void)
         : m_set()
     {}
 
@@ -75,6 +74,7 @@ public:
     ///
     /// \param bucketCount Number of buckets to reserve in the underlying
     /// container.
+    ///
     /// \return A `TSet` with reserved capacity for `bucketCount` buckets.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,7 @@ public:
     /// \brief Constructs a set from an initializer list of values.
     ///
     /// \param init Initializer list of values to insert into the set.
+    ///
     /// \return A `TSet` containing the elements from `init`.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,7 @@ public:
     /// \brief Copy constructor.
     ///
     /// \param other The set to copy from.
+    ///
     /// \return A copy of `other`.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -106,6 +108,7 @@ public:
     /// \brief Move constructor.
     ///
     /// \param other The set to move from.
+    ///
     /// \return A `TSet` that has taken ownership of `other`'s contents.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -115,6 +118,7 @@ public:
     /// \brief Copy assignment operator.
     ///
     /// \param other The set to copy from.
+    ///
     /// \return Reference to this `TSet` after copy.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -124,6 +128,7 @@ public:
     /// \brief Move assignment operator.
     ///
     /// \param other The set to move from.
+    ///
     /// \return Reference to this `TSet` after move.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -143,6 +148,7 @@ public:
     /// already present).
     ///
     /// \param value The value to insert.
+    ///
     /// \return True if the value was inserted; false if it was already
     /// present.
     ///
@@ -158,6 +164,7 @@ public:
     /// inserted.
     ///
     /// \param value The value to move into the set.
+    ///
     /// \return True if the value was inserted; false if it was already
     /// present.
     ///
@@ -174,6 +181,7 @@ public:
     ///
     /// 	param Args Parameter pack used to construct the element in-place.
     /// \param args Arguments forwarded to the element's constructor.
+    ///
     /// \return True if the element was inserted; false if an equivalent
     /// element was already present.
     ///
@@ -190,6 +198,7 @@ public:
     /// was removed.
     ///
     /// \param value The value to remove.
+    ///
     /// \return True if an element was removed; false if the value was not
     /// present.
     ///
@@ -202,12 +211,13 @@ public:
     /// \return This function does not return a value.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Clear() { m_set.clear(); }
+    void Clear(void) { m_set.clear(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check whether the set contains `value`.
     ///
     /// \param value The value to search for.
+    ///
     /// \return True if the value is present, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -222,7 +232,7 @@ public:
     /// \return The number of elements in the set.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeType Num() const noexcept { return m_set.size(); }
+    SizeType Size(void) const noexcept { return m_set.size(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Whether the set is empty.
@@ -230,12 +240,13 @@ public:
     /// \return True if the set contains no elements; false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool Empty() const noexcept { return m_set.empty(); }
+    bool Empty(void) const noexcept { return m_set.empty(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Reserve buckets for at least `count` elements.
     ///
     /// \param count The number of elements to reserve space for.
+    ///
     /// \return This function does not return a value.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -247,7 +258,10 @@ public:
     /// \return The number of buckets used by the underlying unordered_set.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeType GetBucketCount() const noexcept { return m_set.bucket_count(); }
+    SizeType GetBucketCount(void) const noexcept
+    {
+        return m_set.bucket_count();
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Iterator access.
@@ -255,17 +269,47 @@ public:
     /// \return Iterators to iterate over the contained elements.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator begin() noexcept { return m_set.begin(); }
+    Iterator Begin(void) noexcept { return m_set.begin(); }
 
-    iterator end() noexcept { return m_set.end(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Iterator End(void) noexcept { return m_set.end(); }
 
-    const_iterator begin() const noexcept { return m_set.begin(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator Begin(void) const noexcept { return m_set.begin(); }
 
-    const_iterator end() const noexcept { return m_set.end(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator End(void) const noexcept { return m_set.end(); }
 
-    const_iterator cbegin() const noexcept { return m_set.cbegin(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator CBegin(void) const noexcept { return m_set.cbegin(); }
 
-    const_iterator cend() const noexcept { return m_set.cend(); }
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Iterator access.
+    ///
+    /// \return Iterators to iterate over the contained elements.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ConstIterator CEnd(void) const noexcept { return m_set.cend(); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Extract the underlying std::unordered_set by moving it out.
@@ -273,7 +317,7 @@ public:
     /// \return The underlying `std::unordered_set` moved out from this `TSet`.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    underlying_type&& ExtractUnderlying() && { return std::move(m_set); }
+    UnderlyingType&& ExtractUnderlying() && { return std::move(m_set); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Find an element equal to `value`.
@@ -282,7 +326,7 @@ public:
     /// \return Iterator to the found element or `end()` if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator Find(const KeyType& value) { return m_set.find(value); }
+    Iterator Find(const KeyType& value) { return m_set.find(value); }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Find an element equal to `value` (const version).
@@ -291,7 +335,7 @@ public:
     /// \return Const iterator to the found element or `cend()` if not found.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const_iterator Find(const KeyType& value) const
+    ConstIterator Find(const KeyType& value) const
     {
         return m_set.find(value);
     }
@@ -305,7 +349,7 @@ public:
     /// \return Iterator to the existing or newly inserted element.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    iterator FindOrAdd(const KeyType& value)
+    Iterator FindOrAdd(const KeyType& value)
     {
         auto res = m_set.insert(value);
         return res.first;
@@ -336,6 +380,7 @@ public:
     /// \param other The other set to intersect with.
     /// \param out Output set that will contain intersection results (cleared
     /// first).
+    ///
     /// \return Number of elements in the intersection.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -358,6 +403,7 @@ public:
     /// \brief Union-assignment: add all elements from `other` into this set.
     ///
     /// \param other Set whose elements will be inserted into this set.
+    ///
     /// \return Reference to this set after insertion.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -372,6 +418,7 @@ public:
     /// sets.
     ///
     /// \param other Set to intersect with.
+    ///
     /// \return Reference to this set after intersection.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -390,6 +437,7 @@ public:
     /// this set.
     ///
     /// \param other Set whose elements will be removed from this set.
+    ///
     /// \return Reference to this set after removal.
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -398,18 +446,7 @@ public:
         for (const auto& el: other.m_set) { m_set.erase(el); }
         return *this;
     }
-
-private:
-    underlying_type m_set;   //!< The underlying container.
 };
-
-}   // namespace tkd
-
-///////////////////////////////////////////////////////////////////////////////
-// Free operators and comparisons for TSet
-///////////////////////////////////////////////////////////////////////////////
-namespace tkd
-{
 
 /////////////////////////////////////////////////////////////////////////////
 /// \brief Return a new set containing the union of `lho` and `rho`.
@@ -435,6 +472,7 @@ TSet<KeyType, Hash, KeyEqual> operator|(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return A new `TSet` containing elements present in both `lho` and `rho`.
 ///
 /////////////////////////////////////////////////////////////////////////////
@@ -455,6 +493,7 @@ TSet<KeyType, Hash, KeyEqual> operator&(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return A new `TSet` containing elements present in `lho` but not in `rho`.
 ///
 /////////////////////////////////////////////////////////////////////////////
@@ -474,6 +513,7 @@ TSet<KeyType, Hash, KeyEqual> operator-(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return True if both sets contain the same elements (order-independent),
 /// false otherwise.
 ///
@@ -497,6 +537,7 @@ bool operator==(
 ///
 /// \param lho Left-hand operand.
 /// \param rho Right-hand operand.
+///
 /// \return True if the sets are not equal; false otherwise.
 ///
 /////////////////////////////////////////////////////////////////////////////
