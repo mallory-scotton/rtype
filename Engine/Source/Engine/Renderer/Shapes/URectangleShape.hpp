@@ -60,55 +60,30 @@ public:
     TKD_NODISCARD const FVector2f& GetSize(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get local bounds
+    /// \brief Get point count
     ///
-    /// \return Local bounding rectangle
+    /// \return Number of points
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FRectangle GetLocalBounds(void) const override;
+    TKD_NODISCARD virtual SizeT GetPointCount(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get global bounds
+    /// \brief Get a specific point
     ///
-    /// \return Global bounding rectangle
+    /// \param index Point index
+    ///
+    /// \return Point at the given index
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FRectangle GetGlobalBounds(void) const override;
+    TKD_NODISCARD virtual FVector2f GetPoint(SizeT index) const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw the rectangle
+    /// \brief Get the geometric center of the shape
     ///
-    /// \param renderer Renderer to draw with
-    /// \param states Additional render states
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void Draw(
-        IRenderer* renderer, const FRenderStates& states = FRenderStates()
-    ) const override;
-
-protected:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update geometry
+    /// \return Geometric center point
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void UpdateGeometry(void) const override;
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Create vertices for filled rectangle
-    ///
-    /// \param offset Position offset based on origin
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void CreateFilledRectangleVertices(const FVector2f& offset) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Create vertices for outlined rectangle
-    ///
-    /// \param offset Position offset based on origin
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void CreateOutlinedRectangleVertices(const FVector2f& offset) const;
+    TKD_NODISCARD virtual FVector2f GetGeometricCenter(void) const override;
 };
 
 }   // namespace tkd
