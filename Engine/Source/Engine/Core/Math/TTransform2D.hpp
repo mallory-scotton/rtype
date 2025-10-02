@@ -46,102 +46,6 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     TMatrix3x3<T> m_matrix;   ///<! Transformation matrix
 
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update matrix from position, rotation, and scale components
-    ///
-    /// \param position The position component
-    /// \param rotation The rotation component
-    /// \param scale The scale component
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void UpdateMatrix(
-        const TVector2<T>& position,
-        const TRotator2D<T>& rotation,
-        const TVector2<T>& scale
-    )
-    {
-        // Convert angle from degrees to radians
-        T angleRad =
-            rotation.GetAngle() * static_cast<T>(M_PI) / static_cast<T>(180.0);
-        T cosAngle = std::cos(angleRad);
-        T sinAngle = std::sin(angleRad);
-
-        // Build transformation matrix: T * R * S
-        // [sx*cos  -sy*sin   tx]
-        // [sx*sin   sy*cos   ty]
-        // [   0        0      1]
-        m_matrix = TMatrix3x3<T>(
-            scale.x * cosAngle,
-            -scale.y * sinAngle,
-            position.x,
-            scale.x * sinAngle,
-            scale.y * cosAngle,
-            position.y,
-            static_cast<T>(0),
-            static_cast<T>(0),
-            static_cast<T>(1)
-        );
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Extract position from matrix
-    ///
-    /// \return The position component
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TVector2<T> ExtractPosition(void) const
-    {
-        return TVector2<T>(m_matrix(0, 2), m_matrix(1, 2));
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Extract rotation from matrix
-    ///
-    /// \return The rotation component
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TRotator2D<T> ExtractRotation(void) const
-    {
-        // Extract scale to normalize rotation components
-        TVector2<T> scale = ExtractScale();
-
-        // Avoid division by zero
-        if (scale.x == static_cast<T>(0) || scale.y == static_cast<T>(0))
-        {
-            return TRotator2D<T>();
-        }
-
-        // Normalize rotation components
-        T cosAngle = m_matrix(0, 0) / scale.x;
-        T sinAngle = m_matrix(1, 0) / scale.x;
-
-        // Calculate angle from normalized components
-        T angleRad = std::atan2(sinAngle, cosAngle);
-        T angleDeg = angleRad * static_cast<T>(180.0) / static_cast<T>(M_PI);
-
-        return TRotator2D<T>(angleDeg);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Extract scale from matrix
-    ///
-    /// \return The scale component
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TVector2<T> ExtractScale(void) const
-    {
-        // Calculate scale as magnitude of transformation vectors
-        T scaleX = std::sqrt(
-            m_matrix(0, 0) * m_matrix(0, 0) + m_matrix(1, 0) * m_matrix(1, 0)
-        );
-        T scaleY = std::sqrt(
-            m_matrix(0, 1) * m_matrix(0, 1) + m_matrix(1, 1) * m_matrix(1, 1)
-        );
-
-        return TVector2<T>(scaleX, scaleY);
-    }
-
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor - identity transform
@@ -149,6 +53,24 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TTransform2D(void)
         : m_matrix(TMatrix3x3<T>::Identity)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor with matrix
+    ///
+    /// \param matrix The transformation matrix
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D(const TMatrix3x3<T>& matrix)
+        : m_matrix(matrix)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor with matrix elements
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D(T m00, T m01, T m02, T m10, T m11, T m12, T m20, T m21, T m22)
+        : m_matrix(m00, m01, m02, m10, m11, m12, m20, m21, m22)
     {}
 
     ///////////////////////////////////////////////////////////////////////////
@@ -255,6 +177,102 @@ public:
     {
         m_matrix = m_matrix * other.m_matrix;
         return *this;
+    }
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update matrix from position, rotation, and scale components
+    ///
+    /// \param position The position component
+    /// \param rotation The rotation component
+    /// \param scale The scale component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateMatrix(
+        const TVector2<T>& position,
+        const TRotator2D<T>& rotation,
+        const TVector2<T>& scale
+    )
+    {
+        // Convert angle from degrees to radians
+        T angleRad =
+            rotation.GetAngle() * static_cast<T>(M_PI) / static_cast<T>(180.0);
+        T cosAngle = std::cos(angleRad);
+        T sinAngle = std::sin(angleRad);
+
+        // Build transformation matrix: T * R * S
+        // [sx*cos  -sy*sin   tx]
+        // [sx*sin   sy*cos   ty]
+        // [   0        0      1]
+        m_matrix = TMatrix3x3<T>(
+            scale.x * cosAngle,
+            -scale.y * sinAngle,
+            position.x,
+            scale.x * sinAngle,
+            scale.y * cosAngle,
+            position.y,
+            static_cast<T>(0),
+            static_cast<T>(0),
+            static_cast<T>(1)
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract position from matrix
+    ///
+    /// \return The position component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> ExtractPosition(void) const
+    {
+        return TVector2<T>(m_matrix(0, 2), m_matrix(1, 2));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract rotation from matrix
+    ///
+    /// \return The rotation component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TRotator2D<T> ExtractRotation(void) const
+    {
+        // Extract scale to normalize rotation components
+        TVector2<T> scale = ExtractScale();
+
+        // Avoid division by zero
+        if (scale.x == static_cast<T>(0) || scale.y == static_cast<T>(0))
+        {
+            return TRotator2D<T>();
+        }
+
+        // Normalize rotation components
+        T cosAngle = m_matrix(0, 0) / scale.x;
+        T sinAngle = m_matrix(1, 0) / scale.x;
+
+        // Calculate angle from normalized components
+        T angleRad = std::atan2(sinAngle, cosAngle);
+        T angleDeg = angleRad * static_cast<T>(180.0) / static_cast<T>(M_PI);
+
+        return TRotator2D<T>(angleDeg);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extract scale from matrix
+    ///
+    /// \return The scale component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> ExtractScale(void) const
+    {
+        // Calculate scale as magnitude of transformation vectors
+        T scaleX = std::sqrt(
+            m_matrix(0, 0) * m_matrix(0, 0) + m_matrix(1, 0) * m_matrix(1, 0)
+        );
+        T scaleY = std::sqrt(
+            m_matrix(0, 1) * m_matrix(0, 1) + m_matrix(1, 1) * m_matrix(1, 1)
+        );
+
+        return TVector2<T>(scaleX, scaleY);
     }
 
 public:
