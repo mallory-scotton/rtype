@@ -11,12 +11,10 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 UShape::UShape(void)
-    : m_transform()
-    , m_fillColor(FColor::White)
+    : m_fillColor(FColor::White)
     , m_outlineColor(FColor::Black)
     , m_outlineThickness(0.0f)
     , m_texture(nullptr)
-    , m_origin(FVector2f::Zero)
     , m_vertices(EPrimitiveType::TriangleFan)
     , m_outlineVertices(EPrimitiveType::TriangleStrip)
     , m_miterLimit(10.0f)
@@ -98,65 +96,6 @@ TKD_NODISCARD const ITexture* UShape::GetTexture(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UShape::SetPosition(const FVector2f& position)
-{
-    m_transform.SetPosition(position);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD FVector2f UShape::GetPosition(void) const
-{
-    return m_transform.GetPosition();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void UShape::SetRotation(float rotation) { m_transform.SetRotation(rotation); }
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD float UShape::GetRotation(void) const
-{
-    return m_transform.GetRotation().GetAngle();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void UShape::SetScale(const FVector2f& scale) { m_transform.SetScale(scale); }
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD FVector2f UShape::GetScale(void) const
-{
-    return m_transform.GetScale();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void UShape::SetOrigin(const FVector2f& origin) { m_origin = origin; }
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD const FVector2f& UShape::GetOrigin(void) const
-{
-    return m_origin;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void UShape::SetTransform(const FTransform2D& transform)
-{
-    m_transform = transform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD const FTransform2D& UShape::GetTransform(void) const
-{
-    return m_transform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-TKD_NODISCARD FTransform2D UShape::GetOriginTransform(void) const
-{
-    FTransform2D originTransform = m_transform;
-    originTransform.Translate((GetLocalBounds().GetSize() * 0.5f) - m_origin);
-    return originTransform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD FRectangle UShape::GetLocalBounds(void) const
 {
     return m_bounds;
@@ -165,13 +104,13 @@ TKD_NODISCARD FRectangle UShape::GetLocalBounds(void) const
 ///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD FRectangle UShape::GetGlobalBounds(void) const
 {
-    return GetOriginTransform().TransformRectangle(GetLocalBounds());
+    return GetTransform().TransformRectangle(GetLocalBounds());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UShape::Draw(IRenderer& renderer, FRenderStates states) const
 {
-    states.transform = states.transform * GetOriginTransform();
+    states.transform *= GetTransform();
     states.texture = m_texture;
 
     renderer.Draw(
