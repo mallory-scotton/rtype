@@ -76,25 +76,6 @@ void Renderer::Draw(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Renderer::DrawIndexed(
-    const FVertex2D* vertices,
-    UInt32 vertexCount,
-    const UInt32* indices,
-    UInt32 indexCount,
-    EPrimitiveType type,
-    const FRenderStates& states
-)
-{
-    TKD_UNUSED(vertices);
-    TKD_UNUSED(vertexCount);
-    TKD_UNUSED(indices);
-    TKD_UNUSED(indexCount);
-    TKD_UNUSED(type);
-    TKD_UNUSED(states);
-    // TODO: Implement indexed drawing with SFML
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void Renderer::SetRenderTarget(IRenderTarget* target)
 {
     if (target == nullptr) { m_currentTarget = m_window; }

@@ -105,26 +105,6 @@ public:
     ) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw indexed vertices
-    ///
-    /// \param vertices Array of vertices
-    /// \param vertexCount Number of vertices
-    /// \param indices Array of indices
-    /// \param indexCount Number of indices
-    /// \param type Primitive type
-    /// \param states Render states
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void DrawIndexed(
-        const FVertex2D* vertices,
-        UInt32 vertexCount,
-        const UInt32* indices,
-        UInt32 indexCount,
-        EPrimitiveType type,
-        const FRenderStates& states = FRenderStates()
-    ) override;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the active render target
     ///
     /// \param target Render target (nullptr for default/window)
