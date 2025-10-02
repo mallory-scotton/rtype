@@ -61,17 +61,15 @@ public:
     /// \brief Create texture from memory
     ///
     /// \param data Pointer to pixel data
-    /// \param width Width in pixels
-    /// \param height Height in pixels
+    /// \param size Size of the pixel data in bytes
     /// \param format Texture format
     ///
     /// \return True if created successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool CreateFromMemory(
+    virtual bool LoadFromMemory(
         const void* data,
-        UInt32 width,
-        UInt32 height,
+        SizeT size,
         ETextureFormat format = ETextureFormat::RGBA8
     ) override;
 
@@ -89,24 +87,6 @@ public:
         UInt32 width,
         UInt32 height,
         ETextureFormat format = ETextureFormat::RGBA8
-    ) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update texture data
-    ///
-    /// \param data Pointer to pixel data
-    /// \param x X offset
-    /// \param y Y offset
-    /// \param width Width of update region
-    /// \param height Height of update region
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void Update(
-        const void* data,
-        UInt32 x = 0,
-        UInt32 y = 0,
-        UInt32 width = 0,
-        UInt32 height = 0
     ) override;
 
     ///////////////////////////////////////////////////////////////////////////

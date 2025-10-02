@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Texture.hpp>
+#include <Engine/Renderer/SFML/Utils.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -22,45 +23,26 @@ Texture::Texture(void)
 ///////////////////////////////////////////////////////////////////////////////
 bool Texture::LoadFromFile(const FilePath& filepath)
 {
-    TKD_UNUSED(filepath);
-    // TODO: Implement texture loading from file
-    return true;
+    if (!m_texture) { m_texture = std::make_unique<sf::Texture>(); }
+    return m_texture->loadFromFile(filepath.string());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool Texture::CreateFromMemory(
-    const void* data, UInt32 width, UInt32 height, ETextureFormat format
+bool Texture::LoadFromMemory(
+    const void* data, SizeT size, TKD_MAYBE_UNUSED ETextureFormat format
 )
 {
-    TKD_UNUSED(data);
-    TKD_UNUSED(width);
-    TKD_UNUSED(height);
-    TKD_UNUSED(format);
-    // TODO: Implement texture creation from memory
-    return true;
+    if (!m_texture) { m_texture = std::make_unique<sf::Texture>(); }
+    return m_texture->loadFromMemory(data, size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool Texture::Create(UInt32 width, UInt32 height, ETextureFormat format)
-{
-    TKD_UNUSED(width);
-    TKD_UNUSED(height);
-    TKD_UNUSED(format);
-    // TODO: Implement texture creation
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void Texture::Update(
-    const void* data, UInt32 x, UInt32 y, UInt32 width, UInt32 height
+bool Texture::Create(
+    UInt32 width, UInt32 height, TKD_MAYBE_UNUSED ETextureFormat format
 )
 {
-    TKD_UNUSED(data);
-    TKD_UNUSED(x);
-    TKD_UNUSED(y);
-    TKD_UNUSED(width);
-    TKD_UNUSED(height);
-    // TODO: Implement texture update
+    if (!m_texture) { m_texture = std::make_unique<sf::Texture>(); }
+    return m_texture->create(width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -71,11 +53,7 @@ void Texture::SetFilter(ETextureFilter filter)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ETextureFilter Texture::GetFilter(void) const
-{
-    // TODO: Implement filter getting
-    return m_filter;
-}
+ETextureFilter Texture::GetFilter(void) const { return m_filter; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Texture::SetWrap(ETextureWrap wrap)
@@ -85,11 +63,7 @@ void Texture::SetWrap(ETextureWrap wrap)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ETextureWrap Texture::GetWrap(void) const
-{
-    // TODO: Implement wrap getting
-    return m_wrap;
-}
+ETextureWrap Texture::GetWrap(void) const { return m_wrap; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Texture::GenerateMipmaps(void)
@@ -100,43 +74,35 @@ void Texture::GenerateMipmaps(void)
 ///////////////////////////////////////////////////////////////////////////////
 UInt32 Texture::GetWidth(void) const
 {
-    // TODO: Implement width getting
-    return 0;
+    return m_texture ? m_texture->getSize().x : 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 UInt32 Texture::GetHeight(void) const
 {
-    // TODO: Implement height getting
-    return 0;
+    return m_texture ? m_texture->getSize().y : 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 FVector2u Texture::GetSize(void) const
 {
-    // TODO: Implement size getting
-    return FVector2u(0, 0);
+    return m_texture ? Utils::Convert(m_texture->getSize()) : FVector2u::Zero;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ETextureFormat Texture::GetFormat(void) const
-{
-    // TODO: Implement format getting
-    return m_format;
-}
+ETextureFormat Texture::GetFormat(void) const { return m_format; }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Texture::IsValid(void) const
 {
-    // TODO: Implement validity check
-    return false;
+    return m_texture != nullptr && m_texture->getSize().x > 0 &&
+           m_texture->getSize().y > 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void* Texture::GetNativeHandle(void) const
 {
-    // TODO: Implement native handle retrieval
-    return nullptr;
+    return reinterpret_cast<void*>(m_texture ? m_texture.get() : nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
