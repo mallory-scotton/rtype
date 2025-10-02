@@ -126,11 +126,14 @@ void Engine::RenderThreadFunction(void)
                     debug.Show();
                 }
 
-                rect.Draw(*renderer);
-                circle.Draw(*renderer);
+                renderer->Draw(rect);
+                renderer->Draw(circle);
             }
         );
     }
+
+    window.reset();
+    renderer.reset();
 
     s_isRunning = false;
 }
@@ -230,20 +233,13 @@ bool Engine::Shutdown(void)
     s_isRunning = false;
 
 #if TKD_ENGINE_SERVER
+    // Shutdown network subsystem if in server mode
     Network::Shutdown();
 #endif
 
-    // Shutdown threads if they are running
-    if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
-    TKD_ENGINE_IF_CLIENT({
-        if (s_renderThread && s_renderThread->running)
-        {
-            s_renderThread->Join();
-        }
-    })
-
+    // Mark the engine as uninitialized
     s_isInitialized = false;
-    return !s_isInitialized;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,10 +259,20 @@ void Engine::Run(void)
     s_mainThread->Start();
     TKD_ENGINE_IF_CLIENT({ s_renderThread->Start(); })
 
+    // Main loop
     while (s_isRunning)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    // Shutdown threads if they are running
+    if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
+    TKD_ENGINE_IF_CLIENT({
+        if (s_renderThread && s_renderThread->running)
+        {
+            s_renderThread->Join();
+        }
+    })
 
     s_isRunning = false;
 }
