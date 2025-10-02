@@ -15,7 +15,6 @@ USprite::USprite(void)
     , m_transform()
     , m_textureRect(FRectangle::Zero)
     , m_color(FColor::White)
-    , m_blendMode(EBlendMode::Alpha)
     , m_flipX(false)
     , m_flipY(false)
 {}
@@ -26,7 +25,6 @@ USprite::USprite(const ITexture* texture)
     , m_transform()
     , m_textureRect(FRectangle::Zero)
     , m_color(FColor::White)
-    , m_blendMode(EBlendMode::Alpha)
     , m_flipX(false)
     , m_flipY(false)
 {
@@ -69,67 +67,6 @@ void USprite::SetColor(const FColor& color) { m_color = color; }
 const FColor& USprite::GetColor(void) const { return m_color; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::SetPosition(const FVector2f& position)
-{
-    m_transform.SetPosition(position);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-FVector2f USprite::GetPosition(void) const
-{
-    return m_transform.GetPosition();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetRotation(float rotation)
-{
-    m_transform.SetRotation(rotation);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-float USprite::GetRotation(void) const
-{
-    return m_transform.GetRotation().GetAngle();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetScale(const FVector2f& scale) { m_transform.SetScale(scale); }
-
-///////////////////////////////////////////////////////////////////////////////
-FVector2f USprite::GetScale(void) const { return m_transform.GetScale(); }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetOrigin(const FVector2f& origin)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetOrigin(origin);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetOrigin(void) const
-{
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetOrigin();
-    static const FVector2f defaultOrigin(0.0f, 0.0f);
-    return defaultOrigin;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetTransform(const FTransform2D& transform)
-{
-    m_transform = transform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FTransform2D& USprite::GetTransform(void) const { return m_transform; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetBlendMode(EBlendMode blendMode) { m_blendMode = blendMode; }
-
-///////////////////////////////////////////////////////////////////////////////
-EBlendMode USprite::GetBlendMode(void) const { return m_blendMode; }
-
-///////////////////////////////////////////////////////////////////////////////
 void USprite::SetFlipX(bool flip) { m_flipX = flip; }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,7 +96,7 @@ FRectangle USprite::GetGlobalBounds(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::Draw(IRenderer* renderer, const FRenderStates& states) const
+void USprite::Draw(IRenderer* renderer, FRenderStates states) const
 {
     if (!renderer || !m_texture || !m_texture->IsValid()) { return; }
 
@@ -168,15 +105,11 @@ void USprite::Draw(IRenderer* renderer, const FRenderStates& states) const
     UpdateVertices(vertices);
 
     // Combine render states
-    FRenderStates finalStates = states;
-    finalStates.texture = m_texture;
-    finalStates.blendMode = m_blendMode;
-
-    // TODO: Update when transform has been implemented
-    // finalStates.transform = m_transform * states.transform;
+    states.texture = m_texture;
+    states.transform *= GetTransform();
 
     // Draw the quad
-    renderer->Draw(vertices, 4, EPrimitiveType::TriangleStrip, finalStates);
+    renderer->Draw(vertices, 4, EPrimitiveType::TriangleStrip, states);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
