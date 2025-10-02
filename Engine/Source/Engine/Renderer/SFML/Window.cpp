@@ -30,8 +30,16 @@ Window::Window(
     , m_dimension(dimension)
     , m_title(title)
     , m_vsync(false)
+    , m_imguiInitialized(false)
 {
     if (openDefault) { this->Open(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Window::~Window()
+{
+    // Ensure proper cleanup
+    if (IsOpen()) { Close(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,6 +81,7 @@ bool Window::Open(void)
             m_window->close();
             return false;
         }
+        m_imguiInitialized = true;
     }
 
     // Check if the window was created successfully
@@ -95,8 +104,12 @@ bool Window::Close(void)
     // Check if the window is open
     if (!IsOpen()) { return false; }
 
-    // Shutdown ImGui-SFML if in debug build
-    if (Engine::IsDebugBuild()) { ImGui::SFML::Shutdown(); }
+    // Shutdown ImGui-SFML if it was initialized
+    if (m_imguiInitialized)
+    {
+        ImGui::SFML::Shutdown();
+        m_imguiInitialized = false;
+    }
 
     // Close the SFML window
     m_window->close();
@@ -132,11 +145,25 @@ bool Window::SetState(const EWindowState& state)
 
     // Recreate the SFML window with the new state
     sf::Vector2i currentPosition = m_window->getPosition();
+
+    // Shutdown ImGui before recreating window
+    if (m_imguiInitialized)
+    {
+        ImGui::SFML::Shutdown();
+        m_imguiInitialized = false;
+    }
+
     m_window->create(
         ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
     );
     m_window->setPosition(currentPosition);
     m_window->setVerticalSyncEnabled(m_vsync);
+
+    // Reinitialize ImGui if in debug build
+    if (Engine::IsDebugBuild())
+    {
+        if (ImGui::SFML::Init(*m_window)) { m_imguiInitialized = true; }
+    }
 
     // Emit the StateChanged event
     this->Emit(Events::StateChanged{ oldState, m_state });
@@ -264,14 +291,14 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
 
     sf::Time delta = m_clock.restart();
 
-    // Update ImGui-SFML if in debug build
-    if (Engine::IsDebugBuild()) { ImGui::SFML::Update(*m_window, delta); }
+    // Update ImGui-SFML if it was initialized
+    if (m_imguiInitialized) { ImGui::SFML::Update(*m_window, delta); }
 
     // Process SFML events
     sf::Event event;
     while (m_window->pollEvent(event))
     {
-        if (Engine::IsDebugBuild())
+        if (m_imguiInitialized)
         {
             ImGui::SFML::ProcessEvent(*m_window, event);
         }
@@ -309,8 +336,8 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
     // Call the provided drawing function
     drawFunction();
 
-    // Render ImGui if in debug build
-    if (Engine::IsDebugBuild()) { ImGui::SFML::Render(*m_window); }
+    // Render ImGui if it was initialized
+    if (m_imguiInitialized) { ImGui::SFML::Render(*m_window); }
 
     // Display the contents of the window
     m_window->display();
