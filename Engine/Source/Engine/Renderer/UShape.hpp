@@ -11,6 +11,7 @@
 #include <Engine/Renderer/Enumerations.hpp>
 #include <Engine/Renderer/FTransformable2D.hpp>
 #include <Engine/Renderer/FVertex2DArray.hpp>
+#include <Engine/Renderer/IDrawable.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
 #include <Engine/Renderer/ITexture.hpp>
 #include <vector>
@@ -25,7 +26,9 @@ namespace tkd
 /// \brief Base class for drawable shapes
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UShape : public FTransformable2D
+class UShape
+    : public FTransformable2D
+    , public IDrawable
 {
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -186,8 +189,9 @@ public:
     /// \param states Additional render states
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Draw(IRenderer& renderer, FRenderStates states = FRenderStates())
-        const;
+    virtual void Draw(
+        IRenderer& renderer, FRenderStates states = FRenderStates()
+    ) const override;
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
