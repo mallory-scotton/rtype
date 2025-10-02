@@ -109,7 +109,23 @@ public:
     static sf::Vertex Convert(const FVertex2D& vertex);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert a TKD shader to an SFML shader
+    /// \brief Convert a SFML vector to an TKD vector
+    ///
+    /// \tparam T The type of the vector components
+    ///
+    /// \param vector The SFML vector to convert
+    ///
+    /// \return The converted TKD vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static TVector2<T> Convert(const sf::Vector2<T>& vector)
+    {
+        return TVector2<T>(vector.x, vector.y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD vector to an SFML vector
     ///
     /// \tparam T The type of the vector components
     ///
@@ -138,6 +154,22 @@ public:
     static sf::Vector3<T> Convert(const TVector3<T>& vector)
     {
         return sf::Vector3<T>(vector.x, vector.y, vector.z);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a SFML vector to an TKD vector
+    ///
+    /// \tparam T The type of the vector components
+    ///
+    /// \param vector The SFML vector to convert
+    ///
+    /// \return The converted TKD vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static TVector3<T> Convert(const sf::Vector3<T>& vector)
+    {
+        return TVector3<T>(vector.x, vector.y, vector.z);
     }
 
     ///////////////////////////////////////////////////////////////////////////
