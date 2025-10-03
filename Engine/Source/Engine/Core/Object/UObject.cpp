@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
+#include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Object/UProperty.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,5 +50,8 @@ const std::vector<IProperty*>& UObject::GetProperties(void) const
 {
     return m_properties;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+UClass* UObject::StaticClass(void) { return nullptr; }
 
 }   // namespace tkd
