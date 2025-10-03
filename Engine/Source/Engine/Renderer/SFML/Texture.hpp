@@ -29,9 +29,6 @@ private:
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<sf::Texture> m_texture;   //<! SFML texture
-    ETextureFilter m_filter;                  //<! Current filter mode
-    ETextureWrap m_wrap;                      //<! Current wrap mode
-    ETextureFormat m_format;                  //<! Texture format
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -39,6 +36,59 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     Texture(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Copy constructor
+    ///
+    /// \param other The other texture to copy from
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Texture(const Texture& other);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor from file
+    ///
+    /// \param filepath Path to the texture file
+    /// \param area Area of the texture to load (optional)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Texture(
+        const FilePath& filepath, const FRectanglei& area = FRectanglei::Zero
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor from memory
+    ///
+    /// \param data Pointer to the texture data
+    /// \param size The size of the texture data in bytes
+    /// \param area Area of the texture to load (optional)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Texture(
+        const void* data,
+        SizeT size,
+        const FRectanglei& area = FRectanglei::Zero
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor from byte array
+    ///
+    /// \param bytes Byte array containing pixel data
+    /// \param area Area of the texture to load (optional)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Texture(
+        const TVector<Byte>& bytes, const FRectanglei& area = FRectanglei::Zero
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor from asset
+    ///
+    /// \param asset Asset containing texture data
+    /// \param area Area of the texture to load (optional)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Texture(const UAsset& asset, const FRectanglei& area = FRectanglei::Zero);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -51,18 +101,21 @@ public:
     /// \brief Load texture from file
     ///
     /// \param filepath Path to the texture file
+    /// \param area Area of the texture to load (optional)
     ///
     /// \return True if loaded successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool LoadFromFile(const FilePath& filepath) override;
+    virtual bool LoadFromFile(
+        const FilePath& filepath, const FRectanglei& area = FRectanglei::Zero
+    ) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create texture from memory
     ///
     /// \param data Pointer to pixel data
     /// \param size Size of the pixel data in bytes
-    /// \param format Texture format
+    /// \param area Area of the texture to load (optional)
     ///
     /// \return True if created successfully
     ///
@@ -70,7 +123,33 @@ public:
     virtual bool LoadFromMemory(
         const void* data,
         SizeT size,
-        ETextureFormat format = ETextureFormat::RGBA8
+        const FRectanglei& area = FRectanglei::Zero
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create texture from byte array
+    ///
+    /// \param bytes Byte array containing pixel data
+    /// \param area Area of the texture to load (optional)
+    ///
+    /// \return True if created successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool LoadFromBytes(
+        const TVector<Byte>& bytes, const FRectanglei& area = FRectanglei::Zero
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create texture from asset
+    ///
+    /// \param asset Asset containing texture data
+    /// \param area Area of the texture to load (optional)
+    ///
+    /// \return True if created successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool LoadFromAsset(
+        const UAsset& asset, const FRectanglei& area = FRectanglei::Zero
     ) override;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -78,54 +157,11 @@ public:
     ///
     /// \param width Width in pixels
     /// \param height Height in pixels
-    /// \param format Texture format
     ///
     /// \return True if created successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool Create(
-        UInt32 width,
-        UInt32 height,
-        ETextureFormat format = ETextureFormat::RGBA8
-    ) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set texture filtering mode
-    ///
-    /// \param filter Filtering mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void SetFilter(ETextureFilter filter) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get current filtering mode
-    ///
-    /// \return Current filter mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureFilter GetFilter(void) const override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set texture wrap mode
-    ///
-    /// \param wrap Wrap mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void SetWrap(ETextureWrap wrap) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get current wrap mode
-    ///
-    /// \return Current wrap mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureWrap GetWrap(void) const override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Generate mipmaps for the texture
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void GenerateMipmaps(void) override;
+    virtual bool Create(UInt32 width, UInt32 height) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get texture width
@@ -152,14 +188,6 @@ public:
     TKD_NODISCARD virtual FVector2u GetSize(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get texture format
-    ///
-    /// \return Texture format
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureFormat GetFormat(void) const override;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if texture is valid
     ///
     /// \return True if valid
@@ -184,19 +212,198 @@ public:
     TKD_NODISCARD virtual void* GetNativePointer(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get SFML texture (for internal use)
+    /// \brief Update texture with new pixel data
     ///
-    /// \return SFML texture pointer
+    /// \param pixels Pixel data as a byte array
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD sf::Texture* GetSFMLTexture(void) const;
+    virtual void Update(const UInt8* pixels) override;
 
-private:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Apply current filter and wrap modes
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a byte array
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void ApplySettings(void);
+    virtual void Update(
+        const UInt8* pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of bytes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<UInt8>& pixels) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of bytes
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<UInt8>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<FColor>& pixels) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<FColor>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<FLinearColor>& pixels) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<FLinearColor>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture from another texture
+    ///
+    /// \param texture The source texture to copy from
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const ITexture& texture) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture from another texture at specified offset
+    ///
+    /// \param texture The source texture to copy from
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const ITexture& texture, UInt32 x, UInt32 y) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture filtering
+    ///
+    /// \param smooth True to enable smoothing
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetSmooth(bool smooth) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is smoothed
+    ///
+    /// \return True if smoothing is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsSmooth(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set SRGB flag for the texture
+    ///
+    /// \param sRGB True to enable sRGB
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetSRGB(bool sRGB) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is in sRGB format
+    ///
+    /// \return True if sRGB is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsSRGB(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set texture repeating
+    ///
+    /// \param repeated True to enable repeating
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetRepeated(bool repeated) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is repeated
+    ///
+    /// \return True if repeating is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsRepeated(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Generate mipmaps for the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void GenerateMipmaps(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Swap with another texture
+    ///
+    /// \param other The other texture to swap with
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Swap(ITexture& other) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind the texture for rendering
+    ///
+    /// \param type The type of texture coordinates (Normalized or Pixel)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Bind(
+        ETextureCoordinateType type = ETextureCoordinateType::Normalized
+    ) const override;
 };
 
 }   // namespace tkd::SFML
