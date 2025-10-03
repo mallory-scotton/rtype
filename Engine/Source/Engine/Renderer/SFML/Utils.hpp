@@ -69,6 +69,16 @@ public:
     static sf::BlendMode Convert(EBlendMode blendMode);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD shader type to an SFML shader type
+    ///
+    /// \param shaderType The TKD shader type to convert
+    ///
+    /// \return The converted SFML shader type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Shader::Type Convert(EShaderType shaderType);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Convert TKD render states to SFML render states
     ///
     /// \param states The TKD render states to convert
@@ -242,6 +252,96 @@ public:
             mat.data[3][3]
         );
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Vec2 Convert(const FVector2f& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Bvec2 Convert(const FVector2b& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Ivec2 Convert(const FVector2i& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Vec3 Convert(const FVector3f& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Bvec3 Convert(const FVector3b& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Ivec3 Convert(const FVector3i& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Vec4 Convert(const FVector4f& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Bvec4 Convert(const FVector4b& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert TKD vectors to SFML GLSL vectors
+    ///
+    /// \param vec The TKD vector to convert
+    ///
+    /// \return The converted SFML GLSL vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Glsl::Ivec4 Convert(const FVector4i& vec);
 };
 
 }   // namespace tkd::SFML
