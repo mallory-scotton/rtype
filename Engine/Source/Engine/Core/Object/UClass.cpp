@@ -10,6 +10,9 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+std::unordered_map<FString, std::unique_ptr<UClass>> UClass::s_classRegistry;
+
+///////////////////////////////////////////////////////////////////////////////
 UClass::UClass(const FString& name, UClass* super)
     : m_name(name)
     , m_super(super)
@@ -44,6 +47,19 @@ UObject* UClass::CreateInstance(void) const
 {
     if (m_createInstance) { return m_createInstance(); }
     return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UClass::RegisterClass(std::unique_ptr<UClass> uclass)
+{
+    if (!uclass) { return; }
+    const FString& name = uclass->GetName();
+    if (s_classRegistry.find(name) != s_classRegistry.end())
+    {
+        // Class with this name already registered
+        return;
+    }
+    s_classRegistry[name] = std::move(uclass);
 }
 
 }   // namespace tkd
