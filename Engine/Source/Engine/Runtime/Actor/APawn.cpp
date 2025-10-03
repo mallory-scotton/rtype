@@ -14,4 +14,7 @@ APawn::APawn(void)
     : AActor()
 {}
 
+///////////////////////////////////////////////////////////////////////////////
+UClass* APawn::StaticClass(void) { return nullptr; }
+
 }   // namespace tkd
