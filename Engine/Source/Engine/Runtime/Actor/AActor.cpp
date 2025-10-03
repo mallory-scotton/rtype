@@ -11,8 +11,10 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 AActor::AActor(void)
-    : m_transform()
+    : UObject("AActor")
+    , m_transform()
     , m_isActive(true)
+    , m_components()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,5 +40,33 @@ Bool AActor::IsActive(void) const { return m_isActive; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetActive(Bool isActive) { m_isActive = isActive; }
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::RemoveComponent(const FString& name)
+{
+    m_components.Erase(
+        std::remove_if(
+            m_components.Begin(),
+            m_components.End(),
+            [&name](const Component& component)
+            { return component->GetName() == name; }
+        ),
+        m_components.End()
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::RemoveComponent(UActorComponent* component)
+{
+    m_components.Erase(
+        std::remove_if(
+            m_components.Begin(),
+            m_components.End(),
+            [component](const Component& comp)
+            { return comp.get() == component; }
+        ),
+        m_components.End()
+    );
+}
 
 }   // namespace tkd
