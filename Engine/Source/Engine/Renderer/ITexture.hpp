@@ -199,7 +199,15 @@ public:
     /// \return Platform-specific texture handle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual void* GetNativeHandle(void) const = 0;
+    TKD_NODISCARD virtual UInt32 GetNativeHandle(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get native texture pointer
+    ///
+    /// \return Platform-specific texture pointer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual void* GetNativePointer(void) const = 0;
 };
 
 }   // namespace tkd
