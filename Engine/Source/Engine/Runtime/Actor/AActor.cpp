@@ -18,13 +18,31 @@ AActor::AActor(void)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::BeginPlay(void) {}
+void AActor::BeginPlay(void)
+{
+    for (const auto& component: m_components)
+    {
+        if (component->IsActive()) { component->BeginPlay(); }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::Tick(TKD_MAYBE_UNUSED Float32 deltaTime) {}
+void AActor::Tick(Float32 deltaTime)
+{
+    for (const auto& component: m_components)
+    {
+        if (component->IsActive()) { component->Tick(deltaTime); }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::EndPlay(void) {}
+void AActor::EndPlay(void)
+{
+    for (const auto& component: m_components)
+    {
+        if (component->IsActive()) { component->EndPlay(); }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 const FTransform& AActor::GetTransform(void) const { return m_transform; }
