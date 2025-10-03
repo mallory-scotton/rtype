@@ -98,8 +98,13 @@ void Engine::RenderThreadFunction(void)
     std::unique_ptr<IRenderer> renderer =
         std::make_unique<SFML::Renderer>(window.get());
 
+    std::unique_ptr<ITexture> texture = std::make_unique<SFML::Texture>();
+
+    texture->LoadFromFile("Game/Assets/Images/r-typesheet1.png");
+
     URectangleShape rect;
     UCircleShape circle;
+    USprite sprite(*texture);
 
     rect.SetFillColor(FColor::Green);
     rect.SetSize(FVector2f(100.0f, 100.0f));
@@ -113,12 +118,14 @@ void Engine::RenderThreadFunction(void)
     circle.SetOutlineThickness(5.f);
     circle.SetOutlineColor(FColor::Yellow);
 
+    sprite.SetPosition(FVector2f(300.0f, 300.0f));
+
     while (s_isRunning && window->IsOpen())
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
         window->Draw(
-            [&rect, &circle, &renderer]()
+            [&rect, &circle, &renderer, &sprite]()
             {
                 if (Engine::IsDebugBuild())
                 {
@@ -128,6 +135,7 @@ void Engine::RenderThreadFunction(void)
 
                 renderer->Draw(rect);
                 renderer->Draw(circle);
+                renderer->Draw(sprite);
             }
         );
     }
