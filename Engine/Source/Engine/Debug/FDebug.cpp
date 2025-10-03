@@ -141,6 +141,13 @@ void FDebug::Show(void)
                 m_showInputDebug = !m_showInputDebug;
             }
 
+            if (ImGui::MenuItem(
+                    "Actor Debugger", "Ctrl+Shift+A", m_showActorDebug
+                ))
+            {
+                m_showActorDebug = !m_showActorDebug;
+            }
+
             ImGui::Unindent(10.0f);
             ImGui::PopStyleColor();
             ImGui::EndMenu();
@@ -212,26 +219,28 @@ void FDebug::Show(void)
 
     PopDebugMenuStyling();
 
+    // Handle keyboard input for toggling debug windows
+    bool KeyCtrl = ImGui::GetIO().KeyCtrl;
+    bool KeyShift = ImGui::GetIO().KeyShift;
+
     // Handle keyboard shortcuts
-    if (ImGui::IsKeyPressed(ImGuiKey_E) && ImGui::GetIO().KeyCtrl &&
-        ImGui::GetIO().KeyShift)
+    if (ImGui::IsKeyPressed(ImGuiKey_E) && KeyCtrl && KeyShift)
     {
         m_showEngineSettings = !m_showEngineSettings;
     }
-    else if (ImGui::IsKeyPressed(ImGuiKey_B) && ImGui::GetIO().KeyCtrl &&
-             ImGui::GetIO().KeyShift)
+    else if (ImGui::IsKeyPressed(ImGuiKey_B) && KeyCtrl && KeyShift)
     {
         m_showInputDebug = !m_showInputDebug;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_A) && KeyCtrl && KeyShift)
+    {
+        m_showActorDebug = !m_showActorDebug;
     }
 
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(); }
     if (m_showInputDebug) { m_inputsDebug.Show(); }
-
-    // TODO: Add other debug windows when implemented
-    // if (m_showPerformanceMonitor) { /* show performance monitor */ }
-    // if (m_showMemoryProfiler) { /* show memory profiler */ }
-    // etc...
+    if (m_showActorDebug) { m_actorDebug.Show(); }
 }
 
 #endif
