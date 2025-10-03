@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
+#include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
@@ -121,8 +122,11 @@ public:
             "T must be derived from UActorComponent"
         );
 
-        m_components.EmplaceBack(std::make_unique<T>(std::forward<Args>(args
-        )...));
+        auto newComponent = m_components.EmplaceBack(
+            std::make_unique<T>(std::forward<Args>(args)...)
+        );
+
+        newComponent->SetOwner(this);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -133,7 +137,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void AddComponent(Component component)
     {
-        m_components.EmplaceBack(std::move(component));
+        auto newComponent = m_components.EmplaceBack(std::move(component));
+        newComponent->SetOwner(this);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -144,7 +149,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void AddComponent(UActorComponent* component)
     {
-        m_components.EmplaceBack(component);
+        auto newComponent = m_components.EmplaceBack(component);
+        newComponent->SetOwner(this);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -243,6 +249,15 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void RemoveComponent(UActorComponent* component);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the static UClass of the AActor class
+    ///
+    /// \return Pointer to the UClass representing the AActor class
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static UClass* StaticClass(void);
 };
 
 }   // namespace tkd
