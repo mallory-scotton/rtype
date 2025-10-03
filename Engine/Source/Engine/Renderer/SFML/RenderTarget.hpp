@@ -30,10 +30,10 @@ private:
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<sf::RenderTexture>
-        m_renderTexture;                  //<! SFML render texture
-    std::unique_ptr<Texture> m_texture;   //<! Wrapped texture
-    FVector2u m_size;                     //<! Render target size
-    bool m_hasDepth;                      //<! Depth buffer flag
+        m_renderTexture;                   //<! SFML render texture
+    std::unique_ptr<ITexture> m_texture;   //<! Wrapped texture
+    FVector2u m_size;                      //<! Render target size
+    bool m_hasDepth;                       //<! Depth buffer flag
 
 public:
     ///////////////////////////////////////////////////////////////////////////
