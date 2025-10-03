@@ -74,6 +74,18 @@ sf::BlendMode Utils::Convert(EBlendMode blendMode)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+sf::Shader::Type Utils::Convert(EShaderType shaderType)
+{
+    switch (shaderType)
+    {
+    case EShaderType::Vertex  : return sf::Shader::Type::Vertex;
+    case EShaderType::Fragment: return sf::Shader::Type::Fragment;
+    case EShaderType::Geometry: return sf::Shader::Type::Geometry;
+    default                   : return sf::Shader::Type::Vertex;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 sf::RenderStates Utils::Convert(const FRenderStates& states)
 {
     return sf::RenderStates(
@@ -123,6 +135,60 @@ sf::Vertex Utils::Convert(const FVertex2D& vertex)
     return sf::Vertex(
         Convert(vertex.position), Convert(vertex.color), Convert(vertex.uv)
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Vec2 Utils::Convert(const FVector2f& vec)
+{
+    return sf::Glsl::Vec2(vec.x, vec.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Bvec2 Utils::Convert(const FVector2b& vec)
+{
+    return sf::Glsl::Bvec2(vec.x, vec.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Ivec2 Utils::Convert(const FVector2i& vec)
+{
+    return sf::Glsl::Ivec2(vec.x, vec.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Vec3 Utils::Convert(const FVector3f& vec)
+{
+    return sf::Glsl::Vec3(vec.x, vec.y, vec.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Bvec3 Utils::Convert(const FVector3b& vec)
+{
+    return sf::Glsl::Bvec3(vec.x, vec.y, vec.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Ivec3 Utils::Convert(const FVector3i& vec)
+{
+    return sf::Glsl::Ivec3(vec.x, vec.y, vec.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Vec4 Utils::Convert(const FVector4f& vec)
+{
+    return sf::Glsl::Vec4(vec.x, vec.y, vec.z, vec.w);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Bvec4 Utils::Convert(const FVector4b& vec)
+{
+    return sf::Glsl::Bvec4(vec.x, vec.y, vec.z, vec.w);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Ivec4 Utils::Convert(const FVector4i& vec)
+{
+    return sf::Glsl::Ivec4(vec.x, vec.y, vec.z, vec.w);
 }
 
 #endif
