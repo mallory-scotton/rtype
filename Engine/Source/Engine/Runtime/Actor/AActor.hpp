@@ -7,9 +7,12 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/UObject.hpp>
+#include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
+#include <memory>
 #include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,12 +29,19 @@ class AActor
     : public UObject
     , public ITickable
 {
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using Component = std::shared_ptr<UActorComponent>;
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FTransform m_transform;   //<! The actor's transform
-    Bool m_isActive;          //<! Whether the actor is active
+    FTransform m_transform;            //<! The actor's transform
+    Bool m_isActive;                   //<! Whether the actor is active
+    TVector<Component> m_components;   //<! The actor's components
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -92,6 +102,147 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetActive(Bool isActive);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a component to the actor
+    ///
+    /// \tparam T The type of the component to add
+    /// \tparam Args The types of the arguments to forward to the component's
+    /// constructor
+    ///
+    /// \param args The arguments to forward to the component's constructor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T, typename... Args>
+    void AddComponent(Args&&... args)
+    {
+        static_assert(
+            std::is_base_of<UActorComponent, T>::value,
+            "T must be derived from UActorComponent"
+        );
+
+        m_components.EmplaceBack(std::make_unique<T>(std::forward<Args>(args
+        )...));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a component to the actor
+    ///
+    /// \param component The component to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddComponent(Component component)
+    {
+        m_components.EmplaceBack(std::move(component));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a component to the actor
+    ///
+    /// \param component Pointer to the component to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddComponent(UActorComponent* component)
+    {
+        m_components.EmplaceBack(component);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the actor's components
+    ///
+    /// \return A constant reference to the vector of component pointers
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = UActorComponent>
+    TVector<std::shared_ptr<T>> GetComponents(void) const
+    {
+        static_assert(
+            std::is_base_of<UActorComponent, T>::value,
+            "T must be derived from UActorComponent"
+        );
+
+        if constexpr (std::is_same<T, UActorComponent>::value)
+        {
+            return m_components;
+        }
+
+        TVector<std::shared_ptr<T>> filteredComponents;
+        for (const auto& component: m_components)
+        {
+            if (auto casted = dynamic_cast<T*>(component.get()))
+            {
+                filteredComponents.EmplaceBack(std::make_shared<T>(*casted));
+            }
+        }
+        return filteredComponents;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a component of the actor by name
+    ///
+    /// \param name The name of the component to get
+    ///
+    /// \return A pointer to the component if found, nullptr otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = UActorComponent>
+    T* GetComponent(const FString& name) const
+    {
+        static_assert(
+            std::is_base_of<UActorComponent, T>::value,
+            "T must be derived from UActorComponent"
+        );
+
+        for (const auto& component: m_components)
+        {
+            if (component->GetName() == name)
+            {
+                return dynamic_cast<T*>(component.get());
+            }
+        }
+        return nullptr;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove all components from a type from the actor
+    ///
+    /// \tparam T The type of the components to remove
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void RemoveComponents(void)
+    {
+        static_assert(
+            std::is_base_of<UActorComponent, T>::value,
+            "T must be derived from UActorComponent"
+        );
+
+        m_components.Erase(
+            std::remove_if(
+                m_components.Begin(),
+                m_components.End(),
+                [](const Component& component)
+                { return dynamic_cast<T*>(component.get()) != nullptr; }
+            ),
+            m_components.End()
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove a component by name from the actor
+    ///
+    /// \param name The name of the component to remove
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RemoveComponent(const FString& name);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove a specific component from the actor
+    ///
+    /// \param component Pointer to the component to remove
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RemoveComponent(UActorComponent* component);
 };
 
 }   // namespace tkd
