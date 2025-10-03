@@ -39,6 +39,130 @@ public:
     Shader(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from file
+    ///
+    /// \param filePath shader file path
+    /// \param type shader type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const FilePath& filePath, EShaderType type);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex and fragment files
+    ///
+    /// \param vertexPath vertex shader file path
+    /// \param fragmentPath fragment shader file path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const FilePath& vertexPath, const FilePath& fragmentPath);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex, geometry and fragment files
+    ///
+    /// \param vertexPath vertex shader file path
+    /// \param geometryPath geometry shader file path
+    /// \param fragmentPath fragment shader file path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(
+        const FilePath& vertexPath,
+        const FilePath& geometryPath,
+        const FilePath& fragmentPath
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from source code string
+    ///
+    /// \param shader shader source code
+    /// \param type shader type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const FString& shader, EShaderType type);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex and fragment source code strings
+    ///
+    /// \param vertex vertex shader source code
+    /// \param fragment fragment shader source code
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const FString& vertex, const FString& fragment);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex, geometry and fragment source code
+    ///
+    /// \param vertex vertex shader source code
+    /// \param geometry geometry shader source code
+    /// \param fragment fragment shader source code
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(
+        const FString& vertex, const FString& geometry, const FString& fragment
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from byte array
+    ///
+    /// \param shader shader source code in bytes
+    /// \param type shader type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const TVector<Byte>& shader, EShaderType type);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex and fragment byte arrays
+    ///
+    /// \param vertex vertex shader source code in bytes
+    /// \param fragment fragment shader source code in bytes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const TVector<Byte>& vertex, const TVector<Byte>& fragment);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex, geometry and fragment byte arrays
+    ///
+    /// \param vertex vertex shader source code in bytes
+    /// \param geometry geometry shader source code in bytes
+    /// \param fragment fragment shader source code in bytes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(
+        const TVector<Byte>& vertex,
+        const TVector<Byte>& geometry,
+        const TVector<Byte>& fragment
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from asset
+    ///
+    /// \param asset shader source code in asset
+    /// \param type shader type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const UAsset& asset, EShaderType type);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex and fragment assets
+    ///
+    /// \param vertex vertex shader source code in asset
+    /// \param fragment fragment shader source code in asset
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(const UAsset& vertex, const UAsset& fragment);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Construct shader from vertex, geometry and fragment assets
+    ///
+    /// \param vertex vertex shader source code in asset
+    /// \param geometry geometry shader source code in asset
+    /// \param fragment fragment shader source code in asset
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Shader(
+        const UAsset& vertex, const UAsset& geometry, const UAsset& fragment
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor
     ///
     ///////////////////////////////////////////////////////////////////////////

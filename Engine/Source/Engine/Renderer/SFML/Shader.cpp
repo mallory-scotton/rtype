@@ -19,6 +19,158 @@ Shader::Shader(void)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const FilePath& filePath, EShaderType type)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromFile(filePath, type))
+    {
+        throw std::runtime_error(
+            "Failed to load shader from file: " + filePath.string()
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const FilePath& vertexPath, const FilePath& fragmentPath)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromFile(vertexPath, fragmentPath))
+    {
+        throw std::runtime_error(
+            "Failed to load shader from files: " + vertexPath.string() + ", " +
+            fragmentPath.string()
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(
+    const FilePath& vertexPath,
+    const FilePath& geometryPath,
+    const FilePath& fragmentPath
+)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromFile(vertexPath, geometryPath, fragmentPath))
+    {
+        throw std::runtime_error(
+            "Failed to load shader from files: " + vertexPath.string() + ", " +
+            geometryPath.string() + ", " + fragmentPath.string()
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const FString& shader, EShaderType type)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromMemory(shader, type))
+    {
+        throw std::runtime_error("Failed to load shader from memory");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const FString& vertex, const FString& fragment)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromMemory(vertex, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from memory");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(
+    const FString& vertex, const FString& geometry, const FString& fragment
+)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromMemory(vertex, geometry, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from memory");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const TVector<Byte>& shader, EShaderType type)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromBytes(shader, type))
+    {
+        throw std::runtime_error("Failed to load shader from bytes");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const TVector<Byte>& vertex, const TVector<Byte>& fragment)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromBytes(vertex, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from bytes");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(
+    const TVector<Byte>& vertex,
+    const TVector<Byte>& geometry,
+    const TVector<Byte>& fragment
+)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromBytes(vertex, geometry, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from bytes");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const UAsset& asset, EShaderType type)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromAsset(asset, type))
+    {
+        throw std::runtime_error("Failed to load shader from asset");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(const UAsset& vertex, const UAsset& fragment)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromAsset(vertex, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from assets");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Shader::Shader(
+    const UAsset& vertex, const UAsset& geometry, const UAsset& fragment
+)
+    : m_shader(nullptr)
+    , m_isLoaded(false)
+{
+    if (!this->LoadFromAsset(vertex, geometry, fragment))
+    {
+        throw std::runtime_error("Failed to load shader from assets");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool Shader::LoadFromFile(const FilePath& filepath, EShaderType type)
 {
     if (!m_shader) { m_shader = std::make_unique<sf::Shader>(); }
@@ -319,11 +471,12 @@ void Shader::SetUniformArray(
     const FString& name, const FVector2f* values, SizeT length
 )
 {
-    TVector<sf::Glsl::Vec2> sfValues(length);
+    TVector<sf::Glsl::Vec2> sfValues;
+    sfValues.Reserve(length);
 
     for (SizeT i = 0; i < length; ++i)
     {
-        sfValues[i] = Utils::Convert(values[i]);
+        sfValues.PushBack(Utils::Convert(values[i]));
     }
 
     if (m_shader)
@@ -345,11 +498,12 @@ void Shader::SetUniformArray(
     const FString& name, const FVector3f* values, SizeT length
 )
 {
-    TVector<sf::Glsl::Vec3> sfValues(length);
+    TVector<sf::Glsl::Vec3> sfValues;
+    sfValues.Reserve(length);
 
     for (SizeT i = 0; i < length; ++i)
     {
-        sfValues[i] = Utils::Convert(values[i]);
+        sfValues.PushBack(Utils::Convert(values[i]));
     }
 
     if (m_shader)
@@ -371,11 +525,12 @@ void Shader::SetUniformArray(
     const FString& name, const FVector4f* values, SizeT length
 )
 {
-    TVector<sf::Glsl::Vec4> sfValues(length);
+    TVector<sf::Glsl::Vec4> sfValues;
+    sfValues.Reserve(length);
 
     for (SizeT i = 0; i < length; ++i)
     {
-        sfValues[i] = Utils::Convert(values[i]);
+        sfValues.PushBack(Utils::Convert(values[i]));
     }
 
     if (m_shader)
@@ -397,11 +552,12 @@ void Shader::SetUniformArray(
     const FString& name, const FMatrix3x3f* values, SizeT length
 )
 {
-    TVector<sf::Glsl::Mat3> sfValues(length);
+    TVector<sf::Glsl::Mat3> sfValues;
+    sfValues.Reserve(length);
 
     for (SizeT i = 0; i < length; ++i)
     {
-        sfValues[i] = Utils::Convert(values[i]);
+        sfValues.PushBack(Utils::Convert(values[i]));
     }
 
     if (m_shader)
@@ -423,11 +579,12 @@ void Shader::SetUniformArray(
     const FString& name, const FMatrix4x4f* values, SizeT length
 )
 {
-    TVector<sf::Glsl::Mat4> sfValues(length);
+    TVector<sf::Glsl::Mat4> sfValues;
+    sfValues.Reserve(length);
 
     for (SizeT i = 0; i < length; ++i)
     {
-        sfValues[i] = Utils::Convert(values[i]);
+        sfValues.PushBack(Utils::Convert(values[i]));
     }
 
     if (m_shader)
