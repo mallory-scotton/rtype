@@ -61,6 +61,14 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get all actors in the world
+    ///
+    /// \return A constant reference to the vector of shared pointers to actors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const std::vector<std::shared_ptr<AActor>>& GetActors(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get all actors of type T in the world
     ///
     /// \tparam T The type of actor to get
