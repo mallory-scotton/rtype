@@ -138,6 +138,18 @@ sf::Vertex Utils::Convert(const FVertex2D& vertex)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Mat3 Utils::Convert(const FMatrix3x3f& mat)
+{
+    return sf::Glsl::Mat3(&mat.data[0][0]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+sf::Glsl::Mat4 Utils::Convert(const FMatrix4x4f& mat)
+{
+    return sf::Glsl::Mat4(&mat.data[0][0]);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 sf::Glsl::Vec2 Utils::Convert(const FVector2f& vec)
 {
     return sf::Glsl::Vec2(vec.x, vec.y);

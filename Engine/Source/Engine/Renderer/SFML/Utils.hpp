@@ -206,21 +206,7 @@ public:
     /// \return The converted SFML matrix
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    static sf::Glsl::Mat3 Convert(const TMatrix3x3<T>& mat)
-    {
-        return sf::Glsl::Mat3(
-            mat.data[0][0],
-            mat.data[0][1],
-            mat.data[0][2],
-            mat.data[1][0],
-            mat.data[1][1],
-            mat.data[1][2],
-            mat.data[2][0],
-            mat.data[2][1],
-            mat.data[2][2]
-        );
-    }
+    static sf::Glsl::Mat3 Convert(const FMatrix3x3f& mat);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Convert a TKD 4x4 matrix to an SFML 4x4 matrix
@@ -230,28 +216,7 @@ public:
     /// \return The converted SFML matrix
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
-    static sf::Glsl::Mat4 Convert(const TMatrix4x4<T>& mat)
-    {
-        return sf::Glsl::Mat4(
-            mat.data[0][0],
-            mat.data[0][1],
-            mat.data[0][2],
-            mat.data[0][3],
-            mat.data[1][0],
-            mat.data[1][1],
-            mat.data[1][2],
-            mat.data[1][3],
-            mat.data[2][0],
-            mat.data[2][1],
-            mat.data[2][2],
-            mat.data[2][3],
-            mat.data[3][0],
-            mat.data[3][1],
-            mat.data[3][2],
-            mat.data[3][3]
-        );
-    }
+    static sf::Glsl::Mat4 Convert(const FMatrix4x4f& mat);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Convert TKD vectors to SFML GLSL vectors
