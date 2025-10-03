@@ -88,16 +88,22 @@ sf::Shader::Type Utils::Convert(EShaderType shaderType)
 ///////////////////////////////////////////////////////////////////////////////
 sf::RenderStates Utils::Convert(const FRenderStates& states)
 {
-    return sf::RenderStates(
-        Convert(states.blendMode),
-        Convert(states.transform),
-        states.texture
-            ? reinterpret_cast<sf::Texture*>(states.texture->GetNativeHandle())
-            : nullptr,
-        states.shader
-            ? reinterpret_cast<sf::Shader*>(states.shader->GetNativeHandle())
-            : nullptr
-    );
+    sf::RenderStates sfStates = sf::RenderStates::Default;
+
+    sfStates.blendMode = Convert(states.blendMode);
+    sfStates.transform = Convert(states.transform);
+    if (states.shader)
+    {
+        sfStates.shader =
+            reinterpret_cast<sf::Shader*>(states.shader->GetNativePointer());
+    }
+    if (states.texture)
+    {
+        sfStates.texture =
+            reinterpret_cast<sf::Texture*>(states.texture->GetNativePointer());
+    }
+
+    return sfStates;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
