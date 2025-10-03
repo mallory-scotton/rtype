@@ -11,6 +11,7 @@
 #include <Engine/Renderer/FTransformable2D.hpp>
 #include <Engine/Renderer/FVertex2DArray.hpp>
 #include <Engine/Renderer/FView.hpp>
+#include <Engine/Renderer/IGraphicsFactory.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
 #include <Engine/Renderer/IRenderTarget.hpp>
 #include <Engine/Renderer/IShader.hpp>
