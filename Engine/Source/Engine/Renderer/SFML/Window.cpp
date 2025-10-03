@@ -104,15 +104,18 @@ bool Window::Close(void)
     // Check if the window is open
     if (!IsOpen()) { return false; }
 
-    // Shutdown ImGui-SFML if it was initialized
+    // Close the SFML window first (before ImGui cleanup to avoid X11 cursor
+    // errors)
+    m_window->close();
+
+    // Shutdown ImGui-SFML after closing the window
     if (m_imguiInitialized)
     {
         ImGui::SFML::Shutdown();
         m_imguiInitialized = false;
     }
 
-    // Close the SFML window
-    m_window->close();
+    // Reset the window pointer
     m_window.reset();
 
     // Emit the Closed event
@@ -146,13 +149,17 @@ bool Window::SetState(const EWindowState& state)
     // Recreate the SFML window with the new state
     sf::Vector2i currentPosition = m_window->getPosition();
 
-    // Shutdown ImGui before recreating window
+    // Close the window first (before ImGui cleanup to avoid X11 cursor errors)
+    m_window->close();
+
+    // Shutdown ImGui after closing the window
     if (m_imguiInitialized)
     {
         ImGui::SFML::Shutdown();
         m_imguiInitialized = false;
     }
 
+    // Recreate the window with new state
     m_window->create(
         ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
     );
