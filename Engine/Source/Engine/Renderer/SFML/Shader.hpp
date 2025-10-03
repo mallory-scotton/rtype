@@ -29,7 +29,6 @@ private:
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<sf::Shader> m_shader;   //<! SFML shader
-    bool m_isValid;                         //<! Validity flag
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -155,6 +154,16 @@ public:
     virtual void SetUniform(const FString& name, const FColor& value) override;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set uniform color value
+    ///
+    /// \param name Uniform name
+    /// \param value Value to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void
+        SetUniform(const FString& name, const FLinearColor& value) override;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform Matrix3x3 value
     ///
     /// \param name Uniform name
@@ -179,12 +188,10 @@ public:
     ///
     /// \param name Uniform name
     /// \param texture Texture to bind
-    /// \param slot Texture slot/unit
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void SetUniform(
-        const FString& name, const ITexture* texture, UInt32 slot = 0
-    ) override;
+    virtual void
+        SetUniform(const FString& name, const ITexture* texture) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform array of floats

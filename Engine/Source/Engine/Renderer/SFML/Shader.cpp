@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Shader.hpp>
+#include <Engine/Renderer/SFML/Utils.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -14,7 +15,6 @@ namespace tkd::SFML
 ///////////////////////////////////////////////////////////////////////////////
 Shader::Shader(void)
     : m_shader(nullptr)
-    , m_isValid(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,11 +24,16 @@ bool Shader::LoadFromFile(
     const FilePath& geometryPath
 )
 {
-    TKD_UNUSED(vertexPath);
-    TKD_UNUSED(fragmentPath);
-    TKD_UNUSED(geometryPath);
-    // TODO: Implement shader loading from files
-    return true;
+    if (!m_shader) { m_shader = std::make_unique<sf::Shader>(); }
+    return geometryPath.empty()
+               ? m_shader->loadFromFile(
+                     vertexPath.string(), fragmentPath.string()
+                 )
+               : m_shader->loadFromFile(
+                     vertexPath.string(),
+                     fragmentPath.string(),
+                     geometryPath.string()
+                 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,105 +43,107 @@ bool Shader::LoadFromSource(
     const FString& geometrySource
 )
 {
-    TKD_UNUSED(vertexSource);
-    TKD_UNUSED(fragmentSource);
-    TKD_UNUSED(geometrySource);
-    // TODO: Implement shader loading from source
-    return true;
+    if (!m_shader) { m_shader = std::make_unique<sf::Shader>(); }
+    return geometrySource.IsEmpty()
+               ? m_shader->loadFromMemory(
+                     vertexSource.CStr(), fragmentSource.CStr()
+                 )
+               : m_shader->loadFromMemory(
+                     vertexSource.CStr(),
+                     fragmentSource.CStr(),
+                     geometrySource.CStr()
+                 );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::Bind(void) const
 {
-    // TODO: Implement shader binding
+    if (m_shader) { sf::Shader::bind(m_shader.get()); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::Unbind(void) const
 {
-    // TODO: Implement shader unbinding
+    if (m_shader) { sf::Shader::bind(nullptr); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool Shader::IsValid(void) const
-{
-    // TODO: Implement validity check
-    return m_isValid;
-}
+bool Shader::IsValid(void) const { return m_shader != nullptr; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, Int32 value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), value); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, float value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), value); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FVector2f& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), Utils::Convert(value)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FVector3f& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), Utils::Convert(value)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FVector4f& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader)
+    {
+        m_shader->setUniform(
+            name.CStr(), sf::Glsl::Vec4(value.x, value.y, value.z, value.w)
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FColor& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader)
+    {
+        m_shader->setUniform(
+            name.CStr(), sf::Glsl::Vec4(value.r, value.g, value.b, value.a)
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Shader::SetUniform(const FString& name, const FLinearColor& value)
+{
+    SetUniform(name, FColor(value));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FMatrix3x3& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), Utils::Convert(value)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Shader::SetUniform(const FString& name, const FMatrix4x4& value)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(value);
-    // TODO: Implement uniform setting
+    if (m_shader) { m_shader->setUniform(name.CStr(), Utils::Convert(value)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void Shader::SetUniform(
-    const FString& name, const ITexture* texture, UInt32 slot
-)
+void Shader::SetUniform(const FString& name, const ITexture* texture)
 {
-    TKD_UNUSED(name);
-    TKD_UNUSED(texture);
-    TKD_UNUSED(slot);
-    // TODO: Implement texture uniform setting
+    if (m_shader)
+    {
+        m_shader->setUniform(
+            name.CStr(),
+            reinterpret_cast<sf::Texture*>(texture->GetNativeHandle())
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -164,8 +171,7 @@ void Shader::SetUniformArray(
 ///////////////////////////////////////////////////////////////////////////////
 void* Shader::GetNativeHandle(void) const
 {
-    // TODO: Implement native handle retrieval
-    return nullptr;
+    return m_shader ? static_cast<void*>(m_shader.get()) : nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

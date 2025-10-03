@@ -150,6 +150,16 @@ public:
     virtual void SetUniform(const FString& name, const FColor& value) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set uniform color value
+    ///
+    /// \param name Uniform name
+    /// \param value Value to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void
+        SetUniform(const FString& name, const FLinearColor& value) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform Matrix3x3 value
     ///
     /// \param name Uniform name
@@ -172,12 +182,9 @@ public:
     ///
     /// \param name Uniform name
     /// \param texture Texture to bind
-    /// \param slot Texture slot/unit
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void SetUniform(
-        const FString& name, const ITexture* texture, UInt32 slot = 0
-    ) = 0;
+    virtual void SetUniform(const FString& name, const ITexture* texture) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set uniform array of floats
