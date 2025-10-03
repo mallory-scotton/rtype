@@ -87,7 +87,29 @@ void Engine::PrintStartupMessage(void)
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::MainThreadFunction(void)
 {
-    // TODO: Implement main thread logic here
+    SteadyClock clock;
+    TimePoint lastTime = clock.now();
+    Float32 deltaTime = 0.0f;
+
+    auto actor = Engine::World.SpawnActor<AActor>();
+
+    actor->AddComponent<UActorComponent>("TestComponent");
+
+    Engine::World.BeginPlay();
+
+    while (s_isRunning)
+    {
+        TimePoint currentTime = clock.now();
+        deltaTime =
+            std::chrono::duration<float>(currentTime - lastTime).count();
+        lastTime = currentTime;
+        Engine::World.Tick(deltaTime);
+
+        // Slow down the loop to avoid high CPU usage
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    Engine::World.EndPlay();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
