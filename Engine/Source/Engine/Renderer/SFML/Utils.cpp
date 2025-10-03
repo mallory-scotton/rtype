@@ -118,6 +118,18 @@ sf::PrimitiveType Utils::Convert(EPrimitiveType type)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+sf::Texture::CoordinateType
+    Utils::Convert(ETextureCoordinateType textureCoordinateType)
+{
+    switch (textureCoordinateType)
+    {
+    case ETextureCoordinateType::Normalized: return sf::Texture::Normalized;
+    case ETextureCoordinateType::Pixels    : return sf::Texture::Pixels;
+    default                                : return sf::Texture::Pixels;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 sf::Transform Utils::Convert(const FTransform2D& transform)
 {
     sf::Transform sfTransform = sf::Transform::Identity;

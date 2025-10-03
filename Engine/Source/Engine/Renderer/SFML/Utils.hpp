@@ -12,6 +12,7 @@
 #include <Engine/Renderer/FRenderStates.hpp>
 #include <Engine/Renderer/FView.hpp>
 #include <Engine/Renderer/IShader.hpp>
+#include <Engine/Renderer/ITexture.hpp>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
 
@@ -97,6 +98,18 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static sf::PrimitiveType Convert(EPrimitiveType type);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD texture coordinate type to an SFML texture
+    /// coordinate type
+    ///
+    /// \param textureCoordinateType The TKD texture coordinate type to convert
+    ///
+    /// \return The converted SFML texture coordinate type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Texture::CoordinateType
+        Convert(ETextureCoordinateType textureCoordinateType);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Convert a TKD 2D transform to an SFML transform
