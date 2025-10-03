@@ -173,7 +173,15 @@ public:
     /// \return Platform-specific texture handle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual void* GetNativeHandle(void) const override;
+    TKD_NODISCARD virtual UInt32 GetNativeHandle(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get native texture pointer
+    ///
+    /// \return Platform-specific texture pointer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual void* GetNativePointer(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get SFML texture (for internal use)

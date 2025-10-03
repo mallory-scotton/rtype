@@ -100,7 +100,13 @@ bool Texture::IsValid(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void* Texture::GetNativeHandle(void) const
+UInt32 Texture::GetNativeHandle(void) const
+{
+    return m_texture ? m_texture->getNativeHandle() : 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void* Texture::GetNativePointer(void) const
 {
     return reinterpret_cast<void*>(m_texture ? m_texture.get() : nullptr);
 }
