@@ -34,11 +34,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    sf::RenderWindow* m_window;                //<! SFML render window
-    sf::RenderTarget* m_currentTarget;         //<! Current render target
-    FView m_currentView;                       //<! Current view
-    std::stack<FRectangle> m_scissorStack;     //<! Scissor test stack
-    mutable sf::RenderStates m_cachedStates;   //<! Cached SFML render states
+    sf::RenderWindow* m_window;              //<! SFML render window
+    sf::RenderTarget* m_currentTarget;       //<! Current render target
+    FView m_currentView;                     //<! Current view
+    std::stack<FRectangle> m_scissorStack;   //<! Scissor test stack
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -145,75 +144,6 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void EndFrame(void) override;
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert blend mode to SFML blend mode
-    ///
-    /// \param mode Blend mode
-    ///
-    /// \return SFML blend mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::BlendMode ToSFMLBlendMode(EBlendMode mode);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert primitive type to SFML primitive type
-    ///
-    /// \param type Primitive type
-    ///
-    /// \return SFML primitive type
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::PrimitiveType ToSFMLPrimitiveType(EPrimitiveType type);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert color to SFML color
-    ///
-    /// \param color Color
-    ///
-    /// \return SFML color
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::Color ToSFMLColor(const FColor& color);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert vertex to SFML vertex
-    ///
-    /// \param vertex Vertex
-    ///
-    /// \return SFML vertex
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::Vertex ToSFMLVertex(const FVertex2D& vertex);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert view to SFML view
-    ///
-    /// \param view View
-    ///
-    /// \return SFML view
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::View ToSFMLView(const FView& view);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert transform to SFML transform
-    ///
-    /// \param transform Transform
-    ///
-    /// \return SFML transform
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::Transform ToSFMLTransform(const FTransform2D& transform);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Setup SFML render states from our render states
-    ///
-    /// \param states Render states
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetupSFMLStates(const FRenderStates& states);
 };
 
 }   // namespace tkd::SFML

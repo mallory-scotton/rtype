@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Renderer.hpp>
 #include <Engine/Config.hpp>
+#include <Engine/Renderer/SFML/Utils.hpp>
 #include <Engine/Renderer/SFML/Window.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,20 +19,19 @@ Renderer::Renderer(IWindow* window)
     : m_window(reinterpret_cast<sf::RenderWindow*>(window->GetNativeHandle()))
     , m_currentTarget(m_window)
     , m_currentView(/*FView::GetDefaultView()*/)
-    , m_cachedStates(sf::RenderStates::Default)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::Clear(const FColor& color)
 {
-    m_currentTarget->clear(ToSFMLColor(color));
+    m_currentTarget->clear(Utils::Convert(color));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::SetView(const FView& view)
 {
     m_currentView = view;
-    m_currentTarget->setView(ToSFMLView(view));
+    m_currentTarget->setView(Utils::Convert(view));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,20 +58,19 @@ void Renderer::Draw(
 )
 {
     if (vertices == nullptr || vertexCount == 0) { return; }
-    SetupSFMLStates(states);
 
     std::vector<sf::Vertex> sfmlVertices;
     sfmlVertices.reserve(vertexCount);
     for (UInt32 i = 0; i < vertexCount; ++i)
     {
-        sfmlVertices.push_back(ToSFMLVertex(vertices[i]));
+        sfmlVertices.push_back(Utils::Convert(vertices[i]));
     }
 
     m_currentTarget->draw(
         sfmlVertices.data(),
         vertexCount,
-        ToSFMLPrimitiveType(type),
-        m_cachedStates
+        Utils::Convert(type),
+        Utils::Convert(states)
     );
 }
 
@@ -112,99 +111,14 @@ void Renderer::PopScissorTest(void)
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::BeginFrame(void)
 {
-    // Reset states cache
-    m_cachedStates = sf::RenderStates::Default;
     // Apply current view
-    m_currentTarget->setView(ToSFMLView(m_currentView));
+    m_currentTarget->setView(Utils::Convert(m_currentView));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::EndFrame(void)
 {
     if (m_currentTarget == m_window) { m_window->display(); }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::BlendMode Renderer::ToSFMLBlendMode(EBlendMode mode)
-{
-    switch (mode)
-    {
-    case EBlendMode::Alpha   : return sf::BlendAlpha;
-    case EBlendMode::Add     : return sf::BlendAdd;
-    case EBlendMode::Multiply: return sf::BlendMultiply;
-    case EBlendMode::None    : return sf::BlendNone;
-    default                  : return sf::BlendAlpha;
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::PrimitiveType Renderer::ToSFMLPrimitiveType(EPrimitiveType type)
-{
-    switch (type)
-    {
-    case EPrimitiveType::Points   : return sf::PrimitiveType::Points;
-    case EPrimitiveType::Lines    : return sf::PrimitiveType::Lines;
-    case EPrimitiveType::LineStrip: return sf::PrimitiveType::LineStrip;
-    case EPrimitiveType::Triangles: return sf::PrimitiveType::Triangles;
-    case EPrimitiveType::TriangleStrip:
-        return sf::PrimitiveType::TriangleStrip;
-    case EPrimitiveType::TriangleFan: return sf::PrimitiveType::TriangleFan;
-    case EPrimitiveType::Quads      : return sf::PrimitiveType::Quads;
-    default                         : return sf::PrimitiveType::Triangles;
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::Color Renderer::ToSFMLColor(const FColor& color)
-{
-    FLinearColor linearColor = static_cast<FLinearColor>(color);
-    return sf::Color(
-        linearColor.r, linearColor.g, linearColor.b, linearColor.a
-    );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::Vertex Renderer::ToSFMLVertex(const FVertex2D& vertex)
-{
-    return sf::Vertex(
-        sf::Vector2f(vertex.position.x, vertex.position.y),
-        ToSFMLColor(vertex.color),
-        sf::Vector2f(vertex.uv.x, vertex.uv.y)
-    );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::View Renderer::ToSFMLView(const FView& view)
-{
-    sf::View sfmlView;
-    FRectangle rect = view.GetViewport();
-    sfmlView.setCenter(
-        rect.left + rect.width / 2.0f, rect.top + rect.height / 2.0f
-    );
-    sfmlView.setSize(rect.width, rect.height);
-    sfmlView.setRotation(view.GetRotation());
-    return sfmlView;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-sf::Transform Renderer::ToSFMLTransform(const FTransform2D& transform)
-{
-    FVector2f position = transform.GetPosition();
-    float rotation = transform.GetRotation().GetAngle();
-    FVector2f scale = transform.GetScale();
-    sf::Transform sfmlTransform;
-    sfmlTransform.translate(position.x, position.y);
-    sfmlTransform.rotate(rotation);
-    sfmlTransform.scale(scale.x, scale.y);
-    return sfmlTransform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void Renderer::SetupSFMLStates(const FRenderStates& states)
-{
-    m_cachedStates.blendMode = ToSFMLBlendMode(states.blendMode);
-    m_cachedStates.transform = ToSFMLTransform(states.transform);
-    // TODO: Handle transform, texture, and shader
 }
 
 #endif
