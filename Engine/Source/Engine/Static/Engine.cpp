@@ -94,11 +94,12 @@ void Engine::MainThreadFunction(void)
 #if TKD_ENGINE_CLIENT
 void Engine::RenderThreadFunction(void)
 {
-    std::unique_ptr<IWindow> window = std::make_unique<SFML::Window>("TKD");
-    std::unique_ptr<IRenderer> renderer =
-        std::make_unique<SFML::Renderer>(window.get());
+    std::unique_ptr<IGraphicsFactory> factory =
+        std::make_unique<SFML::GraphicsFactory>();
 
-    std::unique_ptr<ITexture> texture = std::make_unique<SFML::Texture>();
+    auto window = factory->CreateWindow("TKD");
+    auto renderer = factory->CreateRenderer(window.get());
+    auto texture = factory->CreateTexture();
 
     texture->LoadFromFile("Game/Assets/Images/r-typesheet1.png");
 
