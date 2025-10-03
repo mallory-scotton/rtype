@@ -143,7 +143,9 @@ target_include_directories(RTypeGameServerExe PRIVATE
 
 target_link_libraries(RTypeGameServerExe PRIVATE
     TKDEngineServer
+    -Wl,--no-as-needed
     RTypeGameServer
+    -Wl,--as-needed
 )
 
 # Copy resources if they exist

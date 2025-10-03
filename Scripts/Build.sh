@@ -38,10 +38,30 @@ echo "Detected Architecture: $(uname -m)"
 
 # Parse command line arguments
 INSTALLER=""
+SKIP_PACKAGE_INSTALLATION=false
+SKIP_CONAN_INSTALLATION=false
+CLEAN_BUILD=false
+PRINT_HELP=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --installer=*)
             INSTALLER="${1#*=}"
+            shift
+            ;;
+        --skip-package-installation)
+            SKIP_PACKAGE_INSTALLATION=true
+            shift
+            ;;
+        --skip-conan-installation)
+            SKIP_CONAN_INSTALLATION=true
+            shift
+            ;;
+        --clean)
+            CLEAN_BUILD=true
+            shift
+            ;;
+        --help)
+            PRINT_HELP=true
             shift
             ;;
         *)
@@ -50,6 +70,22 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [ "$CLEAN_BUILD" = true ]; then
+    SKIP_CONAN_INSTALLATION=false
+fi
+
+if [ "$PRINT_HELP" = true ]; then
+    echo "Usage: ./Scripts/Build.sh [options]"
+    echo ""
+    echo "Options:"
+    echo "  --installer=<installer>          Specify package manager (zypper, dnf, apt, yum, pacman, brew)"
+    echo "  --skip-package-installation      Skip installation of system packages"
+    echo "  --skip-conan-installation        Skip installation of Conan dependencies"
+    echo "  --clean                          Clean existing Build directory before building"
+    echo "  --help                           Show this help message"
+    exit 0
+fi
 
 # Copy Pre-Commit Hook to .git/hooks
 if [ -d ".git" ]; then
@@ -192,11 +228,19 @@ verify_requirements() {
 
 # Main execution
 print_status "Step 1: Creating Build directory"
+if [ "$CLEAN_BUILD" = true ] && [ -d "Build" ]; then
+    rm -rf Build
+    print_warning "Cleaned existing Build directory"
+fi
 mkdir -p Build
 print_success "Build directory created"
 
 print_status "Step 2: Installing system dependencies"
-install_packages
+if [ "$SKIP_PACKAGE_INSTALLATION" = false ]; then
+    install_packages
+else
+    print_warning "Skipping package installation as per user request."
+fi
 print_success "System dependencies installed"
 
 print_status "Step 3: Ensuring pipx is available"
@@ -247,12 +291,16 @@ print_status "Step 6: Installing dependencies with Conan"
 if command_exists gcc-13.4; then
     COMPILER_VERSION=13
 fi
-$CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
-    --settings=build_type=Release \
-    --settings=compiler.cppstd=20 \
-    --settings=compiler=$COMPILER \
-    --settings=compiler.version=$COMPILER_VERSION \
-    -c tools.system.package_manager:mode=install
+if [ "$SKIP_CONAN_INSTALLATION" = true ]; then
+    print_warning "Skipping Conan dependencies installation as per user request."
+else
+    $CONAN install . --output-folder=Build --build=missing --profile:build=default --profile:host=default \
+        --settings=build_type=Release \
+        --settings=compiler.cppstd=20 \
+        --settings=compiler=$COMPILER \
+        --settings=compiler.version=$COMPILER_VERSION \
+        -c tools.system.package_manager:mode=install
+fi
 print_success "Conan dependencies installed"
 
 print_status "Step 7: Configuring CMake with Conan integration"

@@ -51,6 +51,20 @@ public:
         const FColor& color = FColor::White,
         const FVector2f& uv = FVector2f::Zero
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Parameterized constructor to initialize vertex attributes
+    ///
+    /// \param position The position of the vertex
+    /// \param uv The texture coordinates
+    /// \param color The color of the vertex
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FVertex2D(
+        const FVector2f& position,
+        const FVector2f& uv = FVector2f::Zero,
+        const FColor& color = FColor::White
+    );
 };
 
 }   // namespace tkd

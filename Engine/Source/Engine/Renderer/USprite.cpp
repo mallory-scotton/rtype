@@ -12,250 +12,121 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 USprite::USprite(void)
     : m_texture(nullptr)
-    , m_transform()
-    , m_textureRect(FRectangle::Zero)
-    , m_color(FColor::White)
-    , m_blendMode(EBlendMode::Alpha)
-    , m_flipX(false)
-    , m_flipY(false)
+    , m_textureRect(FRectanglei::Zero)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
-USprite::USprite(const ITexture* texture)
-    : m_texture(texture)
-    , m_transform()
-    , m_textureRect(FRectangle::Zero)
-    , m_color(FColor::White)
-    , m_blendMode(EBlendMode::Alpha)
-    , m_flipX(false)
-    , m_flipY(false)
+USprite::USprite(const ITexture& texture)
+    : m_texture(nullptr)
+    , m_textureRect(FRectanglei::Zero)
 {
-    if (texture && texture->IsValid())
+    SetTexture(texture, true);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+USprite::USprite(const ITexture& texture, const FRectanglei& rect)
+    : m_texture(nullptr)
+    , m_textureRect(FRectanglei::Zero)
+{
+    SetTextureRect(rect);
+    SetTexture(texture, false);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void USprite::SetTexture(const ITexture& texture, bool resetRect)
+{
+    if (resetRect || (!m_texture && (m_textureRect == FRectanglei::Zero)))
     {
-        FVector2u size = texture->GetSize();
-        m_textureRect = FRectangle(
-            0.0f, 0.0f, static_cast<float>(size.x), static_cast<float>(size.y)
-        );
+        FVector2u size = texture.GetSize();
+        SetTextureRect(FRectanglei(
+            0, 0, static_cast<int>(size.x), static_cast<int>(size.y)
+        ));
+    }
+    m_texture = &texture;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void USprite::SetTextureRect(const FRectanglei& rect)
+{
+    if (rect != m_textureRect)
+    {
+        m_textureRect = rect;
+        UpdatePositions();
+        UpdateUVs();
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::SetTexture(const ITexture* texture, bool resetRect)
+void USprite::SetColor(const FColor& color)
 {
-    m_texture = texture;
-
-    if (resetRect && texture && texture->IsValid())
-    {
-        FVector2u size = texture->GetSize();
-        m_textureRect = FRectangle(
-            0.0f, 0.0f, static_cast<float>(size.x), static_cast<float>(size.y)
-        );
-    }
+    m_vertices[0].color = color;
+    m_vertices[1].color = color;
+    m_vertices[2].color = color;
+    m_vertices[3].color = color;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void USprite::SetColor(const FLinearColor& color) { SetColor(FColor(color)); }
 
 ///////////////////////////////////////////////////////////////////////////////
 const ITexture* USprite::GetTexture(void) const { return m_texture; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::SetTextureRect(const FRectangle& rect) { m_textureRect = rect; }
+const FRectanglei USprite::GetTextureRect(void) const { return m_textureRect; }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FRectangle& USprite::GetTextureRect(void) const { return m_textureRect; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetColor(const FColor& color) { m_color = color; }
-
-///////////////////////////////////////////////////////////////////////////////
-const FColor& USprite::GetColor(void) const { return m_color; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetPosition(const FVector2f& position)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetPosition(position);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetPosition(void) const
-{
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetPosition();
-    static const FVector2f defaultPosition(0.0f, 0.0f);
-    return defaultPosition;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetRotation(float rotation)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetRotation(rotation);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-float USprite::GetRotation(void) const
-{
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetRotation();
-    return 0.0f;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetScale(const FVector2f& scale)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetScale(scale);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetScale(void) const
-{
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetScale();
-    static const FVector2f defaultScale(1.0f, 1.0f);
-    return defaultScale;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetOrigin(const FVector2f& origin)
-{
-    // TODO: Update when the transform has been implemented
-    // m_transform.SetOrigin(origin);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FVector2f& USprite::GetOrigin(void) const
-{
-    // TODO: Update when transform has been implemented
-    // return m_transform.GetOrigin();
-    static const FVector2f defaultOrigin(0.0f, 0.0f);
-    return defaultOrigin;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetTransform(const FTransform2D& transform)
-{
-    m_transform = transform;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const FTransform2D& USprite::GetTransform(void) const { return m_transform; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetBlendMode(EBlendMode blendMode) { m_blendMode = blendMode; }
-
-///////////////////////////////////////////////////////////////////////////////
-EBlendMode USprite::GetBlendMode(void) const { return m_blendMode; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetFlipX(bool flip) { m_flipX = flip; }
-
-///////////////////////////////////////////////////////////////////////////////
-bool USprite::IsFlipX(void) const { return m_flipX; }
-
-///////////////////////////////////////////////////////////////////////////////
-void USprite::SetFlipY(bool flip) { m_flipY = flip; }
-
-///////////////////////////////////////////////////////////////////////////////
-bool USprite::IsFlipY(void) const { return m_flipY; }
+const FColor& USprite::GetColor(void) const { return m_vertices[0].color; }
 
 ///////////////////////////////////////////////////////////////////////////////
 FRectangle USprite::GetLocalBounds(void) const
 {
-    // Return the texture rectangle dimensions as local bounds
-    return FRectangle(0.0f, 0.0f, m_textureRect.width, m_textureRect.height);
+    float width = static_cast<float>(Math<float>::Abs(m_textureRect.width));
+    float height = static_cast<float>(Math<float>::Abs(m_textureRect.height));
+    return FRectangle(0.0f, 0.0f, width, height);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 FRectangle USprite::GetGlobalBounds(void) const
 {
-    // TODO: Update when transform has been implemented
-    // Apply transform to local bounds to get global bounds
-    // FRectangle localBounds = GetLocalBounds();
-    // return m_transform.TransformRect(localBounds);
-    return GetLocalBounds();
+    return GetTransform().TransformRectangle(GetLocalBounds());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::Draw(IRenderer* renderer, const FRenderStates& states) const
+void USprite::Draw(IRenderer& target, FRenderStates states) const
 {
-    if (!renderer || !m_texture || !m_texture->IsValid()) { return; }
-
-    // Create vertices for the sprite quad
-    FVertex2D vertices[4];
-    UpdateVertices(vertices);
-
-    // Combine render states
-    FRenderStates finalStates = states;
-    finalStates.texture = m_texture;
-    finalStates.blendMode = m_blendMode;
-
-    // TODO: Update when transform has been implemented
-    // finalStates.transform = m_transform * states.transform;
-
-    // Draw the quad
-    renderer->Draw(vertices, 4, EPrimitiveType::TriangleStrip, finalStates);
+    if (m_texture)
+    {
+        states.texture = m_texture;
+        states.transform *= GetTransform();
+        target.Draw(m_vertices, 4, EPrimitiveType::TriangleStrip, states);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USprite::UpdateVertices(FVertex2D* vertices) const
+void USprite::UpdatePositions(void)
 {
-    if (!vertices) { return; }
+    FRectangle bounds = GetLocalBounds();
 
-    // Get texture rectangle
-    float left = m_textureRect.left;
-    float top = m_textureRect.top;
-    float right = left + m_textureRect.width;
-    float bottom = top + m_textureRect.height;
+    m_vertices[0].position = FVector2(0.f, 0.f);
+    m_vertices[1].position = FVector2(0.f, bounds.height);
+    m_vertices[2].position = FVector2(bounds.width, 0.f);
+    m_vertices[3].position = FVector2(bounds.width, bounds.height);
+}
 
-    // Handle flipping
-    if (m_flipX)
-    {
-        float temp = left;
-        left = right;
-        right = temp;
-    }
+///////////////////////////////////////////////////////////////////////////////
+void USprite::UpdateUVs(void)
+{
+    FRectangle convertedTextureRect = FRectangle(m_textureRect);
 
-    if (m_flipY)
-    {
-        float temp = top;
-        top = bottom;
-        bottom = temp;
-    }
+    float left = convertedTextureRect.left;
+    float right = left + convertedTextureRect.width;
+    float top = convertedTextureRect.top;
+    float bottom = top + convertedTextureRect.height;
 
-    // Normalize texture coordinates if texture is valid
-    if (m_texture && m_texture->IsValid())
-    {
-        FVector2u textureSize = m_texture->GetSize();
-        if (textureSize.x > 0 && textureSize.y > 0)
-        {
-            left /= static_cast<float>(textureSize.x);
-            right /= static_cast<float>(textureSize.x);
-            top /= static_cast<float>(textureSize.y);
-            bottom /= static_cast<float>(textureSize.y);
-        }
-    }
-
-    // Set up quad vertices (triangle strip order)
-    // Top-left
-    vertices[0].position = FVector2f(0.0f, 0.0f);
-    vertices[0].uv = FVector2f(left, top);
-    vertices[0].color = m_color;
-
-    // Top-right
-    vertices[1].position = FVector2f(m_textureRect.width, 0.0f);
-    vertices[1].uv = FVector2f(right, top);
-    vertices[1].color = m_color;
-
-    // Bottom-left
-    vertices[2].position = FVector2f(0.0f, m_textureRect.height);
-    vertices[2].uv = FVector2f(left, bottom);
-    vertices[2].color = m_color;
-
-    // Bottom-right
-    vertices[3].position =
-        FVector2f(m_textureRect.width, m_textureRect.height);
-    vertices[3].uv = FVector2f(right, bottom);
-    vertices[3].color = m_color;
+    m_vertices[0].uv = FVector2f(left, top);
+    m_vertices[1].uv = FVector2f(left, bottom);
+    m_vertices[2].uv = FVector2f(right, top);
+    m_vertices[3].uv = FVector2f(right, bottom);
 }
 
 }   // namespace tkd

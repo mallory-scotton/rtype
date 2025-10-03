@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
+#include <Engine/Renderer/IWindow.hpp>
 #include <stack>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
@@ -33,11 +34,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    sf::RenderWindow* m_window;                //<! SFML render window
-    sf::RenderTarget* m_currentTarget;         //<! Current render target
-    FView m_currentView;                       //<! Current view
-    std::stack<FRectangle> m_scissorStack;     //<! Scissor test stack
-    mutable sf::RenderStates m_cachedStates;   //<! Cached SFML render states
+    sf::RenderWindow* m_window;              //<! SFML render window
+    sf::RenderTarget* m_currentTarget;       //<! Current render target
+    FView m_currentView;                     //<! Current view
+    std::stack<FRectangle> m_scissorStack;   //<! Scissor test stack
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ public:
     /// \param window SFML window to render to
     ///
     ///////////////////////////////////////////////////////////////////////////
-    explicit Renderer(Window* window);
+    Renderer(IWindow* window);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -104,26 +104,6 @@ public:
     ) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw indexed vertices
-    ///
-    /// \param vertices Array of vertices
-    /// \param vertexCount Number of vertices
-    /// \param indices Array of indices
-    /// \param indexCount Number of indices
-    /// \param type Primitive type
-    /// \param states Render states
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void DrawIndexed(
-        const FVertex2D* vertices,
-        UInt32 vertexCount,
-        const UInt32* indices,
-        UInt32 indexCount,
-        EPrimitiveType type,
-        const FRenderStates& states = FRenderStates()
-    ) override;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the active render target
     ///
     /// \param target Render target (nullptr for default/window)
@@ -164,65 +144,6 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void EndFrame(void) override;
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert blend mode to SFML blend mode
-    ///
-    /// \param mode Blend mode
-    ///
-    /// \return SFML blend mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::BlendMode ToSFMLBlendMode(EBlendMode mode);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert primitive type to SFML primitive type
-    ///
-    /// \param type Primitive type
-    ///
-    /// \return SFML primitive type
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::PrimitiveType ToSFMLPrimitiveType(EPrimitiveType type);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert color to SFML color
-    ///
-    /// \param color Color
-    ///
-    /// \return SFML color
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::Color ToSFMLColor(const FColor& color);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert vertex to SFML vertex
-    ///
-    /// \param vertex Vertex
-    ///
-    /// \return SFML vertex
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::Vertex ToSFMLVertex(const FVertex2D& vertex);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Convert view to SFML view
-    ///
-    /// \param view View
-    ///
-    /// \return SFML view
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static sf::View ToSFMLView(const FView& view);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Setup SFML render states from our render states
-    ///
-    /// \param states Render states
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetupSFMLStates(const FRenderStates& states);
 };
 
 }   // namespace tkd::SFML

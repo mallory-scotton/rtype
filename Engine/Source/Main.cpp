@@ -20,7 +20,6 @@ void SignalHandler(int signal)
         std::cerr
             << "\nEngine terminated unexpectedly, graceful shutdown initiated"
             << std::endl;
-        std::exit(Engine::GetExitCode());
     }
 }
 

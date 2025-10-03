@@ -94,23 +94,55 @@ void Engine::MainThreadFunction(void)
 #if TKD_ENGINE_CLIENT
 void Engine::RenderThreadFunction(void)
 {
-    std::unique_ptr<IWindow> window = std::make_unique<SFML::Window>("TKD");
+    std::unique_ptr<IGraphicsFactory> factory =
+        std::make_unique<SFML::GraphicsFactory>();
+
+    auto window = factory->CreateWindow("TKD");
+    auto renderer = factory->CreateRenderer(window.get());
+    auto texture = factory->CreateTexture();
+
+    texture->LoadFromFile("Game/Assets/Images/r-typesheet1.png");
+
+    URectangleShape rect;
+    UCircleShape circle;
+    USprite sprite(*texture);
+
+    rect.SetFillColor(FColor::Green);
+    rect.SetSize(FVector2f(100.0f, 100.0f));
+    rect.SetPosition(FVector2f(200.0f, 200.0f));
+    rect.SetOutlineThickness(5.f);
+    rect.SetOutlineColor(FColor::Red);
+
+    circle.SetFillColor(FColor::Blue);
+    circle.SetRadius(50.0f);
+    circle.SetPosition(FVector2f(400.0f, 400.0f));
+    circle.SetOutlineThickness(5.f);
+    circle.SetOutlineColor(FColor::Yellow);
+
+    sprite.SetPosition(FVector2f(300.0f, 300.0f));
 
     while (s_isRunning && window->IsOpen())
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
         window->Draw(
-            []()
+            [&rect, &circle, &renderer, &sprite]()
             {
                 if (Engine::IsDebugBuild())
                 {
                     debug::FDebug& debug = debug::FDebug::GetInstance();
                     debug.Show();
                 }
+
+                renderer->Draw(rect);
+                renderer->Draw(circle);
+                renderer->Draw(sprite);
             }
         );
     }
+
+    window.reset();
+    renderer.reset();
 
     s_isRunning = false;
 }
@@ -206,21 +238,17 @@ bool Engine::Shutdown(void)
 {
     if (!s_isInitialized) { return false; }
 
+    // Signal threads to stop
+    s_isRunning = false;
+
 #if TKD_ENGINE_SERVER
+    // Shutdown network subsystem if in server mode
     Network::Shutdown();
 #endif
 
-    // Shutdown threads if they are running
-    if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
-    TKD_ENGINE_IF_CLIENT({
-        if (s_renderThread && s_renderThread->running)
-        {
-            s_renderThread->Join();
-        }
-    })
-
+    // Mark the engine as uninitialized
     s_isInitialized = false;
-    return !s_isInitialized;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -240,10 +268,20 @@ void Engine::Run(void)
     s_mainThread->Start();
     TKD_ENGINE_IF_CLIENT({ s_renderThread->Start(); })
 
+    // Main loop
     while (s_isRunning)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    // Shutdown threads if they are running
+    if (s_mainThread && s_mainThread->running) { s_mainThread->Join(); }
+    TKD_ENGINE_IF_CLIENT({
+        if (s_renderThread && s_renderThread->running)
+        {
+            s_renderThread->Join();
+        }
+    })
 
     s_isRunning = false;
 }

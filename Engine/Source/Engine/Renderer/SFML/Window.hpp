@@ -32,10 +32,11 @@ private:
     std::unique_ptr<sf::RenderWindow> m_window;   //<! The SFML window instance
     sf::Clock m_clock;                            //<! Clock for timing
     EWindowState m_state;                         //<! The current window state
-    FVector2i m_position;    //<! The current window position
-    FVector2u m_dimension;   //<! The current window dimensions
-    FString m_title;         //<! The current window title
-    bool m_vsync;            //<! Whether VSync is enabled
+    FVector2i m_position;      //<! The current window position
+    FVector2u m_dimension;     //<! The current window dimensions
+    FString m_title;           //<! The current window title
+    bool m_vsync;              //<! Whether VSync is enabled
+    bool m_imguiInitialized;   //<! Whether ImGui-SFML has been initialized
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -55,6 +56,12 @@ public:
         const FVector2u& dimension = FVector2u(1280, 720),
         EWindowState state = EWindowState::Windowed
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Destructor - ensures proper cleanup
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual ~Window();
 
 private:
     ///////////////////////////////////////////////////////////////////////////

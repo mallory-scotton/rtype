@@ -25,4 +25,13 @@ FVertex2D::FVertex2D(
     , uv(uv)
 {}
 
+///////////////////////////////////////////////////////////////////////////////
+FVertex2D::FVertex2D(
+    const FVector2f& position, const FVector2f& uv, const FColor& color
+)
+    : position(position)
+    , color(color)
+    , uv(uv)
+{}
+
 }   // namespace tkd

@@ -6,8 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Assets.hpp>
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/Enumerations.hpp>
 
@@ -18,45 +19,13 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Texture filtering mode
+/// \brief Coordinate type for texture mapping
 ///
 ///////////////////////////////////////////////////////////////////////////////
-enum class ETextureFilter : UInt8
+enum class ETextureCoordinateType
 {
-    Nearest = 0,   //<! Nearest-neighbor filtering (pixelated)
-    Linear,        //<! Linear filtering (smooth)
-    Bilinear,      //<! Bilinear filtering
-    Trilinear      //<! Trilinear filtering with mipmaps
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Texture wrap mode
-///
-///////////////////////////////////////////////////////////////////////////////
-enum class ETextureWrap : UInt8
-{
-    Repeat = 0,   //<! Repeat the texture
-    Clamp,        //<! Clamp to edge
-    Mirror,       //<! Mirror repeat
-    MirrorClamp   //<! Mirror once then clamp
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Texture format enumeration
-///
-///////////////////////////////////////////////////////////////////////////////
-enum class ETextureFormat : UInt8
-{
-    Unknown = 0,
-    R8,        //<! 8-bit red channel
-    RGB8,      //<! 8-bit RGB
-    RGBA8,     //<! 8-bit RGBA
-    R16F,      //<! 16-bit float red channel
-    RGB16F,    //<! 16-bit float RGB
-    RGBA16F,   //<! 16-bit float RGBA
-    R32F,      //<! 32-bit float red channel
-    RGB32F,    //<! 32-bit float RGB
-    RGBA32F    //<! 32-bit float RGBA
+    Normalized,   //<! Coordinates are in the range [0, 1].
+    Pixels        //<! Coordinates are in pixel units.
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -77,28 +46,55 @@ public:
     /// \brief Load texture from file
     ///
     /// \param filepath Path to the texture file
+    /// \param area Area of the texture to load (optional)
     ///
     /// \return True if loaded successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool LoadFromFile(const FilePath& filepath) = 0;
+    virtual bool LoadFromFile(
+        const FilePath& filepath, const FRectanglei& area = FRectanglei::Zero
+    ) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create texture from memory
     ///
     /// \param data Pointer to pixel data
-    /// \param width Width in pixels
-    /// \param height Height in pixels
-    /// \param format Texture format
+    /// \param size Size of the pixel data in bytes
+    /// \param area Area of the texture to load (optional)
     ///
     /// \return True if created successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool CreateFromMemory(
+    virtual bool LoadFromMemory(
         const void* data,
-        UInt32 width,
-        UInt32 height,
-        ETextureFormat format = ETextureFormat::RGBA8
+        SizeT size,
+        const FRectanglei& area = FRectanglei::Zero
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create texture from byte array
+    ///
+    /// \param bytes Byte array containing pixel data
+    /// \param area Area of the texture to load (optional)
+    ///
+    /// \return True if created successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool LoadFromBytes(
+        const TVector<Byte>& bytes, const FRectanglei& area = FRectanglei::Zero
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create texture from asset
+    ///
+    /// \param asset Asset containing texture data
+    /// \param area Area of the texture to load (optional)
+    ///
+    /// \return True if created successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool LoadFromAsset(
+        const UAsset& asset, const FRectanglei& area = FRectanglei::Zero
     ) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -106,72 +102,11 @@ public:
     ///
     /// \param width Width in pixels
     /// \param height Height in pixels
-    /// \param format Texture format
     ///
     /// \return True if created successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool Create(
-        UInt32 width,
-        UInt32 height,
-        ETextureFormat format = ETextureFormat::RGBA8
-    ) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update texture data
-    ///
-    /// \param data Pointer to pixel data
-    /// \param x X offset
-    /// \param y Y offset
-    /// \param width Width of update region
-    /// \param height Height of update region
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void Update(
-        const void* data,
-        UInt32 x = 0,
-        UInt32 y = 0,
-        UInt32 width = 0,
-        UInt32 height = 0
-    ) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set texture filtering mode
-    ///
-    /// \param filter Filtering mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void SetFilter(ETextureFilter filter) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get current filtering mode
-    ///
-    /// \return Current filter mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureFilter GetFilter(void) const = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set texture wrap mode
-    ///
-    /// \param wrap Wrap mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void SetWrap(ETextureWrap wrap) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get current wrap mode
-    ///
-    /// \return Current wrap mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureWrap GetWrap(void) const = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Generate mipmaps for the texture
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void GenerateMipmaps(void) = 0;
+    virtual bool Create(UInt32 width, UInt32 height) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get texture width
@@ -198,14 +133,6 @@ public:
     TKD_NODISCARD virtual FVector2u GetSize(void) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get texture format
-    ///
-    /// \return Texture format
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual ETextureFormat GetFormat(void) const = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if texture is valid
     ///
     /// \return True if valid
@@ -219,7 +146,209 @@ public:
     /// \return Platform-specific texture handle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual void* GetNativeHandle(void) const = 0;
+    TKD_NODISCARD virtual UInt32 GetNativeHandle(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get native texture pointer
+    ///
+    /// \return Platform-specific texture pointer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual void* GetNativePointer(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a byte array
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const UInt8* pixels) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a byte array
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const UInt8* pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of bytes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<UInt8>& pixels) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of bytes
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<UInt8>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<FColor>& pixels) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<FColor>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const TVector<FLinearColor>& pixels) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture with new pixel data at specified offset
+    ///
+    /// \param pixels Pixel data as a vector of colors
+    /// \param width Width in pixels
+    /// \param height Height in pixels
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(
+        const TVector<FLinearColor>& pixels,
+        UInt32 width,
+        UInt32 height,
+        UInt32 x = 0,
+        UInt32 y = 0
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture from another texture
+    ///
+    /// \param texture The source texture to copy from
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const ITexture& texture) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture from another texture at specified offset
+    ///
+    /// \param texture The source texture to copy from
+    /// \param x Offset x in the texture
+    /// \param y Offset y in the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(const ITexture& texture, UInt32 x, UInt32 y) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update texture filtering
+    ///
+    /// \param smooth True to enable smoothing
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetSmooth(bool smooth) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is smoothed
+    ///
+    /// \return True if smoothing is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsSmooth(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set SRGB flag for the texture
+    ///
+    /// \param sRGB True to enable sRGB
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetSRGB(bool sRGB) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is in sRGB format
+    ///
+    /// \return True if sRGB is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsSRGB(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set texture repeating
+    ///
+    /// \param repeated True to enable repeating
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetRepeated(bool repeated) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if texture is repeated
+    ///
+    /// \return True if repeating is enabled
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD virtual bool IsRepeated(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Generate mipmaps for the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void GenerateMipmaps(void) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Swap with another texture
+    ///
+    /// \param other The other texture to swap with
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Swap(ITexture& other) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind the texture for rendering
+    ///
+    /// \param type The type of texture coordinates (Normalized or Pixel)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Bind(
+        ETextureCoordinateType type = ETextureCoordinateType::Normalized
+    ) const = 0;
 };
 
 }   // namespace tkd

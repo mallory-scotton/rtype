@@ -10,6 +10,8 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/Enumerations.hpp>
 #include <Engine/Renderer/FRenderStates.hpp>
+#include <Engine/Renderer/FTransformable2D.hpp>
+#include <Engine/Renderer/IDrawable.hpp>
 #include <Engine/Renderer/IRenderer.hpp>
 #include <Engine/Renderer/ITexture.hpp>
 
@@ -24,18 +26,16 @@ namespace tkd
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class USprite
+    : public FTransformable2D
+    , public IDrawable
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    const ITexture* m_texture;   //<! Texture to render
-    FTransform2D m_transform;    //<! Sprite transform
-    FRectangle m_textureRect;    //<! Sub-rectangle of texture to display
-    FColor m_color;              //<! Tint color
-    EBlendMode m_blendMode;      //<! Blend mode
-    bool m_flipX;                //<! Flip horizontally
-    bool m_flipY;                //<! Flip vertically
+    FVertex2D m_vertices[4];     //<! Vertices defining the sprite's geometry
+    const ITexture* m_texture;   //<! The texture of the sprite
+    FRectanglei m_textureRect;   //<! Rectangle defining the area of the sprite
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -45,224 +45,120 @@ public:
     USprite(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Constructor with texture
+    /// \brief Parameterized constructor
     ///
-    /// \param texture Texture to use
+    /// \param texture The texture to be used for the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    explicit USprite(const ITexture* texture);
+    USprite(const ITexture& texture);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Parameterized constructor
+    ///
+    /// \param texture The texture to be used for the sprite
+    /// \param rect The rectangle defining the texture area
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    USprite(const ITexture& texture, const FRectanglei& rect);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the texture
+    /// \brief Set the texture for the sprite
     ///
-    /// \param texture Texture to use
-    /// \param resetRect Reset texture rectangle to full texture
+    /// \param texture The texture to be used for the sprite
+    /// \param resetRect If true, the texture rectangle will be reset to the
+    /// entire texture
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetTexture(const ITexture* texture, bool resetRect = true);
+    void SetTexture(const ITexture& texture, bool resetRect = false);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the current texture
+    /// \brief Set the texture rectangle for the sprite
     ///
-    /// \return Pointer to texture
+    /// \param rect The rectangle defining the texture area
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const ITexture* GetTexture(void) const;
+    void SetTextureRect(const FRectanglei& rect);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the texture rectangle (for sprite sheets)
+    /// \brief Set the color for the sprite
     ///
-    /// \param rect Rectangle in texture coordinates
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetTextureRect(const FRectangle& rect);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the texture rectangle
-    ///
-    /// \return Texture rectangle
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FRectangle& GetTextureRect(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the sprite color/tint
-    ///
-    /// \param color Color to apply
+    /// \param color The color to be used for the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetColor(const FColor& color);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the sprite color
+    /// \brief Set the color for the sprite
     ///
-    /// \return Current color
+    /// \param color The color to be used for the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FColor& GetColor(void) const;
+    void SetColor(const FLinearColor& color);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the position
+    /// \brief Get the texture of the sprite
     ///
-    /// \param position Position in world space
+    /// \return The texture of the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetPosition(const FVector2f& position);
+    const ITexture* GetTexture(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the position
+    /// \brief Get the texture rectangle of the sprite
     ///
-    /// \return Current position
+    /// \return The texture rectangle
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FVector2f& GetPosition(void) const;
+    const FRectanglei GetTextureRect(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the rotation
+    /// \brief Get the color of the sprite
     ///
-    /// \param rotation Rotation in radians
+    /// \return The color of the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetRotation(float rotation);
+    const FColor& GetColor(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the rotation
+    /// \brief Get the local bounds of the sprite
     ///
-    /// \return Current rotation in radians
+    /// \return The local bounding rectangle of the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD float GetRotation(void) const;
+    FRectangle GetLocalBounds(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the scale
+    /// \brief Get the global bounds of the sprite
     ///
-    /// \param scale Scale factor
+    /// \return The global bounding rectangle of the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetScale(const FVector2f& scale);
+    FRectangle GetGlobalBounds(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the scale
+    /// \brief Draw the sprite to a renderer
     ///
-    /// \return Current scale
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FVector2f& GetScale(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the origin point
-    ///
-    /// \param origin Origin in local coordinates
+    /// \param target The target renderer
+    /// \param states The render states
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetOrigin(const FVector2f& origin);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the origin
-    ///
-    /// \return Current origin
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FVector2f& GetOrigin(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the full transform
-    ///
-    /// \param transform Transform to apply
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetTransform(const FTransform2D& transform);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the transform
-    ///
-    /// \return Current transform
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FTransform2D& GetTransform(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the blend mode
-    ///
-    /// \param blendMode Blend mode to use
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetBlendMode(EBlendMode blendMode);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the blend mode
-    ///
-    /// \return Current blend mode
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD EBlendMode GetBlendMode(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set horizontal flip
-    ///
-    /// \param flip True to flip horizontally
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetFlipX(bool flip);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if horizontally flipped
-    ///
-    /// \return True if flipped
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD bool IsFlipX(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set vertical flip
-    ///
-    /// \param flip True to flip vertically
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetFlipY(bool flip);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if vertically flipped
-    ///
-    /// \return True if flipped
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD bool IsFlipY(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get local bounds (unrotated)
-    ///
-    /// \return Local bounding rectangle
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD FRectangle GetLocalBounds(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get global bounds (with transform applied)
-    ///
-    /// \return Global bounding rectangle
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD FRectangle GetGlobalBounds(void) const;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw the sprite
-    ///
-    /// \param renderer Renderer to draw with
-    /// \param states Additional render states (optional)
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void Draw(
-        IRenderer* renderer, const FRenderStates& states = FRenderStates()
-    ) const;
+    virtual void Draw(
+        IRenderer& target, FRenderStates states = FRenderStates()
+    ) const override;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update vertices based on current state
+    /// \brief Update the positions of the sprite
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void UpdateVertices(FVertex2D* vertices) const;
+    void UpdatePositions(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the texture coordinates of the sprite
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateUVs(void);
 };
 
 }   // namespace tkd

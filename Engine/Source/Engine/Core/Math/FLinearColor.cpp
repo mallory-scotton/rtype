@@ -12,14 +12,14 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-const FLinearColor FLinearColor::White(255, 255, 255);
-const FLinearColor FLinearColor::Black(0, 0, 0);
-const FLinearColor FLinearColor::Red(255, 0, 0);
-const FLinearColor FLinearColor::Green(0, 255, 0);
-const FLinearColor FLinearColor::Blue(0, 0, 255);
-const FLinearColor FLinearColor::Yellow(255, 255, 0);
-const FLinearColor FLinearColor::Cyan(0, 255, 255);
-const FLinearColor FLinearColor::Magenta(255, 0, 255);
+const FLinearColor FLinearColor::White(255, 255, 255, 255);
+const FLinearColor FLinearColor::Black(0, 0, 0, 255);
+const FLinearColor FLinearColor::Red(255, 0, 0, 255);
+const FLinearColor FLinearColor::Green(0, 255, 0, 255);
+const FLinearColor FLinearColor::Blue(0, 0, 255, 255);
+const FLinearColor FLinearColor::Yellow(255, 255, 0, 255);
+const FLinearColor FLinearColor::Cyan(0, 255, 255, 255);
+const FLinearColor FLinearColor::Magenta(255, 0, 255, 255);
 const FLinearColor FLinearColor::Transparent(0, 0, 0, 0);
 
 ///////////////////////////////////////////////////////////////////////////////

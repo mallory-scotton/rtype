@@ -192,6 +192,7 @@ public:
         return !(*this == other);
     }
 
+public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Checks if a point is contained within the rectangle.
     ///
@@ -457,6 +458,25 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void Inflate(const TVector2<T>& delta) { Inflate(delta.x, delta.y); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Expands the rectangle to include the specified point.
+    ///
+    /// \param point The point to include.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Expand(const TVector2<T>& point)
+    {
+        T minX = (point.x < left) ? point.x : left;
+        T minY = (point.y < top) ? point.y : top;
+        T maxX = (point.x > left + width) ? point.x : left + width;
+        T maxY = (point.y > top + height) ? point.y : top + height;
+
+        left = minX;
+        top = minY;
+        width = maxX - minX;
+        height = maxY - minY;
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
