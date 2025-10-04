@@ -29,13 +29,7 @@ public:
     APawn(void);
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the static UClass of the APawn class
-    ///
-    /// \return Pointer to the UClass representing the APawn class
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static UClass* StaticClass(void);
+    DECLARE_CLASS(APawn)
 };
 
 }   // namespace tkd

@@ -15,6 +15,6 @@ APawn::APawn(void)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
-UClass* APawn::StaticClass(void) { return nullptr; }
+IMPLEMENT_CLASS_WITH_SUPER(APawn, AActor)
 
 }   // namespace tkd
