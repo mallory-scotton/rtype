@@ -8,6 +8,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Object/ClassRegistrar.hpp>
+#include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Utils/FUUID.hpp>
 #include <string>
 #include <vector>
@@ -22,7 +24,6 @@ namespace tkd
 // Forward declaration
 ///////////////////////////////////////////////////////////////////////////////
 class IProperty;
-class UClass;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief UObject class definition.
@@ -109,13 +110,7 @@ public:
     const std::vector<IProperty*>& GetProperties(void) const;
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets the static class of the object.
-    ///
-    /// \return Pointer to the static UClass of the object.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static UClass* StaticClass(void);
+    DECLARE_CLASS(UObject)
 };
 
 }   // namespace tkd
