@@ -7,3 +7,4 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Components/UActorComponent.hpp>
+#include <Engine/Runtime/Components/USpriteComponent.hpp>
