@@ -9,8 +9,8 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
-#include <Engine/Renderer/Animations/FAnimation2D.hpp>
-#include <Engine/Renderer/Animations/FAnimationTransition.hpp>
+#include <Engine/Runtime/Animations/FAnimation2D.hpp>
+#include <Engine/Runtime/Animations/FAnimationTransition.hpp>
 #include <type_traits>
 
 ///////////////////////////////////////////////////////////////////////////////
