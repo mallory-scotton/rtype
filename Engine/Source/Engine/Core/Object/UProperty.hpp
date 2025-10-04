@@ -67,6 +67,8 @@ public:
         , m_value(value)
         , m_owner(owner)
     {
+        owner.RegisterProperty(this);
+
         auto ownerClass = owner.GetClass();
         if (ownerClass && !ownerClass->IsRegistered())
         {
@@ -155,6 +157,30 @@ public:
     virtual FString GetPropertyPath(void) const override
     {
         return m_owner.GetObjectID() + "/" + m_name;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Converts the property to a string representation.
+    ///
+    /// \return The string representation of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FString ToString(void) const override
+    {
+        if constexpr (std::is_same_v<T, FString> ||
+                      std::is_same_v<T, std::string>)
+        {
+            return m_value;
+        }
+        else if constexpr (std::is_arithmetic_v<T>)
+        {
+            return std::to_string(m_value);
+        }
+        else if constexpr (std::is_same_v<T, bool>)
+        {
+            return m_value ? "true" : "false";
+        }
+        else { return "<Unsupported Type>"; }
     }
 };
 
