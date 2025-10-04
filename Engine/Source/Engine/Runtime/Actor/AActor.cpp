@@ -10,9 +10,9 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-AActor::AActor(void)
-    : UObject("AActor")
-    , m_transform()
+AActor::AActor(const FString& name)
+    : UObject(name)
+    , m_transform(FTransform::Identity)
     , m_isActive(true)
     , m_components()
     , self(*this)
