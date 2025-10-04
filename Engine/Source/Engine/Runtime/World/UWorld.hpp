@@ -76,7 +76,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
     T* SpawnActorFromClass(
-        UClass* actorClass, const FTransform& transform = FTransform()
+        UClass* actorClass, const FTransform& transform = FTransform::Identity
     )
     {
         static_assert(
