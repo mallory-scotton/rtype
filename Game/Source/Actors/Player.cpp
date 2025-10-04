@@ -12,6 +12,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Player::BP_Player(void)
     : APawn()
+    , speed(*this, "Speed", 600.0f)
 {
     AddComponent<UActorComponent>("SpriteComponent");
     AddComponent<UActorComponent>("MovementComponent");
