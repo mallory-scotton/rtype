@@ -7,8 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/IRenderer.hpp>
-#include <Engine/Renderer/IWindow.hpp>
+#include <Engine/Renderer/Interfaces/IRenderer.hpp>
+#include <Engine/Renderer/Interfaces/IWindow.hpp>
 #include <stack>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>

@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/GraphicsFactory.hpp>
-#include <Engine/Renderer/IGraphicsFactory.hpp>
+#include <Engine/Renderer/Interfaces/IGraphicsFactory.hpp>
 #include <Engine/Renderer/SFML/Renderer.hpp>
 #include <Engine/Renderer/SFML/RenderTarget.hpp>
 #include <Engine/Renderer/SFML/Shader.hpp>

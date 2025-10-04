@@ -9,8 +9,8 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/Enumerations.hpp>
-#include <Engine/Renderer/IShader.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Renderer/Interfaces/IShader.hpp>
+#include <Engine/Renderer/Interfaces/ITexture.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd

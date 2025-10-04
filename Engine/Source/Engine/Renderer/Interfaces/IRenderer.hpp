@@ -11,9 +11,9 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/FRenderStates.hpp>
 #include <Engine/Renderer/FView.hpp>
-#include <Engine/Renderer/IRenderTarget.hpp>
-#include <Engine/Renderer/IShader.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Renderer/Interfaces/IRenderTarget.hpp>
+#include <Engine/Renderer/Interfaces/IShader.hpp>
+#include <Engine/Renderer/Interfaces/ITexture.hpp>
 #include <memory>
 
 ///////////////////////////////////////////////////////////////////////////////

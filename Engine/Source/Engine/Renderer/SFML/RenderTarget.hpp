@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/IRenderTarget.hpp>
+#include <Engine/Renderer/Interfaces/IRenderTarget.hpp>
 #include <Engine/Renderer/SFML/Texture.hpp>
 #include <memory>
 #if TKD_ENGINE_CLIENT

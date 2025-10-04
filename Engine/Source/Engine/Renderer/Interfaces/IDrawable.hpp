@@ -8,8 +8,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/FRenderStates.hpp>
-#include <Engine/Renderer/IRenderer.hpp>
-#include <Engine/Renderer/IRenderTarget.hpp>
+#include <Engine/Renderer/Interfaces/IRenderer.hpp>
+#include <Engine/Renderer/Interfaces/IRenderTarget.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd

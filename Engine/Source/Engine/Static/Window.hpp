@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/IWindow.hpp>
+#include <Engine/Renderer.hpp>
 
 #if TKD_ENGINE_CLIENT
 
