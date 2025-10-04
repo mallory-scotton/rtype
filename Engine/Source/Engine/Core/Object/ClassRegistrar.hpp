@@ -36,6 +36,17 @@ public:
     TClassRegistrar(const FString& className, UClass* superClass = nullptr)
     {
         UClass* registeredClass = UClass::RegisterClass(className, superClass);
+
+        // Create a new instance of the class to register its properties
+        std::unique_ptr<T> instance = std::make_unique<T>();
+
+        // Reset the instance to avoid memory leaks
+        instance.reset();
+
+        // Set the class has registered
+        registeredClass->SetRegistered(true);
+
+        // Set the function to create an instance of the class
         registeredClass->SetCreateFunction<T>();
     }
 };
