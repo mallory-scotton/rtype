@@ -44,9 +44,29 @@ const std::vector<UInputAction>& FInputManager::GetActions(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+const UInputAction* FInputManager::GetAction(const FString& actionName) const
+{
+    for (const auto& action: m_actions)
+    {
+        if (action.GetName() == actionName) { return &action; }
+    }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 const std::vector<UInputAxis>& FInputManager::GetAxes(void) const
 {
     return m_axes;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const UInputAxis* FInputManager::GetAxis(const FString& axisName) const
+{
+    for (const auto& axis: m_axes)
+    {
+        if (axis.GetName() == axisName) { return &axis; }
+    }
+    return nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

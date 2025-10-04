@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Runtime/Input/UInputAction.hpp>
 #include <Engine/Runtime/Input/UInputAxis.hpp>
+#include <optional>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -81,12 +82,34 @@ public:
     const std::vector<UInputAction>& GetActions(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Find an input action by name
+    ///
+    /// \param actionName The name of the input action to find
+    ///
+    /// \return An optional containing the found input action, or an empty
+    /// optional if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const UInputAction* GetAction(const FString& actionName) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the list of input axes
     ///
     /// \return Constant reference to the vector of input axes
     ///
     ///////////////////////////////////////////////////////////////////////////
     const std::vector<UInputAxis>& GetAxes(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Find an input axis by name
+    ///
+    /// \param axisName The name of the input axis to find
+    ///
+    /// \return An optional containing the found input axis, or an empty
+    /// optional if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const UInputAxis* GetAxis(const FString& axisName) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set whether to invert the Y-axis
