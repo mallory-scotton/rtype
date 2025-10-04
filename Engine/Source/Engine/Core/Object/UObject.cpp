@@ -40,18 +40,6 @@ const FString& UObject::GetName(void) const { return m_name; }
 void UObject::SetName(const FString& name) { m_name = name; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UObject::RegisterProperty(IProperty* property)
-{
-    if (property) { m_properties.push_back(property); }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const std::vector<IProperty*>& UObject::GetProperties(void) const
-{
-    return m_properties;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(UObject)
 
 }   // namespace tkd

@@ -39,8 +39,6 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     UUID m_objectID;   //<! Unique identifier for the object.
     FString m_name;    //<! Name of the object.
-    std::vector<IProperty*> m_properties;   //<! List of properties associated
-                                            // with the object.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -92,22 +90,6 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetName(const FString& name);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Adds a property to the object.
-    ///
-    /// \param property Pointer to the property to add.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void RegisterProperty(IProperty* property);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Gets the list of properties associated with the object.
-    ///
-    /// \return A constant reference to the vector of property pointers.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    const std::vector<IProperty*>& GetProperties(void) const;
 
 public:
     DECLARE_CLASS(UObject)
