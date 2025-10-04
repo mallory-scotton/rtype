@@ -15,6 +15,6 @@ AHUD::AHUD(void)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
-UClass* AHUD::StaticClass(void) { return nullptr; }
+IMPLEMENT_CLASS_WITH_SUPER(AHUD, AActor)
 
 }   // namespace tkd

@@ -29,13 +29,7 @@ public:
     AHUD(void);
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the static UClass of the AHUD class
-    ///
-    /// \return Pointer to the UClass representing the AHUD class
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static UClass* StaticClass(void);
+    DECLARE_CLASS(AHUD)
 };
 
 }   // namespace tkd
