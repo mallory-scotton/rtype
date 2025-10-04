@@ -22,23 +22,56 @@ const std::vector<std::shared_ptr<AActor>>& UWorld::GetActors(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+std::vector<AActor*>
+    UWorld::GetActorsByClass(UClass* actorClass, bool includeChildren) const
+{
+    std::vector<AActor*> result;
+
+    if (actorClass == nullptr) { return result; }
+
+    for (const auto& actor: m_actors)
+    {
+        if (actor == nullptr) { continue; }
+
+        UClass* instanceClass = actor->StaticClass();
+        if (instanceClass == nullptr) { continue; }
+
+        bool matches = false;
+        if (includeChildren)
+        {
+            matches = (instanceClass == actorClass) ||
+                      instanceClass->IsChildOf(actorClass);
+        }
+        else { matches = (instanceClass == actorClass); }
+
+        if (matches) { result.push_back(actor.get()); }
+    }
+
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UWorld::DestroyActor(AActor* actor)
 {
-    auto it = std::find_if(
-        m_actors.begin(),
-        m_actors.end(),
-        [actor](const std::shared_ptr<AActor>& a) { return a.get() == actor; }
+    if (actor == nullptr) { return; }
+
+    actor->EndPlay();
+
+    m_actors.erase(
+        std::remove_if(
+            m_actors.begin(),
+            m_actors.end(),
+            [actor](const std::shared_ptr<AActor>& a)
+            { return a.get() == actor; }
+        ),
+        m_actors.end()
     );
-    if (it != m_actors.end())
-    {
-        (*it)->EndPlay();
-        m_actors.erase(it);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::BeginPlay(void)
 {
+    m_worldTime = 0.0f;
     for (const auto& actor: m_actors) { actor->BeginPlay(); }
 }
 
@@ -48,14 +81,17 @@ void UWorld::Tick(Float32 deltaTime)
     m_worldTime += deltaTime;
     for (const auto& actor: m_actors)
     {
-        if (actor->IsActive()) { actor->Tick(deltaTime); }
+        if (actor && actor->IsActive()) { actor->Tick(deltaTime); }
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::EndPlay(void)
 {
-    for (const auto& actor: m_actors) { actor->EndPlay(); }
+    for (const auto& actor: m_actors)
+    {
+        if (actor) { actor->EndPlay(); }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

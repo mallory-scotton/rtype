@@ -50,14 +50,90 @@ public:
     /// \return A pointer to the spawned actor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template <typename T>
+    template <typename T = AActor>
     T* SpawnActor(const FTransform& transform = FTransform())
     {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
         m_actors.push_back(std::make_shared<T>());
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
         actor->BeginPlay();
         return actor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor from a UClass
+    ///
+    /// \tparam T The type to cast the result to (default: AActor)
+    ///
+    /// \param actorClass Pointer to the UClass to spawn
+    /// \param transform The transform of the actor
+    ///
+    /// \return A pointer to the spawned actor, or nullptr if spawn failed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor>
+    T* SpawnActorFromClass(
+        UClass* actorClass, const FTransform& transform = FTransform()
+    )
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        if (actorClass == nullptr) { return nullptr; }
+
+        // Verify the class can create AActor or derived types
+        UClass* actorBaseClass = AActor::StaticClass();
+        if (actorBaseClass && !actorClass->IsChildOf(actorBaseClass))
+        {
+            return nullptr;
+        }
+
+        // Create the instance
+        UObject* instance = actorClass->CreateInstance();
+        if (instance == nullptr) { return nullptr; }
+
+        // Cast to requested type
+        T* actor = dynamic_cast<T*>(instance);
+        if (actor == nullptr)
+        {
+            delete instance;
+            return nullptr;
+        }
+
+        // Add to world
+        m_actors.push_back(std::shared_ptr<AActor>(actor));
+        actor->SetTransform(transform);
+        actor->BeginPlay();
+
+        return actor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor from a class name
+    ///
+    /// \tparam T The type to cast the result to (default: AActor)
+    ///
+    /// \param className The name of the class to spawn
+    /// \param transform The transform of the actor
+    ///
+    /// \return A pointer to the spawned actor, or nullptr if spawn failed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor>
+    T* SpawnActorByName(
+        const FString& className, const FTransform& transform = FTransform()
+    )
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        UClass* actorClass = UClass::FindClass(className);
+        return SpawnActorFromClass<T>(actorClass, transform);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -89,6 +165,19 @@ public:
         }
         return actors;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get all actors of a specific UClass
+    ///
+    /// \param actorClass Pointer to the UClass to filter by
+    /// \param includeChildren If true, also include derived classes
+    ///
+    /// \return A vector of pointers to matching actors
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    std::vector<AActor*> GetActorsByClass(
+        UClass* actorClass, bool includeChildren = true
+    ) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destroy an actor in the world
