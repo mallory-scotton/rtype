@@ -49,10 +49,11 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;                         //<! The name of the class
-    UClass* m_super;                        //<! Pointer to the superclass
-    std::vector<IProperty*> m_properties;   //<! List of properties
-    Creator m_createInstance;               //<! Function to create an instance
+    FString m_name;                      //<! The name of the class
+    UClass* m_super;                     //<! Pointer to the superclass
+    bool m_isRegistered;                 //<! Registration status
+    std::vector<FString> m_properties;   //<! List of properties
+    Creator m_createInstance;            //<! Function to create an instance
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -97,6 +98,23 @@ public:
     const FString& GetName(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the class is registered.
+    ///
+    /// \return True if the class is registered, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsRegistered(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the registration status of the class.
+    ///
+    /// \param registered True to mark the class as registered, false
+    /// otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetRegistered(bool registered);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the superclass of the class.
     ///
     /// \return Pointer to the superclass UClass, or nullptr if there is none.
@@ -110,7 +128,7 @@ public:
     /// \return A constant reference to the vector of property pointers.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<IProperty*>& GetProperties(void) const;
+    const std::vector<FString>& GetProperties(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create an instance of the class.

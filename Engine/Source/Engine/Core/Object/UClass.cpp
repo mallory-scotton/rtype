@@ -17,6 +17,7 @@ std::unordered_map<FString, std::unique_ptr<UClass>> UClass::s_classRegistry;
 UClass::UClass(const FString& name, UClass* super)
     : m_name(name)
     , m_super(super)
+    , m_isRegistered(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,10 +36,16 @@ bool UClass::IsChildOf(UClass* other) const
 const FString& UClass::GetName(void) const { return m_name; }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool UClass::IsRegistered(void) const { return m_isRegistered; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UClass::SetRegistered(bool registered) { m_isRegistered = registered; }
+
+///////////////////////////////////////////////////////////////////////////////
 const UClass* UClass::GetSuper(void) const { return m_super; }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::vector<IProperty*>& UClass::GetProperties(void) const
+const std::vector<FString>& UClass::GetProperties(void) const
 {
     return m_properties;
 }
@@ -53,7 +60,7 @@ UObject* UClass::CreateInstance(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UClass::AddProperty(IProperty* property)
 {
-    if (property) { m_properties.push_back(property); }
+    if (property) { m_properties.push_back(property->GetName()); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
