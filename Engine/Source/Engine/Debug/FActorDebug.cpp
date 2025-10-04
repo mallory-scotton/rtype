@@ -20,6 +20,19 @@ void FActorDebug::Show(void)
 
     auto actors = Engine::World.GetActors();
 
+    auto classes = UClass::GetAllClasses();
+
+    ImGui::Text("Registered Classes: %lu", classes.size());
+
+    for (const auto& _class: classes)
+    {
+        ImGui::Text("Class: %s", _class->GetName().CStr());
+        ImGui::Separator();
+    }
+
+    ImGui::Separator();
+    ImGui::Text("Actors: %lu", actors.size());
+
     for (const auto& actor: actors)
     {
         auto components = actor->GetComponents();
