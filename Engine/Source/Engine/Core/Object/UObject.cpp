@@ -52,6 +52,6 @@ const std::vector<IProperty*>& UObject::GetProperties(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-UClass* UObject::StaticClass(void) { return nullptr; }
+IMPLEMENT_CLASS(UObject)
 
 }   // namespace tkd
