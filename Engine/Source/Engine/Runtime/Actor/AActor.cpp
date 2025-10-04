@@ -88,6 +88,6 @@ void AActor::RemoveComponent(UActorComponent* component)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-UClass* AActor::StaticClass(void) { return nullptr; }
+IMPLEMENT_CLASS(AActor);
 
 }   // namespace tkd
