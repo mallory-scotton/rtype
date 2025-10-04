@@ -15,6 +15,9 @@ UInputAction::UInputAction(
 )
     : m_name(name)
     , m_inputs(inputs)
+    , m_pressed(false)
+    , m_held(false)
+    , m_released(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,6 +25,7 @@ void UInputAction::Press(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_pressed = true;
         this->Emit(Events::Pressed{ input });
     }
 }
@@ -31,6 +35,7 @@ void UInputAction::Release(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_pressed = false;
         this->Emit(Events::Released{ input });
     }
 }
@@ -40,6 +45,7 @@ void UInputAction::Hold(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_held = true;
         this->Emit(Events::Held{ input });
     }
 }
@@ -75,5 +81,22 @@ bool UInputAction::Unbind(EInput input)
     m_inputs.erase(it);
     return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void UInputAction::Reset(void)
+{
+    m_pressed = false;
+    m_held = false;
+    m_released = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool UInputAction::IsPressed(void) const { return m_pressed; }
+
+///////////////////////////////////////////////////////////////////////////////
+bool UInputAction::IsHeld(void) const { return m_held; }
+
+///////////////////////////////////////////////////////////////////////////////
+bool UInputAction::IsReleased(void) const { return m_released; }
 
 }   // namespace tkd
