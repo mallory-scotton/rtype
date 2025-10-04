@@ -47,6 +47,9 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     // virtual void EndPlay(void) override;
+
+public:
+    DECLARE_CLASS(BP_Player)
 };
 
 }   // namespace tkd
