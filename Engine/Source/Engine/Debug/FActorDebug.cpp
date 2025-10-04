@@ -27,7 +27,12 @@ void FActorDebug::Show(void)
     for (const auto& _class: classes)
     {
         ImGui::Text("Class: %s", _class->GetName().CStr());
-        ImGui::Separator();
+        auto properties = _class->GetProperties();
+        ImGui::Text("  Properties: %lu", properties.size());
+        for (const auto& property: properties)
+        {
+            ImGui::Text("    %s", property.CStr());
+        }
     }
 
     ImGui::Separator();
