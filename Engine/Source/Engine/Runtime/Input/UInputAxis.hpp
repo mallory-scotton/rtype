@@ -37,8 +37,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct Changed
     {
-        float value;   //<! The new value of the axis.
-        float delta;   //<! The change in value since the last event.
+        float value;    //<! The new value of the axis.
+        float delta;    //<! The change in value since the last event.
+        EInput input;   //<! The input that triggered the event.
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -65,6 +66,7 @@ private:
     FString m_name;   //<! Name of the input action.
     std::vector<std::pair<EInput, float>>
         m_inputs;     //<! List of associated inputs.
+    float m_scale;    //<! Current scale of the axis.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -113,18 +115,6 @@ public:
     bool Bind(EInput input, float scale);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set scale for an existing input.
-    ///
-    /// \param input The input to set the scale for.
-    /// \param scale The new scale factor for the input.
-    ///
-    /// \return True if the scale was successfully set, false if the input
-    /// was not found.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool SetScale(EInput input, float scale);
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Unbind an input from this axis.
     ///
     /// \param input The input to unbind.
@@ -144,11 +134,25 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Simulate moving the axis by a certain value.
     ///
-    /// \param value The value to move the axis by.
-    /// \param delta The change in value since the last event.
+    /// \param input The input causing the movement.
+    /// \param factor The factor by which to move the axis [0, 1].
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Move(float value, float delta);
+    void Move(EInput input, float factor = 1.0f);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Reset the axis to its default state.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Reset(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current scale of the axis.
+    ///
+    /// \return The current scale of the axis.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    float GetScale(void) const;
 };
 
 }   // namespace tkd
