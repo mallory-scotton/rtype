@@ -67,7 +67,11 @@ public:
         , m_value(value)
         , m_owner(owner)
     {
-        m_owner.RegisterProperty(this);
+        auto ownerClass = owner.GetClass();
+        if (ownerClass && !ownerClass->IsRegistered())
+        {
+            ownerClass->AddProperty(this);
+        }
     }
 
 public:
