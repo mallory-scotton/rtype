@@ -15,6 +15,7 @@ AActor::AActor(void)
     , m_transform()
     , m_isActive(true)
     , m_components()
+    , self(*this)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
