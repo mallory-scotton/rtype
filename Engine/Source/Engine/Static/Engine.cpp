@@ -117,7 +117,14 @@ void Engine::RenderThreadFunction(void)
     std::unique_ptr<IGraphicsFactory> factory =
         std::make_unique<SFML::GraphicsFactory>();
 
-    auto window = factory->CreateWindow("TKD");
+    auto window = factory->CreateWindow(
+        Settings.game.title,
+        true,
+        FVector2i::Zero,
+        FVector2u(Settings.window.windowWidth, Settings.window.windowHeight),
+        Settings.window.isFullscreen ? EWindowState::Fullscreen
+                                     : EWindowState::Windowed
+    );
     auto renderer = factory->CreateRenderer(window.get());
     auto texture = factory->CreateTexture();
 
