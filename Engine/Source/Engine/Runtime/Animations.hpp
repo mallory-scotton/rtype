@@ -6,7 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Renderer/Animations/FAnimation2D.hpp>
-#include <Engine/Renderer/Animations/FAnimation2DFrame.hpp>
-#include <Engine/Renderer/Animations/FAnimationState.hpp>
-#include <Engine/Renderer/Animations/FAnimationTransition.hpp>
+#include <Engine/Runtime/Animations/FAnimation2D.hpp>
+#include <Engine/Runtime/Animations/FAnimation2DFrame.hpp>
+#include <Engine/Runtime/Animations/FAnimationState.hpp>
+#include <Engine/Runtime/Animations/FAnimationTransition.hpp>
