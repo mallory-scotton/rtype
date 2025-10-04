@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
+#include <Engine/Core/Object/ClassRegistrar.hpp>
 #include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
@@ -251,13 +252,7 @@ public:
     void RemoveComponent(UActorComponent* component);
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the static UClass of the AActor class
-    ///
-    /// \return Pointer to the UClass representing the AActor class
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static UClass* StaticClass(void);
+    DECLARE_CLASS(AActor)
 };
 
 }   // namespace tkd
