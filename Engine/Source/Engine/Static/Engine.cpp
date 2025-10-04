@@ -91,9 +91,7 @@ void Engine::MainThreadFunction(void)
     TimePoint lastTime = clock.now();
     Float32 deltaTime = 0.0f;
 
-    auto actor = Engine::World.SpawnActor<AActor>();
-
-    actor->AddComponent<UActorComponent>("TestComponent");
+    Engine::World.SpawnActorByName<APawn>("BP_Player");
 
     Engine::World.BeginPlay();
 
