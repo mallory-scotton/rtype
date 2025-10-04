@@ -8,6 +8,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <chrono>
 #include <filesystem>
+#include <functional>
+#include <variant>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -43,5 +45,9 @@ using SizeT = decltype(sizeof(0));
 using FilePath = std::filesystem::path;
 using SteadyClock = std::chrono::steady_clock;
 using TimePoint = SteadyClock::time_point;
+template <typename Args>
+using TFunction = std::function<Args>;
+template <typename... Types>
+using TVariant = std::variant<Types...>;
 
 }   // namespace tkd
