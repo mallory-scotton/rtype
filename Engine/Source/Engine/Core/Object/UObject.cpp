@@ -31,6 +31,27 @@ UObject::operator std::string(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UObject::RegisterProperty(IProperty* property)
+{
+    if (property) { m_properties[property->GetName()] = property; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
+) const
+{
+    return m_properties;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IProperty* UObject::GetProperty(const FString& name) const
+{
+    auto it = m_properties.find(name);
+    if (it != m_properties.end()) { return it->second; }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::string UObject::GetObjectID(void) const { return m_objectID.ToString(); }
 
 ///////////////////////////////////////////////////////////////////////////////
