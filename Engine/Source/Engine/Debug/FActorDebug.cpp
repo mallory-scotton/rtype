@@ -258,6 +258,14 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
     }
 
     bool nodeOpen = ImGui::CollapsingHeader(actor->GetName().CStr(), flags);
+    UClass* actorClass = actor->GetClass();
+    if (actorClass)
+    {
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+        ImGui::Text("(%s)", actorClass->GetName().CStr());
+        ImGui::PopStyleColor();
+    }
 
     ImGui::PopStyleColor(2);
 
@@ -362,6 +370,34 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
             for (const auto& component: components)
             {
                 DisplayComponentInfo(component.get());
+            }
+            ImGui::Unindent();
+        }
+
+        // Display class properties
+        auto properties =
+            actorClass ? actorClass->GetProperties() : std::vector<FString>();
+        if (!properties.empty())
+        {
+            ImGui::Spacing();
+            ImGui::PushStyleColor(
+                ImGuiCol_Text, ImVec4(0.6f, 0.8f, 1.0f, 1.0f)
+            );
+            ImGui::Text("Properties:");
+            ImGui::PopStyleColor();
+
+            ImGui::Indent();
+            for (const auto& property: properties)
+            {
+                ImGui::PushStyleColor(
+                    ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f)
+                );
+                ImGui::BulletText(
+                    "%s: %s",
+                    property.CStr(),
+                    actor->GetProperty(property)->ToString().CStr()
+                );
+                ImGui::PopStyleColor();
             }
             ImGui::Unindent();
         }
