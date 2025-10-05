@@ -8,5 +8,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FConnectionInformation.hpp>
 #include <Engine/Network/FNetworkBase.hpp>
+#include <Engine/Network/FNetworkServer.hpp>
 #include <Engine/Network/FNetworkStatistics.hpp>
 #include <Engine/Network/IPacket.hpp>
