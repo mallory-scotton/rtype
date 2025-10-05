@@ -31,7 +31,7 @@ public:
     /// \brief Show the debug interface
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Show(void) override;
+    virtual void Show(const FEngineSettings& settings, UWorld* world) override;
 };
 
 #endif
