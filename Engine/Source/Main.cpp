@@ -11,15 +11,8 @@ void SignalHandler(int signal)
 {
     if (signal == SIGINT || signal == SIGTERM)
     {
-        if (Engine::IsInitialized())
-        {
-            Engine::SetExitCode(TKD_EXIT_SUCCESS);
-            Engine::SetExitMessage("Graceful shutdown");
-            Engine::Shutdown();
-        }
-        std::cerr
-            << "\nEngine terminated unexpectedly, graceful shutdown initiated"
-            << std::endl;
+        std::cout << "\nReceived shutdown signal..." << std::endl;
+        Engine::RequestShutdown();
     }
 }
 
@@ -29,22 +22,21 @@ int main(int argc, char* argv[])
     std::signal(SIGINT, SignalHandler);
     std::signal(SIGTERM, SignalHandler);
 
-    try
+    // Initialize engine
+    if (!Engine::Initialize(argc, argv))
     {
-        if (Engine::Initialize(argc, argv))
-        {
-            Engine::Run();
-            Engine::Shutdown();
-        }
-    }
-    catch (const std::exception& error)
-    {
-        Engine::SetExitCode(TKD_EXIT_FAILURE);
-        Engine::SetExitMessage(
-            tkd::FString("Unhandled exception: ") + tkd::FString(error.what())
-        );
+        Engine::PrintExitMessage();
+        return Engine::GetExitCode();
     }
 
+    // Run engine (blocks until shutdown)
+    Engine::Run();
+
+    // Print exit message
     Engine::PrintExitMessage();
+
+    // Cleanup
+    Engine::Shutdown();
+
     return Engine::GetExitCode();
 }
