@@ -4,7 +4,7 @@
 #include <Engine/Debug/FActorDebug.hpp>
 #include <algorithm>
 #include <Engine/Runtime/Actor/AActor.hpp>
-#include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::debug
@@ -15,8 +15,10 @@ namespace tkd::debug
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-void FActorDebug::Show(void)
+void FActorDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
+    TKD_UNUSED(settings);
+
     ImGui::Begin("Actor & Class Debug", nullptr);
 
     // Header with styling
@@ -24,7 +26,7 @@ void FActorDebug::Show(void)
     ImGui::Text("Actor & Class Information");
     ImGui::PopStyleColor();
 
-    auto actors = Engine::World.GetActors();
+    auto actors = world->GetActors();
     auto classes = UClass::GetAllClasses();
 
     ImGui::Text(
@@ -44,7 +46,7 @@ void FActorDebug::Show(void)
 
         if (ImGui::BeginTabItem("World View"))
         {
-            ShowWorldView();
+            ShowWorldView(world);
             ImGui::EndTabItem();
         }
 
@@ -98,11 +100,11 @@ void FActorDebug::ShowClassHierarchy(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FActorDebug::ShowWorldView(void)
+void FActorDebug::ShowWorldView(UWorld* world)
 {
     ImGui::Spacing();
 
-    auto actors = Engine::World.GetActors();
+    auto actors = world->GetActors();
 
     if (actors.empty())
     {
