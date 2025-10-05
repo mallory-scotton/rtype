@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Window.hpp>
-#include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui-SFML.h>
     #include <imgui.h>
@@ -73,22 +73,11 @@ bool Window::Open(void)
         ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
     );
 
-    // Initialize ImGui-SFML if in debug build
-    if (Engine::IsDebugBuild())
-    {
-        if (!ImGui::SFML::Init(*m_window))
-        {
-            m_window->close();
-            return false;
-        }
-        m_imguiInitialized = true;
-    }
-
     // Check if the window was created successfully
     if (!m_window || !m_window->isOpen()) { return false; }
 
     // Set initial position and VSync
-    m_window->setPosition(sf::Vector2i(m_position.x, m_position.y));
+    m_window->setPosition(Utils::Convert(m_position));
     m_window->setVerticalSyncEnabled(m_vsync);
 
     // Emit the Opened event
@@ -96,6 +85,20 @@ bool Window::Open(void)
 
     // Successfully opened the window
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Window::SetDebugMode(bool debugMode)
+{
+    if (debugMode && !m_imguiInitialized && IsOpen())
+    {
+        if (ImGui::SFML::Init(*m_window)) { m_imguiInitialized = true; }
+    }
+    else if (!debugMode && m_imguiInitialized)
+    {
+        ImGui::SFML::Shutdown();
+        m_imguiInitialized = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,7 +170,7 @@ bool Window::SetState(const EWindowState& state)
     m_window->setVerticalSyncEnabled(m_vsync);
 
     // Reinitialize ImGui if in debug build
-    if (Engine::IsDebugBuild())
+    if (Engine::GetInstance().GetSettings().debug)
     {
         if (ImGui::SFML::Init(*m_window)) { m_imguiInitialized = true; }
     }
@@ -229,7 +232,7 @@ bool Window::SetDimension(const FVector2u& dimension)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FVector2u& Window::GetDimension(void) const { return m_dimension; }
+const FVector2u& Window::GetDimensions(void) const { return m_dimension; }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Window::SetTitle(const FString& title)
@@ -348,6 +351,16 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
 
     // Display the contents of the window
     m_window->display();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::SetActive(bool active)
+{
+    // Check if the window is open
+    if (!IsOpen()) { return false; }
+
+    // Set the OpenGL context as active or inactive for the current thread
+    return m_window->setActive(active);
 }
 
 #endif
