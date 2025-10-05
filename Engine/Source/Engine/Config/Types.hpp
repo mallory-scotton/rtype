@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <functional>
@@ -46,7 +47,8 @@ using SizeT = decltype(sizeof(0));
 using FilePath = std::filesystem::path;
 using SteadyClock = std::chrono::steady_clock;
 using SystemClock = std::chrono::system_clock;
-using Duration = SteadyClock::duration;
+template <typename Rep, typename Period = std::ratio<1>>
+using TDuration = std::chrono::duration<Rep, Period>;
 using Milliseconds = std::chrono::milliseconds;
 using Seconds = std::chrono::seconds;
 using Microseconds = std::chrono::microseconds;
@@ -62,5 +64,7 @@ template <typename T>
 using TSharedPtr = std::shared_ptr<T>;
 template <typename T>
 using TWeakPtr = std::weak_ptr<T>;
+template <typename T>
+using TAtomic = std::atomic<T>;
 
 }   // namespace tkd
