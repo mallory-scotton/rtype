@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Debug/FEngineSettingsDebug.hpp>
-#include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
 #endif
@@ -16,8 +16,10 @@ namespace tkd::debug
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::Show(void)
+void FEngineSettingsDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
+    TKD_UNUSED(world);
+
     ImGui::Begin(
         "Engine Settings Debug", nullptr, ImGuiWindowFlags_AlwaysAutoResize
     );
@@ -26,7 +28,7 @@ void FEngineSettingsDebug::Show(void)
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.8f, 1.0f, 1.0f));
     ImGui::Text("Engine Settings Configuration");
     ImGui::PopStyleColor();
-    ImGui::Text("Engine Version: %s", Engine::Settings.version.c_str());
+    ImGui::Text("Engine Version: %s", settings.version.c_str());
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -35,43 +37,43 @@ void FEngineSettingsDebug::Show(void)
     {
         if (ImGui::BeginTabItem("Window"))
         {
-            ShowWindowSettings();
+            ShowWindowSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Network"))
         {
-            ShowNetworkSettings();
+            ShowNetworkSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Logging"))
         {
-            ShowLoggingSettings();
+            ShowLoggingSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Game"))
         {
-            ShowGameSettings();
+            ShowGameSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Audio"))
         {
-            ShowAudioSettings();
+            ShowAudioSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Input"))
         {
-            ShowInputSettings();
+            ShowInputSettings(settings);
             ImGui::EndTabItem();
         }
 
         if (ImGui::BeginTabItem("Accessibility"))
         {
-            ShowAccessibilitySettings();
+            ShowAccessibilitySettings(settings);
             ImGui::EndTabItem();
         }
 
@@ -82,11 +84,11 @@ void FEngineSettingsDebug::Show(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowWindowSettings(void)
+void FEngineSettingsDebug::ShowWindowSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& window = Engine::Settings.window;
+    const auto& window = settings.window;
 
     if (ImGui::BeginTable(
             "WindowSettingsTable",
@@ -116,11 +118,11 @@ void FEngineSettingsDebug::ShowWindowSettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowNetworkSettings(void)
+void FEngineSettingsDebug::ShowNetworkSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& network = Engine::Settings.network;
+    const auto& network = settings.network;
 
     if (ImGui::BeginTable(
             "NetworkSettingsTable",
@@ -147,11 +149,11 @@ void FEngineSettingsDebug::ShowNetworkSettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowLoggingSettings(void)
+void FEngineSettingsDebug::ShowLoggingSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& logging = Engine::Settings.logging;
+    const auto& logging = settings.logging;
 
     if (ImGui::BeginTable(
             "LoggingSettingsTable",
@@ -177,11 +179,11 @@ void FEngineSettingsDebug::ShowLoggingSettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowGameSettings(void)
+void FEngineSettingsDebug::ShowGameSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& game = Engine::Settings.game;
+    const auto& game = settings.game;
 
     if (ImGui::BeginTable(
             "GameSettingsTable",
@@ -207,11 +209,11 @@ void FEngineSettingsDebug::ShowGameSettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowAudioSettings(void)
+void FEngineSettingsDebug::ShowAudioSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& audio = Engine::Settings.audio;
+    const auto& audio = settings.audio;
 
     if (ImGui::BeginTable(
             "AudioSettingsTable",
@@ -237,11 +239,11 @@ void FEngineSettingsDebug::ShowAudioSettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowInputSettings(void)
+void FEngineSettingsDebug::ShowInputSettings(const FEngineSettings& settings)
 {
     ImGui::Spacing();
 
-    const auto& inputs = Engine::Settings.inputs;
+    const auto& inputs = settings.inputs;
 
     // Basic input settings
     if (ImGui::BeginTable(
@@ -274,17 +276,19 @@ void FEngineSettingsDebug::ShowInputSettings(void)
     ImGui::PopStyleColor();
     ImGui::Spacing();
 
-    ShowActionMappings();
+    ShowActionMappings(settings);
     ImGui::Spacing();
-    ShowAxisMappings();
+    ShowAxisMappings(settings);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowAccessibilitySettings(void)
+void FEngineSettingsDebug::ShowAccessibilitySettings(
+    const FEngineSettings& settings
+)
 {
     ImGui::Spacing();
 
-    const auto& accessibility = Engine::Settings.accessibility;
+    const auto& accessibility = settings.accessibility;
 
     if (ImGui::BeginTable(
             "AccessibilitySettingsTable",
@@ -312,7 +316,7 @@ void FEngineSettingsDebug::ShowAccessibilitySettings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowActionMappings(void)
+void FEngineSettingsDebug::ShowActionMappings(const FEngineSettings& settings)
 {
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.6f, 0.2f, 0.8f));
     ImGui::PushStyleColor(
@@ -328,7 +332,7 @@ void FEngineSettingsDebug::ShowActionMappings(void)
     {
         ImGui::PopStyleColor(3);
 
-        const auto& actions = Engine::Inputs.GetActions();
+        const auto& actions = settings.inputs.inputActions;
         if (actions.empty())
         {
             ImGui::PushStyleColor(
@@ -363,14 +367,14 @@ void FEngineSettingsDebug::ShowActionMappings(void)
                     ImGui::PushStyleColor(
                         ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.2f, 1.0f)
                     );
-                    ImGui::Text("%s", action.GetName().CStr());
+                    ImGui::Text("%s", action.first.c_str());
                     ImGui::PopStyleColor();
 
                     ImGui::TableSetColumnIndex(1);
 
                     // List inputs with proper formatting
                     bool first = true;
-                    for (const auto& input: action.GetInputs())
+                    for (const auto& input: action.second)
                     {
                         if (!first) { ImGui::SameLine(); }
 
@@ -421,7 +425,7 @@ void FEngineSettingsDebug::ShowActionMappings(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FEngineSettingsDebug::ShowAxisMappings(void)
+void FEngineSettingsDebug::ShowAxisMappings(const FEngineSettings& settings)
 {
     ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.6f, 0.2f, 0.6f, 0.8f));
     ImGui::PushStyleColor(
@@ -437,7 +441,7 @@ void FEngineSettingsDebug::ShowAxisMappings(void)
     {
         ImGui::PopStyleColor(3);
 
-        const auto& axes = Engine::Inputs.GetAxes();
+        const auto& axes = settings.inputs.inputAxes;
         if (axes.empty())
         {
             ImGui::PushStyleColor(
@@ -469,7 +473,7 @@ void FEngineSettingsDebug::ShowAxisMappings(void)
                 for (const auto& axis: axes)
                 {
                     bool firstInput = true;
-                    for (const auto& [input, scale]: axis.GetInputs())
+                    for (const auto& [input, scale]: axis.second)
                     {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
@@ -480,7 +484,7 @@ void FEngineSettingsDebug::ShowAxisMappings(void)
                             ImGui::PushStyleColor(
                                 ImGuiCol_Text, ImVec4(0.8f, 0.4f, 1.0f, 1.0f)
                             );
-                            ImGui::Text("%s", axis.GetName().CStr());
+                            ImGui::Text("%s", axis.first.c_str());
                             ImGui::PopStyleColor();
                             firstInput = false;
                         }
