@@ -32,7 +32,7 @@ void FDebug::PopDebugMenuStyling(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FDebug::Show(void)
+void FDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
     ApplyDebugMenuStyling();
 
@@ -238,9 +238,9 @@ void FDebug::Show(void)
     }
 
     // Show debug windows
-    if (m_showEngineSettings) { m_engineSettings.Show(); }
-    if (m_showInputDebug) { m_inputsDebug.Show(); }
-    if (m_showActorDebug) { m_actorDebug.Show(); }
+    if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
+    if (m_showInputDebug) { m_inputsDebug.Show(settings, world); }
+    if (m_showActorDebug) { m_actorDebug.Show(settings, world); }
 }
 
 #endif
