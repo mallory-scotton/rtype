@@ -12,8 +12,10 @@ namespace tkd::debug
 #if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-void FInputsDebug::Show(void)
+void FInputsDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
+    TKD_UNUSED(settings);
+    TKD_UNUSED(world);
     ImGui::Begin("Inputs Debug", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("Inputs Debug Interface - (To be implemented)");
     ImGui::End();
