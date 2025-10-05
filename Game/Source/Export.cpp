@@ -10,6 +10,7 @@ TKD_EXPORT_GAME(
     tkd::RTypeGame,                   //<! The game class
     (tkd::FEngineSettings{
         .version = TKD_VERSION_STRING,
+        .debug = false,
         .window = {
             .enableVSync = true,
             .targetFPS = -1,
