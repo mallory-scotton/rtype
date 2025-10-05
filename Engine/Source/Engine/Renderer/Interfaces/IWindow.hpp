@@ -211,7 +211,15 @@ public:
     /// \return A constant reference to the current window dimensions
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FVector2u& GetDimension(void) const = 0;
+    TKD_NODISCARD virtual const FVector2u& GetDimensions(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the debug mode for the window
+    ///
+    /// \param debugMode Whether to enable debug mode features
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetDebugMode(bool debugMode) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window title
@@ -272,6 +280,18 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Draw(const std::function<void(void)>& drawFunction) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the OpenGL context as active or inactive for the current
+    /// thread
+    ///
+    /// \param active True to make the context active, false to make it
+    /// inactive
+    ///
+    /// \return True if the operation was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool SetActive(bool active = true) = 0;
 };
 
 }   // namespace tkd
