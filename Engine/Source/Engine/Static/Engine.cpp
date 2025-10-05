@@ -126,44 +126,19 @@ void Engine::RenderThreadFunction(void)
                                      : EWindowState::Windowed
     );
     auto renderer = factory->CreateRenderer(window.get());
-    auto texture = factory->CreateTexture();
-
-    texture->LoadFromFile("Game/Assets/Images/r-typesheet1.png");
-
-    URectangleShape rect;
-    UCircleShape circle;
-    USprite sprite(*texture);
-
-    rect.SetFillColor(FColor::Green);
-    rect.SetSize(FVector2f(100.0f, 100.0f));
-    rect.SetPosition(FVector2f(200.0f, 200.0f));
-    rect.SetOutlineThickness(5.f);
-    rect.SetOutlineColor(FColor::Red);
-
-    circle.SetFillColor(FColor::Blue);
-    circle.SetRadius(50.0f);
-    circle.SetPosition(FVector2f(400.0f, 400.0f));
-    circle.SetOutlineThickness(5.f);
-    circle.SetOutlineColor(FColor::Yellow);
-
-    sprite.SetPosition(FVector2f(300.0f, 300.0f));
 
     while (s_isRunning && window->IsOpen())
     {
         window->Update(0.0f);
         // TODO: Add rendering logic here
         window->Draw(
-            [&rect, &circle, &renderer, &sprite]()
+            []()
             {
                 if (Engine::IsDebugBuild())
                 {
                     debug::FDebug& debug = debug::FDebug::GetInstance();
                     debug.Show();
                 }
-
-                renderer->Draw(rect);
-                renderer->Draw(circle);
-                renderer->Draw(sprite);
             }
         );
     }
