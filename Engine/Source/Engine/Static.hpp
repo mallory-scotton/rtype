@@ -7,5 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
-#include <Engine/Static/Network.hpp>
-#include <Engine/Static/Window.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
+#include <Engine/Static/FThreadedSubsystem.hpp>
+#include <Engine/Static/FWindowSubsystem.hpp>
+#include <Engine/Static/FWorldSubsystem.hpp>
+#include <Engine/Static/IEngineSubsystem.hpp>
