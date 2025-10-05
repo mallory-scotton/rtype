@@ -8,11 +8,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
-#include <Engine/Runtime.hpp>
-#include <Engine/Runtime/Input.hpp>
-#include <Engine/Static/Network.hpp>
-#include <Engine/Static/Window.hpp>
-#include <type_traits>
+#include <Engine/Static/FNetworkSubsystem.hpp>
+#include <Engine/Static/FWindowSubsystem.hpp>
+#include <Engine/Static/FWorldSubsystem.hpp>
+#include <Engine/Static/IEngineSubsystem.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -21,163 +20,166 @@ namespace tkd::__internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Core engine class
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class Engine
+class Engine final
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
-    // Class Aliases
-    ///////////////////////////////////////////////////////////////////////////
-    using UThread = std::unique_ptr<FThread>;
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    static bool s_isInitialized;            //<! Flag indicating the init state
-    static int s_exitCode;                  //<! Exit code of the engine
-    static std::atomic<bool> s_isRunning;   //<! Flag indicating running state
-    static FString s_exitMessage;           //<! Exit message of the engine
-    static UThread s_mainThread;            //<! Main thread of the engine
+    bool m_initialized = false;                //<! Is the engine initialized
+    TAtomic<bool> m_running{ false };          //<! Is the engine running
+    int m_exitCode = 0;                        //<! Exit code of the engine
+    FString m_exitMessage;                     //<! Exit message of the engine
+    FEngineSettings m_settings;                //<! Engine settings
 #if TKD_ENGINE_CLIENT
-    static UThread s_renderThread;          //<! Render thread of the engine
+    TUniquePtr<FWindowSubsystem> m_window;     //<! Window subsystem
 #endif
-    static bool s_isDebugBuild;             //<! Flag indicating debug build
+    TUniquePtr<FNetworkSubsystem> m_network;   //<! Network subsystem
+    TUniquePtr<FWorldSubsystem> m_world;       //<! World subsystem
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    // Public types
-    ///////////////////////////////////////////////////////////////////////////
-#if TKD_ENGINE_CLIENT
-    using Window = tkd::__internal::Window;
-#endif
-    using Network = tkd::__internal::Network;
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    static FEngineSettings Settings;   //<! The engine settings
-    static UWorld World;               //<! The current world instance
-    static FInputManager Inputs;       //<! The input manager instance
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Function executed by the main thread
+    /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void MainThreadFunction(void);
-
-#if TKD_ENGINE_CLIENT
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Function executed by the render thread
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static void RenderThreadFunction(void);
-#endif
+    Engine(void) = default;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Print the engine's startup message
+    /// \brief Default destructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void PrintStartupMessage(void);
+    ~Engine();
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Disallow copy constructor and assignment operator
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_DISABLE_COPY(Engine)
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Initialize the engine
     ///
-    /// \param argc The number of command-line arguments
-    /// \param argv The array of command-line argument strings
+    /// \param argc The number of command line arguments
+    /// \param argv The command line arguments
     ///
-    /// \return True if the engine was successfully initialized, false
+    /// \return True if the engine was initialized successfully, false
     /// otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static bool Initialize(int argc, char* argv[]);
+    TKD_NODISCARD bool Initialize(int argc, char* argv[]);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Run the engine main loop
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Run(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Request engine shutdown
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RequestShutdown(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Shutdown the engine
     ///
-    /// \return True if the engine was successfully shutdown, false otherwise
-    ///
     ///////////////////////////////////////////////////////////////////////////
-    static bool Shutdown(void);
+    void Shutdown(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if the engine is a debug build
+    /// \brief Check if the engine is running
     ///
-    /// \return True if the engine is a debug build, false otherwise
+    /// \return True if the engine is running, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static bool IsDebugBuild(void);
+    TKD_NODISCARD bool IsRunning(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if the engine is initialized
     ///
-    ///////////////////////////////////////////////////////////////////////////
-    static bool IsInitialized(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Run the engine's main loop
+    /// \return True if the engine is initialized, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void Run(void);
+    TKD_NODISCARD bool IsInitialized(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the engine's exit code
+    /// \brief Get the engine settings
+    ///
+    /// \return Reference to the engine settings
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD const FEngineSettings& GetSettings(void) const noexcept;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the exit code
     ///
     /// \return The exit code of the engine
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static int GetExitCode(void);
+    TKD_NODISCARD int GetExitCode(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Print the engine's exit message
+    /// \brief Print the exit message
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void PrintExitMessage(void);
+    void PrintExitMessage(void) const;
+
+#if TKD_ENGINE_CLIENT
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the window subsystem
+    ///
+    /// \return Pointer to the window subsystem, or nullptr if not initialized
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD FWindowSubsystem* GetWindow(void) noexcept;
+#endif
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the engine's exit code
+    /// \brief Get the network subsystem
     ///
-    /// \param code The exit code to set
+    /// \return Pointer to the network subsystem, or nullptr if not initialized
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void SetExitCode(int code);
+    TKD_NODISCARD FNetworkSubsystem* GetNetwork(void) noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the engine's exit message
+    /// \brief Get the world subsystem
     ///
-    /// \param message The exit message to set
+    /// \return Pointer to the world subsystem, or nullptr if not initialized
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static void SetExitMessage(const FString& message);
+    TKD_NODISCARD FWorldSubsystem* GetWorld(void) noexcept;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Print startup message
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void PrintStartupMessage(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the game class to be used with the engine
-    ///
-    /// \tparam Game The game class to be used with the engine
+    /// \brief Setup the render callback for the window subsystem
     ///
     ///////////////////////////////////////////////////////////////////////////
-    template <typename Game>
-    static void BindGameClass(void)
-    {
-        static_assert(
-            std::is_base_of<tkd::IGame, Game>::value,
-            "Game must be derived from tkd::IGame"
-        );
-        // TODO: Implement binding logic if necessary
-    }
+    void SetupRenderCallback(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process command line arguments
+    ///
+    /// \param argc The number of command line arguments
+    /// \param argv The command line arguments
+    ///
+    /// \return True if command line arguments were processed successfully,
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool ProcessCommandLine(int argc, char* argv[]);
 };
 
 }   // namespace tkd::__internal
-
-///////////////////////////////////////////////////////////////////////////////
-// Forward declaration of Engine classes
-///////////////////////////////////////////////////////////////////////////////
-using Engine = tkd::__internal::Engine;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Weak symbols for game creation and destruction
