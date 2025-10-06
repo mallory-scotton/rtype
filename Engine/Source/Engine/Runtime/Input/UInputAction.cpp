@@ -18,7 +18,7 @@ UInputAction::UInputAction(
     , m_pressed(false)
     , m_held(false)
     , m_released(false)
-    , m_currentInput(EInput::Keyboard_A)
+    , m_currentInput(EInput::Unknown)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
