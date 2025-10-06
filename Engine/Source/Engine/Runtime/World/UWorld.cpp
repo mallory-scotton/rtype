@@ -97,4 +97,23 @@ void UWorld::EndPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 float UWorld::GetWorldTime(void) const { return m_worldTime; }
 
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::Render(IRenderer& renderer)
+{
+    for (const auto& actor: m_actors)
+    {
+        if (actor && actor->IsActive())
+        {
+            auto components = actor->GetComponents();
+            for (const auto& component: components)
+            {
+                if (component && component->IsActive())
+                {
+                    component->Render(renderer);
+                }
+            }
+        }
+    }
+}
+
 }   // namespace tkd
