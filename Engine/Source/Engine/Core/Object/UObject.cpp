@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Object/UObject.hpp>
+#include <Engine/Core/Object/IFunction.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Object/UProperty.hpp>
@@ -37,6 +38,12 @@ void UObject::RegisterProperty(IProperty* property)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UObject::RegisterFunction(IFunction* function)
+{
+    if (function) { m_functions[function->GetName()] = function; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
 ) const
 {
@@ -44,10 +51,25 @@ const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+const std::unordered_map<FString, IFunction*>& UObject::GetFunctions(void
+) const
+{
+    return m_functions;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 IProperty* UObject::GetProperty(const FString& name) const
 {
     auto it = m_properties.find(name);
     if (it != m_properties.end()) { return it->second; }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IFunction* UObject::GetFunction(const FString& name) const
+{
+    auto it = m_functions.find(name);
+    if (it != m_functions.end()) { return it->second; }
     return nullptr;
 }
 
