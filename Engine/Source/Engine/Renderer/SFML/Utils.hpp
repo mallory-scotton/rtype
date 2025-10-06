@@ -320,6 +320,46 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static sf::Glsl::Ivec4 Convert(const FVector4i& vec);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD keyboard key to an SFML keyboard key
+    ///
+    /// \param key The TKD keyboard key to convert
+    ///
+    /// \return The converted SFML keyboard key
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Keyboard::Key Convert(EKeyboardKeys key);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD mouse button to an SFML mouse button
+    ///
+    /// \param button The TKD mouse button to convert
+    ///
+    /// \return The converted SFML mouse button
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Mouse::Button Convert(EMouseButtons button);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD gamepad button to an SFML joystick button
+    ///
+    /// \param button The TKD gamepad button to convert
+    ///
+    /// \return The converted SFML joystick button
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static UInt32 Convert(EGamepadButtons button);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert a TKD gamepad axis to an SFML joystick axis
+    ///
+    /// \param axis The TKD gamepad axis to convert
+    ///
+    /// \return The converted SFML joystick axis
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static sf::Joystick::Axis Convert(EGamepadAxes axis);
 };
 
 }   // namespace tkd::SFML
