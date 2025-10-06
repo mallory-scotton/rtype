@@ -93,9 +93,23 @@ public:
     /// \return Reference to this UProperty instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T& operator=(const T& value)
+    UProperty<T>& operator=(const T& value)
     {
         m_value = value;
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Move operator to set the property value.
+    ///
+    /// \param value The new value to assign to the property.
+    ///
+    /// \return Reference to this UProperty instance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UProperty<T>& operator=(T&& value)
+    {
+        m_value = std::move(value);
         return *this;
     }
 
