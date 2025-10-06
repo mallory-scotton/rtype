@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
 #include <functional>
 #include <unordered_map>
@@ -23,6 +23,16 @@ namespace tkd
 // Forward declaration
 ///////////////////////////////////////////////////////////////////////////////
 class UObject;
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration for the source of class definition.
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EDefinitionSource
+{
+    Class,   //<! Defined in the class itself
+    Super    //<! Inherited from the parent class
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief UClass represents a class in the object system.
@@ -45,16 +55,23 @@ private:
     static std::unordered_map<FString, std::unique_ptr<UClass>>
         s_classRegistry;
 
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using Definition = std::pair<FString, EDefinitionSource>;
+    using DefinitionList = std::vector<Definition>;
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;                      //<! The name of the class
-    UClass* m_super;                     //<! Pointer to the superclass
-    bool m_isRegistered;                 //<! Registration status
-    std::vector<FString> m_properties;   //<! List of properties
-    Creator m_createInstance;            //<! Function to create an instance
-    std::vector<FString> m_functions;    //<! List of functions
+    FString m_name;                //<! The name of the class
+    UClass* m_super;               //<! Pointer to the superclass
+    bool m_isRegistered;           //<! Registration status
+    DefinitionList m_properties;   //<! List of properties
+    DefinitionList m_functions;    //<! List of functions
+    Creator m_createInstance;      //<! Function to create an instance
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -129,7 +146,7 @@ public:
     /// \return A constant reference to the vector of property pointers.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<FString>& GetProperties(void) const;
+    const DefinitionList& GetProperties(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the list of functions associated with the class.
@@ -137,7 +154,7 @@ public:
     /// \return A constant reference to the vector of function names.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<FString>& GetFunctions(void) const;
+    const DefinitionList& GetFunctions(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create an instance of the class.

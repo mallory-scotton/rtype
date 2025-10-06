@@ -45,13 +45,13 @@ void UClass::SetRegistered(bool registered) { m_isRegistered = registered; }
 const UClass* UClass::GetSuper(void) const { return m_super; }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::vector<FString>& UClass::GetProperties(void) const
+const UClass::DefinitionList& UClass::GetProperties(void) const
 {
     return m_properties;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::vector<FString>& UClass::GetFunctions(void) const
+const UClass::DefinitionList& UClass::GetFunctions(void) const
 {
     return m_functions;
 }
@@ -66,13 +66,23 @@ UObject* UClass::CreateInstance(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UClass::AddProperty(IProperty* property)
 {
-    if (property) { m_properties.push_back(property->GetName()); }
+    if (property)
+    {
+        m_properties.push_back(
+            std::make_pair(property->GetName(), EDefinitionSource::Class)
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UClass::AddFunction(const FString& functionName)
 {
-    if (!functionName.IsEmpty()) { m_functions.push_back(functionName); }
+    if (!functionName.IsEmpty())
+    {
+        m_functions.push_back(
+            std::make_pair(functionName, EDefinitionSource::Class)
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,6 +94,26 @@ UClass* UClass::RegisterClass(const FString& name, UClass* super)
     auto newClass = std::make_unique<UClass>(name, super);
     UClass* classPtr = newClass.get();
     s_classRegistry[name] = std::move(newClass);
+
+    const UClass* superClass = classPtr->GetSuper();
+    while (superClass && superClass->IsRegistered())
+    {
+        for (const auto& [propName, source]: superClass->GetProperties())
+        {
+            if (source == EDefinitionSource::Super) { continue; }
+            classPtr->m_properties.push_back(
+                std::make_pair(propName, EDefinitionSource::Super)
+            );
+        }
+        for (const auto& [funcName, source]: superClass->GetFunctions())
+        {
+            if (source == EDefinitionSource::Super) { continue; }
+            classPtr->m_functions.push_back(
+                std::make_pair(funcName, EDefinitionSource::Super)
+            );
+        }
+        superClass = superClass->GetSuper();
+    }
 
     return classPtr;
 }
