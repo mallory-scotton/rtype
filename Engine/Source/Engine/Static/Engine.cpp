@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Assets/URessource.hpp>
 #include <Engine/Debug.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -133,6 +134,9 @@ void Engine::Run(void)
     // Shutdown subsystems in reverse order
     std::cout << "[Engine] Shutting down subsystems..." << std::endl;
 
+    // Signal resource manager to stop accepting new loads
+    URessource::GetInstance().BeginShutdown();
+
     TKD_ENGINE_IF_SERVER({
         if (m_network)
         {
@@ -169,6 +173,9 @@ void Engine::RequestShutdown(void)
 void Engine::Shutdown(void)
 {
     RequestShutdown();
+
+    // Signal resource manager to stop accepting new loads
+    URessource::GetInstance().BeginShutdown();
 
     // Force shutdown if Run() wasn't called
     TKD_ENGINE_IF_SERVER({
@@ -258,9 +265,8 @@ void Engine::SetupRenderCallback(void)
             // Render world with read-only access
             if (auto* world = m_world->GetWorld())
             {
-                TKD_UNUSED(world);
                 // Render world entities
-                // world->Render(renderer);
+                world->Render(renderer);
 
                 // Show debug UI if in debug build
                 if (m_settings.debug)
