@@ -85,7 +85,7 @@ void FInputManager::Update(IWindow* window)
     for (auto& action: m_actions)
     {
         bool isPressed = false;
-        EInput pressedInput = EInput::Keyboard_A;
+        EInput pressedInput = EInput::Unknown;
 
         const auto& inputs = action.GetInputs();
         for (const auto& input: inputs)
@@ -137,6 +137,8 @@ void FInputManager::Update(IWindow* window)
             }
         }
 
+        if (pressedInput == EInput::Unknown) { continue; }
+
         if (isPressed)
         {
             action.Press(pressedInput);
@@ -158,7 +160,7 @@ void FInputManager::Update(IWindow* window)
         // Sum the contributions of all inputs to get the final axis value
         float combinedValue = 0.0f;
         float factor = 1.0f;
-        EInput activeInput = EInput::Keyboard_A;
+        EInput activeInput = EInput::Unknown;
 
         const auto& inputs = axis.GetInputs();
         for (const auto& [input, scale]: inputs)
@@ -226,6 +228,8 @@ void FInputManager::Update(IWindow* window)
                 }
             }
         }
+
+        if (activeInput == EInput::Unknown) { continue; }
 
         // Clamp combined value to [-1.0, 1.0]
         combinedValue = std::clamp(combinedValue, -1.0f, 1.0f);
