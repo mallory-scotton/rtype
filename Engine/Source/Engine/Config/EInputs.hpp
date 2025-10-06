@@ -20,6 +20,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 enum class EKeyboardKeys
 {
+    Unknown = -1,
     A = 0,
     B,
     C,
@@ -129,6 +130,7 @@ enum class EKeyboardKeys
 ///////////////////////////////////////////////////////////////////////////////
 enum class EMouseButtons
 {
+    Unknown = -1,
     Left = 101,
     Right,
     Middle,
@@ -142,6 +144,7 @@ enum class EMouseButtons
 ///////////////////////////////////////////////////////////////////////////////
 enum class EGamepadButtons
 {
+    Unknown = -1,
     A = 106,
     B,
     X,
@@ -165,6 +168,7 @@ enum class EGamepadButtons
 ///////////////////////////////////////////////////////////////////////////////
 enum class EGamepadAxes
 {
+    Unknown = -1,
     LeftX = 121,
     LeftY,
     RightX,
@@ -203,7 +207,8 @@ enum class EInputState
 ///////////////////////////////////////////////////////////////////////////////
 enum class EInput
 {
-    Keyboard_A = 0,
+    Unknown = -1,
+    Keyboard_A,
     Keyboard_B,
     Keyboard_C,
     Keyboard_D,
