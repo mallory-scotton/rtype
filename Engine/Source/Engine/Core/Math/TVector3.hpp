@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <cassert>
+#include <cmath>
 #include <Engine/Config.hpp>
 #include <ostream>
 #include <stdexcept>
