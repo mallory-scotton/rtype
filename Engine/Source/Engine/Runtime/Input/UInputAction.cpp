@@ -18,6 +18,7 @@ UInputAction::UInputAction(
     , m_pressed(false)
     , m_held(false)
     , m_released(false)
+    , m_currentInput(EInput::Keyboard_A)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ void UInputAction::Press(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_currentInput = input;
         m_pressed = true;
         this->Emit(Events::Pressed{ input });
     }
@@ -35,7 +37,10 @@ void UInputAction::Release(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_currentInput = input;
         m_pressed = false;
+        m_held = false;
+        m_released = true;
         this->Emit(Events::Released{ input });
     }
 }
@@ -45,10 +50,22 @@ void UInputAction::Hold(EInput input)
 {
     if (std::find(m_inputs.begin(), m_inputs.end(), input) != m_inputs.end())
     {
+        m_currentInput = input;
         m_held = true;
         this->Emit(Events::Held{ input });
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void UInputAction::Idle(void)
+{
+    m_pressed = false;
+    m_held = false;
+    m_released = false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+EInput UInputAction::GetCurrentInput(void) const { return m_currentInput; }
 
 ///////////////////////////////////////////////////////////////////////////////
 const FString& UInputAction::GetName(void) const { return m_name; }
