@@ -14,7 +14,8 @@ BP_Player::BP_Player(void)
     : APawn()
     , speed(*this, "Speed", 600.0f)
 {
-    AddComponent<USpriteComponent>("SpriteComponent");
+    auto SpriteComponent = AddComponent<USpriteComponent>("SpriteComponent");
+    SpriteComponent->SetTexturePath("Game/Assets/Images/T_PlayerShips.png");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
