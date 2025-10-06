@@ -16,6 +16,8 @@ AActor::AActor(const FString& name)
     , m_isActive(true)
     , m_components()
     , self(*this)
+    , OnActorBeginOverlap("OnActorBeginOverlap", *this)
+    , OnActorEndOverlap("OnActorEndOverlap", *this)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////

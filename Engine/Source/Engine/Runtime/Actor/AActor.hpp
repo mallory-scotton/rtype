@@ -11,6 +11,7 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/ClassRegistrar.hpp>
 #include <Engine/Core/Object/UClass.hpp>
+#include <Engine/Core/Object/UFunction.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
@@ -50,6 +51,13 @@ protected:
     // Class Member Access
     ///////////////////////////////////////////////////////////////////////////
     AActor& self;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    UFunction<void(AActor*)> OnActorBeginOverlap;
+    UFunction<void(AActor*)> OnActorEndOverlap;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
