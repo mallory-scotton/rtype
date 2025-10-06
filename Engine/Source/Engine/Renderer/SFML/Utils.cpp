@@ -327,6 +327,7 @@ sf::Keyboard::Key Utils::Convert(EKeyboardKeys key)
     case EKeyboardKeys::F14      : return sf::Keyboard::F14;
     case EKeyboardKeys::F15      : return sf::Keyboard::F15;
     case EKeyboardKeys::Pause    : return sf::Keyboard::Pause;
+    default                      : return sf::Keyboard::Unknown;
     }
 }
 
