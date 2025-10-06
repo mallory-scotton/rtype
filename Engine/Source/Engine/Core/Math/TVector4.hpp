@@ -4,6 +4,16 @@
 #pragma once
 
 ///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <cassert>
+#include <cmath>
+#include <Engine/Config.hpp>
+#include <Engine/Core/Math/Utils.hpp>
+#include <math.h>
+#include <type_traits>
+
+///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
@@ -38,33 +48,33 @@ public:
 #endif
         struct
         {
-            T x;   //!< The x-component of the vector.
-            T y;   //!< The y-component of the vector.
-            T z;   //!< The z-component of the vector.
-            T w;   //!< The w-component of the vector.
+            T x;   //<! The x-component of the vector.
+            T y;   //<! The y-component of the vector.
+            T z;   //<! The z-component of the vector.
+            T w;   //<! The w-component of the vector.
         };
 #ifdef __GNUC__
     #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
-        T data[4];   //!< Array access to the components.
+        T data[4];   //<! Array access to the components.
     };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Member
     ///////////////////////////////////////////////////////////////////////////
-    static const TVector4 Zero;   //!< A vector with all components set to 0.
-    static const TVector4 One;    //!< A vector with all components set to 1.
+    static const TVector4 Zero;   //<! A vector with all components set to 0.
+    static const TVector4 One;    //<! A vector with all components set to 1.
     static const TVector4
-        UnitX;   //!< A unit vector along the x-axis (1, 0, 0, 0).
+        UnitX;   //<! A unit vector along the x-axis (1, 0, 0, 0).
     static const TVector4
-        UnitY;   //!< A unit vector along the y-axis (0, 1, 0, 0).
+        UnitY;   //<! A unit vector along the y-axis (0, 1, 0, 0).
     static const TVector4
-        UnitZ;   //!< A unit vector along the z-axis (0, 0, 1, 0).
+        UnitZ;   //<! A unit vector along the z-axis (0, 0, 1, 0).
     static const TVector4
-        UnitW;   //!< A unit vector along the w-axis (0, 0, 0, 1).
+        UnitW;   //<! A unit vector along the w-axis (0, 0, 0, 1).
 
 public:
     ///////////////////////////////////////////////////////////////////////////
