@@ -130,7 +130,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T, typename... Args>
-    void AddComponent(Args&&... args)
+    T* AddComponent(Args&&... args)
     {
         static_assert(
             std::is_base_of<UActorComponent, T>::value,
@@ -142,6 +142,8 @@ public:
         );
 
         newComponent->SetOwner(this);
+
+        return reinterpret_cast<T*>(newComponent.get());
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -150,10 +152,11 @@ public:
     /// \param component The component to add
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void AddComponent(Component component)
+    UActorComponent* AddComponent(Component component)
     {
         auto newComponent = m_components.EmplaceBack(std::move(component));
         newComponent->SetOwner(this);
+        return newComponent.get();
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -162,10 +165,11 @@ public:
     /// \param component Pointer to the component to add
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void AddComponent(UActorComponent* component)
+    UActorComponent* AddComponent(UActorComponent* component)
     {
         auto newComponent = m_components.EmplaceBack(component);
         newComponent->SetOwner(this);
+        return newComponent.get();
     }
 
     ///////////////////////////////////////////////////////////////////////////
