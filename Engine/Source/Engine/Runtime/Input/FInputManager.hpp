@@ -7,6 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core/Containers.hpp>
+#include <Engine/Renderer/Interfaces/IWindow.hpp>
 #include <Engine/Runtime/Input/UInputAction.hpp>
 #include <Engine/Runtime/Input/UInputAxis.hpp>
 #include <optional>
@@ -126,6 +128,14 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetGamepadEnabled(bool enable);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the input manager state
+    ///
+    /// \param window Pointer to the window for context (if needed)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Update(IWindow* window);
 };
 
 }   // namespace tkd
