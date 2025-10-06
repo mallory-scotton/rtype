@@ -37,6 +37,8 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     const FEngineSettings& m_settings;   //<! Reference to engine settings
+    TUniquePtr<IGraphicsFactory>
+        m_graphicsFactory;          //<! Unique pointer to graphics factory
     TUniquePtr<IWindow> m_window;   //<! Unique pointer to the window interface
     TUniquePtr<IRenderer> m_renderer;   //<! Unique pointer to the renderer
     TUniquePtr<FInputManager>

@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FWindowSubsystem.hpp>
+#include <Engine/Assets/URessource.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -24,10 +25,13 @@ bool FWindowSubsystem::Initialize(void)
     try
     {
         // Create graphics factory
-        auto factory = std::make_unique<SFML::GraphicsFactory>();
+        m_graphicsFactory = std::make_unique<SFML::GraphicsFactory>();
+
+        // Setup the factory for the ressource manager
+        URessource::GetInstance().SetGraphicsFactory(m_graphicsFactory.get());
 
         // Create window
-        m_window = factory->CreateWindow(
+        m_window = m_graphicsFactory->CreateWindow(
             m_settings.game.title,
             true,
             FVector2i::Zero,
@@ -41,7 +45,7 @@ bool FWindowSubsystem::Initialize(void)
         if (!m_window || !m_window->IsOpen()) { return false; }
 
         // Create renderer
-        m_renderer = factory->CreateRenderer(m_window.get());
+        m_renderer = m_graphicsFactory->CreateRenderer(m_window.get());
         if (!m_renderer)
         {
             m_window->Close();
