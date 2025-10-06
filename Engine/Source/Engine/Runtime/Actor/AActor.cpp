@@ -12,8 +12,8 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 AActor::AActor(const FString& name)
     : UObject(name)
-    , m_transform(FTransform::Identity)
-    , m_isActive(true)
+    , m_transform(*this, "Transform", FTransform::Identity)
+    , m_isActive(*this, "IsActive", true)
     , m_components()
     , self(*this)
     , OnActorBeginOverlap("OnActorBeginOverlap", *this)
@@ -48,7 +48,10 @@ void AActor::EndPlay(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FTransform& AActor::GetTransform(void) const { return m_transform; }
+const FTransform& AActor::GetTransform(void) const
+{
+    return m_transform.GetValue();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetTransform(const FTransform& transform)

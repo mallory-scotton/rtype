@@ -9,10 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
-#include <Engine/Core/Object/ClassRegistrar.hpp>
-#include <Engine/Core/Object/UClass.hpp>
-#include <Engine/Core/Object/UFunction.hpp>
-#include <Engine/Core/Object/UObject.hpp>
+#include <Engine/Core/Object.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
 #include <memory>
@@ -42,15 +39,15 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FTransform m_transform;            //<! The actor's transform
-    Bool m_isActive;                   //<! Whether the actor is active
-    TVector<Component> m_components;   //<! The actor's components
+    UProperty<FTransform> m_transform;   //<! The actor's transform
+    UProperty<Bool> m_isActive;          //<! Whether the actor is active
+    TVector<Component> m_components;     //<! The actor's components
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member Access
     ///////////////////////////////////////////////////////////////////////////
-    AActor& self;
+    AActor& self;   //<! Reference to self for event bindings
 
 public:
     ///////////////////////////////////////////////////////////////////////////
