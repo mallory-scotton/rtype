@@ -51,6 +51,12 @@ const std::vector<FString>& UClass::GetProperties(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+const std::vector<FString>& UClass::GetFunctions(void) const
+{
+    return m_functions;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 UObject* UClass::CreateInstance(void) const
 {
     if (m_createInstance) { return m_createInstance(); }
@@ -61,6 +67,12 @@ UObject* UClass::CreateInstance(void) const
 void UClass::AddProperty(IProperty* property)
 {
     if (property) { m_properties.push_back(property->GetName()); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UClass::AddFunction(const FString& functionName)
+{
+    if (!functionName.IsEmpty()) { m_functions.push_back(functionName); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

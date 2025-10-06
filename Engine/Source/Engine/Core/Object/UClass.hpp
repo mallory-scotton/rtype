@@ -54,6 +54,7 @@ private:
     bool m_isRegistered;                 //<! Registration status
     std::vector<FString> m_properties;   //<! List of properties
     Creator m_createInstance;            //<! Function to create an instance
+    std::vector<FString> m_functions;    //<! List of functions
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -131,6 +132,14 @@ public:
     const std::vector<FString>& GetProperties(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the list of functions associated with the class.
+    ///
+    /// \return A constant reference to the vector of function names.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const std::vector<FString>& GetFunctions(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Create an instance of the class.
     ///
     /// \return Pointer to the newly created UObject instance, or nullptr if
@@ -146,6 +155,14 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void AddProperty(IProperty* property);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a function to the class.
+    ///
+    /// \param functionName The name of the function to add.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddFunction(const FString& functionName);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
