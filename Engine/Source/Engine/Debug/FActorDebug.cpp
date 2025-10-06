@@ -173,8 +173,11 @@ void FActorDebug::DisplayClassTree(
     // Show properties on same line
     ImGui::SameLine();
     auto properties = _class->GetProperties();
+    auto functions = _class->GetFunctions();
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-    ImGui::Text("(%lu properties)", properties.size());
+    ImGui::Text(
+        "(%lu properties, %lu functions)", properties.size(), functions.size()
+    );
     ImGui::PopStyleColor();
 
     if (nodeOpen && !children.empty())
@@ -185,8 +188,17 @@ void FActorDebug::DisplayClassTree(
             ImGui::Indent();
             DisplayClassProperties(_class);
             ImGui::Unindent();
-            ImGui::Spacing();
         }
+
+        // Display functions
+        if (!functions.empty())
+        {
+            ImGui::Indent();
+            DisplayClassFunctions(_class);
+            ImGui::Unindent();
+        }
+
+        if (!properties.empty() || !functions.empty()) { ImGui::Spacing(); }
 
         // Display children
         for (auto* child: children) { DisplayClassTree(child, allClasses); }
@@ -195,19 +207,39 @@ void FActorDebug::DisplayClassTree(
     }
     else if (nodeOpen && children.empty())
     {
-        // For leaf nodes, show properties in tooltip
-        if (ImGui::IsItemHovered() && !properties.empty())
+        // For leaf nodes, show properties and functions in tooltip
+        if (ImGui::IsItemHovered() &&
+            (!properties.empty() || !functions.empty()))
         {
             ImGui::BeginTooltip();
-            ImGui::PushStyleColor(
-                ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.5f, 1.0f)
-            );
-            ImGui::Text("Properties:");
-            ImGui::PopStyleColor();
-            for (const auto& property: properties)
+
+            if (!properties.empty())
             {
-                ImGui::BulletText("%s", property.CStr());
+                ImGui::PushStyleColor(
+                    ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.5f, 1.0f)
+                );
+                ImGui::Text("Properties:");
+                ImGui::PopStyleColor();
+                for (const auto& property: properties)
+                {
+                    ImGui::BulletText("%s", property.CStr());
+                }
             }
+
+            if (!functions.empty())
+            {
+                if (!properties.empty()) { ImGui::Spacing(); }
+                ImGui::PushStyleColor(
+                    ImGuiCol_Text, ImVec4(0.5f, 0.9f, 1.0f, 1.0f)
+                );
+                ImGui::Text("Functions:");
+                ImGui::PopStyleColor();
+                for (const auto& function: functions)
+                {
+                    ImGui::BulletText("%s", function.CStr());
+                }
+            }
+
             ImGui::EndTooltip();
         }
     }
@@ -231,6 +263,29 @@ void FActorDebug::DisplayClassProperties(UClass* _class)
     {
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f));
         ImGui::BulletText("%s", property.CStr());
+        ImGui::PopStyleColor();
+    }
+    ImGui::Unindent();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FActorDebug::DisplayClassFunctions(UClass* _class)
+{
+    if (!_class) { return; }
+
+    auto functions = _class->GetFunctions();
+
+    if (functions.empty()) { return; }
+
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.9f, 1.0f, 1.0f));
+    ImGui::Text("Functions:");
+    ImGui::PopStyleColor();
+
+    ImGui::Indent();
+    for (const auto& functionName: functions)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.9f, 1.0f, 1.0f));
+        ImGui::BulletText("%s", functionName.CStr());
         ImGui::PopStyleColor();
     }
     ImGui::Unindent();
@@ -400,6 +455,57 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
                     actor->GetProperty(property)->ToString().CStr()
                 );
                 ImGui::PopStyleColor();
+            }
+            ImGui::Unindent();
+        }
+
+        // Display functions
+        auto functions =
+            actorClass ? actorClass->GetFunctions() : std::vector<FString>();
+        if (!functions.empty())
+        {
+            ImGui::Spacing();
+            ImGui::PushStyleColor(
+                ImGuiCol_Text, ImVec4(0.5f, 0.9f, 1.0f, 1.0f)
+            );
+            ImGui::Text("Functions:");
+            ImGui::PopStyleColor();
+
+            ImGui::Indent();
+            for (const auto& functionName: functions)
+            {
+                IFunction* function = actor->GetFunction(functionName);
+                bool isBound = function ? function->IsBound() : false;
+
+                if (isBound)
+                {
+                    ImGui::PushStyleColor(
+                        ImGuiCol_Text, ImVec4(0.4f, 1.0f, 0.4f, 1.0f)
+                    );
+                    ImGui::BulletText("%s [BOUND]", functionName.CStr());
+                }
+                else
+                {
+                    ImGui::PushStyleColor(
+                        ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f)
+                    );
+                    ImGui::BulletText("%s [UNBOUND]", functionName.CStr());
+                }
+                ImGui::PopStyleColor();
+
+                // Show tooltip with more info
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::PushStyleColor(
+                        ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.5f, 1.0f)
+                    );
+                    ImGui::Text("Function: %s", functionName.CStr());
+                    ImGui::PopStyleColor();
+                    ImGui::Separator();
+                    ImGui::Text("Status: %s", isBound ? "Bound" : "Not Bound");
+                    ImGui::EndTooltip();
+                }
             }
             ImGui::Unindent();
         }

@@ -78,6 +78,14 @@ private:
     void DisplayClassProperties(UClass* _class);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Display functions for a class
+    ///
+    /// \param _class The class whose functions to display
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void DisplayClassFunctions(UClass* _class);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Display actor information
     ///
     /// \param actor The actor to display
