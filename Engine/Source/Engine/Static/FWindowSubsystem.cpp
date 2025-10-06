@@ -142,8 +142,7 @@ void FWindowSubsystem::ThreadLoop(void)
             std::unique_lock lock(m_windowMutex);
             m_window->Update(deltaTime);
 
-            // TODO: process input events
-            // if (m_inputManager) { m_inputManager->Update(); }
+            if (m_inputManager) { m_inputManager->Update(m_window.get()); }
         }
 
         // Render frame
