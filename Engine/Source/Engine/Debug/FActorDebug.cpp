@@ -220,8 +220,9 @@ void FActorDebug::DisplayClassTree(
                 );
                 ImGui::Text("Properties:");
                 ImGui::PopStyleColor();
-                for (const auto& property: properties)
+                for (const auto& [property, source]: properties)
                 {
+                    if (source == EDefinitionSource::Super) { continue; }
                     ImGui::BulletText("%s", property.CStr());
                 }
             }
@@ -234,8 +235,9 @@ void FActorDebug::DisplayClassTree(
                 );
                 ImGui::Text("Functions:");
                 ImGui::PopStyleColor();
-                for (const auto& function: functions)
+                for (const auto& [function, source]: functions)
                 {
+                    if (source == EDefinitionSource::Super) { continue; }
                     ImGui::BulletText("%s", function.CStr());
                 }
             }
@@ -259,8 +261,9 @@ void FActorDebug::DisplayClassProperties(UClass* _class)
     ImGui::PopStyleColor();
 
     ImGui::Indent();
-    for (const auto& property: properties)
+    for (const auto& [property, source]: properties)
     {
+        if (source == EDefinitionSource::Super) { continue; }
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f));
         ImGui::BulletText("%s", property.CStr());
         ImGui::PopStyleColor();
@@ -282,8 +285,9 @@ void FActorDebug::DisplayClassFunctions(UClass* _class)
     ImGui::PopStyleColor();
 
     ImGui::Indent();
-    for (const auto& functionName: functions)
+    for (const auto& [functionName, source]: functions)
     {
+        if (source == EDefinitionSource::Super) { continue; }
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.9f, 1.0f, 1.0f));
         ImGui::BulletText("%s", functionName.CStr());
         ImGui::PopStyleColor();
@@ -432,8 +436,8 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
         }
 
         // Display class properties
-        auto properties =
-            actorClass ? actorClass->GetProperties() : std::vector<FString>();
+        auto properties = actorClass ? actorClass->GetProperties()
+                                     : UClass::DefinitionList();
         if (!properties.empty())
         {
             ImGui::Spacing();
@@ -444,8 +448,9 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
             ImGui::PopStyleColor();
 
             ImGui::Indent();
-            for (const auto& property: properties)
+            for (const auto& [property, source]: properties)
             {
+                if (source == EDefinitionSource::Super) { continue; }
                 ImGui::PushStyleColor(
                     ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f)
                 );
@@ -461,7 +466,7 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
 
         // Display functions
         auto functions =
-            actorClass ? actorClass->GetFunctions() : std::vector<FString>();
+            actorClass ? actorClass->GetFunctions() : UClass::DefinitionList();
         if (!functions.empty())
         {
             ImGui::Spacing();
@@ -472,8 +477,9 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
             ImGui::PopStyleColor();
 
             ImGui::Indent();
-            for (const auto& functionName: functions)
+            for (const auto& [functionName, source]: functions)
             {
+                if (source == EDefinitionSource::Super) { continue; }
                 IFunction* function = actor->GetFunction(functionName);
                 bool isBound = function ? function->IsBound() : false;
 
