@@ -7,7 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Containers.hpp>
+#include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 
@@ -16,18 +17,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Enumeration for property flags.
-///
-///////////////////////////////////////////////////////////////////////////////
-enum class EPropertyFlags : UInt32
-{
-    None = 0,                //<! No flags
-    EditAnywhere = 1 << 0,   //<! Property can be edited anywhere
-    Replicated = 1 << 1,     //<! Property is replicated over the network
-    ReadOnly = 1 << 2        //<! Property is read-only
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Template class for UProperty with type and flags.
@@ -181,21 +170,51 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     virtual FString ToString(void) const override
     {
-        if constexpr (std::is_same_v<T, FString> ||
-                      std::is_same_v<T, std::string>)
-        {
-            return m_value;
-        }
-        else if constexpr (std::is_arithmetic_v<T>)
-        {
-            return std::to_string(m_value);
-        }
-        else if constexpr (std::is_same_v<T, bool>)
-        {
-            return m_value ? "true" : "false";
-        }
-        else { return "<Unsupported Type>"; }
+        return FString::ToString(m_value);
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sets the value of the property.
+    ///
+    /// \param value The new value for the property.
+    /// \param size The size of the value in bytes.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetValue(const void* value, SizeT size) override
+    {
+        if (size != sizeof(T))
+        {
+            throw std::invalid_argument(
+                "Size mismatch in SetValue: expected " +
+                std::to_string(sizeof(T)) + ", got " + std::to_string(size)
+            );
+        }
+        m_value = *static_cast<const T*>(value);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the value of the property.
+    ///
+    /// \param value The new value for the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetValue(const T& value) { m_value = value; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the value of the property.
+    ///
+    /// \param value The new value for the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetValue(T&& value) { m_value = std::move(value); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the flags associated with the property.
+    ///
+    /// \return The property flags.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual UInt32 GetFlags(void) const override { return Flags; }
 };
 
 }   // namespace tkd
