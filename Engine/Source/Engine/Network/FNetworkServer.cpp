@@ -16,6 +16,7 @@ FNetworkServer::FNetworkServer(UInt16 port)
     , m_lastUpdate(SteadyClock::now())
 {
     InitializePacketManager();
+    SetupDefaultHandlers();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,28 +46,42 @@ void FNetworkServer::DisconnectClient(
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkServer::Start(void)
 {
-    if (m_running.load()) { return true; }
+    if (m_running.load()) {
+        std::cout << "[SERVER] Already running" << std::endl;
+        return true;
+    }
+
+    std::cout << "[SERVER] Starting server on port " << m_port << std::endl;
 
     try
     {
         // Create and bind socket
         m_socket = std::make_unique<FSocket>(m_ioContext);
         m_socket->open(asio::ip::udp::v4());
+
+        std::cout << "[SERVER] Socket created, binding to port " << m_port << std::endl;
         m_socket->bind(FEndpoint(asio::ip::udp::v4(), m_port));
+        std::cout << "[SERVER] Socket bound successfully" << std::endl;
 
         m_running = true;
 
         // Start network thread
-        m_networkThread =
-            std::make_unique<FThread>([this]() { RunNetworkThread(); });
+        std::cout << "[SERVER] Starting network thread" << std::endl;
+        m_networkThread = std::make_unique<FThread>([this]() {
+            std::cout << "[SERVER] Network thread started" << std::endl;
+            RunNetworkThread();
+        });
+        m_networkThread->Start();
 
-        // Start receiving
+        std::cout << "[SERVER] Starting packet reception" << std::endl;
         StartReceive();
 
+        std::cout << "[SERVER] Server started successfully on port " << m_port << std::endl;
         return true;
     }
-    catch (const std::exception&)
+    catch (const std::exception& e)
     {
+        std::cerr << "[SERVER] Failed to start: " << e.what() << std::endl;
         Stop();
         return false;
     }
