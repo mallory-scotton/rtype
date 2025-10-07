@@ -34,11 +34,11 @@ bool FNetworkSubsystem::Initialize(void)
         }
         else if (m_config.mode == Mode::Client)
         {
-            // m_client = std::make_unique<FNetworkClient>();
-            // if (!m_client->Connect(m_config.host, m_config.port))
-            // {
-            //     return false;
-            // }
+            m_client = std::make_unique<FNetworkClient>();
+            if (!m_client->Connect(m_config.host, m_config.port))
+            {
+                return false;
+            }
         }
 
         m_initialized.store(true, std::memory_order_release);
@@ -59,11 +59,11 @@ FNetworkServer* FNetworkSubsystem::GetServer(void) noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// FNetworkClient* FNetworkSubsystem::GetClient(void) noexcept
-// {
-//     std::shared_lock lock(m_networkMutex);
-//     return m_client.get();
-// }
+FNetworkClient* FNetworkSubsystem::GetClient(void) noexcept
+{
+    std::shared_lock lock(m_networkMutex);
+    return m_client.get();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 FNetworkSubsystem::Mode FNetworkSubsystem::GetMode(void) const noexcept
@@ -93,6 +93,7 @@ UInt64 FNetworkSubsystem::GetBytesReceivedPerSecond(void) const noexcept
 void FNetworkSubsystem::ThreadLoop(void)
 {
     TimePoint lastStatsUpdate = SteadyClock::now();
+    TimePoint lastUpdateTime = SteadyClock::now();
     UInt64 totalBytesSent = 0;
     UInt64 totalBytesReceived = 0;
 
@@ -100,33 +101,22 @@ void FNetworkSubsystem::ThreadLoop(void)
     {
         TimePoint now = SteadyClock::now();
 
+        float deltaTime = std::chrono::duration<float>(now - lastUpdateTime).count();
+        lastUpdateTime = now;  // Update for next frame
+
         if (m_config.mode == Mode::Server && m_server)
         {
-            // std::unique_lock lock(m_networkMutex);
+            std::unique_lock lock(m_networkMutex);
 
-            // // Process server updates
-            // m_server->ProcessMessages();
-
-            // // Update connection count
-            // m_connectedClients.store(
-            //     m_server->GetConnectedClientCount(),
-            //     std::memory_order_release
-            // );
-
-            // // Get network stats
-            // totalBytesSent += m_server->GetBytesSent();
-            // totalBytesReceived += m_server->GetBytesReceived();
+            // Process server updates
+            m_server->Update(deltaTime);
         }
-        else if (m_config.mode == Mode::Client /*&& m_client*/)
+        else if (m_config.mode == Mode::Client && m_client)
         {
-            // std::unique_lock lock(m_networkMutex);
+            std::unique_lock lock(m_networkMutex);
 
-            // // Process client updates
-            // m_client->ProcessMessages();
-
-            // // Get network stats
-            // totalBytesSent += m_client->GetBytesSent();
-            // totalBytesReceived += m_client->GetBytesReceived();
+            // Process client updates
+            m_client->Update(deltaTime);
         }
 
         // Update statistics every second
@@ -161,11 +151,11 @@ void FNetworkSubsystem::ThreadLoop(void)
             m_server.reset();
         }
 
-        // if (m_client)
-        // {
-        //     m_client->Disconnect();
-        //     m_client.reset();
-        // }
+        if (m_client)
+        {
+            m_client->Disconnect();
+            m_client.reset();
+        }
     }
 }
 
