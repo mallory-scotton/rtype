@@ -39,10 +39,13 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<FTransform> m_transform;   //<! The actor's transform
-    UProperty<Bool> m_isActive;          //<! Whether the actor is active
-    TVector<Component> m_components;     //<! The actor's components
-    bool m_markedForDeletion;            //<! Marked for deletion
+    UProperty<
+        FTransform,
+        EPropertyFlags::Replicated | EPropertyFlags::EditAnywhere>
+        m_transform;                   //<! The actor's transform
+    UProperty<Bool> m_isActive;        //<! Whether the actor is active
+    TVector<Component> m_components;   //<! The actor's components
+    bool m_markedForDeletion;          //<! Marked for deletion
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
