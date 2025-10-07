@@ -29,6 +29,16 @@ FEngineSettings Engine::Settings = FEngineSettings();
 UWorld Engine::World = UWorld();
 FInputManager Engine::Inputs = FInputManager();
 
+// Add these new static member definitions:
+#if TKD_ENGINE_SERVER
+std::unique_ptr<FNetworkServer> Engine::s_networkServer = nullptr;
+#endif
+#if TKD_ENGINE_CLIENT
+std::unique_ptr<FNetworkClient> Engine::s_networkClient = nullptr;
+std::string Engine::s_serverHost = "127.0.0.1";
+UInt16 Engine::s_serverPort = 8080;
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 void Engine::PrintStartupMessage(void)
 {
@@ -151,6 +161,14 @@ bool Engine::Initialize(int argc, char* argv[])
     args.AddFlags("port", "Server port number", a_port, false);
 #endif
 
+#if TKD_ENGINE_CLIENT
+    std::string a_host = "127.0.0.1";
+    UInt16 a_port = 8080;
+
+    args.AddFlags("host", "Server hostname or IP address to connect to", a_host, false);
+    args.AddFlags("port", "Server port number to connect to", a_port, false);
+#endif
+
     // Try to process command-line arguments
     if (!args.Process(argc, argv))
     {
@@ -169,13 +187,43 @@ bool Engine::Initialize(int argc, char* argv[])
     // Initialize input manager
     Inputs.Initialize(Settings);
 
+// #if TKD_ENGINE_SERVER
+//     // Initialize network subsystem if in server mode
+//     if (!Network::Initialize(a_port))
+//     {
+//         s_exitCode = TKD_EXIT_FAILURE;
+//         s_exitMessage = "Failed to initialize the network subsystem.";
+//         return false;
+//     }
+// #endif
+
 #if TKD_ENGINE_SERVER
-    // Initialize network subsystem if in server mode
-    if (!Network::Initialize(a_port))
+    // Create and start the network server
+    s_networkServer = std::make_unique<FNetworkServer>(a_port);
+    if (!s_networkServer->Start())
     {
         s_exitCode = TKD_EXIT_FAILURE;
-        s_exitMessage = "Failed to initialize the network subsystem.";
+        s_exitMessage = "Failed to start network server on port " + std::to_string(a_port);
         return false;
+    }
+    std::cout << "Server started successfully on port " << a_port << std::endl;
+#endif
+
+#if TKD_ENGINE_CLIENT
+    // Create network client (don't connect yet)
+    s_networkClient = std::make_unique<FNetworkClient>();
+    s_serverHost = a_host;
+    s_serverPort = a_port;
+    std::cout << "Client initialized, will connect to " << a_host << ":" << a_port << std::endl;
+
+    // Attempt to connect to server
+    if (s_networkClient->Connect(a_host, a_port))
+    {
+        std::cout << "connected to server?" << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to initiate connection to server" << std::endl;
     }
 #endif
 
@@ -234,6 +282,18 @@ void Engine::Run(void)
 
     while (s_isRunning)
     {
+        // Update network components
+#if TKD_ENGINE_SERVER
+        if (s_networkServer->IsRunning()) {
+            s_networkServer->Update(0.01f); // 10ms delta
+        }
+#endif
+#if TKD_ENGINE_CLIENT
+        if (s_networkClient->IsRunning()) {
+            s_networkClient->Update(0.01f); // 10ms delta
+        }
+#endif
+
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
