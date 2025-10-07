@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Player/BP_Player.hpp>
+#include <Core/Weapons/BP_Projectile.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -15,6 +16,7 @@ BP_Player::BP_Player(void)
     , speed(*this, "Speed", 200.0f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , m_lastVelocity(FVector2f::Zero)
+    , m_lastFiredTime(0.0f)
 {
     auto SpriteComponent =
         AddComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
@@ -64,6 +66,9 @@ void BP_Player::Tick(Float32 deltaTime)
     // Call Super Tick
     Super::Tick(deltaTime);
 
+    // Add time to last fired time
+    m_lastFiredTime += deltaTime;
+
     auto vel = velocity.GetValue();
     auto SpriteComponent =
         GetComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
@@ -106,6 +111,38 @@ void BP_Player::Tick(Float32 deltaTime)
 
     // Reset velocity for next frame
     velocity = FVector2f::Zero;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::Fire(void)
+{
+    if (m_lastFiredTime >= 0.25f)
+    {
+        // Reset last fired time
+        m_lastFiredTime = 0.0f;
+
+        // Get player transform
+        FTransform transform = GetTransform();
+        transform.SetRotation(FRotator(0.f, 0.f, 0.f));
+        transform.SetScale(FVector3f::One);
+
+        // Spawn a projectile
+        World::SpawnActor<BP_Projectile>("BP_Projectile", transform);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::MoveHorizontal(Float32 value)
+{
+    value = Math<float>::Clamp(value, -1.0f, 1.0f);
+    velocity.GetValue().x += value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::MoveVertical(Float32 value)
+{
+    value = Math<float>::Clamp(value, -1.0f, 1.0f);
+    velocity.GetValue().y += value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
