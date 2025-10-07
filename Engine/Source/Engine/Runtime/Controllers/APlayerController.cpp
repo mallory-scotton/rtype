@@ -56,6 +56,14 @@ void APlayerController::UnPossess(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void APlayerController::EndPlay(void)
+{
+    ClearInputBindings();
+    m_inputManager = nullptr;
+    AController::EndPlay();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void APlayerController::SetInputManager(FInputManager* inputManager)
 {
     if (m_inputManager == inputManager) { return; }

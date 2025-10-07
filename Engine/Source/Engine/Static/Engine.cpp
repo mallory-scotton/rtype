@@ -137,6 +137,14 @@ void Engine::Run(void)
     // Signal resource manager to stop accepting new loads
     URessource::GetInstance().BeginShutdown();
 
+    // Shutdown world FIRST (before window) so actors can properly clean up
+    // their input bindings while the input manager still exists
+    if (m_world)
+    {
+        m_world->Shutdown();
+        m_world.reset();
+    }
+
     TKD_ENGINE_IF_SERVER({
         if (m_network)
         {
@@ -152,12 +160,6 @@ void Engine::Run(void)
             m_window.reset();
         }
     })
-
-    if (m_world)
-    {
-        m_world->Shutdown();
-        m_world.reset();
-    }
 
     m_running.store(false, std::memory_order_release);
     std::cout << "[Engine] Shutdown complete" << std::endl;
