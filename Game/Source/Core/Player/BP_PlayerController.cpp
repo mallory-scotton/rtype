@@ -29,9 +29,8 @@ void BP_PlayerController::SetupInputBindings(void)
             "HorizontalMoves",
             [player](float scale)
             {
-                FTransform transform = player->GetTransform();
-                transform.Translate(TVector3<float>(scale, 0.0f, 0.0f));
-                player->SetTransform(transform);
+                auto velocity = player->velocity.GetValue();
+                player->velocity = FVector2f(scale, velocity.y);
             }
         );
 
@@ -39,9 +38,8 @@ void BP_PlayerController::SetupInputBindings(void)
             "VerticalMoves",
             [player](float scale)
             {
-                FTransform transform = player->GetTransform();
-                transform.Translate(TVector3<float>(0.0f, scale, 0.0f));
-                player->SetTransform(transform);
+                auto velocity = player->velocity.GetValue();
+                player->velocity = FVector2f(velocity.x, scale);
             }
         );
     }
