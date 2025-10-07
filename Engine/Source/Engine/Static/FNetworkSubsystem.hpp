@@ -54,7 +54,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     Config m_config;
     TUniquePtr<FNetworkServer> m_server;
-    // TUniquePtr<FNetworkClient> m_client;
+    TUniquePtr<FNetworkClient> m_client;
     mutable std::shared_mutex m_networkMutex;
     TAtomic<SizeT> m_connectedClients{ 0 };
     TAtomic<UInt64> m_bytesSentPerSecond{ 0 };
@@ -92,7 +92,7 @@ public:
     /// \return The client instance, or nullptr if not in client mode
     ///
     ///////////////////////////////////////////////////////////////////////////
-    // TKD_NODISCARD FNetworkClient* GetClient(void) noexcept;
+    TKD_NODISCARD FNetworkClient* GetClient(void) noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current network mode
