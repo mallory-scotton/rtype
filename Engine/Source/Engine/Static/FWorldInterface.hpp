@@ -79,7 +79,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
-    static T* SpawnActorFromClass(
+    static T* SpawnActor(
         UClass* actorClass, const FTransform& transform = FTransform::Identity
     )
     {
@@ -93,7 +93,7 @@ public:
         T* result = nullptr;
         worldSubsystem->WithWorld(
             [&](UWorld& world)
-            { result = world.SpawnActorFromClass<T>(actorClass, transform); }
+            { result = world.SpawnActor<T>(actorClass, transform); }
         );
 
         return result;
@@ -111,7 +111,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
-    static T* SpawnActorByName(
+    static T* SpawnActor(
         const FString& className, const FTransform& transform = FTransform()
     )
     {
@@ -125,7 +125,7 @@ public:
         T* result = nullptr;
         worldSubsystem->WithWorld(
             [&](UWorld& world)
-            { result = world.SpawnActorByName<T>(className, transform); }
+            { result = world.SpawnActor<T>(className, transform); }
         );
 
         return result;
