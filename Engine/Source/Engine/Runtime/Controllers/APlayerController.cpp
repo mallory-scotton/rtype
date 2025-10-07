@@ -16,4 +16,10 @@ APlayerController::APlayerController(void)
     , m_manager(nullptr)
 {}
 
+///////////////////////////////////////////////////////////////////////////////
+void APlayerController::SetInputManager(FInputManager* inputManager)
+{
+    m_manager = inputManager;
+}
+
 }   // namespace tkd
