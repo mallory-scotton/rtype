@@ -77,12 +77,12 @@ void FWorldSubsystem::ThreadLoop(void)
         auto ctrl =
             m_world->SpawnActor<APlayerController>("BP_PlayerController");
         auto plyr = m_world->SpawnActor<APawn>("BP_Player");
-        ctrl->Possess(plyr);
 #if TKD_ENGINE_CLIENT
         ctrl->SetInputManager(
             ::Engine::GetInstance().GetWindow()->GetInputManager()
         );
 #endif
+        ctrl->Possess(plyr);
         // ?TEMPORARY
 
         m_world->BeginPlay();
