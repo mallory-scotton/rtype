@@ -76,7 +76,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
-    T* SpawnActorFromClass(
+    T* SpawnActor(
         UClass* actorClass, const FTransform& transform = FTransform::Identity
     )
     {
@@ -125,7 +125,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
-    T* SpawnActorByName(
+    T* SpawnActor(
         const FString& className, const FTransform& transform = FTransform()
     )
     {
@@ -137,7 +137,7 @@ public:
 
         if (actorClass == nullptr) { return nullptr; }
 
-        return SpawnActorFromClass<T>(actorClass, transform);
+        return SpawnActor<T>(actorClass, transform);
     }
 
     ///////////////////////////////////////////////////////////////////////////
