@@ -23,24 +23,18 @@ void BP_PlayerController::SetupInputBindings(void)
 
     if (BP_Player* player = dynamic_cast<BP_Player*>(pawn))
     {
-        BindActionPressed("Fire", [player](EInput) {});
+        BindActionPressed("Fire", std::bind(&BP_Player::Fire, player));
 
         BindAxis(
             "HorizontalMoves",
-            [player](float scale)
-            {
-                auto velocity = player->velocity.GetValue();
-                player->velocity = FVector2f(scale, velocity.y);
-            }
+            std::bind(
+                &BP_Player::MoveHorizontal, player, std::placeholders::_1
+            )
         );
 
         BindAxis(
             "VerticalMoves",
-            [player](float scale)
-            {
-                auto velocity = player->velocity.GetValue();
-                player->velocity = FVector2f(velocity.x, scale);
-            }
+            std::bind(&BP_Player::MoveVertical, player, std::placeholders::_1)
         );
     }
 }
