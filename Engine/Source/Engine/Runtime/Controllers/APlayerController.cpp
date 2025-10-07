@@ -11,8 +11,8 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-APlayerController::APlayerController(void)
-    : AController()
+APlayerController::APlayerController(const FString& name)
+    : AController(name)
     , m_inputManager(nullptr)
 {}
 
