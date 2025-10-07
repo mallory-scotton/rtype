@@ -10,15 +10,28 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+AController::AController(void)
+    : UObject("AController")
+    , m_pawn(nullptr)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
+AController::~AController()
+{
+    if (m_pawn) { UnPossess(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void AController::Possess(APawn* pawn)
 {
+    if (m_pawn == pawn) { return; }
+
+    // Unpossess current pawn if any
     if (m_pawn != nullptr) { UnPossess(); }
 
+    m_pawn = pawn;
     if (pawn)
     {
-        m_pawn = pawn;
-        // m_pawn->SetController(this);
-
         // Emit the Possess event
         Emit(Events::Possess{ .pawn = pawn });
     }
@@ -27,15 +40,12 @@ void AController::Possess(APawn* pawn)
 ///////////////////////////////////////////////////////////////////////////////
 void AController::UnPossess(void)
 {
-    if (m_pawn)
-    {
-        APawn* oldPawn = m_pawn;
-        m_pawn = nullptr;
-        // oldPawn->SetController(nullptr);
+    if (m_pawn == nullptr) { return; }
 
-        // Emit the UnPossess event
-        Emit(Events::UnPossess{ .pawn = oldPawn });
-    }
+    APawn* oldPawn = m_pawn;
+    m_pawn = nullptr;
+    // Emit the UnPossess event
+    Emit(Events::UnPossess{ .pawn = oldPawn });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
