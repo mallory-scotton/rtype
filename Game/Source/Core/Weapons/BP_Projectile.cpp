@@ -18,8 +18,19 @@ BP_Projectile::BP_Projectile(void)
     SpriteComponent->SetTexturePath("Game/Assets/Images/T_Projectiles.png");
 
     // Define PROJECTILE animation
-    FAnimation2D A_PROJECTILE("PROJECTILE", true);
-    A_PROJECTILE.AddFrame(FAnimation2DFrame(FRectanglei(233, 17, 34, 34)));
+    FAnimation2D A_PROJECTILE("PROJECTILE", false);
+    A_PROJECTILE.AddFrame(
+        FAnimation2DFrame(FRectanglei(233, 17, 34, 34), 0.15f)
+    );
+    A_PROJECTILE.AddFrame(
+        FAnimation2DFrame(FRectanglei(199, 17, 34, 34), 0.15f)
+    );
+    A_PROJECTILE.AddFrame(
+        FAnimation2DFrame(FRectanglei(165, 17, 34, 34), 0.15f)
+    );
+    A_PROJECTILE.AddFrame(
+        FAnimation2DFrame(FRectanglei(131, 17, 34, 34), 0.15f)
+    );
     SpriteComponent->AddAnimation(A_PROJECTILE);
 
     // Set the default animation to PROJECTILE
@@ -34,7 +45,7 @@ void BP_Projectile::Tick(Float32 deltaTime)
 
     // Move the projectile forward
     FTransform transform = GetTransform();
-    transform.Translate(FVector3(500.0f * deltaTime, 0.0f, 0.0f));
+    transform.Translate(FVector3(800.0f * deltaTime, 0.0f, 0.0f));
     SetTransform(transform);
 
     // If the projectile goes out of bounds, destroy it
