@@ -70,14 +70,20 @@ void UWorld::Tick(Float32 deltaTime)
     // Update world time
     m_worldTime += deltaTime;
 
-    // Tick all active actors
-    for (const auto& actor: m_actors)
-    {
-        if (actor && actor->IsMarkedForDeletion())
-        {
-            m_actorsToDestroy.push_back(actor.get());
-        }
-    }
+    // Destroy actors that are marked for deletion
+    m_actors.erase(
+        std::remove_if(
+            m_actors.begin(),
+            m_actors.end(),
+            [](const std::shared_ptr<AActor>& actor)
+            {
+                bool toDelete = actor && actor->IsMarkedForDeletion();
+                if (toDelete && actor) { actor->EndPlay(); }
+                return toDelete;
+            }
+        ),
+        m_actors.end()
+    );
 
     // Destroy any actors that were marked for destruction
     for (AActor* actor: m_actorsToDestroy)
