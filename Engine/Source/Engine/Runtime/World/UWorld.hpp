@@ -30,8 +30,9 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::vector<std::shared_ptr<AActor>>
-        m_actors;        //<! The list of actors in the world
-    float m_worldTime;   //<! The current world time
+        m_actors;   //<! The list of actors in the world
+    std::vector<AActor*> m_actorsToDestroy;   //<! Actors to destroy
+    float m_worldTime;                        //<! The current world time
 
 public:
     ///////////////////////////////////////////////////////////////////////////
