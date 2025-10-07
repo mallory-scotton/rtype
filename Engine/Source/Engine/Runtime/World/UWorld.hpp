@@ -134,6 +134,9 @@ public:
         );
 
         UClass* actorClass = UClass::FindClass(className);
+
+        if (actorClass == nullptr) { return nullptr; }
+
         return SpawnActorFromClass<T>(actorClass, transform);
     }
 
