@@ -126,9 +126,10 @@ void FActorDebug::ShowWorldView(UWorld* world)
         ImGuiWindowFlags_HorizontalScrollbar
     );
 
-    for (auto& actor: actors)
+    for (SizeT i = 0; i < actors.size(); ++i)
     {
-        DisplayActorInfo(actor.get());
+        auto& actor = actors[i];
+        DisplayActorInfo(actor.get(), i);
         ImGui::Spacing();
     }
 
@@ -296,7 +297,7 @@ void FActorDebug::DisplayClassFunctions(UClass* _class)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FActorDebug::DisplayActorInfo(AActor* actor)
+void FActorDebug::DisplayActorInfo(AActor* actor, SizeT index)
 {
     if (!actor) { return; }
 
@@ -318,7 +319,9 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
         ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.4f, 0.6f, 0.8f, 0.8f));
     }
 
-    bool nodeOpen = ImGui::CollapsingHeader(actor->GetName().CStr(), flags);
+    bool nodeOpen = ImGui::CollapsingHeader(
+        std::format("{}##{}", actor->GetName().CStr(), index).c_str(), flags
+    );
     UClass* actorClass = actor->GetClass();
     if (actorClass)
     {
