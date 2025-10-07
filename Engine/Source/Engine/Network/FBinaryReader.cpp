@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FBinaryReader.hpp>
+#include <Engine/Runtime/World/ULevel.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -33,6 +34,21 @@ bool FBinaryReader::Read(FString& value)
     if (!Read(size)) { return false; }
     value.Resize(size);
     if (!ReadBytes(value.Data(), size)) { return false; }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FBinaryReader::Read(FVector3& value)
+{
+    return Read(value.x) && Read(value.y) && Read(value.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FBinaryReader::Read(FRotator& value)
+{
+    float pitch, yaw, roll;
+    if (!Read(pitch) || !Read(yaw) || !Read(roll)) { return false; }
+    value = FRotator(pitch, yaw, roll);
     return true;
 }
 

@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FBinaryWriter.hpp>
+#include <Engine/Runtime/World/ULevel.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -56,6 +57,22 @@ void FBinaryWriter::Write(const FString& str)
         std::memcpy(m_buffer.data() + m_offset, str.Data(), strSize);
         m_offset += strSize;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FBinaryWriter::Write(const FVector3& value)
+{
+    Write(value.x);
+    Write(value.y);
+    Write(value.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FBinaryWriter::Write(const FRotator& value)
+{
+    Write(value.GetPitch());
+    Write(value.GetYaw());
+    Write(value.GetRoll());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

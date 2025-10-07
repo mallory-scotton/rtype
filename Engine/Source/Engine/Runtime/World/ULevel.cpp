@@ -2,13 +2,13 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/World/ULevel.hpp>
-#include <Engine/Runtime/World/UWorld.hpp>
+#include <cstring>
 #include <Engine/Assets/UAsset.hpp>
 #include <Engine/Network/FBinaryReader.hpp>
 #include <Engine/Network/FBinaryWriter.hpp>
+#include <Engine/Runtime/World/UWorld.hpp>
 #include <fstream>
 #include <sstream>
-#include <cstring>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -28,13 +28,13 @@ namespace tkd
 // }
 
 ///////////////////////////////////////////////////////////////////////////////
-const TVector< ULevel::ActorEntry >& ULevel::GetActorEntries(void) const
+const TVector<ULevel::ActorEntry>& ULevel::GetActorEntries(void) const
 {
     return m_actorEntries;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void ULevel::SetActorEntries(const TVector< ActorEntry >& actors)
+void ULevel::SetActorEntries(const TVector<ActorEntry>& actors)
 {
     m_actorEntries = actors;
 }
@@ -134,12 +134,12 @@ bool ULevel::SaveToFile(const FilePath& levelPath)
     std::ofstream file(levelPath, std::ios::binary);
     if (!file)
     {
-        return false; // Failed to open file
+        return false;   // Failed to open file
     }
     file.write(reinterpret_cast<const char*>(data.data()), data.size());
     if (!file)
     {
-        return false; // Failed to write data
+        return false;   // Failed to write data
     }
 
     return true;
@@ -150,7 +150,7 @@ bool ULevel::SaveToAsset(UAsset& asset)
 {
     if (asset.GetType() != EAssetType::Level)
     {
-        return false; // Asset type mismatch
+        return false;   // Asset type mismatch
     }
 
     auto data = SerializeLevelData();
@@ -162,10 +162,7 @@ bool ULevel::SaveToAsset(UAsset& asset)
 ///////////////////////////////////////////////////////////////////////////////
 bool ULevel::ParseLevelData(const std::vector<Byte>& data)
 {
-    if (data.empty())
-    {
-        return false;
-    }
+    if (data.empty()) { return false; }
 
     // Create a binary reader for the data
     FBinaryReader reader(data.data(), data.size());
@@ -177,23 +174,14 @@ bool ULevel::ParseLevelData(const std::vector<Byte>& data)
     {
         // Read level format version (for future compatibility)
         UInt32 formatVersion;
-        if (!reader.Read(formatVersion))
-        {
-            return false;
-        }
+        if (!reader.Read(formatVersion)) { return false; }
 
         // Currently only support version 1
-        if (formatVersion != 1)
-        {
-            return false;
-        }
+        if (formatVersion != 1) { return false; }
 
         // Read number of actors
         SizeT actorCount;
-        if (!reader.Read(actorCount))
-        {
-            return false;
-        }
+        if (!reader.Read(actorCount)) { return false; }
 
         // Reserve space for actors
         m_actorEntries.Reserve(actorCount);
@@ -204,49 +192,23 @@ bool ULevel::ParseLevelData(const std::vector<Byte>& data)
             ActorEntry actor;
 
             // Read actor name
-            if (!reader.Read(actor.name))
-            {
-                return false;
-            }
+            if (!reader.Read(actor.name)) { return false; }
 
             // Read actor active state
-            if (!reader.Read(actor.isActive))
-            {
-                return false;
-            }
+            if (!reader.Read(actor.isActive)) { return false; }
 
             // Read actor position (FVector3)
-            if (!reader.Read(actor.position.x) ||
-                !reader.Read(actor.position.y) ||
-                !reader.Read(actor.position.z))
-            {
-                return false;
-            }
+            if (!reader.Read(actor.position)) { return false; }
 
             // Read actor rotation (FRotator)
-            float rotationPitch, rotationYaw, rotationRoll;
-            if (!reader.Read(rotationPitch) ||
-                !reader.Read(rotationYaw) ||
-                !reader.Read(rotationRoll))
-            {
-                return false;
-            }
-            actor.rotation = FRotator(rotationPitch, rotationYaw, rotationRoll);
+            if (!reader.Read(actor.rotation)) { return false; }
 
             // Read actor scale (FVector3)
-            if (!reader.Read(actor.scale.x) ||
-                !reader.Read(actor.scale.y) ||
-                !reader.Read(actor.scale.z))
-            {
-                return false;
-            }
+            if (!reader.Read(actor.scale)) { return false; }
 
             // Read number of properties
             SizeT propertyCount;
-            if (!reader.Read(propertyCount))
-            {
-                return false;
-            }
+            if (!reader.Read(propertyCount)) { return false; }
 
             // Reserve space for properties
             actor.properties.Reserve(propertyCount);
@@ -296,7 +258,7 @@ std::vector<Byte> ULevel::SerializeLevelData(void) const
     writer.Write(actorCount);
 
     // Write each actor entry
-    for (const auto& actor : m_actorEntries)
+    for (const auto& actor: m_actorEntries)
     {
         // Write actor name
         writer.Write(actor.name);
@@ -305,26 +267,20 @@ std::vector<Byte> ULevel::SerializeLevelData(void) const
         writer.Write(actor.isActive);
 
         // Write actor position (FVector3)
-        writer.Write(actor.position.x);
-        writer.Write(actor.position.y);
-        writer.Write(actor.position.z);
+        writer.Write(actor.position);
 
         // Write actor rotation (FRotator)
-        writer.Write(actor.rotation.GetPitch());
-        writer.Write(actor.rotation.GetYaw());
-        writer.Write(actor.rotation.GetRoll());
+        writer.Write(actor.rotation);
 
         // Write actor scale (FVector3)
-        writer.Write(actor.scale.x);
-        writer.Write(actor.scale.y);
-        writer.Write(actor.scale.z);
+        writer.Write(actor.scale);
 
         // Write number of properties
         SizeT propertyCount = actor.properties.Size();
         writer.Write(propertyCount);
 
         // Write each property
-        for (const auto& property : actor.properties)
+        for (const auto& property: actor.properties)
         {
             // Write property name, type, and value
             writer.Write(property.name);
