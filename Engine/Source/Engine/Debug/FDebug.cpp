@@ -236,11 +236,39 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     {
         m_showActorDebug = !m_showActorDebug;
     }
+    else if (ImGui::IsKeyPressed(ImGuiKey_P) && KeyCtrl && KeyShift)
+    {
+        m_showPerformanceMonitor = !m_showPerformanceMonitor;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_M) && KeyCtrl && KeyShift)
+    {
+        m_showMemoryProfiler = !m_showMemoryProfiler;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_R) && KeyCtrl && KeyShift)
+    {
+        m_showRenderDebug = !m_showRenderDebug;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_C) && KeyCtrl && KeyShift)
+    {
+        m_showCameraDebug = !m_showCameraDebug;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_N) && KeyCtrl && KeyShift)
+    {
+        m_showNetworkMonitor = !m_showNetworkMonitor;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_I) && KeyCtrl && KeyShift)
+    {
+        m_showPacketInspector = !m_showPacketInspector;
+    }
 
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
     if (m_showInputDebug) { m_inputsDebug.Show(settings, world); }
     if (m_showActorDebug) { m_actorDebug.Show(settings, world); }
+    if (m_showPerformanceMonitor)
+    {
+        m_performanceMonitor.Show(settings, world);
+    }
 }
 
 #endif
