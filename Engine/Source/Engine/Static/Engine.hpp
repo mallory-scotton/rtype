@@ -41,7 +41,13 @@ private:
     static std::atomic<bool> s_isRunning;   //<! Flag indicating running state
     static FString s_exitMessage;           //<! Exit message of the engine
     static UThread s_mainThread;            //<! Main thread of the engine
+#if TKD_ENGINE_SERVER
+    static std::unique_ptr<FNetworkServer> s_networkServer;
+#endif
 #if TKD_ENGINE_CLIENT
+    static std::unique_ptr<FNetworkClient> s_networkClient;
+    static std::string s_serverHost;
+    static UInt16 s_serverPort;
     static UThread s_renderThread;          //<! Render thread of the engine
 #endif
     static bool s_isDebugBuild;             //<! Flag indicating debug build
