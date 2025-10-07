@@ -1591,6 +1591,22 @@ FString::ReverseIterator FString::ReverseIterator::operator-(sizeType i)
 void FString::Swap(FString& a, FString& b) { a.Swap(b); }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString FString::ToString(const FColor& value)
+{
+    return std::format(
+        "RGBA({}, {}, {}, {})", value.r, value.g, value.b, value.a
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FString FString::ToString(const FLinearColor& value)
+{
+    return std::format(
+        "RGBA({}, {}, {}, {})", value.r, value.g, value.b, value.a
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FString operator+(const FString& lhs, const FString& rhs)
 {
     FString toReturn = lhs;
