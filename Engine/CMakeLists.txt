@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(RTypeEngine VERSION 1.0.0 LANGUAGES CXX)
+project(TKDEngine VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -14,41 +14,75 @@ endif()
 # Enable position independent code for shared library
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Options
+option(BUILD_TESTS "Build unit tests" ON)
+
 # Conan integration
-if(EXISTS ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
-    include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conan_toolchain.cmake)
 endif()
 
-if(EXISTS ${CMAKE_BINARY_DIR}/conandeps.cmake)
-    include(${CMAKE_BINARY_DIR}/conandeps.cmake)
+if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
+    include(${CMAKE_BINARY_DIR}/build/Release/generators/conandeps_legacy.cmake)
 endif()
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+find_package(imgui REQUIRED)
+find_package(ImGui-SFML REQUIRED)
 
-# Collect source files
+# Find test dependencies if building tests
+if(BUILD_TESTS)
+    find_package(Catch2 REQUIRED)
+    enable_testing()
+endif()
+
+# Collect source files (excluding Main.cpp for libraries)
 file(GLOB_RECURSE ENGINE_SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.hpp"
 )
+
+# Remove Main.cpp from library sources
+list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*Main\\.cpp$")
 
 file(GLOB_RECURSE ENGINE_HEADERS 
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
 )
 
-# Create shared library
-add_library(RTypeEngine SHARED ${ENGINE_SOURCES})
+# Create shared library for client (with graphics)
+add_library(TKDEngineClient SHARED ${ENGINE_SOURCES})
 
-# Set target properties
-set_target_properties(RTypeEngine PROPERTIES
+# Create shared library for server (without graphics)
+add_library(TKDEngineServer SHARED ${ENGINE_SOURCES})
+
+# Set target properties for client
+set_target_properties(TKDEngineClient PROPERTIES
     VERSION ${PROJECT_VERSION}
     SOVERSION 1
     PUBLIC_HEADER "${ENGINE_HEADERS}"
+    OUTPUT_NAME "TKDEngineClient"
+    # Set the output directory for the library
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
-# Include directories
-target_include_directories(RTypeEngine
+# Set target properties for server
+set_target_properties(TKDEngineServer PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION 1
+    PUBLIC_HEADER "${ENGINE_HEADERS}"
+    OUTPUT_NAME "TKDEngineServer"
+    # Set the output directory for the library
+    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
+    ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+)
+
+# Include directories for client
+target_include_directories(TKDEngineClient
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Source>
         $<INSTALL_INTERFACE:include>
@@ -56,18 +90,45 @@ target_include_directories(RTypeEngine
         ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
-# Link libraries
-target_link_libraries(RTypeEngine
+# Include directories for server
+target_include_directories(TKDEngineServer
     PUBLIC
-        sfml-system
-        sfml-window
-        sfml-graphics
-        sfml-audio
-        sfml-network
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Source>
+        $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
-# Compiler-specific options
-target_compile_options(RTypeEngine PRIVATE
+# Link libraries for client (with all SFML components)
+target_link_libraries(TKDEngineClient
+    PUBLIC
+        sfml::sfml
+        asio::asio
+        imgui::imgui
+        ImGui-SFML::ImGui-SFML
+)
+
+# Link libraries for server (minimal SFML components)
+target_link_libraries(TKDEngineServer
+    PUBLIC
+        sfml::sfml
+        asio::asio
+)
+
+# Define graphics support for client
+target_compile_definitions(TKDEngineClient PUBLIC
+    TKD_ENGINE_WITH_GRAPHICS
+)
+
+# Compiler-specific options for client
+target_compile_options(TKDEngineClient PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+    $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+)
+
+# Compiler-specific options for server
+target_compile_options(TKDEngineServer PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W4>
     $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
     $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
@@ -75,48 +136,146 @@ target_compile_options(RTypeEngine PRIVATE
 
 # Export symbols for Windows
 if(WIN32)
-    target_compile_definitions(RTypeEngine PRIVATE
+    target_compile_definitions(TKDEngineClient PRIVATE
         ENGINE_EXPORTS
     )
-    target_compile_definitions(RTypeEngine PUBLIC
+    target_compile_definitions(TKDEngineClient PUBLIC
+        $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SFML_STATIC>
+    )
+    target_compile_definitions(TKDEngineServer PRIVATE
+        ENGINE_EXPORTS
+    )
+    target_compile_definitions(TKDEngineServer PUBLIC
         $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:SFML_STATIC>
     )
 endif()
 
+# Create libs directory if it doesn't exist
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/libs)
+
+# Add custom command to ensure libraries are copied to Build/libs
+add_custom_command(TARGET TKDEngineClient POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/libs
+    COMMENT "Ensuring TKDEngineClient library directory exists"
+)
+
+add_custom_command(TARGET TKDEngineServer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/libs
+    COMMENT "Ensuring TKDEngineServer library directory exists"
+)
+
+# Create TKDEngineClient executable
+add_executable(TKDEngineClientExe ${CMAKE_CURRENT_SOURCE_DIR}/Source/Main.cpp)
+
+set_target_properties(TKDEngineClientExe PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    OUTPUT_NAME "TKDEngineClient"
+)
+
+target_include_directories(TKDEngineClientExe PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+target_link_libraries(TKDEngineClientExe PRIVATE
+    TKDEngineClient
+)
+
+# Create TKDEngineServer executable
+add_executable(TKDEngineServerExe ${CMAKE_CURRENT_SOURCE_DIR}/Source/Main.cpp)
+
+set_target_properties(TKDEngineServerExe PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    OUTPUT_NAME "TKDEngineServer"
+)
+
+target_include_directories(TKDEngineServerExe PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+target_link_libraries(TKDEngineServerExe PRIVATE
+    TKDEngineServer
+)
+
 # Installation rules
 include(GNUInstallDirs)
 
-install(TARGETS RTypeEngine
-    EXPORT RTypeEngineTargets
+install(TARGETS TKDEngineClient TKDEngineServer
+    EXPORT TKDEngineTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/RTypeEngine
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/TKDEngine
 )
 
 # Install export file
-install(EXPORT RTypeEngineTargets
-    FILE RTypeEngineTargets.cmake
-    NAMESPACE RType::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RTypeEngine
+install(EXPORT TKDEngineTargets
+    FILE TKDEngineTargets.cmake
+    NAMESPACE TKD::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/TKDEngine
 )
 
 # Create config file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    RTypeEngineConfigVersion.cmake
+    TKDEngineConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/RTypeEngineConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/RTypeEngineConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RTypeEngine
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/TKDEngineConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/TKDEngineConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/TKDEngine
 )
 
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/RTypeEngineConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/RTypeEngineConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/RTypeEngine
+    ${CMAKE_CURRENT_BINARY_DIR}/TKDEngineConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/TKDEngineConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/TKDEngine
 )
+
+# Build tests if enabled
+if(BUILD_TESTS)
+    # Collect test source files
+    file(GLOB_RECURSE TEST_SOURCES 
+        "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp"
+    )
+
+    # Create test executable
+    add_executable(TKDEngineTests ${TEST_SOURCES})
+
+    # Set target properties
+    set_target_properties(TKDEngineTests PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Include directories for tests
+    target_include_directories(TKDEngineTests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source
+        ${CMAKE_CURRENT_SOURCE_DIR}/Tests
+    )
+
+    # Link libraries for tests (use client version for full functionality)
+    target_link_libraries(TKDEngineTests PRIVATE
+        TKDEngineClient
+        Catch2::Catch2WithMain
+    )
+
+    # Compiler-specific options for tests
+    target_compile_options(TKDEngineTests PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4>
+        $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
+        $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
+    )
+
+    # Register test with CTest
+    include(CTest)
+    if(TARGET Catch2::Catch2WithMain)
+        # Catch2 v3 style
+        include(Catch)
+        catch_discover_tests(TKDEngineTests)
+    else()
+        # Fallback to simple test registration
+        add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
+    endif()
+endif()

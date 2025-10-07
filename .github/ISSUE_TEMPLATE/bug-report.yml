@@ -1,0 +1,114 @@
+name: 'Bug report'
+title: "[BUG] - YOUR_ISSUE_TITLE_HERE_REPLACE_ME"
+description: Create a report to help us improve
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🙏 Thank you for reporting an issue!  
+
+        This issue tracker is for reporting bugs found in the [R-Type GitHub repository](https://github.com/mallory-scotton/rtype/).  
+
+        👉 If you have a **question** or need help achieving something, please use:
+          - R-Type's [Discussions tab](https://github.com/mallory-scotton/rtype/discussions)  
+
+        🔍 Before submitting, please check if your issue already exists:  
+         - [Open issues](https://github.com/mallory-scotton/rtype/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)  
+         - [Closed issues](https://github.com/mallory-scotton/rtype/issues?q=is%3Aissue+is%3Aclosed+sort%3Aupdated-desc)  
+         - [Pull requests](https://github.com/mallory-scotton/rtype/pulls?q=is%3Apr+is%3Aopen+sort%3Aupdated-desc)  
+
+        The more details you provide, the easier it will be for the community to help you. 🚀
+  - type: input
+    id: version
+    attributes:
+      label: R-Type Version
+      description: |
+        Please provide the version of R-Type you are using.
+        - For global installation: version only (e.g. 2.4.2)  
+        - For individual installation: package name + version (e.g. Engine@2.0.34)
+      placeholder: ex. 2.4.2
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: Provide a clear and concise description of the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+      placeholder: |
+        As a user, I expected ___ behavior but I am seeing ___
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots_or_videos
+    attributes:
+      label: Screenshots or Videos
+      description: |
+        If applicable, add screenshots or a video to help explain your problem.  
+        ℹ️ File types and size limits: [Attaching files on GitHub](https://docs.github.com/en/github/writing-on-github/working-with-advanced-formatting/attaching-files)
+      placeholder: Drag and drop files here ↓
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: Which operating system are you using?
+      placeholder: e.g. macOS 14.1, Windows 11, Ubuntu 22.04
+    validations:
+      required: true
+  - type: input
+    id: ram
+    attributes:
+      label: RAM
+      description: How much RAM does your system have?
+      placeholder: e.g. 8GB, 16GB, 32GB
+    validations:
+      required: true
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      description: What CPU does your system have?
+      placeholder: e.g. Intel i5-12600K, AMD Ryzen 5 5600X
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU
+      description: What GPU does your system have?
+      placeholder: e.g. NVIDIA GTX 1050, AMD Radeon RX 580
+    validations:
+      required: true
+  - type: textarea
+    id: additional_logs
+    attributes:
+      label: Additional Context / Logs
+      description: |
+        Add any other context about the problem here.  
+        If you have relevant logs, copy and paste them below.
+      placeholder: |
+        Example: Console output or error message
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ✅ By submitting this issue, you agree to follow R-Type's [Code of Conduct](https://github.com/mallory-scotton/rtype/blob/main/CODE_OF_CONDUCT.md).

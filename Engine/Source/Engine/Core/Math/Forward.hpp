@@ -86,15 +86,18 @@ using FVector2f = TVector2<float>;
 using FVector2d = TVector2<double>;
 using FVector2i = TVector2<int>;
 using FVector2u = TVector2<unsigned int>;
+using FVector2b = TVector2<bool>;
 
 using FVector3f = TVector3<float>;
 using FVector3d = TVector3<double>;
 using FVector3i = TVector3<int>;
 using FVector3u = TVector3<unsigned int>;
+using FVector3b = TVector3<bool>;
 
 using FVector4f = TVector4<float>;
 using FVector4d = TVector4<double>;
 using FVector4i = TVector4<int>;
 using FVector4u = TVector4<unsigned int>;
+using FVector4b = TVector4<bool>;
 
-} // !namespace tkd
+}   // namespace tkd
