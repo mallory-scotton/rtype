@@ -38,4 +38,7 @@ void AController::UnPossess(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+APawn* AController::GetPawn(void) const { return m_pawn; }
+
 }   // namespace tkd
