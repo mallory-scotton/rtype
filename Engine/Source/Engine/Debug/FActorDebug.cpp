@@ -450,7 +450,6 @@ void FActorDebug::DisplayActorInfo(AActor* actor)
             ImGui::Indent();
             for (const auto& [property, source]: properties)
             {
-                if (source == EDefinitionSource::Super) { continue; }
                 ImGui::PushStyleColor(
                     ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f)
                 );
