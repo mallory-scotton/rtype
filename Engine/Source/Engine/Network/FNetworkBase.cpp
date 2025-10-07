@@ -116,10 +116,9 @@ void FNetworkBase::ProcessReceivedData(
         m_statistics.packetsDropped++;
         return;
     }
-
     auto it = m_packetHandlers.find(header.packetType);
     if (it != m_packetHandlers.end()) { it->second(*packet, sender); }
-
+    else { std::cout << "no packet handler found" << std::endl; }
     OnPacketReceived(header, sender);
 }
 
