@@ -22,7 +22,7 @@ namespace tkd
 /// \brief Template class for UProperty with type and flags.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, UInt32 Flags = static_cast<UInt32>(EPropertyFlags::None)>
+template <typename T, EPropertyFlags Flags = EPropertyFlags::None>
 class UProperty : public IProperty
 {
 public:
@@ -82,7 +82,7 @@ public:
     /// \return Reference to this UProperty instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<T>& operator=(const T& value)
+    UProperty<T, Flags>& operator=(const T& value)
     {
         m_value = value;
         return *this;
@@ -96,7 +96,7 @@ public:
     /// \return Reference to this UProperty instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<T>& operator=(T&& value)
+    UProperty<T, Flags>& operator=(T&& value)
     {
         m_value = std::move(value);
         return *this;
@@ -214,7 +214,7 @@ public:
     /// \return The property flags.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual UInt32 GetFlags(void) const override { return Flags; }
+    virtual EPropertyFlags GetFlags(void) const override { return Flags; }
 };
 
 }   // namespace tkd
