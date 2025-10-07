@@ -77,11 +77,8 @@ void UInputAxis::Move(EInput input, float factor)
             float oldScale = m_scale;
             m_scale = scale * factor;
             m_scale = Math<float>::Clamp(m_scale, -1.0f, 1.0f);
-            if (m_scale != oldScale)
-            {
-                float delta = m_scale - oldScale;
-                EmitEvent(Events::Changed{ m_scale, delta, input });
-            }
+            float delta = m_scale - oldScale;
+            this->Emit(Events::Changed{ m_scale, delta, input });
             return;
         }
     }
@@ -91,7 +88,7 @@ void UInputAxis::Move(EInput input, float factor)
 void UInputAxis::Reset(void)
 {
     m_scale = 0.0f;
-    EmitEvent(Events::Reset{});
+    this->Emit(Events::Reset{});
 }
 
 ///////////////////////////////////////////////////////////////////////////////
