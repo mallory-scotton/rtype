@@ -186,4 +186,7 @@ void APlayerController::ClearInputBindings(void)
     m_axisListenerIds.clear();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_CLASS_WITH_SUPER(APlayerController, AController)
+
 }   // namespace tkd
