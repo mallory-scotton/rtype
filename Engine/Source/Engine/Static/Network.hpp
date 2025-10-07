@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Network/FNetworkServer.hpp>
+#include <Engine/Network/FNetworkClient.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
