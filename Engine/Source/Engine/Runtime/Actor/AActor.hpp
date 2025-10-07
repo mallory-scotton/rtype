@@ -135,7 +135,7 @@ public:
         );
 
         auto newComponent = m_components.EmplaceBack(
-            std::make_unique<T>(std::forward<Args>(args)...)
+            std::make_shared<T>(std::forward<Args>(args)...)
         );
 
         newComponent->SetOwner(this);
