@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Runtime/Controllers/AController.hpp>
 #include <Engine/Runtime/Input.hpp>
+#include <unordered_map>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -17,16 +18,34 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Player controller class
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class APlayerController : public AController
 {
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using ActionCallback = TFunction<void(EInput)>;
+    using AxisCallback = TFunction<void(float)>;
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FInputManager* m_manager;   //<! The input manager
+    FInputManager* m_inputManager;   //<! The input manager
+    // Input bindings storage
+    std::unordered_map<FString, TVector<ActionCallback>>
+        m_actionPressedCallbacks;
+    std::unordered_map<FString, TVector<ActionCallback>>
+        m_actionReleasedCallbacks;
+    std::unordered_map<FString, TVector<ActionCallback>> m_actionHeldCallbacks;
+    std::unordered_map<FString, TVector<AxisCallback>> m_axisCallbacks;
+
+    // Event listener IDs for cleanup
+    std::unordered_map<FString, TVector<SizeT>> m_actionListenerIds;
+    std::unordered_map<FString, TVector<SizeT>> m_axisListenerIds;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -39,7 +58,7 @@ public:
     /// \brief Virtual destructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual ~APlayerController() = default;
+    ~APlayerController();
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -49,6 +68,73 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetInputManager(FInputManager* inputManager);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the input manager
+    ///
+    /// \return Pointer to the input manager
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FInputManager* GetInputManager(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind a callback to an action's pressed event
+    ///
+    /// \param actionName The name of the action to bind to
+    /// \param callback The callback function to invoke
+    ///
+    /// \return True if binding succeeded, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool BindActionPressed(const FString& actionName, ActionCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind a callback to an action's released event
+    ///
+    /// \param actionName The name of the action to bind to
+    /// \param callback The callback function to invoke
+    ///
+    /// \return True if binding succeeded, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool
+        BindActionReleased(const FString& actionName, ActionCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind a callback to an action's held event
+    ///
+    /// \param actionName The name of the action to bind to
+    /// \param callback The callback function to invoke
+    ///
+    /// \return True if binding succeeded, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool BindActionHeld(const FString& actionName, ActionCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Bind a callback to an axis change event
+    ///
+    /// \param axisName The name of the axis to bind to
+    /// \param callback The callback function to invoke with the axis value
+    ///
+    /// \return True if binding succeeded, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool BindAxis(const FString& axisName, AxisCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Setup input bindings (override this in derived classes)
+    ///
+    /// This is called automatically after SetInputManager is called
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetupInputBindings(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clear all input bindings
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ClearInputBindings(void);
 };
 
 }   // namespace tkd
