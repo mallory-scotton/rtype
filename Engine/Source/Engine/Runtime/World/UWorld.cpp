@@ -54,7 +54,7 @@ std::vector<AActor*>
 void UWorld::DestroyActor(AActor* actor)
 {
     if (actor == nullptr) { return; }
-    m_actorsToDestroy.push_back(actor);
+    actor->MarkForDeletion();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,25 +84,6 @@ void UWorld::Tick(Float32 deltaTime)
         ),
         m_actors.end()
     );
-
-    // Destroy any actors that were marked for destruction
-    for (AActor* actor: m_actorsToDestroy)
-    {
-        if (actor == nullptr) { continue; }
-        actor->EndPlay();
-        m_actors.erase(
-            std::remove_if(
-                m_actors.begin(),
-                m_actors.end(),
-                [actor](const std::shared_ptr<AActor>& a)
-                { return a.get() == actor; }
-            ),
-            m_actors.end()
-        );
-    }
-
-    // Clear the list of actors to destroy
-    m_actorsToDestroy.clear();
 
     // Tick all active actors
     for (const auto& actor: m_actors)
