@@ -18,11 +18,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
 
 # Collect source files
-file(GLOB_RECURSE GAME_SOURCES 
+file(GLOB_RECURSE GAME_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
 )
 
-file(GLOB_RECURSE GAME_HEADERS 
+file(GLOB_RECURSE GAME_HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h"
 )
@@ -143,12 +143,14 @@ target_include_directories(RTypeGameServerExe PRIVATE
 
 target_link_libraries(RTypeGameServerExe PRIVATE
     TKDEngineServer
+    -Wl,--no-as-needed
     RTypeGameServer
+    -Wl,--no-as-needed
 )
 
 # Copy resources if they exist
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Assets)
-    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Assets 
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Assets
          DESTINATION ${CMAKE_BINARY_DIR}/bin)
 endif()
 
