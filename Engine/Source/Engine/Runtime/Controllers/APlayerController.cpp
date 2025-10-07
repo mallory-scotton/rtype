@@ -20,6 +20,42 @@ APlayerController::APlayerController(const FString& name)
 APlayerController::~APlayerController() { ClearInputBindings(); }
 
 ///////////////////////////////////////////////////////////////////////////////
+void APlayerController::Possess(APawn* pawn)
+{
+    if (m_pawn == pawn) { return; }
+
+    // Unpossess current pawn if any
+    if (m_pawn != nullptr) { UnPossess(); }
+
+    // Set the new pawn
+    m_pawn = pawn;
+    if (pawn)
+    {
+        // Setup input bindings for the new pawn
+        SetupInputBindings();
+
+        // Emit the Possess event
+        Emit(Events::Possess{ .pawn = pawn });
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void APlayerController::UnPossess(void)
+{
+    if (m_pawn == nullptr) { return; }
+
+    // Clear input bindings when unpossessing
+    ClearInputBindings();
+
+    // Remove reference to the pawn
+    APawn* oldPawn = m_pawn;
+    m_pawn = nullptr;
+
+    // Emit the UnPossess event
+    Emit(Events::UnPossess{ .pawn = oldPawn });
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void APlayerController::SetInputManager(FInputManager* inputManager)
 {
     if (m_inputManager == inputManager) { return; }
