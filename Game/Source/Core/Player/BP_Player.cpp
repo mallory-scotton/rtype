@@ -2,7 +2,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Player/BP_Player.hpp>
-#include <Core/Weapons/BP_Projectile.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -127,7 +126,7 @@ void BP_Player::Fire(void)
         transform.SetScale(FVector3f::One);
 
         // Spawn a projectile
-        World::SpawnActor<BP_Projectile>("BP_Projectile", transform);
+        World::SpawnActor("BP_Projectile", transform);
     }
 }
 
