@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FWorldSubsystem.hpp>
 #include <Engine/Core/Math.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -71,7 +72,19 @@ void FWorldSubsystem::ThreadLoop(void)
 {
     {   // BEGIN PLAY
         std::unique_lock lock(m_worldMutex);
-        m_world->SpawnActorByName<APawn>("BP_Player");
+
+        // ?TEMPORARY: Spawn a player controller and a player pawn
+        auto ctrl =
+            m_world->SpawnActor<APlayerController>("BP_PlayerController");
+        auto plyr = m_world->SpawnActor<APawn>("BP_Player");
+        ctrl->Possess(plyr);
+#if TKD_ENGINE_CLIENT
+        ctrl->SetInputManager(
+            ::Engine::GetInstance().GetWindow()->GetInputManager()
+        );
+#endif
+        // ?TEMPORARY
+
         m_world->BeginPlay();
     }
 
