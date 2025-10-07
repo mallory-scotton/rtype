@@ -2,7 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Window.hpp>
-#include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui-SFML.h>
     #include <imgui.h>
@@ -15,6 +15,11 @@ namespace tkd::SFML
 {
 
 #if TKD_ENGINE_CLIENT
+
+///////////////////////////////////////////////////////////////////////////////
+const float Window::DPAD_DEADZONE = 0.10f;      //<! Deadzone for D-Pad axes
+const float Window::DEADZONE = 0.08f;           //<! Deadzone
+const float Window::TRIGGER_DEADZONE = 0.10f;   //<! Deadzone
 
 ///////////////////////////////////////////////////////////////////////////////
 Window::Window(
@@ -73,22 +78,11 @@ bool Window::Open(void)
         ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
     );
 
-    // Initialize ImGui-SFML if in debug build
-    if (Engine::IsDebugBuild())
-    {
-        if (!ImGui::SFML::Init(*m_window))
-        {
-            m_window->close();
-            return false;
-        }
-        m_imguiInitialized = true;
-    }
-
     // Check if the window was created successfully
     if (!m_window || !m_window->isOpen()) { return false; }
 
     // Set initial position and VSync
-    m_window->setPosition(sf::Vector2i(m_position.x, m_position.y));
+    m_window->setPosition(Utils::Convert(m_position));
     m_window->setVerticalSyncEnabled(m_vsync);
 
     // Emit the Opened event
@@ -96,6 +90,20 @@ bool Window::Open(void)
 
     // Successfully opened the window
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Window::SetDebugMode(bool debugMode)
+{
+    if (debugMode && !m_imguiInitialized && IsOpen())
+    {
+        if (ImGui::SFML::Init(*m_window)) { m_imguiInitialized = true; }
+    }
+    else if (!debugMode && m_imguiInitialized)
+    {
+        ImGui::SFML::Shutdown();
+        m_imguiInitialized = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -167,7 +175,7 @@ bool Window::SetState(const EWindowState& state)
     m_window->setVerticalSyncEnabled(m_vsync);
 
     // Reinitialize ImGui if in debug build
-    if (Engine::IsDebugBuild())
+    if (Engine::GetInstance().GetSettings().debug)
     {
         if (ImGui::SFML::Init(*m_window)) { m_imguiInitialized = true; }
     }
@@ -229,7 +237,7 @@ bool Window::SetDimension(const FVector2u& dimension)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FVector2u& Window::GetDimension(void) const { return m_dimension; }
+const FVector2u& Window::GetDimensions(void) const { return m_dimension; }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Window::SetTitle(const FString& title)
@@ -348,6 +356,138 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
 
     // Display the contents of the window
     m_window->display();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::SetActive(bool active)
+{
+    // Check if the window is open
+    if (!IsOpen()) { return false; }
+
+    // Set the OpenGL context as active or inactive for the current thread
+    return m_window->setActive(active);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::IsKeyPressed(EKeyboardKeys key) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return false; }
+
+    // Convert EKeyboardKeys to sf::Keyboard::Key
+    sf::Keyboard::Key sfmlKey = Utils::Convert(key);
+
+    // Check if the specified key is currently pressed
+    return sf::Keyboard::isKeyPressed(sfmlKey);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::IsMouseButtonPressed(EMouseButtons button) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return false; }
+
+    // Convert EMouseButtons to sf::Mouse::Button
+    sf::Mouse::Button sfmlButton = Utils::Convert(button);
+
+    // Check if the specified mouse button is currently pressed
+    return sf::Mouse::isButtonPressed(sfmlButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::IsGamepadConnected(UInt32 gamepadIndex) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return false; }
+
+    // Check if the specified gamepad is connected
+    return sf::Joystick::isConnected(gamepadIndex);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool Window::IsGamepadButtonPressed(
+    EGamepadButtons button, UInt32 gamepadIndex
+) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return 0.0f; }
+
+    // Check if the specified gamepad is connected
+    if (!IsGamepadConnected(gamepadIndex)) { return false; }
+
+    // Convert EGamepadButtons to sf::Joystick::Button
+    UInt32 sfmlButton = Utils::Convert(button);
+
+    if (button >= EGamepadButtons::DPadUp &&
+        button <= EGamepadButtons::DPadRight)
+    {
+        // For DPad buttons, check the axis position instead of button press
+        float axisPosition = 0.0f;
+        switch (button)
+        {
+        case EGamepadButtons::DPadUp:
+            axisPosition = sf::Joystick::getAxisPosition(
+                gamepadIndex, sf::Joystick::PovY
+            );
+            break;
+        case EGamepadButtons::DPadDown:
+            axisPosition = -sf::Joystick::getAxisPosition(
+                gamepadIndex, sf::Joystick::PovY
+            );
+            break;
+        case EGamepadButtons::DPadLeft:
+            axisPosition = -sf::Joystick::getAxisPosition(
+                gamepadIndex, sf::Joystick::PovX
+            );
+            break;
+        case EGamepadButtons::DPadRight:
+            axisPosition = sf::Joystick::getAxisPosition(
+                gamepadIndex, sf::Joystick::PovX
+            );
+            break;
+        default: break;
+        }
+        return axisPosition > DPAD_DEADZONE;
+    }
+
+    // Check if the specified button on the specified gamepad is currently
+    // pressed
+    return sf::Joystick::isButtonPressed(gamepadIndex, sfmlButton);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+float Window::GetGamepadAxis(EGamepadAxes axis, UInt32 gamepadIndex) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return 0.0f; }
+
+    // Check if the specified gamepad is connected
+    if (!IsGamepadConnected(gamepadIndex)) { return 0.0f; }
+
+    // Convert EGamepadAxes to sf::Joystick::Axis
+    sf::Joystick::Axis sfmlAxis = Utils::Convert(axis);
+
+    return sf::Joystick::getAxisPosition(gamepadIndex, sfmlAxis);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FVector2i Window::GetMousePosition(void) const
+{
+    // Check if the window is open
+    if (!IsOpen()) { return FVector2i::Zero; }
+
+    // Get the current mouse position relative to the window
+    return Utils::Convert(sf::Mouse::getPosition(*m_window));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Window::SetMousePosition(const FVector2i& position)
+{
+    // Check if the window is open
+    if (!IsOpen()) { return; }
+
+    // Set the mouse position relative to the window
+    sf::Mouse::setPosition(Utils::Convert(position), *m_window);
 }
 
 #endif

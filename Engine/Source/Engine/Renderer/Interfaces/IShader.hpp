@@ -10,7 +10,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Renderer/Interfaces/ITexture.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd

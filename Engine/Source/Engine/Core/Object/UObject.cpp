@@ -2,7 +2,9 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Object/UObject.hpp>
+#include <Engine/Core/Object/IFunction.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
+#include <Engine/Core/Object/UClass.hpp>
 #include <Engine/Core/Object/UProperty.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +32,48 @@ UObject::operator std::string(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UObject::RegisterProperty(IProperty* property)
+{
+    if (property) { m_properties[property->GetName()] = property; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::RegisterFunction(IFunction* function)
+{
+    if (function) { m_functions[function->GetName()] = function; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
+) const
+{
+    return m_properties;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::unordered_map<FString, IFunction*>& UObject::GetFunctions(void
+) const
+{
+    return m_functions;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IProperty* UObject::GetProperty(const FString& name) const
+{
+    auto it = m_properties.find(name);
+    if (it != m_properties.end()) { return it->second; }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IFunction* UObject::GetFunction(const FString& name) const
+{
+    auto it = m_functions.find(name);
+    if (it != m_functions.end()) { return it->second; }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::string UObject::GetObjectID(void) const { return m_objectID.ToString(); }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,15 +83,6 @@ const FString& UObject::GetName(void) const { return m_name; }
 void UObject::SetName(const FString& name) { m_name = name; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UObject::RegisterProperty(IProperty* property)
-{
-    if (property) { m_properties.push_back(property); }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-const std::vector<IProperty*>& UObject::GetProperties(void) const
-{
-    return m_properties;
-}
+IMPLEMENT_CLASS(UObject)
 
 }   // namespace tkd

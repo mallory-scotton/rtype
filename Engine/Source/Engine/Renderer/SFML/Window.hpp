@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/IWindow.hpp>
+#include <Engine/Renderer/Interfaces/IWindow.hpp>
 #include <memory>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
@@ -25,6 +25,14 @@ namespace tkd::SFML
 ///////////////////////////////////////////////////////////////////////////////
 class Window : public IWindow
 {
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    static const float DPAD_DEADZONE;      //<! Deadzone for D-Pad axes
+    static const float DEADZONE;           //<! Deadzone for analog sticks
+    static const float TRIGGER_DEADZONE;   //<! Deadzone for triggers
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -161,7 +169,15 @@ public:
     /// \return A constant reference to the current window dimensions
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FVector2u& GetDimension(void) const override;
+    TKD_NODISCARD virtual const FVector2u& GetDimensions(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the debug mode for the window
+    ///
+    /// \param debugMode Whether to enable debug mode features
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetDebugMode(bool debugMode) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window title
@@ -222,6 +238,89 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Draw(const std::function<void(void)>& drawFunction) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the OpenGL context as active or inactive for the current
+    /// thread
+    ///
+    /// \param active True to make the context active, false to make it
+    /// inactive
+    ///
+    /// \return True if the operation was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool SetActive(bool active = true) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a specific keyboard key is currently pressed
+    ///
+    /// \param key The keyboard key to check
+    ///
+    /// \return True if the key is pressed, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsKeyPressed(EKeyboardKeys key) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a specific mouse button is currently pressed
+    ///
+    /// \param button The mouse button to check
+    ///
+    /// \return True if the button is pressed, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsMouseButtonPressed(EMouseButtons button) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a gamepad is connected
+    ///
+    /// \param gamepadIndex The index of the gamepad to check (default is 0)
+    ///
+    /// \return True if the gamepad is connected, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsGamepadConnected(UInt32 gamepadIndex = 0) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a specific gamepad button is currently pressed
+    ///
+    /// \param button The gamepad button to check
+    /// \param gamepadIndex The index of the gamepad to check (default is 0)
+    ///
+    /// \return True if the button is pressed, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsGamepadButtonPressed(
+        EGamepadButtons button, UInt32 gamepadIndex = 0
+    ) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current position of a specific gamepad axis
+    ///
+    /// \param axis The gamepad axis to check
+    /// \param gamepadIndex The index of the gamepad to check (default is 0)
+    ///
+    /// \return The current position of the axis in the range [-1.0, 1.0]
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual float GetGamepadAxis(EGamepadAxes axis, UInt32 gamepadIndex = 0)
+        const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current mouse position relative to the window
+    ///
+    /// \return The current mouse position as a 2D vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FVector2i GetMousePosition(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the mouse position relative to the window
+    ///
+    /// \param position The new mouse position to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetMousePosition(const FVector2i& position) override;
 };
 
 }   // namespace tkd::SFML

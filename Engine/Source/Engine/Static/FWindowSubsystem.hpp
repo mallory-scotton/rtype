@@ -7,139 +7,137 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
-#include <Engine/Core/Math.hpp>
-#include <Engine/Renderer/FRenderStates.hpp>
-#include <Engine/Renderer/FView.hpp>
-#include <Engine/Renderer/IRenderTarget.hpp>
-#include <Engine/Renderer/IShader.hpp>
-#include <Engine/Renderer/ITexture.hpp>
-#include <memory>
+#include <Engine/Renderer.hpp>
+#include <Engine/Runtime/Input/FInputManager.hpp>
+#include <Engine/Static/FThreadedSubsystem.hpp>
+#include <shared_mutex>
 
 ///////////////////////////////////////////////////////////////////////////////
-// Namespace tkd
+// Namespace tkd::__internal
 ///////////////////////////////////////////////////////////////////////////////
-namespace tkd
+namespace tkd::__internal
 {
 
-///////////////////////////////////////////////////////////////////////////////
-// Forward declarations
-///////////////////////////////////////////////////////////////////////////////
-class IDrawable;
+#if TKD_ENGINE_CLIENT
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Core renderer interface
+/// \brief Window subsystem for handling window events in a separate thread
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class IRenderer
+class FWindowSubsystem final : public FThreadedSubsystem
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Virtual destructor
+    // Class Alias
+    ///////////////////////////////////////////////////////////////////////////
+    using RenderCallback = TFunction<void(IRenderer&)>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    const FEngineSettings& m_settings;   //<! Reference to engine settings
+    TUniquePtr<IGraphicsFactory>
+        m_graphicsFactory;          //<! Unique pointer to graphics factory
+    TUniquePtr<IWindow> m_window;   //<! Unique pointer to the window interface
+    TUniquePtr<IRenderer> m_renderer;   //<! Unique pointer to the renderer
+    TUniquePtr<FInputManager>
+        m_inputManager;                 //<! Unique pointer to input manager
+    mutable std::shared_mutex m_windowMutex;     //<! Mutex for window access
+    RenderCallback m_renderCallback;             //<! Callback for rendering
+    TAtomic<float> m_currentFPS{ 0.0f };         //<! Current frames per second
+    TAtomic<float> m_averageFrameTime{ 0.0f };   //<! Average frame time in ms
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor with settings
+    ///
+    /// \param settings The engine settings to configure the window subsystem
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual ~IRenderer() = default;
+    FWindowSubsystem(const FEngineSettings& settings);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Initialize the subsystem
+    ///
+    /// \return True if the initialization was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool Initialize(void) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Clear the render target with a color
+    /// \brief Set the render callback function
     ///
-    /// \param color The color to clear with
+    /// \param callback The callback function to be called for rendering
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Clear(const FColor& color = FColor::Black) = 0;
+    void SetRenderCallback(RenderCallback callback);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the current view/camera
+    /// \brief Check if the window is open
     ///
-    /// \param view The view to set
+    /// \return True if the window is open, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void SetView(const FView& view) = 0;
+    TKD_NODISCARD bool IsOpen(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the current view
+    /// \brief Get the window dimensions
     ///
-    /// \return The current view
+    /// \return The dimensions of the window
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const FView& GetView(void) const = 0;
+    TKD_NODISCARD FVector2u GetDimensions(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the default view (matches render target size)
+    /// \brief Set the window title
     ///
-    /// \return The default view
+    /// \param title The new title for the window
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FView GetDefaultView(void) const = 0;
+    void SetTitle(const FString& title);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw vertices with specified primitive type
+    /// \brief Get the input manager
     ///
-    /// \param vertices Array of vertices
-    /// \param vertexCount Number of vertices
-    /// \param type Primitive type
-    /// \param states Render states
+    /// \return Pointer to the input manager
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Draw(
-        const FVertex2D* vertices,
-        UInt32 vertexCount,
-        EPrimitiveType type,
-        const FRenderStates& states = FRenderStates()
-    ) = 0;
+    TKD_NODISCARD FInputManager* GetInputManager(void) noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw a drawable object
+    /// \brief Get the current frames per second (FPS)
     ///
-    /// \param drawable Drawable to render
-    /// \param states Render states
+    /// \return The current FPS value
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Draw(
-        const IDrawable& drawable, FRenderStates states = FRenderStates()
-    );
+    TKD_NODISCARD float GetFPS(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Set the active render target
+    /// \brief Get the average frame time in milliseconds
     ///
-    /// \param target Render target (nullptr for default/window)
+    /// \return The average frame time in ms
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void SetRenderTarget(IRenderTarget* target = nullptr) = 0;
+    TKD_NODISCARD float GetAverageFrameTime(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the size of the current render target
+    /// \brief Get the window (if any)
     ///
-    /// \return Size in pixels
+    /// \return Pointer to the window, or nullptr if none
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FVector2u GetRenderTargetSize(void) const = 0;
+    IWindow* GetWindow(void) const noexcept;
 
+protected:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Push a scissor test rectangle
-    ///
-    /// \param rect The scissor rectangle
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void PushScissorTest(const FRectangle& rect) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Pop the current scissor test
+    /// \brief The main loop of the thread
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PopScissorTest(void) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Begin a new frame
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void BeginFrame(void) = 0;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief End the current frame and present
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual void EndFrame(void) = 0;
+    void ThreadLoop(void) override;
 };
 
-}   // namespace tkd
+#endif
+
+}   // namespace tkd::__internal

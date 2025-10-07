@@ -6,8 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include "TRotator.hpp"
-#include "TVector3.hpp"
+#include <Engine/Core/Math/TRotator.hpp>
+#include <Engine/Core/Math/TTransform2D.hpp>
+#include <Engine/Core/Math/TVector3.hpp>
 #include <iostream>
 #include <type_traits>
 
@@ -211,10 +212,6 @@ public:
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    // Static utility functions
-    ///////////////////////////////////////////////////////////////////////////
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Scale up or down current scale
     ///
     /// \param scaleFactor Multiplier to current scale
@@ -346,6 +343,21 @@ public:
     )
     {
         transform.Rotate(pitch, yaw, roll);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Convert to 2D transform (drops Z component)
+    ///
+    /// \return The resulting 2D transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TTransform2D<T> To2D(void) const
+    {
+        return TTransform2D<T>(
+            TVector2<T>(m_position.x, m_position.y),
+            TRotator2D<T>(m_rotation.GetYaw()),
+            TVector2<T>(m_scale.x, m_scale.y)
+        );
     }
 };
 

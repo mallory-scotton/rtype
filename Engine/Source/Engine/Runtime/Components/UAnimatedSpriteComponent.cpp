@@ -1,8 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Renderer/IRenderer.hpp>
-#include <Engine/Renderer/IDrawable.hpp>
+#include <Engine/Runtime/Components/UAnimatedSpriteComponent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -11,9 +10,14 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-void IRenderer::Draw(const IDrawable& drawable, FRenderStates states)
+UAnimatedSpriteComponent::UAnimatedSpriteComponent(const FString& name)
+    : UActorComponent(name)
+    , m_currentFrame(0)
+    , m_elapsedTime(0.0f)
+    , m_playbackSpeed(1.0f)
+    , m_isPaused(false)
 {
-    drawable.Draw(*this, states);
+    m_sprite.SetColor(FColor::White);
 }
 
 }   // namespace tkd

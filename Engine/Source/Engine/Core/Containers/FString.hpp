@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <Engine/Config.hpp>
+#include <Engine/Core/Math.hpp>
 #include <iostream>
 #include <utility>
 
@@ -2421,6 +2422,165 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static void Swap(FString& A, FString& B);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform to string using a function.
+    ///
+    /// \tparam T The type to trasnform.
+    ///
+    /// \param value The value to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const T& value)
+    {
+        if constexpr (std::is_same_v<T, FString>) { return value; }
+        else if constexpr (std::is_same_v<T, std::string> ||
+                           std::is_same_v<T, const char*>)
+        {
+            return FString(value);
+        }
+        else if constexpr (std::is_integral_v<T> ||
+                           std::is_floating_point_v<T>)
+        {
+            return FString(std::to_string(value));
+        }
+        else if constexpr (std::is_same_v<T, bool>)
+        {
+            return FString(value ? "true" : "false");
+        }
+        else { return "Not Supported Type"; }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a vector to string.
+    ///
+    /// \tparam T The vector element type.
+    ///
+    /// \param value The vector to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const TVector2<T>& value)
+    {
+        return std::format("({}, {})", value.x, value.y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a vector to string.
+    ///
+    /// \tparam T The vector element type.
+    ///
+    /// \param value The vector to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const TVector3<T>& value)
+    {
+        return std::format("({}, {}, {})", value.x, value.y, value.z);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a vector to string.
+    ///
+    /// \tparam T The vector element type.
+    ///
+    /// \param value The vector to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const TVector4<T>& value)
+    {
+        return std::format(
+            "({}, {}, {}, {})", value.x, value.y, value.z, value.w
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a transform to string.
+    ///
+    /// \tparam T The transform element type.
+    ///
+    /// \param value The transform to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const TTransform<T>& value)
+    {
+        auto position = value.GetPosition();
+        auto rotation = value.GetRotation();
+        auto scale = value.GetScale();
+
+        return std::format(
+            "Position: ({}, {}, {}) | Rotation: ({}, {}, {}) | Scale: ({}, {}, {})",
+            position.x,
+            position.y,
+            position.z,
+            rotation.GetRoll(),
+            rotation.GetYaw(),
+            rotation.GetPitch(),
+            scale.x,
+            scale.y,
+            scale.z
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a transform to string.
+    ///
+    /// \tparam T The transform element type.
+    ///
+    /// \param value The transform to transform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static FString ToString(const TTransform2D<T>& value)
+    {
+        auto position = value.GetPosition();
+        auto rotation = value.GetRotation();
+        auto scale = value.GetScale();
+
+        return std::format(
+            "Position: ({}, {}) | Rotation: {} | Scale: ({}, {})",
+            position.x,
+            position.y,
+            rotation.GetAngle(),
+            scale.x,
+            scale.y
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a color to string.
+    ///
+    /// \param value The color to trasnform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FString ToString(const FColor& value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Transform a color to string.
+    ///
+    /// \param value The color to trasnform.
+    ///
+    /// \return The resulting string.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FString ToString(const FLinearColor& value);
 
 public:
     ///////////////////////////////////////////////////////////////////////////

@@ -7,5 +7,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Controllers/AAIController.hpp>
+#include <Engine/Runtime/Controllers/AController.hpp>
 #include <Engine/Runtime/Controllers/ANetworkController.hpp>
 #include <Engine/Runtime/Controllers/APlayerController.hpp>

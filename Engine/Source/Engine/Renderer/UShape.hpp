@@ -11,9 +11,9 @@
 #include <Engine/Renderer/Enumerations.hpp>
 #include <Engine/Renderer/FTransformable2D.hpp>
 #include <Engine/Renderer/FVertex2DArray.hpp>
-#include <Engine/Renderer/IDrawable.hpp>
-#include <Engine/Renderer/IRenderer.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Renderer/Interfaces/IDrawable.hpp>
+#include <Engine/Renderer/Interfaces/IRenderer.hpp>
+#include <Engine/Renderer/Interfaces/ITexture.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////

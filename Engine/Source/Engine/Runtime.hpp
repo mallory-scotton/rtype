@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Actor.hpp>
+#include <Engine/Runtime/Animations.hpp>
 #include <Engine/Runtime/Components.hpp>
 #include <Engine/Runtime/Controllers.hpp>
 #include <Engine/Runtime/Core.hpp>

@@ -7,9 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Core/Containers/FString.hpp>
+#include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
-#include <Engine/Core/Object/UObject.hpp>
 #include <functional>
 #include <unordered_map>
 #include <vector>
@@ -19,6 +18,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
+
+///////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+///////////////////////////////////////////////////////////////////////////////
+class UObject;
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration for the source of class definition.
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EDefinitionSource
+{
+    Class,   //<! Defined in the class itself
+    Super    //<! Inherited from the parent class
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief UClass represents a class in the object system.
@@ -36,12 +50,28 @@ private:
 
 private:
     ///////////////////////////////////////////////////////////////////////////
+    // Static Member
+    ///////////////////////////////////////////////////////////////////////////
+    static std::unordered_map<FString, std::unique_ptr<UClass>>
+        s_classRegistry;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using Definition = std::pair<FString, EDefinitionSource>;
+    using DefinitionList = std::vector<Definition>;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;                         //<! The name of the class
-    UClass* m_super;                        //<! Pointer to the superclass
-    std::vector<IProperty*> m_properties;   //<! List of properties
-    Creator m_createInstance;               //<! Function to create an instance
+    FString m_name;                //<! The name of the class
+    UClass* m_super;               //<! Pointer to the superclass
+    bool m_isRegistered;           //<! Registration status
+    DefinitionList m_properties;   //<! List of properties
+    DefinitionList m_functions;    //<! List of functions
+    Creator m_createInstance;      //<! Function to create an instance
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -86,6 +116,23 @@ public:
     const FString& GetName(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the class is registered.
+    ///
+    /// \return True if the class is registered, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsRegistered(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the registration status of the class.
+    ///
+    /// \param registered True to mark the class as registered, false
+    /// otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetRegistered(bool registered);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the superclass of the class.
     ///
     /// \return Pointer to the superclass UClass, or nullptr if there is none.
@@ -99,7 +146,15 @@ public:
     /// \return A constant reference to the vector of property pointers.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<IProperty*>& GetProperties(void) const;
+    const DefinitionList& GetProperties(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the list of functions associated with the class.
+    ///
+    /// \return A constant reference to the vector of function names.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const DefinitionList& GetFunctions(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create an instance of the class.
@@ -109,6 +164,68 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UObject* CreateInstance(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a property to the class.
+    ///
+    /// \param property Pointer to the property to add.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddProperty(IProperty* property);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a function to the class.
+    ///
+    /// \param functionName The name of the function to add.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddFunction(const FString& functionName);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Register a class in the global class registry.
+    ///
+    /// \param name The name of the class to register.
+    /// \param super Pointer to the superclass (default is nullptr).
+    ///
+    /// \return Pointer to the registered UClass.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static UClass* RegisterClass(const FString& name, UClass* super = nullptr);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Find a class by name in the registry.
+    ///
+    /// \param name The name of the class to find.
+    ///
+    /// \return Pointer to the UClass if found, nullptr otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static UClass* FindClass(const FString& name);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get all registered classes.
+    ///
+    /// \return A vector of pointers to all registered UClass objects.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static std::vector<UClass*> GetAllClasses(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get all classes derived from a base class.
+    ///
+    /// \param baseClass Pointer to the base class.
+    ///
+    /// \return A vector of pointers to derived UClass objects.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static std::vector<UClass*> GetDerivedClasses(UClass* baseClass);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clear the class registry (useful for cleanup).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void ClearRegistry(void);
 };
 
 }   // namespace tkd

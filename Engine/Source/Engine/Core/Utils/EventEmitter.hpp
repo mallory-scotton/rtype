@@ -552,6 +552,16 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove a specific event listener by handle
+    ///
+    /// \param handle Handle returned by On() or Once()
+    ///
+    /// \return True if the listener was found and removed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool Off(ListenerHandle handle) { return RemoveListener(handle); }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Remove all listeners for a specific event type
     ///
     /// \tparam T Event type to remove listeners for

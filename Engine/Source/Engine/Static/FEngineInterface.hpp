@@ -6,9 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
-#include <Engine/Core/Math.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Static/Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -17,89 +15,93 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Render target interface for off-screen rendering
+/// \brief
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class IRenderTarget
+class FEngineInterface final
 {
-public:
+private:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Virtual destructor
-    ///
+    // Class Static Member
     ///////////////////////////////////////////////////////////////////////////
-    virtual ~IRenderTarget() = default;
+    static TUniquePtr<__internal::Engine> s_instance;   //<! Singleton instance
+    static std::mutex s_mutex;   //<! Mutex for thread safety
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Create the render target
+    /// \brief Initialize the engine
     ///
-    /// \param width Width in pixels
-    /// \param height Height in pixels
-    /// \param depthBuffer Enable depth buffer
+    /// \param argc The number of command line arguments
+    /// \param argv The command line arguments
     ///
-    /// \return True if created successfully
+    /// \return True if the engine was initialized successfully, false
+    /// otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual bool
-        Create(UInt32 width, UInt32 height, bool depthBuffer = false) = 0;
+    static bool Initialize(int argc, char* argv[]);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Activate this render target for rendering
+    /// \brief Run the engine
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Activate(void) = 0;
+    static void Run(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Deactivate this render target
+    /// \brief Shutdown the engine
+    ///
+    /// \return True if the engine was shut down successfully, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Deactivate(void) = 0;
+    static bool Shutdown(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the texture containing the rendered content
+    /// \brief Get the singleton instance of the engine
     ///
-    /// \return Texture pointer
+    /// \return Reference to the engine instance
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual const ITexture* GetTexture(void) const = 0;
+    TKD_NODISCARD static __internal::Engine& GetInstance(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the render target size
+    /// \brief Get whether the engine is running
     ///
-    /// \return Size in pixels
+    /// \return True if the engine is running, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual FVector2u GetSize(void) const = 0;
+    TKD_NODISCARD static bool IsRunning(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if render target is valid
+    /// \brief Get whether the engine is initialized
     ///
-    /// \return True if valid
+    /// \return True if the engine is initialized, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual bool IsValid(void) const = 0;
+    TKD_NODISCARD static bool IsInitialized(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Clear the render target
+    /// \brief Get the exit code of the engine
     ///
-    /// \param color Clear color
+    /// \return The exit code of the engine
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Clear(const FColor& color = FColor::Black) = 0;
+    TKD_NODISCARD static int GetExitCode(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Display/finalize the render target
+    /// \brief Print the exit message of the engine
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Display(void) = 0;
+    static void PrintExitMessage(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get native render target handle
-    ///
-    /// \return Platform-specific handle
+    /// \brief Request the engine to shutdown
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD virtual void* GetNativeHandle(void) const = 0;
+    static void RequestShutdown(void);
 };
 
 }   // namespace tkd
+
+///////////////////////////////////////////////////////////////////////////////
+// Alias for easier access
+///////////////////////////////////////////////////////////////////////////////
+using Engine = tkd::FEngineInterface;

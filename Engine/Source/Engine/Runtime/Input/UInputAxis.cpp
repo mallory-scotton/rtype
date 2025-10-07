@@ -16,6 +16,7 @@ UInputAxis::UInputAxis(
 )
     : m_name(name)
     , m_inputs(inputs)
+    , m_scale(0.0f)
 {
     // Clamp the scales to -1.0f to 1.0f
     for (auto& [input, scale]: m_inputs)
@@ -46,20 +47,6 @@ bool UInputAxis::Bind(EInput input, float scale)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool UInputAxis::SetScale(EInput input, float scale)
-{
-    for (auto& [existingInput, existingScale]: m_inputs)
-    {
-        if (existingInput == input)
-        {
-            existingScale = Math<float>::Clamp(scale, -1.0f, 1.0f);
-            return true;
-        }
-    }
-    return false;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 bool UInputAxis::Unbind(EInput input)
 {
     auto it = std::remove_if(
@@ -79,11 +66,32 @@ bool UInputAxis::Unbind(EInput input)
 void UInputAxis::ClearBindings(void) { m_inputs.clear(); }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UInputAxis::Move(float value, float delta)
+void UInputAxis::Move(EInput input, float factor)
 {
-    value = Math<float>::Clamp(value, -1.0f, 1.0f);
-    delta = Math<float>::Clamp(delta, -1.0f, 1.0f);
-    EmitEvent(Events::Changed{ value, delta });
+    factor = Math<float>::Clamp(factor, -1.0f, 1.0f);
+
+    for (const auto& [existingInput, scale]: m_inputs)
+    {
+        if (existingInput == input)
+        {
+            float oldScale = m_scale;
+            m_scale = scale * factor;
+            m_scale = Math<float>::Clamp(m_scale, -1.0f, 1.0f);
+            float delta = m_scale - oldScale;
+            this->Emit(Events::Changed{ m_scale, delta, input });
+            return;
+        }
+    }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void UInputAxis::Reset(void)
+{
+    m_scale = 0.0f;
+    this->Emit(Events::Reset{});
+}
+
+///////////////////////////////////////////////////////////////////////////////
+float UInputAxis::GetScale(void) const { return m_scale; }
 
 }   // namespace tkd

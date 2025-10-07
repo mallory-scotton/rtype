@@ -7,9 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/FRenderStates.hpp>
-#include <Engine/Renderer/IRenderer.hpp>
-#include <Engine/Renderer/IRenderTarget.hpp>
+#include <Engine/Core/Containers.hpp>
+#include <Engine/Core/Math.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -18,27 +17,26 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Abstract base class for objects that can be drawn to a render target
+/// \brief Class representing a transition between two animation states.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class IDrawable
+class FAnimationTransition
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Default desctructor
-    ///
+    // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    virtual ~IDrawable() = default;
+    FString targetState;                //<! Target state name
+    TFunction<bool(void*)> condition;   //<! Transition condition function
+    Float32 blendTime;                  //<! Blend time in seconds
+    void* userData;                     //<! User data for condition function
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Draw the object on a render target
-    ///
-    /// \param target Render target to draw to
-    /// \param states Current render states
+    /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Draw(IRenderer& target, FRenderStates states) const = 0;
+    FAnimationTransition(void);
 };
 
 }   // namespace tkd

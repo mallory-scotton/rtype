@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/ITexture.hpp>
+#include <Engine/Renderer/Interfaces/ITexture.hpp>
 #include <memory>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>

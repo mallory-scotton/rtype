@@ -7,7 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
-#include <Engine/Renderer/IShader.hpp>
+#include <Engine/Renderer/Interfaces/IShader.hpp>
 #include <memory>
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
