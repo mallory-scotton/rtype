@@ -10,8 +10,8 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-AController::AController(void)
-    : UObject("AController")
+AController::AController(const FString& name)
+    : AActor(name)
     , m_pawn(nullptr)
 {}
 
