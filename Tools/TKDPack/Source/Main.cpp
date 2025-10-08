@@ -129,8 +129,8 @@ bool tkd::CreateAssetsFromPath(
             auto assetType = DetectAssetType(inputPath);
             if (assetType == EAssetType::Unknown)
             {
-                std::cout << "Warning: Unknown file type for "
-                          << inputPath.filename() << ", treating as Unknown\n";
+                std::cout << "Warning: Unknown file type for " << inputPath
+                          << ", treating as Unknown\n";
             }
 
             // Read file data
@@ -145,14 +145,12 @@ bool tkd::CreateAssetsFromPath(
             // Create asset
             auto asset = new tkd::UAsset();
             asset->SetMetadata(
-                tkd::UUID::V4().ToString(),
-                inputPath.filename().string(),
-                assetType
+                tkd::UUID::V4().ToString(), inputPath.string(), assetType
             );
             asset->SetData(std::move(data));
 
             assets.push_back(asset);
-            std::cout << "Added: " << inputPath.filename()
+            std::cout << "Added: " << inputPath
                       << " (Type: " << static_cast<int>(assetType)
                       << ", Size: " << data.size() << " bytes)\n";
         }
