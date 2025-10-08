@@ -68,27 +68,32 @@ void BP_Player::Tick(Float32 deltaTime)
     // Add time to last fired time
     m_lastFiredTime += deltaTime;
 
-    auto vel = velocity.GetValue();
     auto SpriteComponent =
         GetComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
 
     // Move player based on velocity and speed
-    if (vel != 0.0f)
+    if (velocity() != 0.0f)
     {
         // Normalize velocity to ensure consistent speed in all directions
-        if (vel.Length() != 0.0f) { vel = vel.Normalized(); }
+        if (velocity().Length() != 0.0f)
+        {
+            velocity = velocity().Normalized();
+        }
 
         // Update transform
-        FTransform transform = GetTransform();
-        transform.Translate(FVector3(
-            vel.x * (speed * 1.5f) * deltaTime, vel.y * speed * deltaTime, 0.0f
+        Translate(FVector3(
+            velocity->x * (speed * 1.5f) * deltaTime,
+            velocity->y * speed * deltaTime,
+            0.0f
         ));
-        SetTransform(transform);
     }
 
     // Update animation state
-    if (vel.y > 0.0f) { SpriteComponent->Play("IDLE_TO_FLY_UP", false); }
-    else if (vel.y < 0.0f)
+    if (velocity().y > 0.0f)
+    {
+        SpriteComponent->Play("IDLE_TO_FLY_UP", false);
+    }
+    else if (velocity().y < 0.0f)
     {
         SpriteComponent->Play("IDLE_TO_FLY_DOWN", false);
     }
@@ -106,7 +111,7 @@ void BP_Player::Tick(Float32 deltaTime)
     }
 
     // Update last velocity if there is movement
-    if (vel != FVector2f::Zero) { m_lastVelocity = velocity; }
+    if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
 
     // Reset velocity for next frame
     velocity = FVector2f::Zero;
@@ -134,14 +139,14 @@ void BP_Player::Fire(void)
 void BP_Player::MoveHorizontal(Float32 value)
 {
     value = Math<float>::Clamp(value, -1.0f, 1.0f);
-    velocity.GetValue().x += value;
+    velocity->x += value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::MoveVertical(Float32 value)
 {
     value = Math<float>::Clamp(value, -1.0f, 1.0f);
-    velocity.GetValue().y += value;
+    velocity->y += value;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
