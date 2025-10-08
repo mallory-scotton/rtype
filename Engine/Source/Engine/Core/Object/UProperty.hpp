@@ -22,23 +22,25 @@ namespace tkd
 /// \brief Template class for UProperty with type and flags.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T, EPropertyFlags Flags = EPropertyFlags::None>
+template <typename T>
 class UProperty : public IProperty
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Aliases
     ///////////////////////////////////////////////////////////////////////////
-    using ValueType = T;                    //<! Alias for the property type.
-    using ThisType = UProperty<T, Flags>;   //<! Alias for this class type.
+    using ValueType = T;             //<! Alias for the property type.
+    using ThisType = UProperty<T>;   //<! Alias for this class type.
 
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;      //<! The name of the property.
-    ValueType m_value;   //<! The value of the property.
-    UObject& m_owner;    //<! Pointer to the owning UObject.
+    FString m_name;           //<! The name of the property.
+    ValueType m_value;        //<! The value of the property.
+    UObject& m_owner;         //<! Pointer to the owning UObject.
+    EPropertyFlags m_flags;   //<! The flags associated with the property.
+    bool m_isDirty = false;   //<! Indicates if the property has been modified.
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -50,11 +52,15 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UProperty(
-        UObject& owner, const FString& name = "<Unnamed>", const T& value = T()
+        UObject& owner,
+        const FString& name = "<Unnamed>",
+        const T& value = T(),
+        EPropertyFlags flags = EPropertyFlags::None
     )
         : m_name(name)
         , m_value(value)
         , m_owner(owner)
+        , m_flags(flags)
     {
         owner.RegisterProperty(this);
 
@@ -67,12 +73,20 @@ public:
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Conversion operator to the property value type.
+    /// \brief Conversion operator to the property value type (const).
     ///
     /// \return The value of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    operator T(void) const { return m_value; }
+    operator const T&(void) const { return m_value; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Conversion operator to the property value type (const).
+    ///
+    /// \return The value of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const T& operator()(void) const { return m_value; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Assignment operator to set the property value.
@@ -82,9 +96,13 @@ public:
     /// \return Reference to this UProperty instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<T, Flags>& operator=(const T& value)
+    ThisType& operator=(const T& value)
     {
-        m_value = value;
+        if (m_value != value)
+        {
+            m_value = value;
+            MarkDirty();
+        }
         return *this;
     }
 
@@ -96,11 +114,35 @@ public:
     /// \return Reference to this UProperty instance.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<T, Flags>& operator=(T&& value)
+    ThisType& operator=(T&& value)
     {
-        m_value = std::move(value);
+        if (m_value != value)
+        {
+            m_value = std::move(value);
+            MarkDirty();
+        }
         return *this;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Pointer access operator to the property value (mutable version).
+    ///
+    /// \return Pointer to the value of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T* operator->(void)
+    {
+        MarkDirty();
+        return &m_value;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Pointer access operator to the property value (const version).
+    ///
+    /// \return Const pointer to the value of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const T* operator->(void) const { return &m_value; }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -133,7 +175,19 @@ public:
     /// \return The value of the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T& GetValue(void) { return m_value; }
+    T& GetValue(void)
+    {
+        MarkDirty();
+        return m_value;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the value of the property without marking dirty.
+    ///
+    /// \return The value of the property.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const T& Get(void) const { return m_value; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Gets the owner UObject of the property.
@@ -189,7 +243,12 @@ public:
                 std::to_string(sizeof(T)) + ", got " + std::to_string(size)
             );
         }
-        m_value = *static_cast<const T*>(value);
+        T newValue = *static_cast<const T*>(value);
+        if (m_value != newValue)
+        {
+            m_value = newValue;
+            MarkDirty();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -198,7 +257,14 @@ public:
     /// \param value The new value for the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetValue(const T& value) { m_value = value; }
+    void SetValue(const T& value)
+    {
+        if (m_value != value)
+        {
+            MarkDirty();
+            m_value = value;
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the value of the property.
@@ -206,7 +272,14 @@ public:
     /// \param value The new value for the property.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetValue(T&& value) { m_value = std::move(value); }
+    void SetValue(T&& value)
+    {
+        if (m_value != value)
+        {
+            MarkDirty();
+            m_value = std::move(value);
+        }
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Gets the flags associated with the property.
@@ -214,7 +287,80 @@ public:
     /// \return The property flags.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual EPropertyFlags GetFlags(void) const override { return Flags; }
+    virtual EPropertyFlags GetFlags(void) const override { return m_flags; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the flags for the property
+    ///
+    /// \param flags The flags to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetFlags(EPropertyFlags flags) override { m_flags = flags; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a flag for the property
+    ///
+    /// \param flag The flags to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void AddFlag(EPropertyFlags flag) override
+    {
+        if (!HasFlag(flag))
+        {
+            m_flags = static_cast<EPropertyFlags>(
+                static_cast<UInt32>(m_flags) | static_cast<UInt32>(flag)
+            );
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove a flag for the property
+    ///
+    /// \param flag The flags to remove
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void RemoveFlag(EPropertyFlags flag) override
+    {
+        if (HasFlag(flag))
+        {
+            m_flags = static_cast<EPropertyFlags>(
+                static_cast<UInt32>(m_flags) & ~static_cast<UInt32>(flag)
+            );
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the property has a specific flag
+    ///
+    /// \param flag The flag to check
+    ///
+    /// \return True if the property has the flag, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool HasFlag(EPropertyFlags flag) const override
+    {
+        return (static_cast<UInt32>(m_flags) & static_cast<UInt32>(flag)) != 0;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the property is dirty (modified)
+    ///
+    /// \return True if the property is dirty, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsDirty(void) const override { return m_isDirty; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Mark the property as dirty (modified)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void MarkDirty(void) override { m_isDirty = true; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clear the dirty flag for the property
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void ClearDirty(void) override { m_isDirty = false; }
 };
 
 }   // namespace tkd
