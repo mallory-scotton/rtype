@@ -62,4 +62,17 @@ Float32 FAnimation2D::GetTotalDuration(void) const
     return totalDuration;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+FAnimation2D FAnimation2D::Reverse(const FString& name) const
+{
+    FString newName = name.IsEmpty() ? m_name + "_Reversed" : name;
+
+    FAnimation2D reversedAnimation(newName, m_isLooping);
+    for (SizeT i = m_frames.Size(); i > 0; --i)
+    {
+        reversedAnimation.AddFrame(m_frames[i - 1]);
+    }
+    return reversedAnimation;
+}
+
 }   // namespace tkd
