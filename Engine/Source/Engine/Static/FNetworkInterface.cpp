@@ -40,6 +40,7 @@ bool FNetworkInterface::Connect(const std::string& host, UInt16 port)
                           << std::endl;
                 return false;
             }
+            s_networkSubsystem->Start();
         }
         return true;
     }
@@ -139,6 +140,7 @@ bool FNetworkInterface::SendPacket(const IPacket& packet)
         return false;
     }
     // own thing
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
