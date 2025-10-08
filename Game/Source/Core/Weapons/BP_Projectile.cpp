@@ -15,7 +15,7 @@ BP_Projectile::BP_Projectile(void)
 {
     auto SpriteComponent =
         AddComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
-    SpriteComponent->SetTexturePath("Game/Assets/Images/T_Projectiles.png");
+    SpriteComponent->SetTexturePath("Assets/Images/T_Projectiles.png");
 
     // Define PROJECTILE animation
     FAnimation2D A_PROJECTILE("PROJECTILE", false);

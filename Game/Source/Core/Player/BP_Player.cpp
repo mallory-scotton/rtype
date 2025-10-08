@@ -19,7 +19,7 @@ BP_Player::BP_Player(UInt32 playerColor)
     , m_lastFiredTime(0.0f)
 {
     auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
-    Abp->SetTexturePath("Game/Assets/Images/T_PlayerShips.png");
+    Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
 
     // Set up animations
     SetupAnimations();
