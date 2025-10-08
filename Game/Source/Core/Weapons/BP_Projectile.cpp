@@ -44,12 +44,10 @@ void BP_Projectile::Tick(Float32 deltaTime)
     Super::Tick(deltaTime);
 
     // Move the projectile forward
-    FTransform transform = GetTransform();
-    transform.Translate(FVector3(800.0f * deltaTime, 0.0f, 0.0f));
-    SetTransform(transform);
+    Translate(FVector3(800.0f * deltaTime, 0.0f, 0.0f));
 
     // If the projectile goes out of bounds, destroy it
-    if (transform.GetPosition().x > 2000.0f) { MarkForDeletion(); }
+    if (GetTransform().GetPosition().x > 2000.0f) { MarkForDeletion(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
