@@ -7,4 +7,4 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Core/AGameMode.hpp>
-#include <Engine/Runtime/Core/IGame.hpp>
+#include <Engine/Runtime/Core/UGame.hpp>
