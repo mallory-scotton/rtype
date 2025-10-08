@@ -27,6 +27,17 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (m_initialized) { return false; }
 
+    if (TKD_CreateGame)
+    {
+        m_game = std::move(TKD_CreateGame());
+        if (!m_game)
+        {
+            m_exitCode = TKD_EXIT_FAILURE;
+            m_exitMessage = "Failed to create game instance";
+            return false;
+        }
+    }
+
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
 
@@ -205,7 +216,7 @@ void Engine::PrintExitMessage(void) const
 void Engine::PrintStartupMessage(void) const
 {
     std::string gameName = "NOT_LOADED";
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
         gameName = m_settings.game.title.empty() ? "NOT_SPECIFIED"
                                                  : m_settings.game.title;
@@ -287,16 +298,13 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
 {
     FArgs& args = FArgs::GetInstance();
 
-    // Load engine settings
-    if (TKD_GetEngineSettings) { m_settings = TKD_GetEngineSettings(); }
-
     bool debugMode = false;
     bool verbose = false;
 
     // Load game settings if available
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
-        m_settings = TKD_GetEngineSettings();
+        m_settings = m_game->GetEngineSettings();
 
         if (m_settings.version != TKD_VERSION_STRING)
         {
