@@ -68,9 +68,8 @@ bool Engine::Initialize(int argc, char* argv[])
         std::cout << "[Engine] Connecting to server..." << std::endl;
 
         // Initialize network interface and connect to server (client only)
-        std::string serverHost = "127.0.0.1";   // Default localhost
-        UInt16 serverPort =
-            m_settings.network.port;            // Use same port as server
+        std::string serverHost = "127.0.0.1";          // Default localhost
+        UInt16 serverPort = m_settings.network.port;   // Use server port
 
         if (!Network::Connect(serverHost, serverPort))
         {
