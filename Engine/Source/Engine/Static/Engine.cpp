@@ -45,6 +45,28 @@ bool Engine::Initialize(int argc, char* argv[])
     // Print startup message
     PrintStartupMessage();
 
+    // Load Packed Ressources if any
+    if (m_game)
+    {
+        FilePath exeDir = FileSystem::GetExecutableDirectory();
+
+        for (const auto& resource: m_game->GetPackedResources())
+        {
+            if (!URessource::GetInstance().LoadPak(exeDir / resource))
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage =
+                    "Failed to load resource pack: " + resource.string();
+                return false;
+            }
+            else
+            {
+                std::cout << "[Engine] Loaded resource pack: "
+                          << resource.string() << std::endl;
+            }
+        }
+    }
+
     try
     {
         std::cout << "[Engine] Configuring subsystems..." << std::endl;
