@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
 #include <Engine/Assets/URessource.hpp>
+#include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,11 +28,44 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (m_initialized) { return false; }
 
+    if (TKD_CreateGame)
+    {
+        m_game = std::move(TKD_CreateGame());
+        if (!m_game)
+        {
+            m_exitCode = TKD_EXIT_FAILURE;
+            m_exitMessage = "Failed to create game instance";
+            return false;
+        }
+    }
+
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
 
     // Print startup message
     PrintStartupMessage();
+
+    // Load Packed Ressources if any
+    if (m_game)
+    {
+        FilePath exeDir = FileSystem::GetExecutableDirectory();
+
+        for (const auto& resource: m_game->GetPackedResources())
+        {
+            if (!URessource::GetInstance().LoadPak(exeDir / resource))
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage =
+                    "Failed to load resource pack: " + resource.string();
+                return false;
+            }
+            else
+            {
+                std::cout << "[Engine] Loaded resource pack: "
+                          << resource.string() << std::endl;
+            }
+        }
+    }
 
     try
     {
@@ -205,7 +239,7 @@ void Engine::PrintExitMessage(void) const
 void Engine::PrintStartupMessage(void) const
 {
     std::string gameName = "NOT_LOADED";
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
         gameName = m_settings.game.title.empty() ? "NOT_SPECIFIED"
                                                  : m_settings.game.title;
@@ -287,16 +321,14 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
 {
     FArgs& args = FArgs::GetInstance();
 
-    // Load engine settings
-    if (TKD_GetEngineSettings) { m_settings = TKD_GetEngineSettings(); }
-
     bool debugMode = false;
     bool verbose = false;
+    std::string gameModule;
 
     // Load game settings if available
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
-        m_settings = TKD_GetEngineSettings();
+        m_settings = m_game->GetEngineSettings();
 
         if (m_settings.version != TKD_VERSION_STRING)
         {
@@ -311,7 +343,6 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
     }
     else
     {
-        std::string gameModule;
         args.AddFlags("game", "Path to the game module", gameModule, true);
     }
 
@@ -334,6 +365,67 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
             m_exitMessage = "Failed to process command-line arguments.";
         }
         return false;
+    }
+
+    if (!m_game)
+    {
+        if (!FileSystem::FileExists(gameModule))
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Game module not found: " + gameModule;
+            return false;
+        }
+
+        // Attempt to load the game module
+        auto gameLib = FLibrary::Load(gameModule);
+
+        // Check if library loaded successfully
+        if (!gameLib || !gameLib->IsLoaded() ||
+            !gameLib->HasFunction("TKD_CreateGame"))
+        {
+            m_exitCode = 1;
+            m_exitMessage =
+                "Failed to load game module: " + gameLib->GetLastError();
+            return false;
+        }
+
+        // Get the factory function
+        auto CreateGame = gameLib->GetFunctionWrapper<TUniquePtr<UGame>(void)>(
+            "TKD_CreateGame"
+        );
+
+        // Create the game instance
+        if (!CreateGame)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Failed to find TKD_CreateGame in module: " +
+                            gameLib->GetLastError();
+            return false;
+        }
+
+        // Create the game instance
+        m_game = std::move(CreateGame());
+
+        // Validate the game instance
+        if (!m_game)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Failed to create game instance from module.";
+            return false;
+        }
+
+        // Retrieve engine settings from the game
+        m_settings = m_game->GetEngineSettings();
+
+        // Check for version mismatch
+        if (m_settings.version != TKD_VERSION_STRING)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Game module version mismatch. Expected " +
+                            std::string(TKD_VERSION_STRING) + ", got " +
+                            m_settings.version + ".";
+            return false;
+        }
     }
 
     // Apply debug and verbose mode if specified

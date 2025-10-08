@@ -97,13 +97,6 @@ public:
             {
                 m_value = std::to_string(value);
             }
-            else
-            {
-                static_assert(
-                    std::is_same_v<T, void>,
-                    "Unsupported type for INI value construction"
-                );
-            }
         }
 
     public:

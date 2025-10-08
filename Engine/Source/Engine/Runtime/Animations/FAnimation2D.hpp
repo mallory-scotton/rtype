@@ -117,6 +117,16 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     Float32 GetTotalDuration(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create a reversed version of the animation
+    ///
+    /// \param name The name for the reversed animation
+    ///
+    /// \return A new FAnimation2D instance with frames in reverse order
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FAnimation2D Reverse(const FString& name = "") const;
 };
 
 }   // namespace tkd

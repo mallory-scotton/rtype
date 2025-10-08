@@ -35,7 +35,7 @@ Bool UActorComponent::IsActive(void) const
 const FString& UActorComponent::GetName(void) const { return m_name; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UActorComponent::Tick(TKD_MAYBE_UNUSED Float32 deltaTime) {}
+void UActorComponent::Tick(Float32) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 void UActorComponent::BeginPlay(void) {}

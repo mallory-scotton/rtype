@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Assets/UResourceHandle.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Core/Utils/EventEmitter.hpp>
@@ -75,18 +76,28 @@ class UAnimatedSpriteComponent
     : public UActorComponent
     , public TEventEmitter<TEvents<UAnimatedSpriteComponent>::All>
 {
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Aliases
+    ///////////////////////////////////////////////////////////////////////////
+    using Events = TEvents<UAnimatedSpriteComponent>;
+    using Super = UActorComponent;
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    USprite m_sprite;             //<! The sprite being animated
-    TMap<FString, FAnimation2D>
-        m_animations;             //<! Map of animation names to animations
-    FString m_currentAnimation;   //<! Name of the current animation
-    SizeT m_currentFrame;         //<! Index of the current frame
-    Float32 m_elapsedTime;        //<! Time elapsed since last frame change
-    Float32 m_playbackSpeed;      //<! Speed multiplier for playback
-    bool m_isPaused;              //<! Whether the animation is paused
+    USprite m_sprite;                 //<! The sprite being animated
+    std::unordered_map<FString, FAnimation2D>
+        m_animations;                 //<! Map of animation names to animations
+    FString m_currentAnimation;       //<! Name of the current animation
+    SizeT m_currentFrame;             //<! Index of the current frame
+    Float32 m_elapsedTime;            //<! Time elapsed since last frame change
+    Float32 m_playbackSpeed;          //<! Speed multiplier for playback
+    bool m_isPaused;                  //<! Whether the animation is paused
+    FTransform2D m_localTransform;    //<! The local transform of the sprite
+    FilePath m_texturePath;           //<! Path to the texture file
+    FTextureHandle m_textureHandle;   //<! Handle to the loaded texture
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -96,6 +107,193 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UAnimatedSpriteComponent(const FString& name = "AnimatedSpriteComponent");
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the sprite associated with this component
+    ///
+    /// \return Reference to the sprite
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    USprite& GetSprite(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the sprite associated with this component
+    ///
+    /// \return Constant reference to the sprite
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const USprite& GetSprite(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the local transform of the sprite
+    ///
+    /// \return Constant reference to the local transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FTransform2D& GetLocalTransform(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the local transform of the sprite
+    ///
+    /// \param transform The new local transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetLocalTransform(const FTransform2D& transform);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw the sprite using the provided renderer
+    ///
+    /// \param renderer The renderer to use for drawing
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Render(IRenderer& renderer) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the texture path for the sprite
+    ///
+    /// \return The file path to the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FilePath& GetTexturePath(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the texture path for the sprite
+    ///
+    /// \param texturePath The file path to the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetTexturePath(const FilePath& texturePath);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add an animation to the component
+    ///
+    /// \param animation The animation to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddAnimation(const FAnimation2D& animation);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create an animation from a sprite sheet grid
+    ///
+    /// \param name Name of the animation
+    /// \param frameSize Size of each frame
+    /// \param startPos Starting position in the sprite sheet
+    /// \param frameCount Number of frames
+    /// \param frameDuration Duration of each frame
+    /// \param isLooping Whether the animation loops
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void CreateAnimationFromGrid(
+        const FString& name,
+        const FVector2i& frameSize,
+        const FVector2i& startPos,
+        SizeT frameCount,
+        Float32 frameDuration = 0.1f,
+        Bool isLooping = true
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Create an animation from a sprite sheet with wrapping
+    ///
+    /// \param name Name of the animation
+    /// \param frameSize Size of each frame
+    /// \param startPos Starting position in the sprite sheet
+    /// \param frameCount Number of frames
+    /// \param columns Number of columns in the sprite sheet
+    /// \param frameDuration Duration of each frame
+    /// \param isLooping Whether the animation loops
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void CreateAnimationFromGridWithWrap(
+        const FString& name,
+        const FVector2i& frameSize,
+        const FVector2i& startPos,
+        SizeT frameCount,
+        SizeT columns,
+        Float32 frameDuration = 0.1f,
+        Bool isLooping = true
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play an animation
+    ///
+    /// \param name Name of the animation to play
+    /// \param restart If true, restart the animation from the beginning
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Play(const FString& name, Bool restart = true);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Pause the current animation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Pause(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Resume the current animation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Resume(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Stop the current animation and reset to first frame
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Stop(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the playback speed
+    ///
+    /// \param speed Speed multiplier (1.0 = normal, 2.0 = double speed, etc.)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetPlaybackSpeed(Float32 speed);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the playback speed
+    ///
+    /// \return Current playback speed multiplier
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Float32 GetPlaybackSpeed(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if animation is playing
+    ///
+    /// \return True if playing, false if paused or stopped
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool IsPlaying(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current animation name
+    ///
+    /// \return Name of the current animation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FString& GetCurrentAnimation(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Tick the component
+    ///
+    /// \param deltaTime Time elapsed since last frame
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Tick(Float32 deltaTime) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clear all animations
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ClearAnimations(void);
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the sprite's texture rectangle based on current frame
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateSpriteFrame(void);
 };
 
 }   // namespace tkd

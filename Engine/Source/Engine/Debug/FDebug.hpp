@@ -11,6 +11,7 @@
 #include <Engine/Debug/FActorDebug.hpp>
 #include <Engine/Debug/FEngineSettingsDebug.hpp>
 #include <Engine/Debug/FInputsDebug.hpp>
+#include <Engine/Debug/FPerformanceMonitorDebug.hpp>
 #include <Engine/Debug/IDebugInterface.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
@@ -52,6 +53,8 @@ private:
     FEngineSettingsDebug m_engineSettings;   //<! Engine settings instance
     FInputsDebug m_inputsDebug;              //<! Inputs debug instance
     FActorDebug m_actorDebug;                //<! Actor debug instance
+    FPerformanceMonitorDebug
+        m_performanceMonitor;                //<! Performance monitor instance
 
 private:
     ///////////////////////////////////////////////////////////////////////////
