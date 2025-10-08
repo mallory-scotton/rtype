@@ -165,16 +165,22 @@ void Engine::Run(void)
         std::this_thread::sleep_for(Milliseconds(100));
     }
 
+    // Set running to false to ensure all subsystems stop
+    m_running.store(false, std::memory_order_release);
+
     // Shutdown subsystems in reverse order
     std::cout << "[Engine] Shutting down subsystems..." << std::endl;
 
     // Signal resource manager to stop accepting new loads
+    std::cout << "[Engine] Signaling resource manager to shutdown..."
+              << std::endl;
     URessource::GetInstance().BeginShutdown();
 
     // Shutdown world FIRST (before window) so actors can properly clean up
     // their input bindings while the input manager still exists
     if (m_world)
     {
+        std::cout << "[Engine] Shutting down world subsystem..." << std::endl;
         m_world->Shutdown();
         m_world.reset();
     }
@@ -182,6 +188,8 @@ void Engine::Run(void)
     TKD_ENGINE_IF_SERVER({
         if (m_network)
         {
+            std::cout << "[Engine] Shutting down network subsystem..."
+                      << std::endl;
             m_network->Shutdown();
             m_network.reset();
         }
@@ -190,12 +198,13 @@ void Engine::Run(void)
     TKD_ENGINE_IF_CLIENT({
         if (m_window)
         {
+            std::cout << "[Engine] Shutting down window subsystem..."
+                      << std::endl;
             m_window->Shutdown();
             m_window.reset();
         }
     })
 
-    m_running.store(false, std::memory_order_release);
     std::cout << "[Engine] Shutdown complete" << std::endl;
 }
 
