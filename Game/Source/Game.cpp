@@ -17,6 +17,7 @@ TKD_EXPORT_GAME(tkd::RTypeGame);
 RTypeGame::RTypeGame(void)
     : UGame(RTYPE_ENGINE_SETTINGS)
 {
+    AddPackedResource("Data/RTypeGameContent.pak");
     SetDefaultLevel("L_RType_Level1");
 }
 
