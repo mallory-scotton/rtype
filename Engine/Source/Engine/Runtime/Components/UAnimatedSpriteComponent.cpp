@@ -246,6 +246,17 @@ void UAnimatedSpriteComponent::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UAnimatedSpriteComponent::ClearAnimations(void)
+{
+    m_animations.clear();
+    m_currentAnimation.Clear();
+    m_currentFrame = 0;
+    m_elapsedTime = 0.0f;
+    m_isPaused = true;
+    m_sprite.SetTextureRect(FRectanglei(0, 0, 0, 0));
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UAnimatedSpriteComponent::UpdateSpriteFrame(void)
 {
     if (!m_animations.contains(m_currentAnimation)) { return; }
