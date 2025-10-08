@@ -24,7 +24,7 @@ FNetworkClient::FNetworkClient()
 bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
-
+    std::cout << "we connecting typeshit" << std::endl;
     // Don't allow connecting if already connected or connecting
     if (m_connectionState == EConnectionState::Connected ||
         m_connectionState == EConnectionState::Connecting)
@@ -61,12 +61,12 @@ bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
         if (SendPacket(connectPacket, m_serverEndpoint))
         {
             m_lastUpdate = SteadyClock::now();
-            return true;  // Connection attempt initiated successfully
+            return true;   // Connection attempt initiated successfully
         }
         else
         {
             m_connectionState = EConnectionState::Disconnected;
-            return false; // Failed to send connection packet
+            return false;   // Failed to send connection packet
         }
     }
     catch (const std::exception&)
@@ -83,7 +83,8 @@ bool FNetworkClient::Start(void)
 
     try
     {
-        // Create socket (but don't bind - clients don't need to listen on specific port)
+        // Create socket (but don't bind - clients don't need to listen on
+        // specific port)
         m_socket = std::make_unique<FSocket>(m_ioContext);
         m_socket->open(asio::ip::udp::v4());
 
@@ -106,7 +107,8 @@ bool FNetworkClient::Start(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::HandleConnectResponsePacket(
-    const Packets::ConnectResponse& packet, const FEndpoint& endpoint)
+    const Packets::ConnectResponse& packet, const FEndpoint& endpoint
+)
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
 
@@ -120,14 +122,16 @@ void FNetworkClient::HandleConnectResponsePacket(
         m_clientID = packet.clientID;
         m_connection->connected = true;
 
-        Emit<Events::Connected>({packet.clientID, endpoint});
-        std::cout << "Successfully connected to server! Client ID: " << packet.clientID << std::endl;
-    } else
+        Emit<Events::Connected>({ packet.clientID, endpoint });
+        std::cout << "Successfully connected to server! Client ID: "
+                  << packet.clientID << std::endl;
+    }
+    else
     {
         m_connectionState = EConnectionState::Disconnected;
 
         // Emit connection failed event
-        Emit<Events::ConnectionFailed>({endpoint});
+        Emit<Events::ConnectionFailed>({ endpoint });
     }
 }
 
@@ -139,8 +143,7 @@ void FNetworkClient::Disconnect(EDisconnectionReason reason)
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::DisconnectInternal(
-    EDisconnectionReason reason,
-    bool sendPacket
+    EDisconnectionReason reason, bool sendPacket
 )
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
@@ -157,7 +160,7 @@ void FNetworkClient::DisconnectInternal(
     if (m_connectionState != EConnectionState::Disconnected)
     {
         m_connectionState = EConnectionState::Disconnected;
-        EmitEvent(Events::Disconnected{reason});
+        EmitEvent(Events::Disconnected{ reason });
     }
 
     // Reset connection data
@@ -170,26 +173,21 @@ void FNetworkClient::SetupDefaultHandlers()
 {
     // Register handler for connect response
     RegisterPacketHandler<Packets::ConnectResponse>(
-        [this](const Packets::ConnectResponse& packet, const FEndpoint& endpoint)
-        {
-            HandleConnectResponsePacket(packet, endpoint);
-        }
+        [this](
+            const Packets::ConnectResponse& packet, const FEndpoint& endpoint
+        ) { HandleConnectResponsePacket(packet, endpoint); }
     );
 
     // Register handler for disconnect packets
     RegisterPacketHandler<Packets::Disconnect>(
         [this](const Packets::Disconnect& packet, const FEndpoint& endpoint)
-        {
-            HandleDisconnectPacket(packet, endpoint);
-        }
+        { HandleDisconnectPacket(packet, endpoint); }
     );
 
     // Register handler for heartbeat packets
     RegisterPacketHandler<Packets::HeartBeat>(
         [this](const Packets::HeartBeat& packet, const FEndpoint& endpoint)
-        {
-            HandleHeartbeatPacket(packet, endpoint);
-        }
+        { HandleHeartbeatPacket(packet, endpoint); }
     );
 }
 
@@ -198,6 +196,7 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
     if (!IsRunning()) { return; }
 
+    std::cout << "ITS UPDATING TIME" << std::endl;
     // Don't continue updating if disconnected after timeout
     if (m_connectionState == EConnectionState::Disconnected)
     {
@@ -251,7 +250,6 @@ FEndpoint FNetworkClient::GetServerEndpoint() const
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkClient::SendPacketToServer(const IPacket& packet)
 {
-
     std::lock_guard<std::mutex> lock(m_connectionMutex);
 
     if (m_connectionState == EConnectionState::Connected ||
@@ -274,26 +272,24 @@ void FNetworkClient::SendHeartbeat(const TimePoint& now)
 {
     if (m_connectionState != EConnectionState::Connected) { return; }
 
-    auto timeSinceLastUpdate = std::chrono::duration_cast<std::chrono::seconds>(
-        now - m_lastUpdate);
+    auto timeSinceLastUpdate =
+        std::chrono::duration_cast<std::chrono::seconds>(now - m_lastUpdate);
 
     if (timeSinceLastUpdate >= HEARTBEAT_INTERVAL)
     {
-        // std::cout << "[CLIENT] Sending heartbeat to server (ID: " << m_clientID << ")" << std::endl;
+        // std::cout << "[CLIENT] Sending heartbeat to server (ID: " <<
+        // m_clientID << ")" << std::endl;
 
         Packets::HeartBeat heartbeat;
         heartbeat.id = m_clientID;
         heartbeat.timestamp = GetCurrentTimestamp();
 
-        if (SendPacketToServer(heartbeat))
-        {
-            m_lastUpdate = now;
-        } else
+        if (SendPacketToServer(heartbeat)) { m_lastUpdate = now; }
+        else
         {
             // std::cout << "[CLIENT] Failed to send heartbeat" << std::endl;
         }
     }
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -301,25 +297,28 @@ void FNetworkClient::CheckConnectionAttemptTimeout(const TimePoint& now)
 {
     if (m_connectionState != EConnectionState::Connecting) { return; }
 
-    auto timeSinceConnectAttempt = std::chrono::duration_cast<std::chrono::seconds>(
-        now - m_lastUpdate);
+    auto timeSinceConnectAttempt =
+        std::chrono::duration_cast<std::chrono::seconds>(now - m_lastUpdate);
 
     // Timeout after 5 seconds if no ConnectResponse received
-    if (timeSinceConnectAttempt >= std::chrono::seconds(5)) {
-        std::cout << "[CLIENT] Connection timeout - no server response after 5 seconds" << std::endl;
+    if (timeSinceConnectAttempt >= std::chrono::seconds(5))
+    {
+        std::cout
+            << "[CLIENT] Connection timeout - no server response after 5 seconds"
+            << std::endl;
 
         std::lock_guard<std::mutex> lock(m_connectionMutex);
         m_connectionState = EConnectionState::Disconnected;
 
         // Emit connection failed event
-        Emit<Events::ConnectionFailed>({m_serverEndpoint});
+        Emit<Events::ConnectionFailed>({ m_serverEndpoint });
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::HandleDisconnectPacket(
     const Packets::Disconnect& packet, const FEndpoint& endpoint
-    )
+)
 {
     // Only accept disconnect packets from our server
     if (endpoint != m_serverEndpoint) { return; }
@@ -328,7 +327,8 @@ void FNetworkClient::HandleDisconnectPacket(
               << packet.reason << std::endl;
 
     // Convert the reason from the packet
-    EDisconnectionReason reason = static_cast<EDisconnectionReason>(packet.reason);
+    EDisconnectionReason reason =
+        static_cast<EDisconnectionReason>(packet.reason);
 
     // Disconnect without sending a packet back (server initiated)
     DisconnectInternal(reason, false);
@@ -337,27 +337,24 @@ void FNetworkClient::HandleDisconnectPacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::HandleHeartbeatPacket(
     const Packets::HeartBeat& packet, const FEndpoint& endpoint
-    )
+)
 {
     // Only accept heartbeat packets from our server
-    if (endpoint != m_serverEndpoint || m_connectionState != EConnectionState::Connected)
+    if (endpoint != m_serverEndpoint ||
+        m_connectionState != EConnectionState::Connected)
     {
         return;
     }
 
     // Update last activity time to keep connection alive
-    if (m_connection)
-    {
-        m_connection->lastActivity = SteadyClock::now();
-    }
+    if (m_connection) { m_connection->lastActivity = SteadyClock::now(); }
 
     // Optionally send heartbeat response back to server
-    Packets::HeartBeat response;
-    response.id = m_clientID;
-    response.timestamp = GetCurrentTimestamp();
+    // Packets::HeartBeat response;
+    // response.id = m_clientID;
+    // response.timestamp = GetCurrentTimestamp();
 
-    SendPacketToServer(response);
+    // SendPacketToServer(response);
 }
 
-
-} // !namespace tkd
+}   // namespace tkd
