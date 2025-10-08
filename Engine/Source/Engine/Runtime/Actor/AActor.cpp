@@ -49,10 +49,7 @@ void AActor::EndPlay(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FTransform& AActor::GetTransform(void) const
-{
-    return m_transform.GetValue();
-}
+FTransform AActor::GetTransform(void) const { return m_transform.Get(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetTransform(const FTransform& transform)
@@ -61,7 +58,7 @@ void AActor::SetTransform(const FTransform& transform)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsActive(void) const { return m_isActive; }
+Bool AActor::IsActive(void) const { return m_isActive.Get(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetActive(Bool isActive) { m_isActive = isActive; }
@@ -99,6 +96,60 @@ void AActor::MarkForDeletion(void) { m_markedForDeletion = true; }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool AActor::IsMarkedForDeletion(void) const { return m_markedForDeletion; }
+
+///////////////////////////////////////////////////////////////////////////////
+bool AActor::IsTransformReplicated(void) const
+{
+    return m_transform.HasFlag(EPropertyFlags::Replicated);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::SetTransformReplicated(Bool replicated)
+{
+    if (replicated) { m_transform.AddFlag(EPropertyFlags::Replicated); }
+    else { m_transform.RemoveFlag(EPropertyFlags::Replicated); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Translate(const FVector3& translation)
+{
+    m_transform->Translate(translation);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Translate(Float32 x, Float32 y, Float32 z)
+{
+    m_transform->Translate(FVector3(x, y, z));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Rotate(const FVector3& rotation)
+{
+    FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
+    m_transform->Rotate(rotator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Rotate(const FRotator& rotation)
+{
+    m_transform->Rotate(rotation);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
+{
+    FRotator rotator = FRotator(pitch, yaw, roll);
+    m_transform->Rotate(rotator);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Scale(const FVector3& scale) { m_transform->Scale(scale); }
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::Scale(Float32 x, Float32 y, Float32 z)
+{
+    m_transform->Scale(FVector3(x, y, z));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(AActor);

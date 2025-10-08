@@ -39,13 +39,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<
-        FTransform,
-        EPropertyFlags::Replicated | EPropertyFlags::EditAnywhere>
-        m_transform;                   //<! The actor's transform
-    UProperty<Bool> m_isActive;        //<! Whether the actor is active
-    TVector<Component> m_components;   //<! The actor's components
-    bool m_markedForDeletion;          //<! Marked for deletion
+    UProperty<FTransform> m_transform;   //<! The actor's transform
+    UProperty<Bool> m_isActive;          //<! Whether the actor is active
+    TVector<Component> m_components;     //<! The actor's components
+    bool m_markedForDeletion;            //<! Marked for deletion
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -94,7 +91,7 @@ public:
     /// \return The actor's transform
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const FTransform& GetTransform(void) const;
+    FTransform GetTransform(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the actor's transform
@@ -283,6 +280,84 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool IsMarkedForDeletion(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check wether the transform property is replicated
+    ///
+    /// \return True if the transform property is replicated, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsTransformReplicated(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set whether the transform property is replicated
+    ///
+    /// \param replicated True to replicate the transform property, false
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetTransformReplicated(Bool replicated);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Translate the actor by a given vector
+    ///
+    /// \param translation The vector to translate the actor by
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Translate(const FVector3& translation);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Translate the actor by a given vector
+    ///
+    /// \param x The x component of the translation vector
+    /// \param y The y component of the translation vector
+    /// \param z The z component of the translation vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Translate(Float32 x, Float32 y, Float32 z);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Rotate the actor by a given vector
+    ///
+    /// \param rotation The vector to rotate the actor by (in degrees)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Rotate(const FVector3& rotation);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Rotate the actor by a given rotator
+    ///
+    /// \param rotation The rotator to rotate the actor by (in degrees)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Rotate(const FRotator& rotation);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Rotate the actor by a given vector
+    ///
+    /// \param pitch The pitch component of the rotation vector
+    /// \param yaw The yaw component of the rotation vector
+    /// \param roll The roll component of the rotation vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Rotate(Float32 pitch, Float32 yaw, Float32 roll);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Scale the actor by a given vector
+    ///
+    /// \param factor The vector to scale the actor by
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Scale(const FVector3& factor);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Scale the actor by a given vector
+    ///
+    /// \param x The x component of the factor vector
+    /// \param y The y component of the factor vector
+    /// \param z The z component of the factor vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Scale(Float32 x, Float32 y, Float32 z);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
