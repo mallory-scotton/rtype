@@ -453,13 +453,19 @@ void FActorDebug::DisplayActorInfo(AActor* actor, SizeT index)
             ImGui::Indent();
             for (const auto& [property, source]: properties)
             {
+                auto prop = actor->GetProperty(property);
+
+                if (!prop) { continue; }
+
                 ImGui::PushStyleColor(
                     ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.7f, 1.0f)
                 );
                 ImGui::BulletText(
-                    "%s: %s",
+                    "%s%s: %s",
                     property.CStr(),
-                    actor->GetProperty(property)->ToString().CStr()
+                    prop->HasFlag(EPropertyFlags::Replicated) ? " (Replicated)"
+                                                              : "",
+                    prop->ToString().CStr()
                 );
                 ImGui::PopStyleColor();
             }
