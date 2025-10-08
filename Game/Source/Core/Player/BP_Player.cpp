@@ -22,36 +22,36 @@ BP_Player::BP_Player(void)
     SpriteComponent->SetTexturePath("Game/Assets/Images/T_PlayerShips.png");
 
     // Define IDLE animation
-    FAnimation2D A_IDLE("IDLE", true);
-    A_IDLE.AddFrame(FAnimation2DFrame(FRectanglei(66, 0, 33, 17), 1.f));
-    SpriteComponent->AddAnimation(A_IDLE);
+    FAnimation2D A_Idle("IDLE", true);
+    A_Idle.AddFrame(FRectanglei(66, 0, 33, 17), 1.f);
+    SpriteComponent->AddAnimation(A_Idle);
 
     // Define IDLE_TO_FLY_UP animation
-    FAnimation2D A_ITFU("IDLE_TO_FLY_UP", false);
-    A_ITFU.AddFrame(FAnimation2DFrame(FRectanglei(33, 0, 33, 17), 0.1f));
-    A_ITFU.AddFrame(FAnimation2DFrame(FRectanglei(0, 0, 33, 17), 1.0f));
-    SpriteComponent->AddAnimation(A_ITFU);
+    FAnimation2D A_IdleToFlyUp("IDLE_TO_FLY_UP", false);
+    A_IdleToFlyUp.AddFrame(FRectanglei(33, 0, 33, 17), 0.1f);
+    A_IdleToFlyUp.AddFrame(FRectanglei(0, 0, 33, 17), 1.0f);
+    SpriteComponent->AddAnimation(A_IdleToFlyUp);
 
     // Define FLY_UP_TO_IDLE animation
-    FAnimation2D A_FUTI("FLY_UP_TO_IDLE", false);
-    A_FUTI.AddFrame(FAnimation2DFrame(FRectanglei(33, 0, 33, 17), 0.1f));
-    A_FUTI.AddFrame(FAnimation2DFrame(FRectanglei(66, 0, 33, 17), 1.0f));
-    SpriteComponent->AddAnimation(A_FUTI);
+    FAnimation2D A_FlyUpToIdle("FLY_UP_TO_IDLE", false);
+    A_FlyUpToIdle.AddFrame(FRectanglei(33, 0, 33, 17), 0.1f);
+    A_FlyUpToIdle.AddFrame(FRectanglei(66, 0, 33, 17), 1.0f);
+    SpriteComponent->AddAnimation(A_FlyUpToIdle);
 
     // Define IDLE_TO_FLY_DOWN animation
-    FAnimation2D A_ITFD("IDLE_TO_FLY_DOWN", false);
-    A_ITFD.AddFrame(FAnimation2DFrame(FRectanglei(99, 0, 33, 17), 0.1f));
-    A_ITFD.AddFrame(FAnimation2DFrame(FRectanglei(132, 0, 33, 17), 1.0f));
-    SpriteComponent->AddAnimation(A_ITFD);
+    FAnimation2D A_IdleToFlyDown("IDLE_TO_FLY_DOWN", false);
+    A_IdleToFlyDown.AddFrame(FRectanglei(99, 0, 33, 17), 0.1f);
+    A_IdleToFlyDown.AddFrame(FRectanglei(132, 0, 33, 17), 1.0f);
+    SpriteComponent->AddAnimation(A_IdleToFlyDown);
 
     // Define FLY_DOWN_TO_IDLE animation
-    FAnimation2D A_FDTI("FLY_DOWN_TO_IDLE", false);
-    A_FDTI.AddFrame(FAnimation2DFrame(FRectanglei(99, 0, 33, 17), 0.1f));
-    A_FDTI.AddFrame(FAnimation2DFrame(FRectanglei(66, 0, 33, 17), 1.0f));
-    SpriteComponent->AddAnimation(A_FDTI);
+    FAnimation2D A_FlyDownToIdle("FLY_DOWN_TO_IDLE", false);
+    A_FlyDownToIdle.AddFrame(FRectanglei(99, 0, 33, 17), 0.1f);
+    A_FlyDownToIdle.AddFrame(FRectanglei(66, 0, 33, 17), 1.0f);
+    SpriteComponent->AddAnimation(A_FlyDownToIdle);
 
     // Set the default animation to IDLE
-    SpriteComponent->Play("IDLE", true);
+    SpriteComponent->Play("Idle");
 
     // Local transform to scale up the sprite
     SpriteComponent->SetLocalTransform(
