@@ -10,53 +10,69 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Player::BP_Player(void)
+BP_Player::BP_Player(UInt32 playerColor)
     : APawn()
     , speed(*this, "Speed", 200.0f)
     , velocity(*this, "Velocity", FVector2f::Zero)
+    , playerColor(*this, "PlayerColor", playerColor % 5)
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
 {
-    auto SpriteComponent =
-        AddComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
-    SpriteComponent->SetTexturePath("Game/Assets/Images/T_PlayerShips.png");
+    auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+    Abp->SetTexturePath("Game/Assets/Images/T_PlayerShips.png");
 
-    // Define IDLE animation
-    FAnimation2D A_Idle("IDLE", true);
-    A_Idle.AddFrame(FRectanglei(66, 0, 33, 17), 1.f);
-    SpriteComponent->AddAnimation(A_Idle);
-
-    // Define IDLE_TO_FLY_UP animation
-    FAnimation2D A_IdleToFlyUp("IDLE_TO_FLY_UP", false);
-    A_IdleToFlyUp.AddFrame(FRectanglei(33, 0, 33, 17), 0.1f);
-    A_IdleToFlyUp.AddFrame(FRectanglei(0, 0, 33, 17), 1.0f);
-    SpriteComponent->AddAnimation(A_IdleToFlyUp);
-
-    // Define FLY_UP_TO_IDLE animation
-    FAnimation2D A_FlyUpToIdle("FLY_UP_TO_IDLE", false);
-    A_FlyUpToIdle.AddFrame(FRectanglei(33, 0, 33, 17), 0.1f);
-    A_FlyUpToIdle.AddFrame(FRectanglei(66, 0, 33, 17), 1.0f);
-    SpriteComponent->AddAnimation(A_FlyUpToIdle);
-
-    // Define IDLE_TO_FLY_DOWN animation
-    FAnimation2D A_IdleToFlyDown("IDLE_TO_FLY_DOWN", false);
-    A_IdleToFlyDown.AddFrame(FRectanglei(99, 0, 33, 17), 0.1f);
-    A_IdleToFlyDown.AddFrame(FRectanglei(132, 0, 33, 17), 1.0f);
-    SpriteComponent->AddAnimation(A_IdleToFlyDown);
-
-    // Define FLY_DOWN_TO_IDLE animation
-    FAnimation2D A_FlyDownToIdle("FLY_DOWN_TO_IDLE", false);
-    A_FlyDownToIdle.AddFrame(FRectanglei(99, 0, 33, 17), 0.1f);
-    A_FlyDownToIdle.AddFrame(FRectanglei(66, 0, 33, 17), 1.0f);
-    SpriteComponent->AddAnimation(A_FlyDownToIdle);
-
-    // Set the default animation to IDLE
-    SpriteComponent->Play("Idle");
+    // Set up animations
+    SetupAnimations();
 
     // Local transform to scale up the sprite
-    SpriteComponent->SetLocalTransform(
+    Abp->SetLocalTransform(
         FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::SetupAnimations(void)
+{
+    // Get the animated sprite component
+    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+
+    // Early out if no sprite component
+    if (!Abp) { return; }
+
+    // Clear the existing animations
+    Abp->ClearAnimations();
+
+    // Define Idle animation
+    FAnimation2D A_Idle("Idle", true);
+    A_Idle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.f);
+    Abp->AddAnimation(A_Idle);
+
+    // Define IdleToFlyUp animation
+    FAnimation2D A_IdleToFlyUp("IdleToFlyUp", false);
+    A_IdleToFlyUp.AddFrame(FRectanglei(33, playerColor * 17, 33, 17), 0.1f);
+    A_IdleToFlyUp.AddFrame(FRectanglei(0, playerColor * 17, 33, 17), 1.0f);
+    Abp->AddAnimation(A_IdleToFlyUp);
+
+    // Define FlyUpToIdle animation
+    FAnimation2D A_FlyUpToIdle("FlyUpToIdle", false);
+    A_FlyUpToIdle.AddFrame(FRectanglei(33, playerColor * 17, 33, 17), 0.1f);
+    A_FlyUpToIdle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.0f);
+    Abp->AddAnimation(A_FlyUpToIdle);
+
+    // Define IdleToFlyDown animation
+    FAnimation2D A_IdleToFlyDown("IdleToFlyDown", false);
+    A_IdleToFlyDown.AddFrame(FRectanglei(99, playerColor * 17, 33, 17), 0.1f);
+    A_IdleToFlyDown.AddFrame(FRectanglei(132, playerColor * 17, 33, 17), 1.0f);
+    Abp->AddAnimation(A_IdleToFlyDown);
+
+    // Define FlyDownToIdle animation
+    FAnimation2D A_FlyDownToIdle("FlyDownToIdle", false);
+    A_FlyDownToIdle.AddFrame(FRectanglei(99, playerColor * 17, 33, 17), 0.1f);
+    A_FlyDownToIdle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.0f);
+    Abp->AddAnimation(A_FlyDownToIdle);
+
+    // Set the default animation to IDLE
+    Abp->Play("Idle");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,8 +84,7 @@ void BP_Player::Tick(Float32 deltaTime)
     // Add time to last fired time
     m_lastFiredTime += deltaTime;
 
-    auto SpriteComponent =
-        GetComponent<UAnimatedSpriteComponent>("AnimatedSpriteComponent");
+    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
 
     // Move player based on velocity and speed
     if (velocity() != 0.0f)
@@ -89,25 +104,16 @@ void BP_Player::Tick(Float32 deltaTime)
     }
 
     // Update animation state
-    if (velocity().y > 0.0f)
-    {
-        SpriteComponent->Play("IDLE_TO_FLY_UP", false);
-    }
-    else if (velocity().y < 0.0f)
-    {
-        SpriteComponent->Play("IDLE_TO_FLY_DOWN", false);
-    }
+    if (velocity().y > 0.0f) { Abp->Play("IdleToFlyUp", false); }
+    else if (velocity().y < 0.0f) { Abp->Play("IdleToFlyDown", false); }
     else
     {
-        if (m_lastVelocity.y > 0.0f)
-        {
-            SpriteComponent->Play("FLY_UP_TO_IDLE", false);
-        }
+        if (m_lastVelocity.y > 0.0f) { Abp->Play("FlyUpToIdle", false); }
         else if (m_lastVelocity.y < 0.0f)
         {
-            SpriteComponent->Play("FLY_DOWN_TO_IDLE", false);
+            Abp->Play("FlyDownToIdle", false);
         }
-        else { SpriteComponent->Play("IDLE", true); }
+        else { Abp->Play("Idle", true); }
     }
 
     // Update last velocity if there is movement
