@@ -173,6 +173,9 @@ void Engine::Run(void)
     })
 
     TKD_ENGINE_IF_CLIENT({
+        std::cout << "[Engine] Shutting down network..." << std::endl;
+        if (Network::IsInitialized()) { Network::Shutdown(); }
+
         if (m_window)
         {
             m_window->Shutdown();
@@ -204,14 +207,11 @@ void Engine::Shutdown(void)
     })
 
     TKD_ENGINE_IF_CLIENT({
-        if (m_window) { m_window->Shutdown(); }
-
         // Shutdown network interface
-        if (Network::IsInitialized())
-        {
-            if (Network::IsConnected()) { Network::Disconnect(); }
-            Network::Shutdown();
-        }
+        std::cout << "[ENGINE] Shutting down network..." << std::endl;
+        if (Network::IsInitialized()) { Network::Shutdown(); }
+
+        if (m_window) { m_window->Shutdown(); }
     })
 
     if (m_world) { m_world->Shutdown(); }
