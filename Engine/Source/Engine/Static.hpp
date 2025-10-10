@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FAudioInterface.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
 #include <Engine/Static/FThreadedSubsystem.hpp>
 #include <Engine/Static/FWindowSubsystem.hpp>
