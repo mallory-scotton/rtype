@@ -10,3 +10,4 @@
 #include <Engine/Audio/SFML/AudioEffect.hpp>
 #include <Engine/Audio/SFML/AudioListener.hpp>
 #include <Engine/Audio/SFML/AudioSource.hpp>
+#include <Engine/Audio/SFML/AudioStream.hpp>
