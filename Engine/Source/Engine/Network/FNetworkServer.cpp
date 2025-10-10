@@ -20,6 +20,9 @@ FNetworkServer::FNetworkServer(UInt16 port)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FNetworkServer::~FNetworkServer() { Cleanup(); }
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::DisconnectClient(
     UInt32 clientID, EDisconnectionReason reason
 )
@@ -46,7 +49,8 @@ void FNetworkServer::DisconnectClient(
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkServer::Start(void)
 {
-    if (m_running.load()) {
+    if (m_running.load())
+    {
         std::cout << "[SERVER] Already running" << std::endl;
         return true;
     }
@@ -59,7 +63,6 @@ bool FNetworkServer::Start(void)
         m_socket = std::make_unique<FSocket>(m_ioContext);
         m_socket->open(asio::ip::udp::v4());
 
-        std::cout << "[SERVER] Socket created, binding to port " << m_port << std::endl;
         m_socket->bind(FEndpoint(asio::ip::udp::v4(), m_port));
         std::cout << "[SERVER] Socket bound successfully" << std::endl;
 
@@ -67,16 +70,20 @@ bool FNetworkServer::Start(void)
 
         // Start network thread
         std::cout << "[SERVER] Starting network thread" << std::endl;
-        m_networkThread = std::make_unique<FThread>([this]() {
-            std::cout << "[SERVER] Network thread started" << std::endl;
-            RunNetworkThread();
-        });
+        m_networkThread = std::make_unique<FThread>(
+            [this]()
+            {
+                std::cout << "[SERVER] Network thread started" << std::endl;
+                RunNetworkThread();
+            }
+        );
         m_networkThread->Start();
 
         std::cout << "[SERVER] Starting packet reception" << std::endl;
         StartReceive();
 
-        std::cout << "[SERVER] Server started successfully on port " << m_port << std::endl;
+        std::cout << "[SERVER] Server started successfully on port " << m_port
+                  << std::endl;
         return true;
     }
     catch (const std::exception& e)
@@ -92,6 +99,7 @@ void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
     auto now = SteadyClock::now();
 
+    // std::cout << "[SERVER] updating all by yourself handsome?" << std::endl;
     CheckConnectionTimeouts(now);
     SendHeartbeats(now);
 
@@ -258,6 +266,7 @@ void FNetworkServer::HandleDisconnectPacket(
     TKD_UNUSED(packet);
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
+    std::cout << "[SERVER] disconnection packet received" << std::endl;
     auto it = m_connections.find(endpoint);
     if (it != m_connections.end())
     {
@@ -315,6 +324,59 @@ void FNetworkServer::HandleHeartbeatPacket(
     if (it != m_connections.end())
     {
         it->second->lastActivity = SteadyClock::now();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::Cleanup(void)
+{
+    std::cout << "[SERVER] Destructor called, notifying clients of shutdown..."
+              << std::endl;
+
+    // Send disconnect notifications to all connected clients
+    {
+        std::lock_guard<std::mutex> lock(m_connectionsMutex);
+
+        std::cout << "[SERVER] Sending shutdown notifications to "
+                  << m_connections.size() << " clients" << std::endl;
+
+        for (const auto& [endpoint, connection]: m_connections)
+        {
+            if (connection->connected)
+            {
+                // Send disconnect packet with ServerShutdown reason
+                Packets::Disconnect disconnectPacket;
+                disconnectPacket.clientID = connection->clientID;
+                disconnectPacket.reason =
+                    static_cast<UInt32>(EDisconnectionReason::Shutdown);
+
+                std::cout << "[SERVER] Notifying client ID: "
+                          << connection->clientID << " at "
+                          << endpoint.address().to_string() << ":"
+                          << endpoint.port() << std::endl;
+
+                SendPacket(disconnectPacket, endpoint);
+            }
+        }
+    }
+
+    // Give packets time to be sent before stopping
+    std::cout << "[SERVER] Waiting for disconnect packets to be sent..."
+              << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    // Stop the server
+    if (m_running.load())
+    {
+        std::cout << "[SERVER] Stopping network services..." << std::endl;
+        Stop();
+    }
+
+    // Clear all connections
+    {
+        std::lock_guard<std::mutex> lock(m_connectionsMutex);
+        m_connections.clear();
+        m_clientIDToEndpoint.clear();
     }
 }
 
