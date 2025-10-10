@@ -203,7 +203,7 @@ FString AudioManager::GetDefaultDevice(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-Bool AudioManager::SetDevice(const FString& name)
+Bool AudioManager::SetDevice(const FString&)
 {
     // SFML does not support setting the output device for playback
     return false;
@@ -213,33 +213,66 @@ Bool AudioManager::SetDevice(const FString& name)
 void AudioManager::ApplyDopplerEffect(IAudioSource* source, Float32 deltaTime)
 {
     FVector3 sourcePos = source->GetPosition();
-    FVector3 sourceVel = source->GetVelocity();
     FVector3 listenerPos = m_listener.GetPosition();
-    FVector3 listenerVel = m_listener.GetVelocity();
 
     FVector3 toSource = sourcePos - listenerPos;
     Float32 distance = toSource.Length();
 
-    if (distance < 0.001f) { return; }
+    if (distance < 0.001f)
+    {
+        source->SetPitch(1.0f);
+        return;
+    }
 
+    // Get or create doppler state for this source
+    auto& state = m_dopplerStates[source];
+
+    // Calculate velocity from position change if not explicitly set
+    FVector3 sourceVel = source->GetVelocity();
+    FVector3 listenerVel = m_listener.GetVelocity();
+
+    // If velocity is zero, calculate it from position delta
+    if (sourceVel.Length() < 0.001f && deltaTime > 0.0f)
+    {
+        sourceVel = (sourcePos - state.lastPosition) * (1.0f / deltaTime);
+    }
+
+    // Calculate radial velocity (velocity along the line connecting listener
+    // and source)
     FVector3 toSourceNorm = toSource.Normalized();
 
-    Float32 sourceSpeed = sourceVel.x * toSourceNorm.x +
-                          sourceVel.y * toSourceNorm.y +
-                          sourceVel.z * toSourceNorm.z;
+    Float32 sourceRadialSpeed = sourceVel.x * toSourceNorm.x +
+                                sourceVel.y * toSourceNorm.y +
+                                sourceVel.z * toSourceNorm.z;
 
-    Float32 listenerSpeed = listenerVel.x * toSourceNorm.x +
-                            listenerVel.y * toSourceNorm.y +
-                            listenerVel.z * toSourceNorm.z;
+    Float32 listenerRadialSpeed = listenerVel.x * toSourceNorm.x +
+                                  listenerVel.y * toSourceNorm.y +
+                                  listenerVel.z * toSourceNorm.z;
 
+    // Calculate doppler shift using the standard formula
+    // f_observed = f_emitted * (c + v_listener) / (c + v_source)
+    // where velocities are positive when moving towards each other
+    Float32 relativeVelocity = listenerRadialSpeed - sourceRadialSpeed;
     Float32 dopplerShift =
-        (m_speedOfSound - listenerSpeed) / (m_speedOfSound - sourceSpeed);
+        (m_speedOfSound + relativeVelocity) / m_speedOfSound;
 
+    // Clamp to reasonable values to avoid extreme pitch shifts
     dopplerShift = std::max(0.5f, std::min(2.0f, dopplerShift));
 
-    Float32 finalPitch =
-        dopplerShift * m_dopplerFactor * source->GetDopplerFactor();
-    source->SetPitch(finalPitch);
+    // Apply global and per-source doppler factors
+    Float32 targetPitch = 1.0f + (dopplerShift - 1.0f) * m_dopplerFactor *
+                                     source->GetDopplerFactor();
+
+    // Smooth pitch transitions to avoid jarring changes
+    Float32 smoothingFactor = std::min(1.0f, deltaTime * 10.0f);
+    state.smoothedPitch = state.smoothedPitch * (1.0f - smoothingFactor) +
+                          targetPitch * smoothingFactor;
+
+    source->SetPitch(state.smoothedPitch);
+
+    // Store state for next frame
+    state.lastPosition = sourcePos;
+    state.lastDistance = distance;
 }
 
 #endif

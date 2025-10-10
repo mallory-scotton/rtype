@@ -29,6 +29,18 @@ class AudioManager : public IAudioManager
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Structure to hold Doppler effect state for each source
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct SourceDopplerState
+    {
+        FVector3 lastPosition;          //<! Last position of the source
+        Float32 lastDistance;           //<! Last distance from listener
+        Float32 smoothedPitch = 1.0f;   //<! Smoothed pitch value
+    };
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     AudioListener m_listener;   //<! Audio listener
@@ -40,10 +52,12 @@ private:
     Float32 m_speedOfSound;     //<! Speed of sound
     Float32 m_dopplerFactor;    //<! Doppler factor
     Bool m_initialized;         //<! Whether the audio manager is initialized
+    std::unordered_map<IAudioSource*, SourceDopplerState>
+        m_dopplerStates;        //<! Doppler states
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Default constructor.
     ///
     ///////////////////////////////////////////////////////////////////////////
     AudioManager(void);
