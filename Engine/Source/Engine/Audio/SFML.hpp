@@ -9,5 +9,6 @@
 #include <Engine/Audio/SFML/AudioBuffer.hpp>
 #include <Engine/Audio/SFML/AudioEffect.hpp>
 #include <Engine/Audio/SFML/AudioListener.hpp>
+#include <Engine/Audio/SFML/AudioManager.hpp>
 #include <Engine/Audio/SFML/AudioSource.hpp>
 #include <Engine/Audio/SFML/AudioStream.hpp>
