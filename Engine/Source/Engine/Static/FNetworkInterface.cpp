@@ -42,6 +42,7 @@ bool FNetworkInterface::Connect(const std::string& host, UInt16 port)
             }
             s_networkSubsystem->Start();
         }
+        s_isConnected = true;
         return true;
     }
     catch (const std::exception& e)
@@ -58,6 +59,7 @@ bool FNetworkInterface::Connect(const std::string& host, UInt16 port)
 bool FNetworkInterface::Disconnect(void)
 {
     std::lock_guard<std::mutex> lock(s_mutex);
+    std::cout << "[NETWORK INTERFACE] Disconnect called" << std::endl;
 
     if (!s_isConnected)
     {
@@ -69,8 +71,13 @@ bool FNetworkInterface::Disconnect(void)
     {
         if (s_networkSubsystem)
         {
-            s_networkSubsystem->GetClient()->Disconnect();
-            s_networkSubsystem->GetClient()->Stop();
+            s_networkSubsystem->GetClient()->Disconnect(
+                EDisconnectionReason::Shutdown
+            );
+            std::cout
+                << "[NETWORK INTERFACE] Waiting for disconnect packet transmission..."
+                << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
 
         s_isConnected = false;
@@ -91,7 +98,16 @@ bool FNetworkInterface::Disconnect(void)
 TKD_NODISCARD bool FNetworkInterface::IsConnected(void)
 {
     std::lock_guard<std::mutex> lock(s_mutex);
-    return s_isConnected;
+
+    // Check if subsystem exists first
+    if (!s_networkSubsystem) { return false; }
+
+    // Get the client
+    auto client = s_networkSubsystem->GetClient();
+    if (!client) { return false; }
+
+    // Check if connection state is Connected
+    return client->GetConnectionState() == EConnectionState::Connected;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -125,6 +141,8 @@ TKD_NODISCARD FNetworkStatistics FNetworkInterface::GetStatistics(void)
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkInterface::SendPacket(const IPacket& packet)
 {
+    TKD_UNUSED(packet);
+
     std::lock_guard<std::mutex> lock(s_mutex);
 
     if (!s_networkSubsystem)
@@ -140,6 +158,7 @@ bool FNetworkInterface::SendPacket(const IPacket& packet)
         return false;
     }
     // own thing
+    // shit to do typeshit
     return true;
 }
 
@@ -182,20 +201,38 @@ bool FNetworkInterface::Initialize(const std::string& host, UInt16 port)
 ///////////////////////////////////////////////////////////////////////////////
 bool FNetworkInterface::Shutdown(void)
 {
+    std::cout << "[NETWORK INTERFACE] Shutdown called" << std::endl;
+
+    if (IsConnected())
+    {
+        std::cout
+            << "[NETWORK INTERFACE] Still connected, disconnecting first..."
+            << std::endl;
+        Disconnect();
+    }
+
     std::lock_guard<std::mutex> lock(s_mutex);
 
-    if (!s_networkSubsystem) { return false; }
+    if (!s_networkSubsystem)
+    {
+        std::cout << "[NETWORK INTERFACE] Subsystem already cleaned up"
+                  << std::endl;
+        return false;
+    }
 
     try
     {
-        if (s_isConnected) { s_networkSubsystem->GetClient()->Disconnect(); }
-
+        // Stop the network thread and close socket
+        std::cout
+            << "[NETWORK INTERFACE] Stopping network thread and closing socket..."
+            << std::endl;
         s_networkSubsystem->GetClient()->Stop();
         s_networkSubsystem.reset();
         s_isConnected = false;
 
-        std::cout << "[NETWORK] Network interface shut down successfully"
-                  << std::endl;
+        std::cout
+            << "[NETWORK INTERFACE] Network interface shut down successfully"
+            << std::endl;
         return true;
     }
     catch (const std::exception& e)
