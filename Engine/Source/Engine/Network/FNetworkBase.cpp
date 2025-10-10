@@ -84,6 +84,8 @@ void FNetworkBase::HandleReceive(
     const asio::error_code& error, SizeT bytesReceived
 )
 {
+    // std::cout << "recevied packet size " << bytesReceived << " bytes"
+    //           << std::endl;
     if (!m_running) { return; }
 
     if (!error && bytesReceived > 0)
@@ -156,4 +158,15 @@ UInt32 FNetworkBase::GetCurrentTimestamp(void) const
     );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::FlushPackets(void)
+{
+    if (m_socket && m_ioContext.stopped()) { m_ioContext.restart(); }
+
+    // Process any pending send operations
+    m_ioContext.poll();
+
+    // Give network stack time to send
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
 }   // namespace tkd

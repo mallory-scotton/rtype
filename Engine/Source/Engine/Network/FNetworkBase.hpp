@@ -37,7 +37,7 @@ enum class EDisconnectionReason : UInt32
     Timeout = 1,    //<! Disconnected due to timeout
     Kicked = 2,     //<! Disconnected by server (kicked)
     Shutdown = 3,   //<! Disconnected due to server shutdown
-    Error = 4       //<! Disconnected due to an error
+    Error = 4,      //<! Disconnected due to an error
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,6 +185,12 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Flushes remaining packets to not cause udp issues at shutdown
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void FlushPackets(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Start receiving data asynchronously
