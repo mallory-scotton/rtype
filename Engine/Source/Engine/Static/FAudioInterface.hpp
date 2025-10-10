@@ -15,7 +15,8 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Audio interface for managing and utilizing the Audio API of the
+/// TKD Engine
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class FAudioInterface final
@@ -24,8 +25,8 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Static Member
     ///////////////////////////////////////////////////////////////////////////
-    static TUniquePtr<IAudioManager> s_manager;
-    static std::mutex s_mutex;
+    static TUniquePtr<IAudioManager> s_manager;   //<! The audio manager
+    static std::mutex s_mutex;                    //<! Mutex for thread safety
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void PlaySound(
+    static void PlaySound(
         const FilePath& filePath, Float32 volume = 1.0f, Bool loop = false
     );
 };

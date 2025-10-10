@@ -17,8 +17,11 @@ std::mutex FAudioInterface::s_mutex;
 Bool FAudioInterface::Initialize(void)
 {
     std::lock_guard lock(s_mutex);
+#if TKD_ENGINE_CLIENT
     if (s_manager) { return true; }
     s_manager = std::make_unique<SFML::AudioManager>();
+    if (!s_manager || !s_manager->Initialize()) { return false; }
+#endif
     return true;
 }
 
@@ -34,9 +37,8 @@ void FAudioInterface::PlaySound(
 )
 {
     std::lock_guard lock(s_mutex);
-    TKD_UNUSED(filePath);
-    TKD_UNUSED(volume);
-    TKD_UNUSED(loop);
+    if (!s_manager) { return; }
+    s_manager->PlaySound(filePath, volume, loop);
 }
 
 }   // namespace tkd
