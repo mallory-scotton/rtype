@@ -89,6 +89,18 @@ public:
     {}
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructs a vector with all components set to the same value.
+    ///
+    /// \param all The value to set all components to.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3(const T& all)
+        : x(all)
+        , y(all)
+        , z(all)
+    {}
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Constructs a vector with the specified x, y, and z components.
     ///
     /// \param x The x-component.
