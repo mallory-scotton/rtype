@@ -7,4 +7,5 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Audio/SFML/AudioBuffer.hpp>
+#include <Engine/Audio/SFML/AudioEffect.hpp>
 #include <Engine/Audio/SFML/AudioSource.hpp>
