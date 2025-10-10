@@ -33,10 +33,10 @@ class FNetworkClient;
 ///////////////////////////////////////////////////////////////////////////////
 enum class EConnectionState : UInt32
 {
-    Disconnected = 0,  //<! Not connected to server
-    Connecting = 1,    //<! Attempting to connect
-    Connected = 2,     //<! Successfully connected
-    Disconnecting = 3  //<! In process of disconnecting
+    Disconnected = 0,   //<! Not connected to server
+    Connecting = 1,     //<! Attempting to connect
+    Connected = 2,      //<! Successfully connected
+    Disconnecting = 3   //<! In process of disconnecting
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,10 +79,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // All event types as a tuple
     ///////////////////////////////////////////////////////////////////////////
-    using All = std::tuple<
-        Connected,
-        Disconnected,
-        ConnectionFailed>;
+    using All = std::tuple<Connected, Disconnected, ConnectionFailed>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,12 +108,13 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    FEndpoint m_serverEndpoint;                        //<! Server endpoint
-    EConnectionState m_connectionState;                //<! Current connection state
-    UInt32 m_clientID;                                //<! ID assigned by server
-    std::unique_ptr<FConnectionInformation> m_connection;  //<! Connection info
-    mutable std::mutex m_connectionMutex;              //<! Mutex for connection data
-    TimePoint m_lastUpdate;                            //<! Last update timestamp
+    FEndpoint m_serverEndpoint;             //<! Server endpoint
+    EConnectionState m_connectionState;     //<! Current connection state
+    UInt32 m_clientID;                      //<! ID assigned by server
+    std::unique_ptr<FConnectionInformation>
+        m_connection;                       //<! Connection info
+    mutable std::mutex m_connectionMutex;   //<! Mutex for connection data
+    TimePoint m_lastUpdate;                 //<! Last update timestamp
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -124,6 +122,12 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FNetworkClient();
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ~FNetworkClient();
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -195,6 +199,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     FEndpoint GetServerEndpoint(void) const;
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Cleanup client resources and notify server
+    ///
+    /// Called by destructor to ensure proper cleanup
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Cleanup(void);
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Handle incoming packets
@@ -203,8 +215,8 @@ protected:
     /// \param sender The endpoint of the sender
     ///
     ///////////////////////////////////////////////////////////////////////////
-    // void OnPacketReceived(const FPacketHeader& packet, const FEndpoint& sender)
-        // override;
+    // void OnPacketReceived(const FPacketHeader& packet, const FEndpoint&
+    // sender) override;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -285,10 +297,7 @@ private:
     /// \param sendPacket Whether to send disconnect packet to server
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void DisconnectInternal(
-        EDisconnectionReason reason,
-        bool sendPacket
-    );
+    void DisconnectInternal(EDisconnectionReason reason, bool sendPacket);
 };
 
 }   // namespace tkd

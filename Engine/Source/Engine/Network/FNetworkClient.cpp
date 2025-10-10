@@ -20,6 +20,20 @@ FNetworkClient::FNetworkClient()
     SetupDefaultHandlers();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+FNetworkClient::~FNetworkClient()
+{
+    std::cout << "[CLIENT] Destructor called" << std::endl;
+
+    // Call cleanup first (sends disconnect packet)
+    Cleanup();
+
+    // ✅ CRITICAL: Wait for UDP packet to actually transmit
+    std::cout << "[CLIENT] Waiting for packet transmission..." << std::endl;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    std::cout << "[CLIENT] Destructor completed" << std::endl;
+}
+
 ///////////////////////////////////////////////////////////////////////////
 bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
 {
@@ -151,10 +165,13 @@ void FNetworkClient::DisconnectInternal(
     // Only send disconnect packet if we're connected and requested to do so
     if (sendPacket && m_connectionState == EConnectionState::Connected)
     {
+        std::cout << "sending over packet in disconnect internals"
+                  << std::endl;
         Packets::Disconnect disconnectPacket;
         disconnectPacket.clientID = m_clientID;
         disconnectPacket.reason = static_cast<UInt32>(reason);
-        SendPacketToServer(disconnectPacket);
+
+        FNetworkBase::SendPacket(disconnectPacket, m_serverEndpoint);
     }
     // Update connection state
     if (m_connectionState != EConnectionState::Disconnected)
@@ -196,7 +213,6 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
     if (!IsRunning()) { return; }
 
-    std::cout << "ITS UPDATING TIME" << std::endl;
     // Don't continue updating if disconnected after timeout
     if (m_connectionState == EConnectionState::Disconnected)
     {
@@ -264,7 +280,43 @@ bool FNetworkClient::SendPacketToServer(const IPacket& packet)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::CheckConnectionTimeout(const TimePoint& now)
 {
-    // might not be usefull
+    // Only check timeout if we're connected
+    if (m_connectionState != EConnectionState::Connected || !m_connection)
+    {
+        return;
+    }
+
+    // Calculate time since last activity from server
+    auto timeSinceLastActivity =
+        std::chrono::duration_cast<std::chrono::seconds>(
+            now - m_connection->lastActivity
+        );
+
+    // If no activity from server for CONNECTION_TIMEOUT seconds, disconnect
+    if (timeSinceLastActivity >= CONNECTION_TIMEOUT)
+    {
+        std::cout << "[CLIENT] Connection timeout - no server activity for "
+                  << CONNECTION_TIMEOUT.count() << " seconds" << std::endl;
+        std::cout << "[CLIENT] Last activity was at: "
+                  << std::chrono::duration_cast<std::chrono::seconds>(
+                         m_connection->lastActivity.time_since_epoch()
+                     )
+                         .count()
+                  << "s" << std::endl;
+
+        // Disconnect due to timeout
+        DisconnectInternal(EDisconnectionReason::Timeout, false);
+    }
+    else
+    {
+        // Optional: Log approaching timeout
+        if (timeSinceLastActivity >= std::chrono::seconds(25))
+        {   // Warn at 25s if timeout is 30s
+            std::cout << "[CLIENT] Warning: No server activity for "
+                      << timeSinceLastActivity.count() << " seconds"
+                      << std::endl;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -275,24 +327,19 @@ void FNetworkClient::SendHeartbeat(const TimePoint& now)
     auto timeSinceLastUpdate =
         std::chrono::duration_cast<std::chrono::seconds>(now - m_lastUpdate);
 
-    if (timeSinceLastUpdate >= HEARTBEAT_INTERVAL)
-    {
-        // std::cout << "[CLIENT] Sending heartbeat to server (ID: " <<
-        // m_clientID << ")" << std::endl;
+    if (timeSinceLastUpdate < HEARTBEAT_INTERVAL) { return; }
 
-        Packets::HeartBeat heartbeat;
-        heartbeat.id = m_clientID;
-        heartbeat.timestamp = GetCurrentTimestamp();
+    std::cout << "[CLIENT] Sending heartbeat to server (ID: " << m_clientID
+              << ")" << std::endl;
+    Packets::HeartBeat heartbeat;
+    heartbeat.id = m_clientID;
+    heartbeat.timestamp = GetCurrentTimestamp();
 
-        if (SendPacketToServer(heartbeat)) { m_lastUpdate = now; }
-        else
-        {
-            // std::cout << "[CLIENT] Failed to send heartbeat" << std::endl;
-        }
-    }
+    if (SendPacketToServer(heartbeat)) { m_lastUpdate = now; }
+    else { std::cout << "[CLIENT] Failed to send heartbeat" << std::endl; }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::CheckConnectionAttemptTimeout(const TimePoint& now)
 {
     if (m_connectionState != EConnectionState::Connecting) { return; }
@@ -320,17 +367,24 @@ void FNetworkClient::HandleDisconnectPacket(
     const Packets::Disconnect& packet, const FEndpoint& endpoint
 )
 {
-    // Only accept disconnect packets from our server
     if (endpoint != m_serverEndpoint) { return; }
 
-    std::cout << "[CLIENT] Received disconnect packet from server. Reason: "
-              << packet.reason << std::endl;
-
-    // Convert the reason from the packet
     EDisconnectionReason reason =
         static_cast<EDisconnectionReason>(packet.reason);
 
-    // Disconnect without sending a packet back (server initiated)
+    if (reason == EDisconnectionReason::Shutdown)
+    {
+        std::cout
+            << "[CLIENT] Server is shutting down - disconnecting gracefully"
+            << std::endl;
+    }
+    else
+    {
+        std::cout
+            << "[CLIENT] Received disconnect packet from server. Reason: "
+            << static_cast<int>(reason) << std::endl;
+    }
+
     DisconnectInternal(reason, false);
 }
 
@@ -346,15 +400,19 @@ void FNetworkClient::HandleHeartbeatPacket(
         return;
     }
 
-    // Update last activity time to keep connection alive
     if (m_connection) { m_connection->lastActivity = SteadyClock::now(); }
+}
 
-    // Optionally send heartbeat response back to server
-    // Packets::HeartBeat response;
-    // response.id = m_clientID;
-    // response.timestamp = GetCurrentTimestamp();
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::Cleanup(void)
+{
+    std::cout << "[CLIENT] Cleanup called" << std::endl;
 
-    // SendPacketToServer(response);
+    Disconnect(EDisconnectionReason::Shutdown);
+    std::cout << "[CLIENT] Cleanup disconnected complete now waiting"
+              << std::endl;
+
+    std::cout << "[CLIENT] Cleanup completed" << std::endl;
 }
 
 }   // namespace tkd
