@@ -49,30 +49,33 @@ public:
 #endif
         struct
         {
-            T x;   //!< The x-component of the vector.
-            T y;   //!< The y-component of the vector.
-            T z;   //!< The z-component of the vector.
+            T x;   //<! The x-component of the vector.
+            T y;   //<! The y-component of the vector.
+            T z;   //<! The z-component of the vector.
         };
 #ifdef __GNUC__
     #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
-        T data[3];   //!< Array access to the components.
+        T data[3];   //<! Array access to the components.
     };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Static Member
     ///////////////////////////////////////////////////////////////////////////
-    static const TVector3 Zero;   //!< A vector with all components set to 0.
-    static const TVector3 One;    //!< A vector with all components set to 1.
-    static const TVector3
-        UnitX;   //!< A unit vector along the x-axis (1, 0, 0).
-    static const TVector3
-        UnitY;   //!< A unit vector along the y-axis (0, 1, 0).
-    static const TVector3
-        UnitZ;   //!< A unit vector along the z-axis (0, 0, 1).
+    static const TVector3 Zero;    //<! A vector with all components set to 0.
+    static const TVector3 One;     //<! A vector with all components set to 1.
+    static const TVector3 UnitX;   //<! A unit vector along the x-axis
+    static const TVector3 UnitY;   //<! A unit vector along the y-axis
+    static const TVector3 UnitZ;   //<! A unit vector along the z-axis
+    static const TVector3 Up;      //<! A unit vector pointing up
+    static const TVector3 Down;    //<! A unit vector pointing down
+    static const TVector3 Right;   //<! A unit vector pointing right
+    static const TVector3 Left;    //<! A unit vector pointing left
+    static const TVector3 Forward;   //<! A unit vector pointing forward
+    static const TVector3 Back;      //<! A unit vector pointing back
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -272,6 +275,61 @@ public:
         TVector3 temp(*this);
         --(*this);
         return temp;
+    }
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the length (magnitude) of the vector.
+    ///
+    /// \return The length of the vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Length(void) const
+    {
+        return static_cast<T>(std::sqrt(x * x + y * y + z * z));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \return
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T LengthSquared(void) const { return x * x + y * y + z * z; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns a normalized copy of the vector. If the vector is zero,
+    ///
+    /// \return The normalized vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Normalized(void) const { return Normalize(*this); }
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Normalizes the vector in place. If the vector is zero, it
+    /// remains unchanged.
+    ///
+    /// \param vec The vector to normalize.
+    ///
+    /// \return Reference to the normalized vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Normalize(const TVector3<T>& vec)
+    {
+        T length = vec.Length();
+
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+
+        if (std::abs(length) < epsilon)
+        {
+            return TVector3<T>(static_cast<T>(0));
+        }
+
+        T invLength = static_cast<T>(1) / length;
+        return TVector3<T>(
+            vec.x * invLength, vec.y * invLength, vec.z * invLength
+        );
     }
 };
 
