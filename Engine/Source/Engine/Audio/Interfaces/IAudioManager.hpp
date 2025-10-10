@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Assets/UAsset.hpp>
 #include <Engine/Audio/Interfaces/IAudioBuffer.hpp>
 #include <Engine/Audio/Interfaces/IAudioEffect.hpp>
 #include <Engine/Audio/Interfaces/IAudioListener.hpp>
@@ -110,6 +111,49 @@ public:
     virtual TSharedPtr<IAudioBuffer> LoadBuffer(const FilePath& filePath) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load audio data from an asset.
+    ///
+    /// \param asset Asset to load audio data from.
+    ///
+    /// \return True if loading was successful, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const UAsset* asset) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load audio data from a file.
+    ///
+    /// \param filePath Path to the audio file to load.
+    ///
+    /// \return True if loading was successful, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const FilePath& filePath) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load audio data from memory buffer.
+    ///
+    /// \param data Vector containing the raw audio data in memory.
+    ///
+    /// \return True if loading was successful, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const std::vector<Byte>& data
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load audio data from raw memory buffer.
+    ///
+    /// \param data Pointer to the raw audio data in memory.
+    /// \param size Size of the data buffer in bytes.
+    ///
+    /// \return True if loading was successful, false otherwise.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual TSharedPtr<IAudioBuffer>
+        LoadBuffer(const Byte* data, const SizeT size) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Unload an audio buffer
     ///
     /// \param filePath The path to the audio file
@@ -136,6 +180,43 @@ public:
     ) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a sound
+    ///
+    /// \param data Vector containing the raw audio data in memory.
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound(
+        const std::vector<Byte>& data, Float32 volume = 1.0f, Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a sound
+    ///
+    /// \param data Pointer to the raw audio data in memory.
+    /// \param size Size of the data buffer in bytes.
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound(
+        const Byte* data, SizeT size, Float32 volume = 1.0f, Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a sound
+    ///
+    /// \param asset Asset to load audio data from.
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound(
+        const UAsset* asset, Float32 volume = 1.0f, Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Play a 3D sound
     ///
     /// \param filePath The path to the audio file
@@ -146,6 +227,56 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     virtual void PlaySound3D(
         const FilePath& filePath,
+        const FVector3& position,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a 3D sound
+    ///
+    /// \param data Vector containing the raw audio data in memory.
+    /// \param position The position of the sound in 3D space
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound3D(
+        const std::vector<Byte>& data,
+        const FVector3& position,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a 3D sound
+    ///
+    /// \param data Pointer to the raw audio data in memory.
+    /// \param size Size of the data buffer in bytes.
+    /// \param position The position of the sound in 3D space
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound3D(
+        const Byte* data,
+        SizeT size,
+        const FVector3& position,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a 3D sound
+    ///
+    /// \param asset Asset to load audio data from.
+    /// \param position The position of the sound in 3D space
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void PlaySound3D(
+        const UAsset* asset,
         const FVector3& position,
         Float32 volume = 1.0f,
         Bool loop = false

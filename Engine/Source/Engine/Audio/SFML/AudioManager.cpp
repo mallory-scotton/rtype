@@ -122,6 +122,54 @@ TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const FilePath& filePath)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const std::vector<Byte>& data
+)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    // Create and load a new buffer
+    auto buffer = CreateBuffer();
+    if (buffer->LoadFromMemory(data)) { return buffer; }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSharedPtr<IAudioBuffer>
+    AudioManager::LoadBuffer(const Byte* data, const SizeT size)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    // Create and load a new buffer
+    auto buffer = CreateBuffer();
+    if (buffer->LoadFromMemory(data, size)) { return buffer; }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const UAsset* asset)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+
+    if (!asset) { return nullptr; }
+
+    // Check if the buffer is already loaded
+    auto it = m_buffers.find(asset->GetName());
+    if (it != m_buffers.end()) { return it->second; }
+
+    // Check if the buffer is already loaded
+    auto it = m_buffers.find(asset->GetPath().string());
+    if (it != m_buffers.end()) { return it->second; }
+
+    // Create and load a new buffer
+    auto buffer = CreateBuffer();
+    if (buffer->LoadFromAsset(asset)) { return buffer; }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void AudioManager::UnloadBuffer(const FilePath& filePath)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -152,6 +200,52 @@ void AudioManager::PlaySound(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound(
+    const std::vector<Byte>& data, Float32 volume, Bool loop
+)
+{
+    auto buffer = LoadBuffer(data);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetVolume(volume);
+    source->SetLooping(loop);
+    source->SetSpatial(false);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound(
+    const Byte* data, SizeT size, Float32 volume, Bool loop
+)
+{
+    auto buffer = LoadBuffer(data, size);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetVolume(volume);
+    source->SetLooping(loop);
+    source->SetSpatial(false);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound(const UAsset* asset, Float32 volume, Bool loop)
+{
+    auto buffer = LoadBuffer(asset);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetVolume(volume);
+    source->SetLooping(loop);
+    source->SetSpatial(false);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void AudioManager::PlaySound3D(
     const FilePath& filePath,
     const FVector3& position,
@@ -160,6 +254,73 @@ void AudioManager::PlaySound3D(
 )
 {
     auto buffer = LoadBuffer(filePath);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetPosition(position);
+    source->SetVolume(volume);
+    source->SetMinDistance(1.0f);
+    source->SetMaxDistance(100.0f);
+    source->SetRolloffFactor(1.0f);
+    source->SetLooping(loop);
+    source->SetSpatial(true);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound3D(
+    const std::vector<Byte>& data,
+    const FVector3& position,
+    Float32 volume,
+    Bool loop
+)
+{
+    auto buffer = LoadBuffer(data);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetPosition(position);
+    source->SetVolume(volume);
+    source->SetMinDistance(1.0f);
+    source->SetMaxDistance(100.0f);
+    source->SetRolloffFactor(1.0f);
+    source->SetLooping(loop);
+    source->SetSpatial(true);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound3D(
+    const Byte* data,
+    SizeT size,
+    const FVector3& position,
+    Float32 volume,
+    Bool loop
+)
+{
+    auto buffer = LoadBuffer(data, size);
+    if (!buffer) { return; }
+
+    auto source = CreateSource();
+    source->SetBuffer(buffer);
+    source->SetPosition(position);
+    source->SetVolume(volume);
+    source->SetMinDistance(1.0f);
+    source->SetMaxDistance(100.0f);
+    source->SetRolloffFactor(1.0f);
+    source->SetLooping(loop);
+    source->SetSpatial(true);
+    source->Play();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AudioManager::PlaySound3D(
+    const UAsset* asset, const FVector3& position, Float32 volume, Bool loop
+)
+{
+    auto buffer = LoadBuffer(asset);
     if (!buffer) { return; }
 
     auto source = CreateSource();
