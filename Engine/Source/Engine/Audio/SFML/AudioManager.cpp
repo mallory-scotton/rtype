@@ -159,7 +159,7 @@ TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const UAsset* asset)
     if (it != m_buffers.end()) { return it->second; }
 
     // Check if the buffer is already loaded
-    auto it = m_buffers.find(asset->GetPath().string());
+    it = m_buffers.find(asset->GetPath().string());
     if (it != m_buffers.end()) { return it->second; }
 
     // Create and load a new buffer

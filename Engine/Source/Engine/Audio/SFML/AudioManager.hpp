@@ -148,17 +148,6 @@ public:
     virtual TSharedPtr<IAudioBuffer> LoadBuffer(const UAsset* asset) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Load audio data from a file.
-    ///
-    /// \param filePath Path to the audio file to load.
-    ///
-    /// \return True if loading was successful, false otherwise.
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const FilePath& filePath
-    ) override;
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Load audio data from memory buffer.
     ///
     /// \param data Vector containing the raw audio data in memory.
