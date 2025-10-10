@@ -58,6 +58,9 @@ UInt32 AudioBuffer::GetChannelCount(void) const
     return m_buffer.getChannelCount();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void* AudioBuffer::GetNativeHandle(void) const { return (void*)&m_buffer; }
+
 #endif
 
 }   // namespace tkd::SFML
