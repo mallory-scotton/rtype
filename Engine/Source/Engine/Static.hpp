@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 #include <Engine/Static/FThreadedSubsystem.hpp>
 #include <Engine/Static/FWindowSubsystem.hpp>
 #include <Engine/Static/FWorldInterface.hpp>

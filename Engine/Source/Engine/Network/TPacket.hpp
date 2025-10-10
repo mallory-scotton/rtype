@@ -52,23 +52,10 @@ public:
     {
         if (!s_typeInitialized)
         {
-            s_type = GetNextTypeId();
+            s_type = IPacket::GetNextTypeId();
             s_typeInitialized = true;
         }
         return s_type;
-    }
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the next unique type ID
-    ///
-    /// \return next unique type ID
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static UInt16 GetNextTypeId(void)
-    {
-        static UInt16 nextID = 1;
-        return nextID++;
     }
 };
 

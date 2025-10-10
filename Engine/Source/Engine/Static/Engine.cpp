@@ -5,6 +5,7 @@
 #include <Engine/Assets/URessource.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Weak declaration of game functions to be defined in the game
@@ -97,6 +98,24 @@ bool Engine::Initialize(int argc, char* argv[])
 
         // Setup render callback
         SetupRenderCallback();
+
+        std::cout << "[Engine] Connecting to server..." << std::endl;
+
+        // Initialize network interface and connect to server (client only)
+        std::string serverHost = "127.0.0.1";          // Default localhost
+        UInt16 serverPort = m_settings.network.port;   // Use server port
+
+        if (!Network::Connect(serverHost, serverPort))
+        {
+            std::cout
+                << "[Engine] Warning: Failed to initialize network interface"
+                << std::endl;
+        }
+        else
+        {
+            std::cout << "[Engine] Successfully connected to server at "
+                      << serverHost << ":" << serverPort << std::endl;
+        }
 #endif
 
 #if TKD_ENGINE_SERVER
@@ -188,6 +207,9 @@ void Engine::Run(void)
     })
 
     TKD_ENGINE_IF_CLIENT({
+        std::cout << "[Engine] Shutting down network..." << std::endl;
+        if (Network::IsInitialized()) { Network::Shutdown(); }
+
         if (m_window)
         {
             m_window->Shutdown();
@@ -219,6 +241,10 @@ void Engine::Shutdown(void)
     })
 
     TKD_ENGINE_IF_CLIENT({
+        // Shutdown network interface
+        std::cout << "[ENGINE] Shutting down network..." << std::endl;
+        if (Network::IsInitialized()) { Network::Shutdown(); }
+
         if (m_window) { m_window->Shutdown(); }
     })
 

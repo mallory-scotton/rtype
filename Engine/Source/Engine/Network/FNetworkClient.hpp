@@ -14,7 +14,7 @@
 #include <Engine/Network/FConnectionInformation.hpp>
 #include <Engine/Network/FNetworkBase.hpp>
 #include <mutex>
-#include <unordered_map>
+#include <optional>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -25,142 +25,142 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 // Forward declarations
 ///////////////////////////////////////////////////////////////////////////////
-class FNetworkServer;
+class FNetworkClient;
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Client connection states
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EConnectionState : UInt32
+{
+    Disconnected = 0,   //<! Not connected to server
+    Connecting = 1,     //<! Attempting to connect
+    Connected = 2,      //<! Successfully connected
+    Disconnecting = 3   //<! In process of disconnecting
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Event types for network client
 ///
 ///////////////////////////////////////////////////////////////////////////////
 template <>
-struct TEvents<FNetworkServer>
+struct TEvents<FNetworkClient>
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event emitted when the server starts
+    /// \brief Event emitted when client connects to server
     ///
     ///////////////////////////////////////////////////////////////////////////
-    struct ServerStarted
+    struct Connected
     {
-        UInt16 port;   //<! Port the server is listening on
+        UInt32 clientID;      //<! ID assigned by the server
+        FEndpoint endpoint;   //<! Server endpoint
     };
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event emitted when the server stops
+    /// \brief Event emitted when client disconnects from server
     ///
     ///////////////////////////////////////////////////////////////////////////
-    struct ServerStopped
+    struct Disconnected
     {
-        UInt16 port;   //<! Port the server was listening on
+        EDisconnectionReason reason;   //<! Reason for disconnection
     };
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Event emitted when a client connects
+    /// \brief Event emitted when connection attempt fails
     ///
     ///////////////////////////////////////////////////////////////////////////
-    struct ClientConnected
+    struct ConnectionFailed
     {
-        UInt32 clientID;      //<! ID of the connected client
-        FEndpoint endpoint;   //<! Endpoint of the connected client
-    };
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    struct ClientDisconnected
-    {
-        UInt32 clientID;               //<! ID of the disconnected client
-        EDisconnectionReason reason;   //<! Reason code for disconnection
+        FEndpoint endpoint;   //<! Server endpoint that failed
     };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // All event types as a tuple
     ///////////////////////////////////////////////////////////////////////////
-    using All = std::tuple<
-        ClientConnected,
-        ClientDisconnected,
-        ServerStarted,
-        ServerStopped>;
+    using All = std::tuple<Connected, Disconnected, ConnectionFailed>;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Network client for connecting to FNetworkServer
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class FNetworkServer
+class FNetworkClient
     : public FNetworkBase
-    , public TEventEmitter<TEvents<FNetworkServer>::All>
+    , public TEventEmitter<TEvents<FNetworkClient>::All>
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Aliases
     ///////////////////////////////////////////////////////////////////////////
-    using Events = TEvents<FNetworkServer>;
+    using Events = TEvents<FNetworkClient>;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
-    // Class Aliases
-    ///////////////////////////////////////////////////////////////////////////
-    using ConnectionsMap =
-        std::unordered_map<FEndpoint, std::unique_ptr<FConnectionInformation>>;
-    using ClientEndpointMap = std::unordered_map<UInt32, FEndpoint>;
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
+    // Class Constants
     ///////////////////////////////////////////////////////////////////////////
     static constexpr auto CONNECTION_TIMEOUT = std::chrono::seconds(30);
     static constexpr auto HEARTBEAT_INTERVAL = std::chrono::seconds(5);
+    static constexpr auto CONNECTION_RETRY_TIMEOUT = std::chrono::seconds(5);
 
 private:
     ///////////////////////////////////////////////////////////////////////////
-    // Class Member
+    // Class Members
     ///////////////////////////////////////////////////////////////////////////
-    UInt16 m_port;                            //<! Port to bind the server to
-    ConnectionsMap m_connections;             //<! Map of active connections
-    ClientEndpointMap m_clientIDToEndpoint;   //<! Map of Ids to endpoints
-    mutable std::mutex m_connectionsMutex;    //<! Mutex for connections map
-    UInt32 m_nextClientID = 1;                //<! Next client ID to assign
-    TimePoint m_lastUpdate;                   //<! Last update timestamp
+    FEndpoint m_serverEndpoint;             //<! Server endpoint
+    EConnectionState m_connectionState;     //<! Current connection state
+    UInt32 m_clientID;                      //<! ID assigned by server
+    std::unique_ptr<FConnectionInformation>
+        m_connection;                       //<! Connection info
+    mutable std::mutex m_connectionMutex;   //<! Mutex for connection data
+    TimePoint m_lastUpdate;                 //<! Last update timestamp
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Constructor, initializes the server and binds the socket
-    ///
-    /// \param port Port to bind the server to
+    /// \brief Constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    explicit FNetworkServer(UInt16 port);
+    FNetworkClient();
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ~FNetworkServer();
+    ~FNetworkClient();
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Disconnect a client by its ID
+    /// \brief Connect to a server
     ///
-    /// \param clientID ID of the client to disconnect
-    /// \param reason Reason code for disconnection
+    /// \param hostname Server hostname or IP address
+    /// \param port Server port
+    ///
+    /// \return true if connection attempt started successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void DisconnectClient(
-        UInt32 clientID,
+    bool Connect(const std::string& hostname, UInt16 port);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Disconnect from the server
+    ///
+    /// \param reason Reason for disconnection
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Disconnect(
         EDisconnectionReason reason = EDisconnectionReason::Unknown
     );
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Start the server, binding the socket and starting the network
+    /// \brief Start the client network system
     ///
-    /// \return true if the server started successfully
+    /// \return true if started successfully
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual bool Start(void) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Update the server state, handling timeouts and heartbeats
+    /// \brief Update the client state
     ///
     /// \param deltaTime Time elapsed since last update in seconds
     ///
@@ -168,39 +168,44 @@ public:
     void Update(float deltaTime);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Broadcast a packet to all connected clients
+    /// \brief Check if client is connected to server
     ///
-    /// \param packet The packet to broadcast
+    /// \return true if connected
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void BroadcastPacket(const IPacket& packet);
+    bool IsConnected(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Send a packet to a specific client
+    /// \brief Get the current connection state
     ///
-    /// \param packet The packet to send
-    /// \param clientID The ID of the client to send the packet to
-    ///
-    /// \return true if the packet was sent successfully
+    /// \return Current connection state
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool SendPacketToClient(const IPacket& packet, UInt32 clientID);
+    EConnectionState GetConnectionState(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the number of connected clients
+    /// \brief Get the client ID assigned by the server
     ///
-    /// \return Number of connected clients
+    /// \return Client ID, or std::nullopt if not connected
     ///
     ///////////////////////////////////////////////////////////////////////////
-    SizeT GetConnectedClientCount(void) const;
+    std::optional<UInt32> GetClientID(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get a list of connected client IDs
+    /// \brief Get the server endpoint
     ///
-    /// \return Vector of connected client IDs
+    /// \return Server endpoint
     ///
     ///////////////////////////////////////////////////////////////////////////
-    std::vector<UInt32> GetConnectedClients(void) const;
+    FEndpoint GetServerEndpoint(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Cleanup client resources and notify server
+    ///
+    /// Called by destructor to ensure proper cleanup
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Cleanup(void);
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -210,8 +215,8 @@ protected:
     /// \param sender The endpoint of the sender
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void OnPacketReceived(const FPacketHeader& packet, const FEndpoint& sender)
-        override;
+    // void OnPacketReceived(const FPacketHeader& packet, const FEndpoint&
+    // sender) override;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -221,23 +226,50 @@ private:
     void SetupDefaultHandlers(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check for connection timeouts and disconnect inactive clients
+    /// \brief Check for connection timeout
     ///
     /// \param now Current time point
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void CheckConnectionTimeouts(const TimePoint& now);
+    void CheckConnectionTimeout(const TimePoint& now);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Send heartbeat packets to all connected clients
+    /// \brief Send heartbeat to server
     ///
     /// \param now Current time point
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SendHeartbeats(const TimePoint& now);
+    void SendHeartbeat(const TimePoint& now);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle a disconnect packet from a client
+    /// \brief Send packet to server
+    ///
+    /// \param now Current time point
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SendPacketToServer(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle connection attempt timeout
+    ///
+    /// \param now Current time point
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void CheckConnectionAttemptTimeout(const TimePoint& now);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a connect response packet from server
+    ///
+    /// \param packet The received connect response packet
+    /// \param endpoint The endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleConnectResponsePacket(
+        const Packets::ConnectResponse& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a disconnect packet from server
     ///
     /// \param packet The received disconnect packet
     /// \param endpoint The endpoint of the sender
@@ -248,18 +280,7 @@ private:
     );
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle a connect packet from a client
-    ///
-    /// \param packet The received connect packet
-    /// \param endpoint The endpoint of the sender
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void HandleConnectPacket(
-        const Packets::Connect& packet, const FEndpoint& endpoint
-    );
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle a heartbeat packet from a client
+    /// \brief Handle a heartbeat packet from server
     ///
     /// \param packet The received heartbeat packet
     /// \param endpoint The endpoint of the sender
@@ -270,10 +291,13 @@ private:
     );
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle client disconnection and server cleeanup
+    /// \brief Internal disconnect implementation
+    ///
+    /// \param reason Reason for disconnection
+    /// \param sendPacket Whether to send disconnect packet to server
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Cleanup(void);
+    void DisconnectInternal(EDisconnectionReason reason, bool sendPacket);
 };
 
 }   // namespace tkd
