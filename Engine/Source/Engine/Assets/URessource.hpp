@@ -9,6 +9,7 @@
 #include <Engine/Assets/UAsset.hpp>
 #include <Engine/Assets/UPak.hpp>
 #include <Engine/Assets/UResourceHandle.hpp>
+#include <Engine/Audio/Interfaces.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
@@ -71,6 +72,9 @@ private:
 
     TSharedMap<ITexture> m_textures;       //<! Loaded textures (weak refs)
     TSharedMap<IShader> m_shaders;         //<! Loaded shaders (weak refs)
+    TSharedMap<IAudioBuffer> m_buffers;    //<! Loaded audio buffers
+    TSharedMap<IAudioSource> m_sources;    //<! Loaded audio sources
+
     TUniqueMap<UPak> m_pakFiles;           //<! Loaded pak files
     TUniqueMap<UAsset> m_assets;           //<! Loaded assets
 

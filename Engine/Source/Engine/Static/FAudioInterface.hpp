@@ -6,9 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
-#include <Engine/Core.hpp>
-#include <Engine/Runtime/Time/ITickable.hpp>
+#include <Engine/Audio.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -17,49 +15,50 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief This class represent the Game Mode of the current level, the game
-/// mode handle the "match" status.
+/// \brief Audio interface for managing and utilizing the Audio API of the
+/// TKD Engine
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class AGameMode
-    : public UObject
-    , public ITickable
+class FAudioInterface final
 {
-public:
+private:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Default Constructor for AGameMode
-    ///
-    /// \param name The name overwrite for the UObject
-    ///
+    // Class Static Member
     ///////////////////////////////////////////////////////////////////////////
-    AGameMode(const FString& name = "AGameMode");
+    static TUniquePtr<IAudioManager> s_manager;   //<! The audio manager
+    static std::mutex s_mutex;                    //<! Mutex for thread safety
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Called when the object is first created
+    /// \brief Initialize the audio interface
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void BeginPlay(void) override;
+    static Bool Initialize(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Ticks the object
+    /// \brief Get the raw pointer of the audio manager
     ///
-    /// \param deltaTime The time elapsed since the last tick
+    /// \return The pointer of the audio manager, or nullptr if not initialized
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Tick(Float32 deltaTime) override;
+    static IAudioManager* GetAudioManager(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Called when the object is being destroyed
+    /// \brief Play a sound
+    ///
+    /// \param filePath The path to the audio file
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void EndPlay(void) override;
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Definition
-    ///////////////////////////////////////////////////////////////////////////
-    DECLARE_CLASS(AGameMode)
+    static void PlaySound(
+        const FilePath& filePath, Float32 volume = 1.0f, Bool loop = false
+    );
 };
 
 }   // namespace tkd
+
+///////////////////////////////////////////////////////////////////////////////
+// Alias for easier access
+///////////////////////////////////////////////////////////////////////////////
+using Audio = tkd::FAudioInterface;

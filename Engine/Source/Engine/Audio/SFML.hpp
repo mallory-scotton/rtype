@@ -6,11 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Assets.hpp>
-#include <Engine/Audio.hpp>
-#include <Engine/Config.hpp>
-#include <Engine/Core.hpp>
-#include <Engine/Network.hpp>
-#include <Engine/Renderer.hpp>
-#include <Engine/Runtime.hpp>
-#include <Engine/Static.hpp>
+#include <Engine/Audio/SFML/AudioBuffer.hpp>
+#include <Engine/Audio/SFML/AudioEffect.hpp>
+#include <Engine/Audio/SFML/AudioListener.hpp>
+#include <Engine/Audio/SFML/AudioManager.hpp>
+#include <Engine/Audio/SFML/AudioSource.hpp>
+#include <Engine/Audio/SFML/AudioStream.hpp>

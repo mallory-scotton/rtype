@@ -62,8 +62,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
             if (ImGui::MenuItem(
                     "Performance Monitor",
                     "Ctrl+Shift+P",
-                    m_showPerformanceMonitor,
-                    false
+                    m_showPerformanceMonitor
                 ))
             {
                 m_showPerformanceMonitor = !m_showPerformanceMonitor;
