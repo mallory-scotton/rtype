@@ -18,7 +18,11 @@ namespace tkd::Packets
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Packet for property replication
+///
+/// This packet is used to replicate property changes of actors across the
+/// network. It contains the actor ID, a timestamp, the property name, and the
+/// serialized property data.
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class Replication : public TPacket<Replication>
