@@ -64,6 +64,27 @@ Bool AActor::IsActive(void) const { return m_isActive.Get(); }
 void AActor::SetActive(Bool isActive) { m_isActive = isActive; }
 
 ///////////////////////////////////////////////////////////////////////////////
+Bool AActor::IsLocallyControlled(void) const
+{
+    // TODO: Add proper locally controller check
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool AActor::IsAuthority(void) const
+{
+    // TODO: Add proper authoritive state checking
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool AActor::IsSimulated(void) const
+{
+    // TODO: Add proper simulation checking
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void AActor::RemoveComponent(const FString& name)
 {
     m_components.Erase(
