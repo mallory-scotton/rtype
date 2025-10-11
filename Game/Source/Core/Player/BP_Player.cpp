@@ -28,6 +28,9 @@ BP_Player::BP_Player(UInt32 playerColor)
     Abp->SetLocalTransform(
         FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
     );
+
+    // Set network update frequency
+    SetNetUpdateFrequency(10.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
