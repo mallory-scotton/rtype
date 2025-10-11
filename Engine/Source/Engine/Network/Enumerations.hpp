@@ -50,15 +50,4 @@ enum class ERPCType : UInt8
     Multicast   //<! Server->All Clients
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Data structure for property replication
-///
-///////////////////////////////////////////////////////////////////////////////
-struct FReplicationData
-{
-    UInt32 actorID;            //>! The ID of the actor
-    UInt32 timestamp;          //<! The timestamp of the replication
-    std::vector<UInt8> data;   //<! The serialized property data
-};
-
 }   // namespace tkd
