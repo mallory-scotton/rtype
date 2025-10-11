@@ -55,6 +55,8 @@ void FNetworkBase::InitializePacketManager(void)
     m_packetManager.RegisterPacket<Packets::ConnectResponse>();
     m_packetManager.RegisterPacket<Packets::Disconnect>();
     m_packetManager.RegisterPacket<Packets::HeartBeat>();
+    m_packetManager.RegisterPacket<Packets::Replication>();
+    m_packetManager.RegisterPacket<Packets::RemoteProcedureCall>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
