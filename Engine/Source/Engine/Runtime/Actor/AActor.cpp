@@ -16,7 +16,11 @@ AActor::AActor(const FString& name)
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
-    , self(*this)
+    , m_netRole(ENetRole::None)
+    , m_networkID(0)
+    , m_owningClientID(0)
+    , m_netUpdateFrequency(10.0f)
+    , m_timeSinceLastUpdate(0.0f)
     , OnActorBeginOverlap("OnActorBeginOverlap", *this)
     , OnActorEndOverlap("OnActorEndOverlap", *this)
 {}
@@ -73,16 +77,20 @@ Bool AActor::IsLocallyControlled(void) const
 ///////////////////////////////////////////////////////////////////////////////
 Bool AActor::IsAuthority(void) const
 {
-    // TODO: Add proper authoritive state checking
-    return true;
+    return m_netRole == ENetRole::Authority;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 Bool AActor::IsSimulated(void) const
 {
-    // TODO: Add proper simulation checking
-    return false;
+    return m_netRole == ENetRole::SimulatedProxy;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+ENetRole AActor::GetNetRole(void) const { return m_netRole; }
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::SetNetRole(ENetRole role) { m_netRole = role; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::RemoveComponent(const FString& name)

@@ -10,6 +10,7 @@
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object.hpp>
+#include <Engine/Network/Enumerations.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
 #include <memory>
@@ -48,7 +49,11 @@ protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member Access
     ///////////////////////////////////////////////////////////////////////////
-    AActor& self;   //<! Reference to self for event bindings
+    ENetRole m_netRole;              //<! The actor's network role
+    UInt32 m_networkID;              //<! The actor's network ID
+    UInt32 m_owningClientID;         //<! The ID that owns this actor
+    Float32 m_netUpdateFrequency;    //<! How often to send updates
+    Float32 m_timeSinceLastUpdate;   //<! Time since the last update
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -140,6 +145,22 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     Bool IsSimulated(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the actor's network role
+    ///
+    /// \return The actor's network role
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ENetRole GetNetRole(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the actor's network role
+    ///
+    /// \param role The new network role
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetNetRole(ENetRole role);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Add a component to the actor
