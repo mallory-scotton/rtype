@@ -78,7 +78,24 @@ void BP_Player::SetupAnimations(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::Tick(Float32 deltaTime)
 {
-    // Call Super Tick
+    // Determine how to handle movement based on network role
+    if (IsLocallyControlled())
+    {
+        // Use client-side prediction
+        // (Movement input handled in BP_PlayerController)
+    }
+    else if (IsAuthority())
+    {
+        // Server authoritative movement
+        // (Processed via ServerMove RPC)
+    }
+    else
+    {
+        // Simulated proxy - just interpolate replicated position
+        // (Handled automatically by replication system)
+    }
+
+    // Call original tick for animations and other logic
     Super::Tick(deltaTime);
 
     // Add time to last fired time
