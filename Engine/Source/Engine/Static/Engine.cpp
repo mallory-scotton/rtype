@@ -29,6 +29,8 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (m_initialized) { return false; }
 
+    FLogger::SetNamespace("Engine");
+
     if (TKD_CreateGame)
     {
         m_game = std::move(TKD_CreateGame());
@@ -62,15 +64,15 @@ bool Engine::Initialize(int argc, char* argv[])
             }
             else
             {
-                std::cout << "[Engine] Loaded resource pack: "
-                          << resource.string() << std::endl;
+                FLogger::Info("Loaded resource pack: " + resource.string());
             }
         }
     }
 
     try
     {
-        std::cout << "[Engine] Configuring subsystems..." << std::endl;
+        FLogger::Info("Initializing engine...");
+        FLogger::Info("Configuring subsystems...");
 
         // Initialize world subsystem (always required)
         m_world = std::make_unique<FWorldSubsystem>(120.0f);
@@ -82,7 +84,7 @@ bool Engine::Initialize(int argc, char* argv[])
         }
 
 #if TKD_ENGINE_CLIENT
-        std::cout << "[Engine] Configuring window subsystem..." << std::endl;
+        FLogger::Info("Configuring window subsystem...");
 
         // Initialize window subsystem (client only)
         m_window = std::make_unique<FWindowSubsystem>(m_settings);
@@ -99,7 +101,7 @@ bool Engine::Initialize(int argc, char* argv[])
         // Setup render callback
         SetupRenderCallback();
 
-        std::cout << "[Engine] Connecting to server..." << std::endl;
+        FLogger::Info("Connecting to server...");
 
         // Initialize network interface and connect to server (client only)
         std::string serverHost = "127.0.0.1";          // Default localhost
@@ -107,19 +109,22 @@ bool Engine::Initialize(int argc, char* argv[])
 
         if (!Network::Connect(serverHost, serverPort))
         {
-            std::cout
-                << "[Engine] Warning: Failed to initialize network interface"
-                << std::endl;
+            FLogger::Warn(
+                "Failed to connect to server at " + serverHost + ":" +
+                std::to_string(serverPort)
+            );
         }
         else
         {
-            std::cout << "[Engine] Successfully connected to server at "
-                      << serverHost << ":" << serverPort << std::endl;
+            FLogger::Info(
+                "Successfully connected to server at " + serverHost + ":" +
+                std::to_string(serverPort)
+            );
         }
 #endif
 
 #if TKD_ENGINE_SERVER
-        std::cout << "[Engine] Configuring network subsystem..." << std::endl;
+        FLogger::Info("Configuring network subsystem...");
 
         FNetworkSubsystem::Config networkConfig;
 
@@ -137,8 +142,7 @@ bool Engine::Initialize(int argc, char* argv[])
         }
 #endif
 
-        std::cout << "[Engine] All subsystems initialized successfully"
-                  << std::endl;
+        FLogger::Info("All subsystems initialized successfully");
         m_initialized = true;
         return true;
     }
@@ -166,7 +170,8 @@ void Engine::Run(void)
     TKD_ENGINE_IF_CLIENT({ m_window->Start(); })
     TKD_ENGINE_IF_SERVER({ m_network->Start(); })
 
-    std::cout << "[Engine] All subsystems started" << std::endl;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("All subsystems started");
 
     // Main monitoring loop
     while (m_running.load(std::memory_order_acquire))
@@ -188,18 +193,20 @@ void Engine::Run(void)
     m_running.store(false, std::memory_order_release);
 
     // Shutdown subsystems in reverse order
-    std::cout << "[Engine] Shutting down subsystems..." << std::endl;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Shutting down subsystems...");
 
     // Signal resource manager to stop accepting new loads
-    std::cout << "[Engine] Signaling resource manager to shutdown..."
-              << std::endl;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Signaling resource manager to shutdown...");
     URessource::GetInstance().BeginShutdown();
 
     // Shutdown world FIRST (before window) so actors can properly clean up
     // their input bindings while the input manager still exists
     if (m_world)
     {
-        std::cout << "[Engine] Shutting down world subsystem..." << std::endl;
+        FLogger::SetNamespace("Engine");
+        FLogger::Info("Shutting down world subsystem...");
         m_world->Shutdown();
         m_world.reset();
     }
@@ -207,27 +214,30 @@ void Engine::Run(void)
     TKD_ENGINE_IF_SERVER({
         if (m_network)
         {
-            std::cout << "[Engine] Shutting down network subsystem..."
-                      << std::endl;
+            FLogger::SetNamespace("Engine");
+            FLogger::Info("Shutting down network subsystem...");
             m_network->Shutdown();
             m_network.reset();
         }
     })
 
     TKD_ENGINE_IF_CLIENT({
-        std::cout << "[Engine] Shutting down network..." << std::endl;
+        FLogger::SetNamespace("Engine");
+        FLogger::Info("Shutting down network...");
         if (Network::IsInitialized()) { Network::Shutdown(); }
 
         if (m_window)
         {
-            std::cout << "[Engine] Shutting down window subsystem..."
-                      << std::endl;
+            FLogger::SetNamespace("Engine");
+            FLogger::Info("Shutting down window subsystem...");
             m_window->Shutdown();
             m_window.reset();
         }
     })
 
-    std::cout << "[Engine] Shutdown complete" << std::endl;
+    m_initialized = false;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Shutdown complete");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -251,7 +261,6 @@ void Engine::Shutdown(void)
 
     TKD_ENGINE_IF_CLIENT({
         // Shutdown network interface
-        std::cout << "[ENGINE] Shutting down network..." << std::endl;
         if (Network::IsInitialized()) { Network::Shutdown(); }
 
         if (m_window) { m_window->Shutdown(); }
@@ -373,6 +382,9 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
                             m_settings.version + ".";
             return false;
         }
+
+        FLogger::SetFileLogging(m_settings.logging.enableFileLogging);
+        FLogger::SetConsoleLogging(m_settings.logging.enableConsoleLogging);
 
         args.AddFlags("debug", "Enable debug mode", debugMode, false);
     }
