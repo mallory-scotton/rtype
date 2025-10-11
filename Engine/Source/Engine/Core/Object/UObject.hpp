@@ -104,6 +104,14 @@ public:
     const std::unordered_map<FString, IProperty*>& GetProperties(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get actor's replicated properties
+    ///
+    /// \return A vector of pointers to the replicated properties
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void GetLifetimeReplicatedProperties(TVector<IProperty*>& outProperties);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get actor's functions
     ///
     /// \return A constant reference to the vector of function pointers

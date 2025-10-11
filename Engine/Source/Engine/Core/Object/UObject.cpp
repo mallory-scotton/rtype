@@ -51,6 +51,20 @@ const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UObject::GetLifetimeReplicatedProperties(
+    TVector<IProperty*>& outProperties
+)
+{
+    for (const auto& [name, property]: m_properties)
+    {
+        if (property->HasFlag(EPropertyFlags::Replicated))
+        {
+            outProperties.PushBack(property);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 const std::unordered_map<FString, IFunction*>& UObject::GetFunctions(void
 ) const
 {
