@@ -10,6 +10,7 @@
 #include <cstring>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Math.hpp>
+#include <format>
 #include <iostream>
 #include <utility>
 
@@ -855,7 +856,7 @@ public:
     /// Constructs an empty string with no characters.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FString();
+    FString(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Copy constructor.
@@ -2581,6 +2582,21 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static FString ToString(const FLinearColor& value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param format
+    /// \param args
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename... Args>
+    static FString Format(std::string_view format, Args&&... args)
+    {
+        std::string other =
+            std::vformat(format, std::make_format_args(args...));
+        return FString(other);
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
