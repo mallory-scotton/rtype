@@ -104,8 +104,6 @@ void BP_Player::Tick(Float32 deltaTime)
     // Add time to last fired time
     m_lastFiredTime += deltaTime;
 
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
-
     // Move player based on velocity and speed
     if (velocity() != 0.0f)
     {
@@ -123,6 +121,22 @@ void BP_Player::Tick(Float32 deltaTime)
         ));
     }
 
+    // Update animation state based on movement
+    UpdateAnimationState();
+
+    // Update last velocity if there is movement
+    if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
+
+    // Reset velocity for next frame
+    velocity = FVector2f::Zero;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::UpdateAnimationState(void)
+{
+    // Get the animated sprite component
+    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+
     // Update animation state
     if (velocity().y > 0.0f) { Abp->Play("IdleToFlyUp", false); }
     else if (velocity().y < 0.0f) { Abp->Play("IdleToFlyDown", false); }
@@ -135,12 +149,6 @@ void BP_Player::Tick(Float32 deltaTime)
         }
         else { Abp->Play("Idle", true); }
     }
-
-    // Update last velocity if there is movement
-    if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
-
-    // Reset velocity for next frame
-    velocity = FVector2f::Zero;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
