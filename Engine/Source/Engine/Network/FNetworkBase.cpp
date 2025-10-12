@@ -82,6 +82,31 @@ bool FNetworkBase::SendPacket(const IPacket& packet, const FEndpoint& endpoint)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool FNetworkBase::SendReliablePacket(
+    const IPacket& packet, const FEndpoint& endpoint
+)
+{
+    if (!m_socket || !m_running) { return false; }
+
+    auto data =
+        m_packetManager.SerializePacket(packet, EPacketFlags::Reliable);
+    if (data.empty()) { return false; }
+
+    try
+    {
+        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
+        m_statistics.packetsSent++;
+        m_statistics.bytesOutgoing += bytesSent;
+        return bytesSent == data.size();
+    }
+    catch (const std::exception&)
+    {
+        m_statistics.packetsDropped++;
+        return false;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::HandleReceive(
     const asio::error_code& error, SizeT bytesReceived
 )

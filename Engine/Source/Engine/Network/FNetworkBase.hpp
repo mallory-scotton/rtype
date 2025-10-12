@@ -187,6 +187,17 @@ protected:
     bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to a specific endpoint
+    ///
+    /// \param packet The packet to process
+    /// \param endpoint The endpoint of the sender
+    ///
+    /// \return true if the packet was sent successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Flushes remaining packets to not cause udp issues at shutdown
     ///
     ///////////////////////////////////////////////////////////////////////////
