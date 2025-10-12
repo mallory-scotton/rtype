@@ -68,7 +68,8 @@ protected:
     std::unordered_map<
         UInt16,
         std::function<void(const IPacket&, const FEndpoint&)>>
-        m_packetHandlers;   //<! Map of packet handlers
+        m_packetHandlers;                //<! Map of packet handlers
+    std::vector<UInt32> m_pendingAcks;   //<! List of pending ACKs
 
 public:
     ///////////////////////////////////////////////////////////////////////////

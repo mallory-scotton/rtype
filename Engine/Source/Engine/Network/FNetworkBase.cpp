@@ -86,12 +86,22 @@ bool FNetworkBase::SendReliablePacket(
     const IPacket& packet, const FEndpoint& endpoint
 )
 {
+    // Check if socket is valid and network is running
     if (!m_socket || !m_running) { return false; }
 
+    // Serialize packet with Reliable flag
     auto data =
         m_packetManager.SerializePacket(packet, EPacketFlags::Reliable);
     if (data.empty()) { return false; }
 
+    // Deserialize header to get sequence number
+    auto header = m_packetManager.DeserializeHeader(data.data(), data.size());
+    if (!header) { return false; }
+
+    // Store the sequence number for ACK tracking
+    m_pendingAcks.push_back(header->sequenceNumber);
+
+    // Send the packet
     try
     {
         SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
@@ -101,7 +111,17 @@ bool FNetworkBase::SendReliablePacket(
     }
     catch (const std::exception&)
     {
+        // On failure, remove the sequence number from pending ACKs
         m_statistics.packetsDropped++;
+        // Remove sequence number from pending ACKs
+        m_pendingAcks.erase(
+            std::remove(
+                m_pendingAcks.begin(),
+                m_pendingAcks.end(),
+                header->sequenceNumber
+            ),
+            m_pendingAcks.end()
+        );
         return false;
     }
 }
