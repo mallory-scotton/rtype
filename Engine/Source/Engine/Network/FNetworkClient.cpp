@@ -155,6 +155,8 @@ void FNetworkClient::Disconnect(EDisconnectionReason reason)
 {
     // Perform disconnection
     DisconnectInternal(reason, true);
+    // Stop network thread if running
+    Stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
