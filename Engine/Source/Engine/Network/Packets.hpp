@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Network/Packets/Acknowledgment.hpp>
 #include <Engine/Network/Packets/Connect.hpp>
 #include <Engine/Network/Packets/Disconnect.hpp>
 #include <Engine/Network/Packets/HeartBeat.hpp>
