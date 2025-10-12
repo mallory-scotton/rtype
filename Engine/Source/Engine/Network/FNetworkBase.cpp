@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkBase.hpp>
+#include <Engine/Core/Utils.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -132,8 +133,6 @@ void FNetworkBase::HandleReceive(
     const asio::error_code& error, SizeT bytesReceived
 )
 {
-    // std::cout << "recevied packet size " << bytesReceived << " bytes"
-    //           << std::endl;
     if (!m_running) { return; }
 
     if (!error && bytesReceived > 0)
@@ -158,17 +157,38 @@ void FNetworkBase::ProcessReceivedData(
     const UInt8* data, SizeT size, const FEndpoint& sender
 )
 {
+    // Deserialize packet header
     FPacketHeader header;
     auto packet = m_packetManager.DeserializePacket(data, size, header);
 
+    // Failed to deserialize packet
     if (!packet)
     {
         m_statistics.packetsDropped++;
         return;
     }
+
+    // Dispatch to registered handler
     auto it = m_packetHandlers.find(header.packetType);
     if (it != m_packetHandlers.end()) { it->second(*packet, sender); }
-    else { std::cout << "no packet handler found" << std::endl; }
+    else
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn(
+            "No handler registered for packet type {}", header.packetType
+        );
+    }
+
+    // Handle reliable packet acknowledgment
+    if (header.flags == static_cast<UInt16>(EPacketFlags::Reliable))
+    {
+        // Send acknowledgment for reliable packets
+        Packets::Acknowledgment ackPacket;
+        ackPacket.ackedSequenceNumber = header.sequenceNumber;
+        SendPacket(ackPacket, sender);
+    }
+
+    // Call the virtual method for further processing
     OnPacketReceived(header, sender);
 }
 
@@ -213,4 +233,5 @@ void FNetworkBase::FlushPackets(void)
     // Give network stack time to send
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
 }
+
 }   // namespace tkd
