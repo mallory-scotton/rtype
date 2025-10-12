@@ -173,11 +173,7 @@ void FNetworkBase::ProcessReceivedData(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::OnPacketReceived(
-    TKD_MAYBE_UNUSED const FPacketHeader& header,
-    TKD_MAYBE_UNUSED const FEndpoint& sender
-)
-{}
+void FNetworkBase::OnPacketReceived(const FPacketHeader&, const FEndpoint&) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::RunNetworkThread(void)
