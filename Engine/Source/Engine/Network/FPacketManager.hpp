@@ -71,6 +71,17 @@ public:
     );
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deserialize only the header from raw data
+    ///
+    /// \param data Raw data buffer
+    /// \param size Size of the data buffer
+    ///
+    /// \return Optional packet header, or std::nullopt on failure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TOptional<FPacketHeader> DeserializeHeader(const UInt8* data, SizeT size);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Deserialize a packet from raw data
     ///
     /// \param data Raw data buffer
