@@ -8,5 +8,4 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Assets/UAsset.hpp>
 #include <Engine/Assets/UPak.hpp>
-#include <Engine/Assets/UResource.hpp>
 #include <Engine/Assets/UResourceHandle.hpp>
