@@ -98,49 +98,54 @@ bool Engine::Initialize(int argc, char* argv[])
         // Set debug mode for window
         if (m_settings.debug) { m_window->GetWindow()->SetDebugMode(true); }
 
-        // Setup render callback
-        SetupRenderCallback();
+        // // Setup render callback
+        // SetupRenderCallback();
 
-        FLogger::Info("Connecting to server...");
+        // FLogger::Info("Connecting to server...");
 
-        // Initialize network interface and connect to server (client only)
-        std::string serverHost = "127.0.0.1";          // Default localhost
-        UInt16 serverPort = m_settings.network.port;   // Use server port
+        // // Initialize network interface and connect to server (client only)
+        // std::string serverHost = "127.0.0.1";          // Default localhost
+        // UInt16 serverPort = m_settings.network.port;   // Use server port
 
-        if (!Network::Connect(serverHost, serverPort))
-        {
-            FLogger::Warn(
-                "Failed to connect to server at " + serverHost + ":" +
-                std::to_string(serverPort)
-            );
-        }
-        else
-        {
-            FLogger::Info(
-                "Successfully connected to server at " + serverHost + ":" +
-                std::to_string(serverPort)
-            );
-        }
+        // if (!Network::Connect(serverHost, serverPort))
+        // {
+        //     FLogger::Warn(
+        //         "Failed to connect to server at " + serverHost + ":" +
+        //         std::to_string(serverPort)
+        //     );
+        // }
+        // else
+        // {
+        //     FLogger::Info(
+        //         "Successfully connected to server at " + serverHost + ":" +
+        //         std::to_string(serverPort)
+        //     );
+        // }
 #endif
+
+        if (m_settings.network.enabled)
+        {
+            FLogger::Info("Configuring network subsystem...");
+
+            FNetworkSubsystem::Config networkConfig;
 
 #if TKD_ENGINE_SERVER
-        FLogger::Info("Configuring network subsystem...");
-
-        FNetworkSubsystem::Config networkConfig;
-
-        networkConfig.mode = FNetworkSubsystem::Mode::Server;
-        networkConfig.maxClients = m_settings.network.maxClients;
-        networkConfig.port = m_settings.network.port;
-
-        // Initialize network subsystem (server only)
-        m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
-        if (!m_network || !m_network->Initialize())
-        {
-            m_exitCode = TKD_EXIT_FAILURE;
-            m_exitMessage = "Failed to initialize network subsystem";
-            return false;
-        }
+            networkConfig.mode = FNetworkSubsystem::Mode::Server;
+#elif TKD_ENGINE_CLIENT
+            networkConfig.mode = FNetworkSubsystem::Mode::Client;
 #endif
+            networkConfig.maxClients = m_settings.network.maxClients;
+            networkConfig.port = m_settings.network.port;
+
+            // Initialize network subsystem (server only)
+            m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
+            if (!m_network || !m_network->Initialize())
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage = "Failed to initialize network subsystem";
+                return false;
+            }
+        }
 
         FLogger::Info("All subsystems initialized successfully");
         m_initialized = true;
@@ -168,7 +173,7 @@ void Engine::Run(void)
     // Start all subsystems
     m_world->Start();
     TKD_ENGINE_IF_CLIENT({ m_window->Start(); })
-    TKD_ENGINE_IF_SERVER({ m_network->Start(); })
+    if (m_network) { m_network->Start(); }
 
     FLogger::SetNamespace("Engine");
     FLogger::Info("All subsystems started");
@@ -211,21 +216,15 @@ void Engine::Run(void)
         m_world.reset();
     }
 
-    TKD_ENGINE_IF_SERVER({
-        if (m_network)
-        {
-            FLogger::SetNamespace("Engine");
-            FLogger::Info("Shutting down network subsystem...");
-            m_network->Shutdown();
-            m_network.reset();
-        }
-    })
+    if (m_network)
+    {
+        FLogger::SetNamespace("Engine");
+        FLogger::Info("Shutting down network subsystem...");
+        m_network->Shutdown();
+        m_network.reset();
+    }
 
     TKD_ENGINE_IF_CLIENT({
-        FLogger::SetNamespace("Engine");
-        FLogger::Info("Shutting down network...");
-        if (Network::IsInitialized()) { Network::Shutdown(); }
-
         if (m_window)
         {
             FLogger::SetNamespace("Engine");
@@ -261,7 +260,7 @@ void Engine::Shutdown(void)
 
     TKD_ENGINE_IF_CLIENT({
         // Shutdown network interface
-        if (Network::IsInitialized()) { Network::Shutdown(); }
+        // if (Network::IsInitialized()) { Network::Shutdown(); }
 
         if (m_window) { m_window->Shutdown(); }
     })
