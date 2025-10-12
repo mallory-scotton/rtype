@@ -11,6 +11,9 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+FNetworkBase::FNetworkBase(void) { RegisterBasePacketHandlers(); }
+
+///////////////////////////////////////////////////////////////////////////////
 FNetworkBase::~FNetworkBase(void) { Stop(); }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,6 +62,33 @@ void FNetworkBase::InitializePacketManager(void)
     m_packetManager.RegisterPacket<Packets::Replication>();
     m_packetManager.RegisterPacket<Packets::RemoteProcedureCall>();
     m_packetManager.RegisterPacket<Packets::Acknowledgment>();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::RegisterBasePacketHandlers(void)
+{
+    // Register handler for acknowledgment packets
+    RegisterPacketHandler<Packets::Acknowledgment>(
+        [this](
+            const Packets::Acknowledgment& packet, const FEndpoint& endpoint
+        ) { HandleAcknowledgmentPacket(packet, endpoint); }
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleAcknowledgmentPacket(
+    const Packets::Acknowledgment& packet, const FEndpoint& endpoint
+)
+{
+    // Remove the acknowledged sequence number from pending ACKs
+    m_pendingAcks.erase(
+        std::remove(
+            m_pendingAcks.begin(),
+            m_pendingAcks.end(),
+            packet.ackedSequenceNumber
+        ),
+        m_pendingAcks.end()
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
