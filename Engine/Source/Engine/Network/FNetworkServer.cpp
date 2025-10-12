@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkServer.hpp>
+#include <Engine/Core/Utils/FLogger.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -40,6 +41,10 @@ void FNetworkServer::DisconnectClient(
         // Emit event
         EmitEvent(Events::ClientDisconnected{ clientID, reason });
 
+        // Log disconnection
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Client ID: {} disconnected", clientID);
+
         // Remove connection
         m_connections.erase(it->second);
         m_clientIDToEndpoint.erase(it);
@@ -51,11 +56,13 @@ bool FNetworkServer::Start(void)
 {
     if (m_running.load())
     {
-        std::cout << "[SERVER] Already running" << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Server is already running");
         return true;
     }
 
-    std::cout << "[SERVER] Starting server on port " << m_port << std::endl;
+    FLogger::SetNamespace("Network");
+    FLogger::Info("Starting server on port {}", m_port);
 
     try
     {
@@ -64,31 +71,32 @@ bool FNetworkServer::Start(void)
         m_socket->open(asio::ip::udp::v4());
 
         m_socket->bind(FEndpoint(asio::ip::udp::v4(), m_port));
-        std::cout << "[SERVER] Socket bound successfully" << std::endl;
+        FLogger::Info("Socket bound successfully");
 
         m_running = true;
 
         // Start network thread
-        std::cout << "[SERVER] Starting network thread" << std::endl;
+        FLogger::Info("Starting network thread");
         m_networkThread = std::make_unique<FThread>(
             [this]()
             {
-                std::cout << "[SERVER] Network thread started" << std::endl;
+                FLogger::SetNamespace("Network");
+                FLogger::Info("Network thread started");
                 RunNetworkThread();
             }
         );
         m_networkThread->Start();
 
-        std::cout << "[SERVER] Starting packet reception" << std::endl;
+        EmitEvent(Events::ServerStarted{ m_port });
+        FLogger::Info("Server started successfully on port {}", m_port);
         StartReceive();
 
-        std::cout << "[SERVER] Server started successfully on port " << m_port
-                  << std::endl;
         return true;
     }
     catch (const std::exception& e)
     {
-        std::cerr << "[SERVER] Failed to start: " << e.what() << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Error("Failed to start server: {}", e.what());
         Stop();
         return false;
     }
@@ -266,13 +274,15 @@ void FNetworkServer::HandleDisconnectPacket(
     TKD_UNUSED(packet);
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
-    std::cout << "[SERVER] disconnection packet received" << std::endl;
     auto it = m_connections.find(endpoint);
     if (it != m_connections.end())
     {
         uint32_t clientID = it->second->clientID;
         m_connections.erase(it);
         m_clientIDToEndpoint.erase(clientID);
+
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Client ID: {} disconnected", clientID);
     }
 }
 
@@ -291,6 +301,14 @@ void FNetworkServer::HandleConnectPacket(
         return;   // Already connected
     }
 
+    // Log new connection
+    FLogger::SetNamespace("Network");
+    FLogger::Info(
+        "New connection from {}:{}",
+        endpoint.address().to_string(),
+        endpoint.port()
+    );
+
     // Create new connection
     auto connection = std::make_unique<FConnectionInformation>();
     connection->endpoint = endpoint;
@@ -308,6 +326,9 @@ void FNetworkServer::HandleConnectPacket(
     Packets::ConnectResponse response;
     response.clientID = assignedClientId;
     response.accepted = true;
+
+    // Emit event
+    EmitEvent(Events::ClientConnected{ assignedClientId, endpoint });
 
     SendPacket(response, endpoint);
 }
@@ -330,15 +351,17 @@ void FNetworkServer::HandleHeartbeatPacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::Cleanup(void)
 {
-    std::cout << "[SERVER] Destructor called, notifying clients of shutdown..."
-              << std::endl;
+    FLogger::SetNamespace("Network");
+    FLogger::Info("Server destructor called, notifying clients of shutdown");
 
     // Send disconnect notifications to all connected clients
     {
         std::lock_guard<std::mutex> lock(m_connectionsMutex);
 
-        std::cout << "[SERVER] Sending shutdown notifications to "
-                  << m_connections.size() << " clients" << std::endl;
+        FLogger::Info(
+            "Sending shutdown notifications to {} clients",
+            m_connections.size()
+        );
 
         for (const auto& [endpoint, connection]: m_connections)
         {
@@ -350,10 +373,12 @@ void FNetworkServer::Cleanup(void)
                 disconnectPacket.reason =
                     static_cast<UInt32>(EDisconnectionReason::Shutdown);
 
-                std::cout << "[SERVER] Notifying client ID: "
-                          << connection->clientID << " at "
-                          << endpoint.address().to_string() << ":"
-                          << endpoint.port() << std::endl;
+                FLogger::Info(
+                    "Notifying client ID: {} at {}:{}",
+                    connection->clientID,
+                    endpoint.address().to_string(),
+                    endpoint.port()
+                );
 
                 SendPacket(disconnectPacket, endpoint);
             }
@@ -361,15 +386,15 @@ void FNetworkServer::Cleanup(void)
     }
 
     // Give packets time to be sent before stopping
-    std::cout << "[SERVER] Waiting for disconnect packets to be sent..."
-              << std::endl;
+    FLogger::Info("Waiting for disconnect packets to be sent...");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     // Stop the server
     if (m_running.load())
     {
-        std::cout << "[SERVER] Stopping network services..." << std::endl;
+        FLogger::Info("Stopping server network services...");
         Stop();
+        EmitEvent(Events::ServerStopped{ m_port });
     }
 
     // Clear all connections
