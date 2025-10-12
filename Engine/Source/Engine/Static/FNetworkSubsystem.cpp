@@ -101,8 +101,9 @@ void FNetworkSubsystem::ThreadLoop(void)
     {
         TimePoint now = SteadyClock::now();
 
-        float deltaTime = std::chrono::duration<float>(now - lastUpdateTime).count();
-        lastUpdateTime = now;  // Update for next frame
+        float deltaTime =
+            std::chrono::duration<float>(now - lastUpdateTime).count();
+        lastUpdateTime = now;   // Update for next frame
 
         if (m_config.mode == Mode::Server && m_server)
         {
@@ -147,7 +148,7 @@ void FNetworkSubsystem::ThreadLoop(void)
 
         if (m_server)
         {
-            // m_server->Stop();
+            m_server->Stop();
             m_server.reset();
         }
 
