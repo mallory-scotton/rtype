@@ -372,7 +372,7 @@ void FNetworkServer::HandleConnectPacket(
     // Emit event
     EmitEvent(Events::ClientConnected{ assignedClientId, endpoint });
 
-    SendPacket(response, endpoint);
+    SendReliablePacket(response, endpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
