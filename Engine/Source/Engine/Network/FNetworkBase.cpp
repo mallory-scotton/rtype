@@ -76,19 +76,40 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::HandleAcknowledgmentPacket(
-    const Packets::Acknowledgment& packet, const FEndpoint& endpoint
-)
+void FNetworkBase::
+    HandleAcknowledgmentPacket(const Packets::Acknowledgment& packet, const FEndpoint&)
 {
     // Remove the acknowledged sequence number from pending ACKs
     m_pendingAcks.erase(
-        std::remove(
+        std::remove_if(
             m_pendingAcks.begin(),
             m_pendingAcks.end(),
-            packet.ackedSequenceNumber
+            [&packet](const FAcknowledgment& ack)
+            { return ack.header.sequenceNumber == packet.ackedSequenceNumber; }
         ),
         m_pendingAcks.end()
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FNetworkBase::SendData(
+    const std::vector<Byte>& data, const FEndpoint& endpoint
+)
+{
+    if (!m_socket || !m_running || data.empty()) { return false; }
+
+    try
+    {
+        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
+        m_statistics.packetsSent++;
+        m_statistics.bytesOutgoing += bytesSent;
+        return bytesSent == data.size();
+    }
+    catch (const std::exception&)
+    {
+        m_statistics.packetsDropped++;
+        return false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,7 +152,10 @@ bool FNetworkBase::SendReliablePacket(
     if (!header) { return false; }
 
     // Store the sequence number for ACK tracking
-    m_pendingAcks.push_back(header->sequenceNumber);
+    FAcknowledgment ack = { .header = *header,
+                            .data = data,
+                            .endpoint = endpoint };
+    m_pendingAcks.push_back(ack);
 
     // Send the packet
     try
@@ -147,10 +171,11 @@ bool FNetworkBase::SendReliablePacket(
         m_statistics.packetsDropped++;
         // Remove sequence number from pending ACKs
         m_pendingAcks.erase(
-            std::remove(
+            std::remove_if(
                 m_pendingAcks.begin(),
                 m_pendingAcks.end(),
-                header->sequenceNumber
+                [&header](const FAcknowledgment& ack)
+                { return ack.header.sequenceNumber == header->sequenceNumber; }
             ),
             m_pendingAcks.end()
         );
@@ -262,6 +287,26 @@ void FNetworkBase::FlushPackets(void)
 
     // Give network stack time to send
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::Update(Float32)
+{
+    UInt32 currentTime = GetCurrentTimestamp();
+
+    // Check for pending ACKs to resend
+    for (auto& ack: m_pendingAcks)
+    {
+        static const UInt32 TIMEOUT = static_cast<UInt32>(ACK_TIMEOUT * 1000);
+
+        if (currentTime - ack.header.timestamp >= TIMEOUT)
+        {
+            // Resend the packet
+            SendData(ack.data, ack.endpoint);
+            // Update timestamp
+            ack.header.timestamp = currentTime;
+        }
+    }
 }
 
 }   // namespace tkd

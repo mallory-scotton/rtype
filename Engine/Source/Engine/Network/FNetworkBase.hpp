@@ -51,6 +51,19 @@ public:
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
     static constexpr SizeT MAX_PACKET_SIZE = 1452;
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;   //<! 500 ms
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Acknowledgment packet structure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FAcknowledgment
+    {
+        FPacketHeader header;      //<! Packet header
+        std::vector<UInt8> data;   //<! Raw packet data
+        FEndpoint endpoint;        //<! Sender endpoint
+    };
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -68,8 +81,8 @@ protected:
     std::unordered_map<
         UInt16,
         std::function<void(const IPacket&, const FEndpoint&)>>
-        m_packetHandlers;                //<! Map of packet handlers
-    std::vector<UInt32> m_pendingAcks;   //<! List of pending ACKs
+        m_packetHandlers;                         //<! Map of packet handlers
+    std::vector<FAcknowledgment> m_pendingAcks;   //<! List of pending ACKs
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -129,6 +142,14 @@ public:
     virtual void Stop(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the network service, processing incoming packets and
+    ///
+    /// \param deltaTime Time since last update in seconds
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(Float32 deltaTime);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if the network service is running
     ///
     /// \return true if the network service is running
@@ -175,6 +196,17 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void InitializePacketManager(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data to a specific endpoint
+    ///
+    /// \param data Vector of raw packet data
+    /// \param endpoint The endpoint of the sender
+    ///
+    /// \return true if the data was sent successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SendData(const std::vector<UInt8>& data, const FEndpoint& endpoint);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Send a packet to a specific endpoint
