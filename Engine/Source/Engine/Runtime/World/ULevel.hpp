@@ -139,7 +139,7 @@ public:
     /// \return The loaded ULevel object
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static ULevel LoadLevelFromWorld(const UWorld& world);
+    static ULevel LoadLevelFromWorld(UWorld& world);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Unload the current level and clear data
@@ -166,6 +166,17 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool SaveToAsset(UAsset& asset);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Save the current world to a file
+    ///
+    /// \param world The UWorld object containing the level to save
+    /// \param levelPath The file path to save the level data
+    ///
+    /// \return True if the world was saved successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SaveWorldToFile(UWorld& world, const FilePath& levelPath);
 
 private:
     ///////////////////////////////////////////////////////////////////////////

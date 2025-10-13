@@ -114,13 +114,193 @@ ULevel ULevel::LoadLevelFromFile(const FilePath& levelPath)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ULevel ULevel::LoadLevelFromWorld(const UWorld& world)
+ULevel ULevel::LoadLevelFromWorld(UWorld& world)
 {
     ULevel level;
-    world;
-    // TODO: Implement conversion from UWorld to ULevel
-    // Convert UWorld data to ULevel format
-    // ...
+
+    // Use the world's name if available (current level name as fallback)
+    if (world.GetCurrentLevel())
+    {
+        level.m_levelName = world.GetCurrentLevel()->GetLevelName();
+    }
+
+    // Iterate all actors in the world and convert them to ActorEntry
+    const auto& actors = world.GetActors();
+    for (const auto& actorPtr: actors)
+    {
+        if (!actorPtr) { continue; }
+
+        AActor* actor = actorPtr.get();
+
+        ActorEntry entry;
+
+        // Class name (if available)
+        UClass* cls = actor->GetClass();
+        entry.class_name = cls ? cls->GetName() : FString("<Unknown>");
+
+        // Actor name and active state
+        entry.name = actor->GetName();
+        entry.isActive = actor->IsActive();
+
+        // Transform: extract position, rotation and scale
+        const auto& transform = actor->GetTransform();
+        entry.position = transform.GetPosition();
+        entry.rotation = transform.GetRotation();
+        entry.scale = transform.GetScale();
+
+        // Serialize properties. We skip the built-in Transform and IsActive
+        // properties since they are stored separately above.
+        const auto& props = actor->GetProperties();
+        entry.properties.Reserve(props.size());
+
+        for (const auto& kv: props)
+        {
+            const FString& propName = kv.first;
+            IProperty* prop = kv.second;
+
+            if (!prop) { continue; }
+
+            // Skip duplicated stored properties
+            if (propName == "Transform" || propName == "IsActive")
+            {
+                continue;
+            }
+
+            PropertyEntry pentry;
+            pentry.name = propName;
+
+            // Try common property concrete types and serialize their raw bytes
+            bool serialized = false;
+
+            // Bool
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<Bool>*>(prop))
+                {
+                    Bool v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // Int32
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<Int32>*>(prop))
+                {
+                    Int32 v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // UInt32
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<UInt32>*>(prop))
+                {
+                    UInt32 v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // Float32
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<Float32>*>(prop))
+                {
+                    Float32 v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // Float64
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<Float64>*>(prop))
+                {
+                    Float64 v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // FVector3
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<FVector3>*>(prop))
+                {
+                    auto v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // FRotator
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<FRotator>*>(prop))
+                {
+                    auto v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // FTransform
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<FTransform>*>(prop))
+                {
+                    auto v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // FString (serialize as raw FString object bytes) - only if
+            // necessary
+            if (!serialized)
+            {
+                if (auto concrete = dynamic_cast<UProperty<FString>*>(prop))
+                {
+                    auto v = concrete->Get();
+                    pentry.size = sizeof(v);
+                    pentry.value.resize(pentry.size);
+                    std::memcpy(pentry.value.data(), &v, pentry.size);
+                    serialized = true;
+                }
+            }
+
+            // If we managed to serialize the property, push it
+            if (serialized)
+            {
+                entry.properties.EmplaceBack(std::move(pentry));
+            }
+        }
+
+        // Add actor entry to level
+        level.m_actorEntries.EmplaceBack(std::move(entry));
+    }
+
     return level;
 }
 
@@ -296,6 +476,13 @@ std::vector<Byte> ULevel::SerializeLevelData(void) const
     }
 
     return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool ULevel::SaveWorldToFile(UWorld& world, const FilePath& levelPath)
+{
+    ULevel level = LoadLevelFromWorld(world);
+    return level.SaveToFile(levelPath);
 }
 
 }   // namespace tkd
