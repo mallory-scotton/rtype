@@ -31,7 +31,8 @@ UInt32 FPacketManager::CalculateChecksum(const UInt8* data, SizeT size) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-std::vector<UInt8> FPacketManager::SerializePacket(const IPacket& packet)
+std::vector<UInt8>
+    FPacketManager::SerializePacket(const IPacket& packet, EPacketFlags flags)
 {
     std::vector<UInt8> buffer;
     FBinaryWriter writer(buffer);
@@ -43,8 +44,8 @@ std::vector<UInt8> FPacketManager::SerializePacket(const IPacket& packet)
         static_cast<UInt16>(FPacketHeader::SIZE + packet.GetSize());
     header.sequenceNumber = ++m_sequenceNumber;
     header.timestamp = GetCurrentTimestamp();
-    header.flags = static_cast<UInt16>(EPacketFlags::None);
-    header.checksum = 0;   // TODO: Implement checksum calculation
+    header.flags = static_cast<UInt16>(flags);
+    header.checksum = 0;   // Placeholder, will be calculated later
 
     // Write header fields
     writer.Write(header.magic);
@@ -106,6 +107,36 @@ bool FPacketManager::ValidateChecksum(
     UInt32 calculatedChecksum =
         CalculateChecksum(checksumBuffer.data(), checksumBuffer.size());
     return calculatedChecksum == expectedChecksum;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TOptional<FPacketHeader>
+    FPacketManager::DeserializeHeader(const UInt8* data, SizeT size)
+{
+    if (size < FPacketHeader::SIZE) { return std::nullopt; }
+
+    FBinaryReader reader(data, size);
+    FPacketHeader header;
+
+    if (!reader.Read(header.magic) || header.magic != MAGIC_NUMBER)
+    {
+        return std::nullopt;
+    }
+    if (!reader.Read(header.protocolVersion) || !reader.Read(header.flags) ||
+        !reader.Read(header.packetType) || !reader.Read(header.packetSize) ||
+        !reader.Read(header.sequenceNumber) ||
+        !reader.Read(header.timestamp) || !reader.Read(header.checksum))
+    {
+        return std::nullopt;
+    }
+
+    if (header.protocolVersion != PROTOCOL_VERSION ||
+        header.packetSize != size)
+    {
+        return std::nullopt;
+    }
+
+    return header;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

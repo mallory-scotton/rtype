@@ -17,6 +17,12 @@ namespace tkd
 UObject::UObject(const FString& name)
     : m_objectID(UUID::V4())
     , m_name(name)
+    , m_netRole(ENetRole::None)
+    , m_networkID(0)
+    , m_owningClientID(0)
+    , m_netUpdateFrequency(10.0f)
+    , m_timeSinceLastUpdate(0.0f)
+    , m_hasSetUpdateFrequency(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,6 +36,9 @@ UObject::operator std::string(void) const
 {
     return std::string(m_name.CStr());
 }
+
+///////////////////////////////////////////////////////////////////////////////
+const UUID& UObject::GetUUID(void) const { return m_objectID; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UObject::RegisterProperty(IProperty* property)
@@ -48,6 +57,20 @@ const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
 ) const
 {
     return m_properties;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::GetLifetimeReplicatedProperties(
+    TVector<IProperty*>& outProperties
+)
+{
+    for (const auto& [name, property]: m_properties)
+    {
+        if (property->HasFlag(EPropertyFlags::Replicated))
+        {
+            outProperties.PushBack(property);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -81,6 +104,56 @@ const FString& UObject::GetName(void) const { return m_name; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UObject::SetName(const FString& name) { m_name = name; }
+
+///////////////////////////////////////////////////////////////////////////////
+Bool UObject::IsLocallyControlled(void) const
+{
+    // TODO: Add proper locally controller check
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool UObject::IsAuthority(void) const
+{
+    return m_netRole == ENetRole::Authority;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool UObject::IsSimulated(void) const
+{
+    return m_netRole == ENetRole::SimulatedProxy;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ENetRole UObject::GetNetRole(void) const { return m_netRole; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::SetNetRole(ENetRole role) { m_netRole = role; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::SetNetUpdateFrequency(Float32 frequency)
+{
+    m_netUpdateFrequency = frequency;
+    m_hasSetUpdateFrequency = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Float32 UObject::GetNetUpdateFrequency(void) const
+{
+    return m_netUpdateFrequency;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::SetOwningClientID(UInt32 id) { m_owningClientID = id; }
+
+///////////////////////////////////////////////////////////////////////////////
+UInt32 UObject::GetOwningClientID(void) const { return m_owningClientID; }
+
+///////////////////////////////////////////////////////////////////////////////
+UInt32 UObject::GetNetworkID(void) const { return m_networkID; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UObject::SetNetworkID(UInt32 id) { m_networkID = id; }
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(UObject)

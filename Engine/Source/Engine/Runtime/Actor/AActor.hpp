@@ -10,6 +10,7 @@
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object.hpp>
+#include <Engine/Network/Enumerations.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
 #include <memory>
@@ -35,6 +36,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     using Component = std::shared_ptr<UActorComponent>;
 
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Struct to hold transform prediction data
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FTransformPrediction
+    {
+        UInt32 timestamp;       //<! Time of the move
+        Float32 deltaTime;      //<! Time since the last move
+        FTransform transform;   //<! Actor's transform before the move
+        FVector3 velocity;      //<! Actor's velocity during the move
+    };
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -43,19 +57,17 @@ private:
     UProperty<Bool> m_isActive;          //<! Whether the actor is active
     TVector<Component> m_components;     //<! The actor's components
     bool m_markedForDeletion;            //<! Marked for deletion
-
-protected:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member Access
-    ///////////////////////////////////////////////////////////////////////////
-    AActor& self;   //<! Reference to self for event bindings
+    std::vector<FTransformPrediction>
+        m_transformPredictions;          //<! Transform predictions
+    UInt32 m_transformTimestamp;         //<! Timestamp of the last transform
+    FTransform m_pendingTransform;       //<! Pending transform for replication
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UFunction<void(AActor*)> OnActorBeginOverlap;
-    UFunction<void(AActor*)> OnActorEndOverlap;
+    UFunction<AActor*> OnActorBeginOverlap;
+    UFunction<AActor*> OnActorEndOverlap;
 
 public:
     ///////////////////////////////////////////////////////////////////////////

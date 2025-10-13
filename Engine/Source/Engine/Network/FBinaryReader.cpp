@@ -17,6 +17,13 @@ FBinaryReader::FBinaryReader(const UInt8* data, SizeT size)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
+FBinaryReader::FBinaryReader(const std::vector<UInt8>& data)
+    : m_data(data.data())
+    , m_size(data.size())
+    , m_offset(0)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
 bool FBinaryReader::Read(std::string& value)
 {
     SizeT size = 0;

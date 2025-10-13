@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FNetworkSubsystem.hpp>
+#include <Engine/Runtime/World/UWorld.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -90,6 +91,17 @@ UInt64 FNetworkSubsystem::GetBytesReceivedPerSecond(void) const noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FNetworkStatistics FNetworkSubsystem::GetStatistics(void) const noexcept
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_server) { return m_server->GetStatistics(); }
+    else if (m_client) { return m_client->GetStatistics(); }
+
+    return FNetworkStatistics{};
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkSubsystem::ThreadLoop(void)
 {
     TimePoint lastStatsUpdate = SteadyClock::now();
@@ -101,8 +113,9 @@ void FNetworkSubsystem::ThreadLoop(void)
     {
         TimePoint now = SteadyClock::now();
 
-        float deltaTime = std::chrono::duration<float>(now - lastUpdateTime).count();
-        lastUpdateTime = now;  // Update for next frame
+        float deltaTime =
+            std::chrono::duration<float>(now - lastUpdateTime).count();
+        lastUpdateTime = now;   // Update for next frame
 
         if (m_config.mode == Mode::Server && m_server)
         {
@@ -147,7 +160,7 @@ void FNetworkSubsystem::ThreadLoop(void)
 
         if (m_server)
         {
-            // m_server->Stop();
+            m_server->Stop();
             m_server.reset();
         }
 
@@ -156,6 +169,262 @@ void FNetworkSubsystem::ThreadLoop(void)
             m_client->Disconnect();
             m_client.reset();
         }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendData(const std::vector<Byte>& data)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->BroadcastData(data);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendData(data, m_client->GetServerEndpoint());
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendData(
+    const std::vector<Byte>& data, const FEndpoint& endpoint
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->SendData(data, endpoint);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendData(data, endpoint);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendData(
+    const std::vector<Byte>& data, const std::vector<FEndpoint>& endpoints
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_server->SendData(data, endpoint)) { allSent = false; }
+        }
+        return allSent;
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_client->SendData(data, endpoint)) { allSent = false; }
+        }
+        return allSent;
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendPacket(const IPacket& packet)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->BroadcastPacket(packet);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendPacket(packet, m_client->GetServerEndpoint());
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendPacket(
+    const IPacket& packet, const FEndpoint& endpoint
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->SendPacket(packet, endpoint);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendPacket(packet, endpoint);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendPacket(
+    const IPacket& packet, const std::vector<FEndpoint>& endpoints
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_server->SendPacket(packet, endpoint)) { allSent = false; }
+        }
+        return allSent;
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_client->SendPacket(packet, endpoint)) { allSent = false; }
+        }
+        return allSent;
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendReliablePacket(const IPacket& packet)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->BroadcastReliablePacket(packet);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendReliablePacket(
+            packet, m_client->GetServerEndpoint()
+        );
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendReliablePacket(
+    const IPacket& packet, const FEndpoint& endpoint
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->SendReliablePacket(packet, endpoint);
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        return m_client->SendReliablePacket(packet, endpoint);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::SendReliablePacket(
+    const IPacket& packet, const std::vector<FEndpoint>& endpoints
+)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_server->SendReliablePacket(packet, endpoint))
+            {
+                allSent = false;
+            }
+        }
+        return allSent;
+    }
+    else if (m_config.mode == Mode::Client && m_client &&
+             m_client->IsConnected())
+    {
+        bool allSent = true;
+        for (const auto& endpoint: endpoints)
+        {
+            if (!m_client->SendReliablePacket(packet, endpoint))
+            {
+                allSent = false;
+            }
+        }
+        return allSent;
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::BroadcastData(const std::vector<Byte>& data)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->BroadcastData(data);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkSubsystem::BroadcastPacket(const IPacket& packet)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        return m_server->BroadcastPacket(packet);
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::ProcessDeferredRPCs(UWorld& world)
+{
+    // NO LOCK NEEDED HERE!
+    // The server/client pointers are stable after initialization
+    // and ProcessDeferredRPCs has its own internal locking (m_rpcQueueMutex)
+    // Taking m_networkMutex here causes deadlock with the network thread
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        m_server->ProcessDeferredRPCs(world);
+    }
+    else if (m_config.mode == Mode::Client && m_client)
+    {
+        m_client->ProcessDeferredRPCs(world);
     }
 }
 

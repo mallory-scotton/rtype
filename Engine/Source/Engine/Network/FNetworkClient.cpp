@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkClient.hpp>
+#include <Engine/Core/Utils/FLogger.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -10,7 +11,7 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-FNetworkClient::FNetworkClient()
+FNetworkClient::FNetworkClient(void)
     : FNetworkBase()
     , m_connectionState(EConnectionState::Disconnected)
     , m_clientID(0)
@@ -21,24 +22,13 @@ FNetworkClient::FNetworkClient()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FNetworkClient::~FNetworkClient()
-{
-    std::cout << "[CLIENT] Destructor called" << std::endl;
-
-    // Call cleanup first (sends disconnect packet)
-    Cleanup();
-
-    // ✅ CRITICAL: Wait for UDP packet to actually transmit
-    std::cout << "[CLIENT] Waiting for packet transmission..." << std::endl;
-    // std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    std::cout << "[CLIENT] Destructor completed" << std::endl;
-}
+FNetworkClient::~FNetworkClient() { Cleanup(); }
 
 ///////////////////////////////////////////////////////////////////////////
 bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
-    std::cout << "we connecting typeshit" << std::endl;
+
     // Don't allow connecting if already connected or connecting
     if (m_connectionState == EConnectionState::Connected ||
         m_connectionState == EConnectionState::Connecting)
@@ -70,9 +60,13 @@ bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
         m_connection->lastActivity = SteadyClock::now();
         m_connection->connected = false;
 
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "Attempting to connect to server at {}:{}", hostname, port
+        );
+
         Packets::Connect connectPacket;
-        std::cout << "sending connection packet to server" << std::endl;
-        if (SendPacket(connectPacket, m_serverEndpoint))
+        if (SendReliablePacket(connectPacket, m_serverEndpoint))
         {
             m_lastUpdate = SteadyClock::now();
             return true;   // Connection attempt initiated successfully
@@ -126,9 +120,10 @@ void FNetworkClient::HandleConnectResponsePacket(
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
 
-    std::cout << "connection packet received" << std::endl;
-
     if (m_connectionState != EConnectionState::Connecting) { return; }
+
+    FLogger::SetNamespace("Network");
+    FLogger::Info("Received connection response from server");
 
     if (packet.accepted)
     {
@@ -137,12 +132,18 @@ void FNetworkClient::HandleConnectResponsePacket(
         m_connection->connected = true;
 
         Emit<Events::Connected>({ packet.clientID, endpoint });
-        std::cout << "Successfully connected to server! Client ID: "
-                  << packet.clientID << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "Successfully connected to server! Client ID: {}", packet.clientID
+        );
     }
     else
     {
+        // Connection rejected by server
         m_connectionState = EConnectionState::Disconnected;
+
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Connection to server was rejected");
 
         // Emit connection failed event
         Emit<Events::ConnectionFailed>({ endpoint });
@@ -152,7 +153,10 @@ void FNetworkClient::HandleConnectResponsePacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Disconnect(EDisconnectionReason reason)
 {
+    // Perform disconnection
     DisconnectInternal(reason, true);
+    // Stop network thread if running
+    Stop();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -165,14 +169,12 @@ void FNetworkClient::DisconnectInternal(
     // Only send disconnect packet if we're connected and requested to do so
     if (sendPacket && m_connectionState == EConnectionState::Connected)
     {
-        std::cout << "sending over packet in disconnect internals"
-                  << std::endl;
         Packets::Disconnect disconnectPacket;
         disconnectPacket.clientID = m_clientID;
         disconnectPacket.reason = static_cast<UInt32>(reason);
-
-        FNetworkBase::SendPacket(disconnectPacket, m_serverEndpoint);
+        SendPacket(disconnectPacket, m_serverEndpoint);
     }
+
     // Update connection state
     if (m_connectionState != EConnectionState::Disconnected)
     {
@@ -186,7 +188,7 @@ void FNetworkClient::DisconnectInternal(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkClient::SetupDefaultHandlers()
+void FNetworkClient::SetupDefaultHandlers(void)
 {
     // Register handler for connect response
     RegisterPacketHandler<Packets::ConnectResponse>(
@@ -211,12 +213,17 @@ void FNetworkClient::SetupDefaultHandlers()
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
+    // Don't update if not running
     if (!IsRunning()) { return; }
+
+    // Update Superclass (process incoming packets)
+    Super::Update(deltaTime);
 
     // Don't continue updating if disconnected after timeout
     if (m_connectionState == EConnectionState::Disconnected)
     {
-        std::cout << "[CLIENT] Not updating - disconnected" << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Disconnected - stopping network");
         Stop();
         return;
     }
@@ -229,15 +236,14 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-EConnectionState FNetworkClient::GetConnectionState() const
+EConnectionState FNetworkClient::GetConnectionState(void) const
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
-
     return m_connectionState;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-std::optional<UInt32> FNetworkClient::GetClientID() const
+std::optional<UInt32> FNetworkClient::GetClientID(void) const
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
 
@@ -250,7 +256,7 @@ std::optional<UInt32> FNetworkClient::GetClientID() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool FNetworkClient::IsConnected() const
+bool FNetworkClient::IsConnected(void) const
 {
     std::lock_guard<std::mutex> lock(m_connectionMutex);
 
@@ -258,7 +264,7 @@ bool FNetworkClient::IsConnected() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FEndpoint FNetworkClient::GetServerEndpoint() const
+FEndpoint FNetworkClient::GetServerEndpoint(void) const
 {
     return m_serverEndpoint;
 }
@@ -295,27 +301,16 @@ void FNetworkClient::CheckConnectionTimeout(const TimePoint& now)
     // If no activity from server for CONNECTION_TIMEOUT seconds, disconnect
     if (timeSinceLastActivity >= CONNECTION_TIMEOUT)
     {
-        std::cout << "[CLIENT] Connection timeout - no server activity for "
-                  << CONNECTION_TIMEOUT.count() << " seconds" << std::endl;
-        std::cout << "[CLIENT] Last activity was at: "
-                  << std::chrono::duration_cast<std::chrono::seconds>(
-                         m_connection->lastActivity.time_since_epoch()
-                     )
-                         .count()
-                  << "s" << std::endl;
+        // Timeout reached - disconnect
+        FLogger::SetNamespace("Network");
+        FLogger::Warn(
+            "Connection timeout - no server activity for {} seconds",
+            CONNECTION_TIMEOUT.count()
+        );
+        FLogger::Info("Disconnecting due to timeout");
 
         // Disconnect due to timeout
         DisconnectInternal(EDisconnectionReason::Timeout, false);
-    }
-    else
-    {
-        // Optional: Log approaching timeout
-        if (timeSinceLastActivity >= std::chrono::seconds(25))
-        {   // Warn at 25s if timeout is 30s
-            std::cout << "[CLIENT] Warning: No server activity for "
-                      << timeSinceLastActivity.count() << " seconds"
-                      << std::endl;
-        }
     }
 }
 
@@ -329,14 +324,12 @@ void FNetworkClient::SendHeartbeat(const TimePoint& now)
 
     if (timeSinceLastUpdate < HEARTBEAT_INTERVAL) { return; }
 
-    std::cout << "[CLIENT] Sending heartbeat to server (ID: " << m_clientID
-              << ")" << std::endl;
     Packets::HeartBeat heartbeat;
     heartbeat.id = m_clientID;
     heartbeat.timestamp = GetCurrentTimestamp();
 
     if (SendPacketToServer(heartbeat)) { m_lastUpdate = now; }
-    else { std::cout << "[CLIENT] Failed to send heartbeat" << std::endl; }
+    else { FLogger::Warn("Failed to send heartbeat packet to server"); }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -348,11 +341,13 @@ void FNetworkClient::CheckConnectionAttemptTimeout(const TimePoint& now)
         std::chrono::duration_cast<std::chrono::seconds>(now - m_lastUpdate);
 
     // Timeout after 5 seconds if no ConnectResponse received
-    if (timeSinceConnectAttempt >= std::chrono::seconds(5))
+    if (timeSinceConnectAttempt >= CONNECTION_RETRY_TIMEOUT)
     {
-        std::cout
-            << "[CLIENT] Connection timeout - no server response after 5 seconds"
-            << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Warn(
+            "Connection attempt timed out after {} seconds",
+            CONNECTION_RETRY_TIMEOUT.count()
+        );
 
         std::lock_guard<std::mutex> lock(m_connectionMutex);
         m_connectionState = EConnectionState::Disconnected;
@@ -374,15 +369,16 @@ void FNetworkClient::HandleDisconnectPacket(
 
     if (reason == EDisconnectionReason::Shutdown)
     {
-        std::cout
-            << "[CLIENT] Server is shutting down - disconnecting gracefully"
-            << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Server is shutting down - disconnecting");
     }
     else
     {
-        std::cout
-            << "[CLIENT] Received disconnect packet from server. Reason: "
-            << static_cast<int>(reason) << std::endl;
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "Received disconnect packet from server. Reason: {}",
+            static_cast<int>(reason)
+        );
     }
 
     DisconnectInternal(reason, false);
@@ -393,6 +389,9 @@ void FNetworkClient::HandleHeartbeatPacket(
     const Packets::HeartBeat& packet, const FEndpoint& endpoint
 )
 {
+    // We don't use the packet data for anything currently
+    TKD_UNUSED(packet);
+
     // Only accept heartbeat packets from our server
     if (endpoint != m_serverEndpoint ||
         m_connectionState != EConnectionState::Connected)
@@ -406,13 +405,9 @@ void FNetworkClient::HandleHeartbeatPacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Cleanup(void)
 {
-    std::cout << "[CLIENT] Cleanup called" << std::endl;
-
+    FLogger::SetNamespace("Network");
+    FLogger::Info("Cleaning up client resources");
     Disconnect(EDisconnectionReason::Shutdown);
-    std::cout << "[CLIENT] Cleanup disconnected complete now waiting"
-              << std::endl;
-
-    std::cout << "[CLIENT] Cleanup completed" << std::endl;
 }
 
 }   // namespace tkd

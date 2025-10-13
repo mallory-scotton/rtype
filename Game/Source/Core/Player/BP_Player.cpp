@@ -15,6 +15,18 @@ BP_Player::BP_Player(UInt32 playerColor)
     , speed(*this, "Speed", 200.0f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , playerColor(*this, "PlayerColor", playerColor % 5)
+    , ServerFire(
+          *this,
+          "ServerFire",
+          ERPCType::Server,
+          std::bind(&BP_Player::RPC_ServerFire, this)
+      )
+    , MulticastFire(
+          *this,
+          "MulticastFire",
+          ERPCType::Multicast,
+          std::bind(&BP_Player::RPC_MulticastFire, this, std::placeholders::_1)
+      )
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
 {
@@ -78,13 +90,28 @@ void BP_Player::SetupAnimations(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::Tick(Float32 deltaTime)
 {
-    // Call Super Tick
+    // Determine how to handle movement based on network role
+    if (IsLocallyControlled())
+    {
+        // Use client-side prediction
+        // (Movement input handled in BP_PlayerController)
+    }
+    else if (IsAuthority())
+    {
+        // Server authoritative movement
+        // (Processed via ServerMove RPC)
+    }
+    else
+    {
+        // Simulated proxy - just interpolate replicated position
+        // (Handled automatically by replication system)
+    }
+
+    // Call original tick for animations and other logic
     Super::Tick(deltaTime);
 
     // Add time to last fired time
     m_lastFiredTime += deltaTime;
-
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
 
     // Move player based on velocity and speed
     if (velocity() != 0.0f)
@@ -103,6 +130,22 @@ void BP_Player::Tick(Float32 deltaTime)
         ));
     }
 
+    // Update animation state based on movement
+    UpdateAnimationState();
+
+    // Update last velocity if there is movement
+    if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
+
+    // Reset velocity for next frame
+    velocity = FVector2f::Zero;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::UpdateAnimationState(void)
+{
+    // Get the animated sprite component
+    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+
     // Update animation state
     if (velocity().y > 0.0f) { Abp->Play("IdleToFlyUp", false); }
     else if (velocity().y < 0.0f) { Abp->Play("IdleToFlyDown", false); }
@@ -115,18 +158,24 @@ void BP_Player::Tick(Float32 deltaTime)
         }
         else { Abp->Play("Idle", true); }
     }
-
-    // Update last velocity if there is movement
-    if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
-
-    // Reset velocity for next frame
-    velocity = FVector2f::Zero;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::Fire(void)
 {
-    if (m_lastFiredTime >= 0.25f)
+    if (IsLocallyControlled() && m_lastFiredTime >= 0.25f)
+    {
+        // Call the server RPC to handle firing
+        this->ServerFire();
+        // Reset last fired time
+        m_lastFiredTime = 0.0f;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_ServerFire(void)
+{
+    if (IsAuthority() && m_lastFiredTime >= 0.25f)
     {
         // Reset last fired time
         m_lastFiredTime = 0.0f;
@@ -136,9 +185,23 @@ void BP_Player::Fire(void)
         transform.SetRotation(FRotator(0.f, 0.f, 0.f));
         transform.SetScale(FVector3f::One);
 
+        // Call multicast RPC to notify all clients
+        this->MulticastFire(transform);
+
         // Spawn a projectile
         World::SpawnActor("BP_Projectile", transform);
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_MulticastFire(FTransform transform)
+{
+    // Play firing effects on all clients,
+    if (IsAuthority()) { return; }
+
+    World::SpawnActor("BP_Projectile", transform);
+    // Reset last fired time
+    m_lastFiredTime = 0.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

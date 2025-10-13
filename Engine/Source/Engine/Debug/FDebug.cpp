@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Debug/FDebug.hpp>
 #include <Engine/Config.hpp>
+#include <Engine/Network/FNetworkBase.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
     #include <imgui_internal.h>
@@ -34,6 +35,9 @@ void FDebug::PopDebugMenuStyling(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
+    // Set the network debug instance
+    FNetworkBase::SetNetworkDebug(&m_networkDebug);
+
     ApplyDebugMenuStyling();
 
     if (ImGui::BeginMainMenuBar())
@@ -107,10 +111,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
             ImGui::Indent(10.0f);
 
             if (ImGui::MenuItem(
-                    "Network Monitor",
-                    "Ctrl+Shift+N",
-                    m_showNetworkMonitor,
-                    false
+                    "Network Monitor", "Ctrl+Shift+N", m_showNetworkMonitor
                 ))
             {
                 m_showNetworkMonitor = !m_showNetworkMonitor;
@@ -264,6 +265,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
     if (m_showInputDebug) { m_inputsDebug.Show(settings, world); }
     if (m_showActorDebug) { m_actorDebug.Show(settings, world); }
+    if (m_showNetworkMonitor) { m_networkDebug.Show(settings, world); }
     if (m_showPerformanceMonitor)
     {
         m_performanceMonitor.Show(settings, world);

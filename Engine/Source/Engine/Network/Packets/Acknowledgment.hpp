@@ -6,50 +6,55 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Core/Player/BP_Player.hpp>
-#include <Engine.hpp>
+#include <Engine/Config.hpp>
+#include <Engine/Network/TPacket.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
-// Namespace tkd
+// Namespace tkd::Packets
 ///////////////////////////////////////////////////////////////////////////////
-namespace tkd
+namespace tkd::Packets
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Acknowledgment packet, used to acknowledge receipt of packets
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class BP_PlayerController : public APlayerController
+class Acknowledgment : public TPacket<Acknowledgment>
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Default constructor
-    ///
+    // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    BP_PlayerController(void);
+    UInt32 ackedSequenceNumber = 0;   //<! Sequence number being acknowledged
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Setup input bindings (override this in derived classes)
+    /// \brief Serialize the packet data into the writer
     ///
-    /// This is called automatically after SetInputManager is called
+    /// \param writer Binary writer to serialize data into
+    ///
+    /// \return true if serialization was successful, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void SetupInputBindings(void) override;
+    bool Serialize(FBinaryWriter& writer) const override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Ticks the object
+    /// \brief Deserialize the packet data from the reader
     ///
-    /// \param deltaTime The time elapsed since the last tick
+    /// \param reader Binary reader to deserialize data from
+    ///
+    /// \return true if deserialization was successful, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Tick(Float32 deltaTime) override;
+    bool Deserialize(FBinaryReader& reader) override;
 
-public:
     ///////////////////////////////////////////////////////////////////////////
-    // Class Implementation
+    /// \brief Get the size of the packet in bytes
+    ///
+    /// \return size of the packet in bytes
+    ///
     ///////////////////////////////////////////////////////////////////////////
-    DECLARE_CLASS_WITH_SUPER(BP_PlayerController, APlayerController)
+    SizeT GetSize(void) const override;
 };
 
-}   // namespace tkd
+}   // namespace tkd::Packets

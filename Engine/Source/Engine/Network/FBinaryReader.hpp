@@ -9,8 +9,7 @@
 #include <cstring>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
-#include <Engine/Core/Math/TRotator.hpp>
-#include <Engine/Core/Math/TVector3.hpp>
+#include <Engine/Core/Math.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,15 +46,23 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     FBinaryReader(const UInt8* data, SizeT size);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor from a data vector
+    ///
+    /// \param data Vector containing the data buffer
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FBinaryReader(const std::vector<UInt8>& data);
+
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Read a value of type T from the binary data
     ///
-    /// \tparam T
+    /// \tparam T The type of the value to read
     ///
-    /// \param
+    /// \param value Reference to the variable to fill with the read value
     ///
-    /// \return
+    /// \return True if the read was successful, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T>
@@ -67,6 +74,196 @@ public:
         if (m_offset + sizeof(T) > m_size) { return false; }
         std::memcpy(&value, m_data + m_offset, sizeof(T));
         m_offset += sizeof(T);
+        return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 2D vector from the binary data
+    ///
+    /// \param vec Reference to the vector to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TVector2<T>& vec)
+    {
+        return Read(vec.x) && Read(vec.y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 3D vector from the binary data
+    ///
+    /// \param vec Reference to the vector to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TVector3<T>& vec)
+    {
+        return Read(vec.x) && Read(vec.y) && Read(vec.z);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 4D vector from the binary data
+    ///
+    /// \param vec Reference to the vector to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TVector4<T>& vec)
+    {
+        return Read(vec.x) && Read(vec.y) && Read(vec.z) && Read(vec.w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 2D rotator from the binary data
+    ///
+    /// \param rot Reference to the rotator to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TRotator2D<T>& rot)
+    {
+        return Read(rot.GetAngle());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a rotator from the binary data
+    ///
+    /// \param rot Reference to the rotator to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TRotator<T>& rot)
+    {
+        return Read(rot.GetPitch()) && Read(rot.GetYaw()) &&
+               Read(rot.GetRoll());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 2x2 matrix from the binary data
+    ///
+    /// \param mat Reference to the matrix to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TMatrix2x2<T>& mat)
+    {
+        for (SizeT i = 0; i < 2; ++i)
+        {
+            for (SizeT j = 0; j < 2; ++j)
+            {
+                if (!Read(mat(i, j))) { return false; }
+            }
+        }
+        return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 3x3 matrix from the binary data
+    ///
+    /// \param mat Reference to the matrix to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TMatrix3x3<T>& mat)
+    {
+        for (SizeT i = 0; i < 3; ++i)
+        {
+            for (SizeT j = 0; j < 3; ++j)
+            {
+                if (!Read(mat(i, j))) { return false; }
+            }
+        }
+        return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 4x4 matrix from the binary data
+    ///
+    /// \param mat Reference to the matrix to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TMatrix4x4<T>& mat)
+    {
+        for (SizeT i = 0; i < 4; ++i)
+        {
+            for (SizeT j = 0; j < 4; ++j)
+            {
+                if (!Read(mat(i, j))) { return false; }
+            }
+        }
+        return true;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a rectangle from the binary data
+    ///
+    /// \param rect Reference to the rectangle to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TRectangle<T>& rect)
+    {
+        return Read(rect.left) && Read(rect.top) && Read(rect.width) &&
+               Read(rect.height);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a 2D transform from the binary data
+    ///
+    /// \param tran Reference to the transform to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TTransform2D<T>& tran)
+    {
+        TMatrix3x3<T> mat;
+        if (Read(mat))
+        {
+            tran.SetMatrix(mat);
+            return true;
+        }
+        return false;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a transform from the binary data
+    ///
+    /// \param tran Reference to the transform to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    bool Read(TTransform<T>& tran)
+    {
+        for (SizeT i = 0; i < 4; ++i)
+        {
+            for (SizeT j = 0; j < 4; ++j)
+            {
+                if (!Read(tran(i, j))) { return false; }
+            }
+        }
         return true;
     }
 

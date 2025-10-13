@@ -114,6 +114,16 @@ public:
     const UInputAxis* GetAxis(const FString& axisName) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current value of an input axis
+    ///
+    /// \param axisName The name of the input axis
+    ///
+    /// \return The current value of the axis, or 0.0f if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Float32 GetAxisValue(const FString& axisName) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set whether to invert the Y-axis
     ///
     /// \param invert True to invert Y-axis, false otherwise

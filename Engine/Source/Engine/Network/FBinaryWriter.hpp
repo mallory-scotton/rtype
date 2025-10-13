@@ -9,8 +9,7 @@
 #include <cstring>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
-#include <Engine/Core/Math/TRotator.hpp>
-#include <Engine/Core/Math/TVector3.hpp>
+#include <Engine/Core/Math.hpp>
 #include <type_traits>
 #include <vector>
 
@@ -65,6 +64,161 @@ public:
         if (m_buffer.size() < needed) { m_buffer.resize(needed); }
         std::memcpy(m_buffer.data() + m_offset, &value, sizeof(T));
         m_offset += sizeof(T);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a string to the buffer
+    ///
+    /// \param str The string to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TVector2<T>& vec)
+    {
+        Write(vec.x);
+        Write(vec.y);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TVector3 to the buffer
+    ///
+    /// \param vec The TVector3 to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TVector3<T>& vec)
+    {
+        Write(vec.x);
+        Write(vec.y);
+        Write(vec.z);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TVector4 to the buffer
+    ///
+    /// \param vec The TVector4 to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TVector4<T>& vec)
+    {
+        Write(vec.x);
+        Write(vec.y);
+        Write(vec.z);
+        Write(vec.w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TRotator2D to the buffer
+    ///
+    /// \param rot The TRotator2D to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TRotator2D<T>& rot)
+    {
+        Write(rot.GetAngle());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TRotator to the buffer
+    ///
+    /// \param rot The TRotator to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TRotator<T>& rot)
+    {
+        Write(rot.GetPitch());
+        Write(rot.GetYaw());
+        Write(rot.GetRoll());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TMatrix2x2 to the buffer
+    ///
+    /// \param mat The TMatrix2x2 to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TMatrix2x2<T>& mat)
+    {
+        for (SizeT i = 0; i < 2; ++i)
+        {
+            for (SizeT j = 0; j < 2; ++j) { Write(mat(i, j)); }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TMatrix3x3 to the buffer
+    ///
+    /// \param mat The TMatrix3x3 to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TMatrix3x3<T>& mat)
+    {
+        for (SizeT i = 0; i < 3; ++i)
+        {
+            for (SizeT j = 0; j < 3; ++j) { Write(mat(i, j)); }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TMatrix4x4 to the buffer
+    ///
+    /// \param mat The TMatrix4x4 to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TMatrix4x4<T>& mat)
+    {
+        for (SizeT i = 0; i < 4; ++i)
+        {
+            for (SizeT j = 0; j < 4; ++j) { Write(mat(i, j)); }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TRectangle to the buffer
+    ///
+    /// \param rect The TRectangle to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TRectangle<T>& rect)
+    {
+        Write(rect.left);
+        Write(rect.top);
+        Write(rect.width);
+        Write(rect.height);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TTransform2D to the buffer
+    ///
+    /// \param tran The TTransform2D to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TTransform2D<T>& tran)
+    {
+        Write(tran.GetMatrix());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Write a TTransform to the buffer
+    ///
+    /// \param tran The TTransform to write
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    void Write(const TTransform<T>& tran)
+    {
+        for (SizeT i = 0; i < 4; ++i)
+        {
+            for (SizeT j = 0; j < 4; ++j) { Write(tran(i, j)); }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////

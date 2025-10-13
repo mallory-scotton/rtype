@@ -422,6 +422,20 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Swap two values together
+    ///
+    /// \param a the first value to swap
+    /// \param b the second vlaue to swap
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void Swap(T& a, T& b)
+    {
+        T tmp = a;
+        a = b;
+        b = tmp;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Checks if a value is infinity
     ///
     /// \param value The value to check

@@ -6,8 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Network/IPacket.hpp>
-#include <Engine/Static/FNetworkSubsystem.hpp>
+#include <Engine/Network.hpp>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -19,6 +18,24 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Namespace __internal
+///////////////////////////////////////////////////////////////////////////////
+namespace __internal
+{
+
+///////////////////////////////////////////////////////////////////////////////
+// Pre-declarations
+///////////////////////////////////////////////////////////////////////////////
+class FNetworkSubsystem;
+
+}   // namespace __internal
+
+///////////////////////////////////////////////////////////////////////////////
+// Pre-declarations
+///////////////////////////////////////////////////////////////////////////////
+class UWorld;
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Network interface for managing network connections and operations
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,95 +45,244 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Static Members
     ///////////////////////////////////////////////////////////////////////////
-    static TUniquePtr<__internal::FNetworkSubsystem>
-        s_networkSubsystem;      //<! Network subsystem instance
     static std::mutex s_mutex;   //<! Mutex for thread safety
-    static bool s_isConnected;   //<! Connection status
+    static __internal::FNetworkSubsystem*
+        s_networkSubsystem;      //<! Pointer to the network subsystem
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Connect to a server
+    /// \brief Set the network subsystem
     ///
-    /// \param host The hostname or IP address to connect to
-    /// \param port The port to connect to
-    ///
-    /// \return True if connection was successful, false otherwise
+    /// \param subsystem The network subsystem to set
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static bool Connect(const std::string& host, UInt16 port);
+    static void Setup(__internal::FNetworkSubsystem* subsystem);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Disconnect from the server
+    /// \brief Get the network subsystem
     ///
-    /// \return True if disconnection was successful, false otherwise
+    /// \return Pointer to the network subsystem
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static bool Disconnect(void);
+    static __internal::FNetworkSubsystem* GetSubsystem(void);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if connected to a server
-    ///
-    /// \return True if connected, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD static bool IsConnected(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the network subsystem instance
-    ///
-    /// \return Reference to the network subsystem
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD static __internal::FNetworkSubsystem&
-        GetNetworkSubsystem(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get network statistics
-    ///
-    /// \return Network statistics structure
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD static FNetworkStatistics GetStatistics(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Send a packet to the server
-    ///
-    /// \param packet The packet to send
-    ///
-    /// \return True if packet was sent successfully, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static bool SendPacket(const IPacket& packet);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Clear all user-added packet handlers
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static void ClearPacketHandlers(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Initialize the network subsystem (internal use)
-    ///
-    /// \return True if initialization was successful, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static bool Initialize(const std::string& host, UInt16 port);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Shutdown the network subsystem (internal use)
-    ///
-    /// \return True if shutdown was successful, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    static bool Shutdown(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if network subsystem is initialized
+    /// \brief Check if the network subsystem is initialized
     ///
     /// \return True if initialized, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD static bool IsInitialized(void);
+    static Bool IsInitialized(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data or packets over the network
+    ///
+    /// \param data  The data to send
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendData(const std::vector<Byte>& data);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data or packets over the network
+    ///
+    /// \param data  The data to send
+    /// \param endpoint The endpoint to send the data to
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool
+        SendData(const std::vector<Byte>& data, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data to multiple endpoints over the network
+    ///
+    /// \param data  The data to send
+    /// \param endpoints The list of endpoints to send the data to
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendData(
+        const std::vector<Byte>& data, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet over the network
+    ///
+    /// \param packet The packet to send
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendPacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to a specific endpoint over the network
+    ///
+    /// \param packet The packet to send
+    /// \param endpoint The endpoint to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to multiple endpoints over the network
+    ///
+    /// \param packet The packet to send
+    /// \param endpoints The list of endpoints to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendPacket(
+        const IPacket& packet, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get client information by client ID
+    ///
+    /// \param clientID The ID of the client
+    ///
+    /// \return Pointer to the client information, or nullptr if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FConnectionInformation* GetClientInformation(UInt32 clientID);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet over the network
+    ///
+    /// \param packet The packet to send reliably
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendReliablePacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet to a specific endpoint over the network
+    ///
+    /// \param packet The packet to send reliably
+    /// \param endpoint The endpoint to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool
+        SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet to multiple endpoints over the network
+    ///
+    /// \param packet The packet to send reliably
+    /// \param endpoints The list of endpoints to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendReliablePacket(
+        const IPacket& packet, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Broadcast raw data to all connected clients
+    ///
+    /// \param data The data to broadcast
+    ///
+    /// \return True if the data was broadcast successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool BroadcastData(const std::vector<Byte>& data);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Broadcast a packet to all connected clients
+    ///
+    /// \param packet The packet to broadcast
+    ///
+    /// \return True if the packet was broadcast successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool BroadcastPacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get network statistics
+    ///
+    /// \return Reference to the network statistics
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FNetworkStatistics GetStatistics(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Connect to a remote server
+    ///
+    /// \param address The address of the server to connect to
+    /// \param port The port of the server to connect to
+    ///
+    /// \return True if the connection was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool Connect(const FString& address, UInt16 port);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Connect to a remote server using an endpoint
+    ///
+    /// \param endpoint The endpoint of the server to connect to
+    ///
+    /// \return True if the connection was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool Connect(const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Disconnect from the current connection
+    ///
+    /// \param reason The reason for disconnection (default: Unknown)
+    ///
+    /// \return True if the disconnection was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool Disconnect(
+        EDisconnectionReason reason = EDisconnectionReason::Unknown
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if currently connected to a server
+    ///
+    /// \return True if connected, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool IsConnected(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if running in client mode
+    ///
+    /// \return True if in client mode, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool IsClient(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if running in server mode
+    ///
+    /// \return True if in server mode, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool IsServer(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process deferred RPCs from the network queue
+    ///
+    /// This should be called from the world thread during tick to safely
+    /// execute queued RPCs without causing deadlocks.
+    ///
+    /// \param world Reference to the world (already locked by caller)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void ProcessDeferredRPCs(UWorld& world);
 };
 
 }   // namespace tkd

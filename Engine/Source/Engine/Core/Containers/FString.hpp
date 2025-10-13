@@ -10,6 +10,7 @@
 #include <cstring>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Math.hpp>
+#include <format>
 #include <iostream>
 #include <utility>
 
@@ -855,7 +856,7 @@ public:
     /// Constructs an empty string with no characters.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FString();
+    FString(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Copy constructor.
@@ -2582,6 +2583,21 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     static FString ToString(const FLinearColor& value);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param format
+    /// \param args
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename... Args>
+    static FString Format(std::string_view format, Args&&... args)
+    {
+        std::string other =
+            std::vformat(format, std::make_format_args(args...));
+        return FString(other);
+    }
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Conversion operator to std::string.
@@ -2727,6 +2743,29 @@ struct hash<tkd::FString>
     size_t operator()(const tkd::FString& s) const noexcept
     {
         return std::hash<std::string>()(s.CStr());
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Formateer specialization for FString.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <>
+struct formatter<tkd::FString> : formatter<std::string_view>
+{
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Formats an FString for output.
+    ///
+    /// \param str The string to format.
+    /// \param ctx The format context.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename FormatContext>
+    auto format(const tkd::FString& str, FormatContext& ctx) const
+    {
+        return formatter<std::string_view>::format(
+            string_view(str.CStr()), ctx
+        );
     }
 };
 

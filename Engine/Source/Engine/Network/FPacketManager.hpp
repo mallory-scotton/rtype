@@ -58,23 +58,38 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Serialize a packet into a byte vector
     ///
-    /// \param packet
+    /// \param packet The packet to serialize
+    /// \param flags Flags for the packet
     ///
-    /// \return
+    /// \return Serialized byte vector
     ///
     ///////////////////////////////////////////////////////////////////////////
-    std::vector<UInt8> SerializePacket(const IPacket& packet);
+    std::vector<UInt8> SerializePacket(
+        const IPacket& packet, EPacketFlags flags = EPacketFlags::None
+    );
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Deserialize only the header from raw data
     ///
-    /// \param data
-    /// \param size
-    /// \param outHeader
+    /// \param data Raw data buffer
+    /// \param size Size of the data buffer
     ///
-    /// \return
+    /// \return Optional packet header, or std::nullopt on failure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TOptional<FPacketHeader> DeserializeHeader(const UInt8* data, SizeT size);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deserialize a packet from raw data
+    ///
+    /// \param data Raw data buffer
+    /// \param size Size of the data buffer
+    /// \param outHeader Output parameter for the packet header
+    ///
+    /// \return Unique pointer to the deserialized packet, or nullptr on
+    /// failure
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::unique_ptr<IPacket> DeserializePacket(

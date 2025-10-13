@@ -4,6 +4,7 @@
 #include <Engine/Static/FWorldSubsystem.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -81,6 +82,9 @@ void FWorldSubsystem::ThreadLoop(void)
         ctrl->SetInputManager(
             ::Engine::GetInstance().GetWindow()->GetInputManager()
         );
+        plyr->SetNetRole(ENetRole::AutonomousProxy);
+#elif TKD_ENGINE_SERVER
+        plyr->SetNetRole(ENetRole::Authority);
 #endif
         ctrl->Possess(plyr);
         // ?TEMPORARY
@@ -107,6 +111,11 @@ void FWorldSubsystem::ThreadLoop(void)
             while (accumulator >= m_fixedDeltaTime)
             {
                 TimePoint tickStart = SteadyClock::now();
+
+                // Process deferred RPCs BEFORE locking the world mutex
+                // This allows RPCs to call World::SpawnActor and other
+                // functions that need to acquire the world mutex
+                Network::ProcessDeferredRPCs(*m_world);
 
                 {
                     std::unique_lock lock(m_worldMutex);
@@ -140,6 +149,11 @@ void FWorldSubsystem::ThreadLoop(void)
         {
             // Variable timestep update
             TimePoint tickStart = SteadyClock::now();
+
+            // Process deferred RPCs BEFORE locking the world mutex
+            // This allows RPCs to call World::SpawnActor and other functions
+            // that need to acquire the world mutex
+            Network::ProcessDeferredRPCs(*m_world);
 
             {
                 std::unique_lock lock(m_worldMutex);

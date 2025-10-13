@@ -23,20 +23,44 @@ void BP_PlayerController::SetupInputBindings(void)
 
     if (BP_Player* player = dynamic_cast<BP_Player*>(pawn))
     {
-        BindActionPressed("Fire", std::bind(&BP_Player::Fire, player));
-
-        BindAxis(
-            "HorizontalMoves",
-            std::bind(
-                &BP_Player::MoveHorizontal, player, std::placeholders::_1
-            )
+        // Fire button
+        BindActionPressed(
+            "Fire",
+            [player](EInput input)
+            {
+                if (player->IsLocallyControlled())
+                {
+                    // Send RPC to server
+                    player->Fire();
+                }
+            }
         );
 
-        BindAxis(
-            "VerticalMoves",
-            std::bind(&BP_Player::MoveVertical, player, std::placeholders::_1)
-        );
+        // Movement axes - handle in Tick for smooth prediction
+        // (See below)
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_PlayerController::Tick(Float32 deltaTime)
+{
+    Super::Tick(deltaTime);
+
+    BP_Player* player = dynamic_cast<BP_Player*>(GetPawn());
+    if (!player || !player->IsLocallyControlled()) { return; }
+
+    // Get input values
+    FVector2f inputVelocity = FVector2f::Zero;
+
+    // Retrieve input from the input manager
+    if (auto* inputManager = GetInputManager())
+    {
+        inputVelocity.x = inputManager->GetAxisValue("HorizontalMoves");
+        inputVelocity.y = inputManager->GetAxisValue("VerticalMoves");
+    }
+
+    // Use client-side prediction
+    // player->ClientPredictMove(deltaTime, inputVelocity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

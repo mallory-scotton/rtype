@@ -27,7 +27,9 @@ constexpr UInt32 MAGIC_NUMBER = 0xDEADBEEF;
 ///////////////////////////////////////////////////////////////////////////////
 enum class EPacketFlags : UInt16
 {
-    None = 0x0000   //<! No flags
+    None = 0x0000,        //<! No flags
+    Reliable = 0x0001,    //<! Reliable delivery
+    Fragmented = 0x0002   //<! Fragmented packet
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -36,6 +36,7 @@ Window::Window(
     , m_title(title)
     , m_vsync(false)
     , m_imguiInitialized(false)
+    , m_view(GetDefaultView())
 {
     if (openDefault) { this->Open(); }
 }
@@ -84,6 +85,7 @@ bool Window::Open(void)
     // Set initial position and VSync
     m_window->setPosition(Utils::Convert(m_position));
     m_window->setVerticalSyncEnabled(m_vsync);
+    m_window->setView(Utils::Convert(m_view));
 
     // Emit the Opened event
     this->Emit(Events::Opened{ m_position, m_dimension, m_state });
@@ -173,6 +175,7 @@ bool Window::SetState(const EWindowState& state)
     );
     m_window->setPosition(currentPosition);
     m_window->setVerticalSyncEnabled(m_vsync);
+    m_window->setView(Utils::Convert(m_view));
 
     // Reinitialize ImGui if in debug build
     if (Engine::GetInstance().GetSettings().debug)
@@ -295,6 +298,9 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
     // Check if the window is open
     if (!IsOpen()) { return; }
 
+    // Update the current view in case it was changed externally
+    m_window->setView(Utils::Convert(m_view));
+
     // Check for window move events
     sf::Vector2i currentPosition = m_window->getPosition();
     if (m_position.x != currentPosition.x || m_position.y != currentPosition.y)
@@ -304,6 +310,7 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
         this->Emit(Events::Moved{ oldPosition, m_position });
     }
 
+    // Restart the clock and get the elapsed time since the last update
     sf::Time delta = m_clock.restart();
 
     // Update ImGui-SFML if it was initialized
@@ -488,6 +495,29 @@ void Window::SetMousePosition(const FVector2i& position)
 
     // Set the mouse position relative to the window
     sf::Mouse::setPosition(Utils::Convert(position), *m_window);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FView Window::GetDefaultView(void) const
+{
+    FVector2u size = this->GetDimensions();
+    FView defaultView(FRectangle(
+        -static_cast<Float32>(size.x) / 2.0f,
+        -static_cast<Float32>(size.y) / 2.0f,
+        static_cast<Float32>(size.x),
+        static_cast<Float32>(size.y)
+    ));
+    return defaultView;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FView& Window::GetCurrentView(void) const { return m_view; }
+
+///////////////////////////////////////////////////////////////////////////////
+void Window::SetCurrentView(const FView& view)
+{
+    m_view = view;
+    if (IsOpen()) { m_window->setView(Utils::Convert(m_view)); }
 }
 
 #endif

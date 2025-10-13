@@ -35,6 +35,9 @@ BP_Projectile::BP_Projectile(void)
 
     // Set the default animation to PROJECTILE
     SpriteComponent->Play("PROJECTILE", true);
+
+    // Remove transform replication for projectiles
+    SetTransformReplicated(false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
