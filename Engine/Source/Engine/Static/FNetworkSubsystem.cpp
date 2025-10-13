@@ -90,6 +90,17 @@ UInt64 FNetworkSubsystem::GetBytesReceivedPerSecond(void) const noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FNetworkStatistics FNetworkSubsystem::GetStatistics(void) const noexcept
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (m_server) { return m_server->GetStatistics(); }
+    else if (m_client) { return m_client->GetStatistics(); }
+
+    return FNetworkStatistics{};
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkSubsystem::ThreadLoop(void)
 {
     TimePoint lastStatsUpdate = SteadyClock::now();
