@@ -36,6 +36,19 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     using Component = std::shared_ptr<UActorComponent>;
 
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Struct to hold transform prediction data
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FTransformPrediction
+    {
+        UInt32 timestamp;       //<! Time of the move
+        Float32 deltaTime;      //<! Time since the last move
+        FTransform transform;   //<! Actor's transform before the move
+        FVector3 velocity;      //<! Actor's velocity during the move
+    };
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -44,6 +57,10 @@ private:
     UProperty<Bool> m_isActive;          //<! Whether the actor is active
     TVector<Component> m_components;     //<! The actor's components
     bool m_markedForDeletion;            //<! Marked for deletion
+    std::vector<FTransformPrediction>
+        m_transformPredictions;          //<! Transform predictions
+    UInt32 m_transformTimestamp;         //<! Timestamp of the last transform
+    FTransform m_pendingTransform;       //<! Pending transform for replication
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -54,6 +71,7 @@ protected:
     UInt32 m_owningClientID;         //<! The ID that owns this actor
     Float32 m_netUpdateFrequency;    //<! How often to send updates
     Float32 m_timeSinceLastUpdate;   //<! Time since the last update
+    Bool m_hasSetUpdateFrequency;    //<! Whether the update frequency was set
 
 public:
     ///////////////////////////////////////////////////////////////////////////

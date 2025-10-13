@@ -16,11 +16,13 @@ AActor::AActor(const FString& name)
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
+    , m_transformTimestamp(0)
     , m_netRole(ENetRole::None)
     , m_networkID(0)
     , m_owningClientID(0)
     , m_netUpdateFrequency(10.0f)
     , m_timeSinceLastUpdate(0.0f)
+    , m_hasSetUpdateFrequency(false)
     , OnActorBeginOverlap("OnActorBeginOverlap", *this)
     , OnActorEndOverlap("OnActorEndOverlap", *this)
 {}
@@ -41,6 +43,29 @@ void AActor::Tick(Float32 deltaTime)
     {
         if (component->IsActive()) { component->Tick(deltaTime); }
     }
+
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        if (IsLocallyControlled() && IsAuthority())
+        {
+            // TODO: Apply local input prediction here
+        }
+        else if (IsLocallyControlled())
+        {
+            // TODO: Apply client-side prediction here
+        }
+        else if (IsAuthority())
+        {
+            // TODO: Send transform updates to clients here
+        }
+        else
+        {
+            // TODO: Apply server simulation here
+        }
+    }
+
+    // Reset pending transform after applying it
+    m_pendingTransform = FTransform::Identity;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -135,55 +160,95 @@ bool AActor::IsTransformReplicated(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetTransformReplicated(Bool replicated)
 {
-    if (replicated) { m_transform.AddFlag(EPropertyFlags::Replicated); }
-    else { m_transform.RemoveFlag(EPropertyFlags::Replicated); }
+    if (replicated)
+    {
+        m_transform.AddFlag(EPropertyFlags::Replicated);
+        if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 20.f; }
+    }
+    else
+    {
+        m_transform.RemoveFlag(EPropertyFlags::Replicated);
+        if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 10.f; }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(const FVector3& translation)
 {
-    m_transform->Translate(translation);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Translate(translation);
+    }
+    else { m_transform->Translate(translation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(Float32 x, Float32 y, Float32 z)
 {
-    m_transform->Translate(FVector3(x, y, z));
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Translate(FVector3(x, y, z));
+    }
+    else { m_transform->Translate(FVector3(x, y, z)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FVector3& rotation)
 {
     FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
-    m_transform->Rotate(rotator);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotator);
+    }
+    else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FRotator& rotation)
 {
-    m_transform->Rotate(rotation);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotation);
+    }
+    else { m_transform->Rotate(rotation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
 {
     FRotator rotator = FRotator(pitch, yaw, roll);
-    m_transform->Rotate(rotator);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotator);
+    }
+    else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::Scale(const FVector3& scale) { m_transform->Scale(scale); }
+void AActor::Scale(const FVector3& scale)
+{
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Scale(scale);
+    }
+    else { m_transform->Scale(scale); }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(Float32 x, Float32 y, Float32 z)
 {
-    m_transform->Scale(FVector3(x, y, z));
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Scale(FVector3(x, y, z));
+    }
+    else { m_transform->Scale(FVector3(x, y, z)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetNetUpdateFrequency(Float32 frequency)
 {
     m_netUpdateFrequency = frequency;
+    m_hasSetUpdateFrequency = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
