@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FNetworkSubsystem.hpp>
+#include <Engine/Runtime/World/UWorld.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -407,6 +408,24 @@ Bool FNetworkSubsystem::BroadcastPacket(const IPacket& packet)
     }
 
     return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::ProcessDeferredRPCs(UWorld& world)
+{
+    // NO LOCK NEEDED HERE!
+    // The server/client pointers are stable after initialization
+    // and ProcessDeferredRPCs has its own internal locking (m_rpcQueueMutex)
+    // Taking m_networkMutex here causes deadlock with the network thread
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        m_server->ProcessDeferredRPCs(world);
+    }
+    else if (m_config.mode == Mode::Client && m_client)
+    {
+        m_client->ProcessDeferredRPCs(world);
+    }
 }
 
 }   // namespace tkd::__internal
