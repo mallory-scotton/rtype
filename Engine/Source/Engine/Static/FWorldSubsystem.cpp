@@ -81,6 +81,9 @@ void FWorldSubsystem::ThreadLoop(void)
         ctrl->SetInputManager(
             ::Engine::GetInstance().GetWindow()->GetInputManager()
         );
+        plyr->SetNetRole(ENetRole::AutonomousProxy);
+#elif TKD_ENGINE_SERVER
+        plyr->SetNetRole(ENetRole::Authority);
 #endif
         ctrl->Possess(plyr);
         // ?TEMPORARY
