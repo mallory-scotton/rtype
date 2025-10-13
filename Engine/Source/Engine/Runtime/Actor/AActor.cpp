@@ -214,6 +214,6 @@ void AActor::Scale(Float32 x, Float32 y, Float32 z)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-IMPLEMENT_CLASS(AActor);
+IMPLEMENT_CLASS_WITH_SUPER(AActor, UObject);
 
 }   // namespace tkd
