@@ -31,7 +31,7 @@ void BP_PlayerController::SetupInputBindings(void)
                 if (player->IsLocallyControlled())
                 {
                     // Send RPC to server
-                    // player->ServerFire();
+                    player->Fire();
                 }
             }
         );
