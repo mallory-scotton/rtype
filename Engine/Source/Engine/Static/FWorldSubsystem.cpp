@@ -4,6 +4,7 @@
 #include <Engine/Static/FWorldSubsystem.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -111,6 +112,11 @@ void FWorldSubsystem::ThreadLoop(void)
             {
                 TimePoint tickStart = SteadyClock::now();
 
+                // Process deferred RPCs BEFORE locking the world mutex
+                // This allows RPCs to call World::SpawnActor and other
+                // functions that need to acquire the world mutex
+                Network::ProcessDeferredRPCs(*m_world);
+
                 {
                     std::unique_lock lock(m_worldMutex);
                     m_world->Tick(m_fixedDeltaTime);
@@ -143,6 +149,11 @@ void FWorldSubsystem::ThreadLoop(void)
         {
             // Variable timestep update
             TimePoint tickStart = SteadyClock::now();
+
+            // Process deferred RPCs BEFORE locking the world mutex
+            // This allows RPCs to call World::SpawnActor and other functions
+            // that need to acquire the world mutex
+            Network::ProcessDeferredRPCs(*m_world);
 
             {
                 std::unique_lock lock(m_worldMutex);
