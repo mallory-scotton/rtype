@@ -10,6 +10,7 @@
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Core/Math/Forward.hpp>
 #include <Engine/Core/Utils/EventEmitter.hpp>
+#include <Engine/Renderer/FView.hpp>
 #include <functional>
 #include <tuple>
 
@@ -363,6 +364,30 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void SetMousePosition(const FVector2i& position) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the default view of the window
+    ///
+    /// \return A constant reference to the default view
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FView GetDefaultView(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current view of the window
+    ///
+    /// \return A constant reference to the current view
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual const FView& GetCurrentView(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the current view of the window
+    ///
+    /// \param view The new view to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetCurrentView(const FView& view) = 0;
 };
 
 }   // namespace tkd
