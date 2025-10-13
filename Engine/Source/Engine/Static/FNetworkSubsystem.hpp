@@ -19,7 +19,7 @@ namespace tkd::__internal
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief Network subsystem for managing server and client network operations
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class FNetworkSubsystem final : public FThreadedSubsystem
@@ -133,6 +133,128 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TKD_NODISCARD FNetworkStatistics GetStatistics(void) const noexcept;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data or packets over the network
+    ///
+    /// \param data  The data to send
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendData(const std::vector<Byte>& data);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data or packets over the network
+    ///
+    /// \param data  The data to send
+    /// \param endpoint The endpoint to send the data to
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendData(const std::vector<Byte>& data, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data to multiple endpoints over the network
+    ///
+    /// \param data  The data to send
+    /// \param endpoints The list of endpoints to send the data to
+    ///
+    /// \return True if the data was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendData(
+        const std::vector<Byte>& data, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet over the network
+    ///
+    /// \param packet The packet to send
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendPacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to a specific endpoint over the network
+    ///
+    /// \param packet The packet to send
+    /// \param endpoint The endpoint to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to multiple endpoints over the network
+    ///
+    /// \param packet The packet to send
+    /// \param endpoints The list of endpoints to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendPacket(
+        const IPacket& packet, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet over the network
+    ///
+    /// \param packet The packet to send reliably
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendReliablePacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet to a specific endpoint over the network
+    ///
+    /// \param packet The packet to send reliably
+    /// \param endpoint The endpoint to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet to multiple endpoints over the network
+    ///
+    /// \param packet The packet to send reliably
+    /// \param endpoints The list of endpoints to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool SendReliablePacket(
+        const IPacket& packet, const std::vector<FEndpoint>& endpoints
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Broadcast raw data to all connected clients
+    ///
+    /// \param data The data to broadcast
+    ///
+    /// \return True if the data was broadcast successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool BroadcastData(const std::vector<Byte>& data);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Broadcast a packet to all connected clients
+    ///
+    /// \param packet The packet to broadcast
+    ///
+    /// \return True if the packet was broadcast successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool BroadcastPacket(const IPacket& packet);
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
