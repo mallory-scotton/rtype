@@ -6,8 +6,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Engine/Config.hpp>
 #include <Engine/Assets/UAsset.hpp>
+#include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,8 +33,8 @@ public:
     struct PropertyEntry
     {
         FString name;   ///< Property name
-        FString type;   ///< Property type (e.g., int, float, string)
-        FString value;  ///< Property value as string
+        SizeT size;     ///< Property size (e.g., int, float, string)
+        std::vector<Byte> value;   ///< Property value as byte array
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -43,12 +43,13 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct ActorEntry
     {
-        FString name;                               ///< Actor name
-        bool isActive;                              ///< Whether the actor is active
-        FVector3 position;                          ///< Actor position
-        FRotator rotation;                          ///< Actor rotation
-        FVector3 scale;                             ///< Actor scale
-        TVector< PropertyEntry > properties;        ///< List of properties
+        FString class_name;                  ///< Actor class name
+        FString name;                        ///< Actor name
+        bool isActive;                       ///< Whether the actor is active
+        FVector3 position;                   ///< Actor position
+        FRotator rotation;                   ///< Actor rotation
+        FVector3 scale;                      ///< Actor scale
+        TVector<PropertyEntry> properties;   ///< List of properties
     };
 
 private:
@@ -56,8 +57,8 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     // AGameMode m_gameMode;               ///< Pointer to the game mode
-    TVector< ActorEntry > m_actorEntries;  ///< List of actor entries
-    FString m_levelName;                   ///< Name of the level
+    TVector<ActorEntry> m_actorEntries;   ///< List of actor entries
+    FString m_levelName;                  ///< Name of the level
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -89,13 +90,29 @@ public:
     /// \brief
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const TVector< ActorEntry >& GetActorEntries(void) const;
+    const TVector<ActorEntry>& GetActorEntries(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetActorEntries(const TVector< ActorEntry >& actors);
+    void SetActorEntries(const TVector<ActorEntry>& actors);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the level name
+    ///
+    /// \return The name of the level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FString GetLevelName(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the level name
+    ///
+    /// \param name The new name of the level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetLevelName(const FString& name);
 
 public:
     ///////////////////////////////////////////////////////////////////////////

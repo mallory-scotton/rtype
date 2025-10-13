@@ -116,4 +116,55 @@ void UWorld::Render(IRenderer& renderer)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+bool UWorld::SpawnLevel(const ULevel& level)
+{
+    // Simple implementation: just set the current level to the new level
+    m_currentLevel = level;
+
+    // Clear existing actors
+    for (const auto& actor: m_actors)
+    {
+        if (actor) { actor->EndPlay(); }
+    }
+    m_actors.clear();
+
+    // Spawn actors from the level
+    for (const auto& entry: level.GetActorEntries())
+    {
+        auto actor = SpawnActor(
+            entry.class_name,
+            FTransform(entry.position, entry.rotation, entry.scale)
+        );
+
+        // If the actor failed to spawn, skip it
+        if (!actor) { continue; }
+
+        // Set the actor's properties
+        for (const auto& prop: entry.properties)
+        {
+            auto propPtr = actor->GetProperty(prop.name);
+            if (!propPtr) { continue; }
+            propPtr->SetValue(
+                static_cast<const void*>(prop.value.data()), prop.size
+            );
+        }
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool UWorld::ChangeLevel(const FString& levelName)
+{
+    // Find the level by name in the loaded levels
+    for (const auto& level: m_loadedLevels)
+    {
+        if (level.GetLevelName() == levelName) { return SpawnLevel(level); }
+    }
+
+    // Level not found
+    return false;
+}
+
 }   // namespace tkd

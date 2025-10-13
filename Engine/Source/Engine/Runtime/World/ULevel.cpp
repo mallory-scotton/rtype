@@ -40,6 +40,12 @@ void ULevel::SetActorEntries(const TVector<ActorEntry>& actors)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FString ULevel::GetLevelName(void) const { return m_levelName; }
+
+///////////////////////////////////////////////////////////////////////////////
+void ULevel::SetLevelName(const FString& name) { m_levelName = name; }
+
+///////////////////////////////////////////////////////////////////////////////
 ULevel ULevel::LoadLevelFromAsset(UAsset& asset)
 {
     ULevel level;
@@ -218,9 +224,9 @@ bool ULevel::ParseLevelData(const std::vector<Byte>& data)
             {
                 PropertyEntry property;
 
-                // Read property name, type, and value
+                // Read property name, size, and value
                 if (!reader.Read(property.name) ||
-                    !reader.Read(property.type) ||
+                    !reader.Read(property.size) ||
                     !reader.Read(property.value))
                 {
                     return false;
@@ -282,9 +288,9 @@ std::vector<Byte> ULevel::SerializeLevelData(void) const
         // Write each property
         for (const auto& property: actor.properties)
         {
-            // Write property name, type, and value
+            // Write property name, size, and value
             writer.Write(property.name);
-            writer.Write(property.type);
+            writer.Write(property.size);
             writer.Write(property.value);
         }
     }
