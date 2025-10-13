@@ -66,7 +66,7 @@ static const FEngineSettings RTYPE_ENGINE_SETTINGS = {
             .invertYAxis = false,
             .inputActions = {
                 { "Fire", {
-                    tkd::EInput::Mouse_Left,
+                    // tkd::EInput::Mouse_Left, /* Disable for UI */
                     tkd::EInput::GamePadAxis_RightTrigger,
                     tkd::EInput::Keyboard_Space
                 } }
