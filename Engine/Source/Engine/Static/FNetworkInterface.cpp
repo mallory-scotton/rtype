@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FNetworkInterface.hpp>
 #include <Engine/Core/Utils/FLogger.hpp>
+#include <Engine/Runtime/World/UWorld.hpp>
 #include <Engine/Static/Engine.hpp>
 #include <Engine/Static/FNetworkSubsystem.hpp>
 #include <iostream>
@@ -348,6 +349,17 @@ FConnectionInformation* FNetworkInterface::GetClientInformation(UInt32 clientID
     }
 
     return server->GetClientInformation(clientID);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkInterface::ProcessDeferredRPCs(UWorld& world)
+{
+    // DO NOT LOCK s_mutex HERE!
+    // If we lock it, and an RPC calls any Network:: function during execution,
+    // we'll deadlock because those functions also need s_mutex
+    // The subsystem pointer is stable after initialization, so no lock needed
+    if (s_networkSubsystem == nullptr) { return; }
+    s_networkSubsystem->ProcessDeferredRPCs(world);
 }
 
 }   // namespace tkd
