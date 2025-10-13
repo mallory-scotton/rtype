@@ -11,6 +11,7 @@
 #include <Engine/Renderer.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
+#include <Engine/Runtime/World/ULevel.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,8 +31,10 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::vector<std::shared_ptr<AActor>>
-        m_actors;        //<! The list of actors in the world
-    float m_worldTime;   //<! The current world time
+        m_actors;                     //<! The list of actors in the world
+    float m_worldTime;                //<! The current world time
+    ULevel m_currentLevel;            //<! The current level
+    TVector<ULevel> m_loadedLevels;   //<! The loaded levels
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -226,6 +229,26 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void Render(IRenderer& renderer);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load a level into the world
+    ///
+    /// \param levelPath The file path of the level to load
+    ///
+    /// \return True if the level was loaded successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SpawnLevel(const ULevel& level);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Change the current level to a loaded level by name
+    ///
+    /// \param levelName The name of the level to switch to
+    ///
+    /// \return True if the level was changed successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool ChangeLevel(const FString& levelName);
 };
 
 }   // namespace tkd

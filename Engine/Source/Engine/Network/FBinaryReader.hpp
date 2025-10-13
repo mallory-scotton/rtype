@@ -9,6 +9,8 @@
 #include <cstring>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
+#include <Engine/Core/Math/TRotator.hpp>
+#include <Engine/Core/Math/TVector3.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -110,6 +112,26 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool Read(FString& value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a FVector3 from the binary data
+    ///
+    /// \param value Reference to the FVector3 to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool Read(FVector3& value);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Read a FRotator from the binary data
+    ///
+    /// \param value Reference to the FRotator to fill with data
+    ///
+    /// \return True if the read was successful, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool Read(FRotator& value);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Read raw bytes into a buffer
