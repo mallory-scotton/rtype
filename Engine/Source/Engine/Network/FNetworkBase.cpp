@@ -3,12 +3,21 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkBase.hpp>
 #include <Engine/Core/Utils.hpp>
+#include <sstream>
+#if TKD_ENGINE_CLIENT
+    #include <Engine/Debug/FNetworkDebug.hpp>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
+
+///////////////////////////////////////////////////////////////////////////////
+#if TKD_ENGINE_CLIENT
+debug::FNetworkDebug* FNetworkBase::s_networkDebug = nullptr;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 FNetworkBase::FNetworkBase(void) { RegisterBasePacketHandlers(); }
@@ -120,6 +129,25 @@ bool FNetworkBase::SendPacket(const IPacket& packet, const FEndpoint& endpoint)
     auto data = m_packetManager.SerializePacket(packet);
     if (data.empty()) { return false; }
 
+#if TKD_ENGINE_CLIENT
+    // Log packet for debugging
+    if (s_networkDebug)
+    {
+        auto header =
+            m_packetManager.DeserializeHeader(data.data(), data.size());
+        if (header)
+        {
+            std::ostringstream oss;
+            oss << endpoint.address().to_string() << ":" << endpoint.port();
+            const Byte* payload = data.data() + FPacketHeader::SIZE;
+            SizeT payloadSize = data.size() - FPacketHeader::SIZE;
+            s_networkDebug->LogPacket(
+                *header, oss.str(), true, payload, payloadSize
+            );
+        }
+    }
+#endif
+
     try
     {
         SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
@@ -156,6 +184,20 @@ bool FNetworkBase::SendReliablePacket(
                             .data = data,
                             .endpoint = endpoint };
     m_pendingAcks.push_back(ack);
+
+#if TKD_ENGINE_CLIENT
+    // Log packet for debugging
+    if (s_networkDebug)
+    {
+        std::ostringstream oss;
+        oss << endpoint.address().to_string() << ":" << endpoint.port();
+        const Byte* payload = data.data() + FPacketHeader::SIZE;
+        SizeT payloadSize = data.size() - FPacketHeader::SIZE;
+        s_networkDebug->LogPacket(
+            *header, oss.str(), true, payload, payloadSize
+        );
+    }
+#endif
 
     // Send the packet
     try
@@ -223,6 +265,20 @@ void FNetworkBase::ProcessReceivedData(
         return;
     }
 
+#if TKD_ENGINE_CLIENT
+    // Log packet for debugging
+    if (s_networkDebug)
+    {
+        std::ostringstream oss;
+        oss << sender.address().to_string() << ":" << sender.port();
+        const Byte* payload = data + FPacketHeader::SIZE;
+        SizeT payloadSize = size - FPacketHeader::SIZE;
+        s_networkDebug->LogPacket(
+            header, oss.str(), false, payload, payloadSize
+        );
+    }
+#endif
+
     // Dispatch to registered handler
     auto it = m_packetHandlers.find(header.packetType);
     if (it != m_packetHandlers.end()) { it->second(*packet, sender); }
@@ -246,6 +302,14 @@ void FNetworkBase::ProcessReceivedData(
     // Call the virtual method for further processing
     OnPacketReceived(header, sender);
 }
+
+#if TKD_ENGINE_CLIENT
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::SetNetworkDebug(debug::FNetworkDebug* debugInstance)
+{
+    s_networkDebug = debugInstance;
+}
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::OnPacketReceived(const FPacketHeader&, const FEndpoint&) {}
