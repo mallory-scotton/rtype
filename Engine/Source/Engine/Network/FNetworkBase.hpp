@@ -343,6 +343,17 @@ private:
     void HandleAcknowledgmentPacket(
         const Packets::Acknowledgment& packet, const FEndpoint& endpoint
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a remote procedure call (RPC) packet
+    ///
+    /// \param packet RPC packet
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleRPCPacket(
+        const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
+    );
 };
 
 }   // namespace tkd

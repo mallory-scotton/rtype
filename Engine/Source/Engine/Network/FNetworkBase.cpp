@@ -82,6 +82,14 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
             const Packets::Acknowledgment& packet, const FEndpoint& endpoint
         ) { HandleAcknowledgmentPacket(packet, endpoint); }
     );
+
+    // Register handler for RPC packets
+    RegisterPacketHandler<Packets::RemoteProcedureCall>(
+        [this](
+            const Packets::RemoteProcedureCall& packet,
+            const FEndpoint& endpoint
+        ) { HandleRPCPacket(packet, endpoint); }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,6 +105,23 @@ void FNetworkBase::
             { return ack.header.sequenceNumber == packet.ackedSequenceNumber; }
         ),
         m_pendingAcks.end()
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleRPCPacket(
+    const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
+)
+{
+    // For demonstration, just log the RPC call
+    FLogger::SetNamespace("Network");
+    std::ostringstream oss;
+    oss << endpoint.address().to_string() << ":" << endpoint.port();
+    FLogger::Info(
+        "Received RPC '{}' from {} with {} bytes of parameters",
+        packet.functionName,
+        oss.str(),
+        packet.parameters.size()
     );
 }
 
