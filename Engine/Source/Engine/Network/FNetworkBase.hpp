@@ -45,6 +45,11 @@ class FNetworkDebug;
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// Pre-declarations
+///////////////////////////////////////////////////////////////////////////////
+class UWorld;
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Disconnection reason codes
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,6 +87,16 @@ public:
         FEndpoint endpoint;        //<! Sender endpoint
     };
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deferred RPC structure for thread-safe execution
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FDeferredRPC
+    {
+        Packets::RemoteProcedureCall packet;   //<! RPC packet data
+        FEndpoint endpoint;                    //<! Sender endpoint
+    };
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -100,6 +115,8 @@ protected:
         std::function<void(const IPacket&, const FEndpoint&)>>
         m_packetHandlers;                         //<! Map of packet handlers
     std::vector<FAcknowledgment> m_pendingAcks;   //<! List of pending ACKs
+    std::queue<FDeferredRPC> m_deferredRPCs;      //<! Queue of deferred RPCs
+    std::mutex m_rpcQueueMutex;                   //<! Mutex for RPC queue
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -191,6 +208,16 @@ public:
     const FNetworkStatistics& GetStatistics(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process deferred RPCs from the queue
+    ///
+    /// This should be called from the world thread to safely execute RPCs
+    /// without causing deadlocks. It processes all queued RPCs.
+    ///
+    /// \param world Reference to the world (already locked by caller)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessDeferredRPCs(UWorld& world);
+
     /// \brief Register a packet handler for a specific packet type
     ///
     /// \param handler Function to call when a packet of the specified type is

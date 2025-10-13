@@ -3,6 +3,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkBase.hpp>
 #include <Engine/Core/Utils.hpp>
+#include <Engine/Runtime/World/UWorld.hpp>
+#include <Engine/Static/FWorldInterface.hpp>
 #include <sstream>
 #if TKD_ENGINE_CLIENT
     #include <Engine/Debug/FNetworkDebug.hpp>
@@ -113,16 +115,11 @@ void FNetworkBase::HandleRPCPacket(
     const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
 )
 {
-    // For demonstration, just log the RPC call
-    FLogger::SetNamespace("Network");
-    std::ostringstream oss;
-    oss << endpoint.address().to_string() << ":" << endpoint.port();
-    FLogger::Info(
-        "Received RPC '{}' from {} with {} bytes of parameters",
-        packet.functionName,
-        oss.str(),
-        packet.parameters.size()
-    );
+    // Queue the RPC for deferred execution to avoid deadlock
+    // The network thread queues RPCs here without blocking on m_worldMutex
+    // The world thread will process them via ProcessDeferredRPCs()
+    std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+    m_deferredRPCs.push({ packet, endpoint });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -376,6 +373,41 @@ void FNetworkBase::FlushPackets(void)
 
     // Give network stack time to send
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
+{
+    // Process all queued RPCs
+    // IMPORTANT: This is called from UWorld::Tick(), which already holds
+    // m_worldMutex The world is passed as a parameter to avoid re-locking
+    std::queue<FDeferredRPC> localQueue;
+
+    {
+        // Quickly swap the queue to minimize lock contention
+        std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+        std::swap(localQueue, m_deferredRPCs);
+    }
+
+    // Process RPCs outside the lock
+    while (!localQueue.empty())
+    {
+        const auto& deferredRPC = localQueue.front();
+        const auto& packet = deferredRPC.packet;
+
+        // Execute the RPC directly on the world (already locked by caller)
+        auto actors = world.GetActors();
+        for (auto& actor: actors)
+        {
+            if (actor && actor->GetClass()->GetName() == "BP_Player")
+            {
+                auto rpc = actor->GetFunction(packet.functionName);
+                if (rpc) { rpc->Execute(packet.parameters); }
+            }
+        }
+
+        localQueue.pop();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
