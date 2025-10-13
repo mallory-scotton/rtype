@@ -389,6 +389,9 @@ void FNetworkClient::HandleHeartbeatPacket(
     const Packets::HeartBeat& packet, const FEndpoint& endpoint
 )
 {
+    // We don't use the packet data for anything currently
+    TKD_UNUSED(packet);
+
     // Only accept heartbeat packets from our server
     if (endpoint != m_serverEndpoint ||
         m_connectionState != EConnectionState::Connected)
