@@ -66,7 +66,7 @@ bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
         );
 
         Packets::Connect connectPacket;
-        if (SendPacket(connectPacket, m_serverEndpoint))
+        if (SendReliablePacket(connectPacket, m_serverEndpoint))
         {
             m_lastUpdate = SteadyClock::now();
             return true;   // Connection attempt initiated successfully
