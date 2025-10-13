@@ -17,14 +17,8 @@ AActor::AActor(const FString& name)
     , m_components()
     , m_markedForDeletion(false)
     , m_transformTimestamp(0)
-    , m_netRole(ENetRole::None)
-    , m_networkID(0)
-    , m_owningClientID(0)
-    , m_netUpdateFrequency(10.0f)
-    , m_timeSinceLastUpdate(0.0f)
-    , m_hasSetUpdateFrequency(false)
-    , OnActorBeginOverlap("OnActorBeginOverlap", *this)
-    , OnActorEndOverlap("OnActorEndOverlap", *this)
+    , OnActorBeginOverlap(*this, "OnActorBeginOverlap")
+    , OnActorEndOverlap(*this, "OnActorEndOverlap")
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,31 +85,6 @@ Bool AActor::IsActive(void) const { return m_isActive.Get(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetActive(Bool isActive) { m_isActive = isActive; }
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsLocallyControlled(void) const
-{
-    // TODO: Add proper locally controller check
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsAuthority(void) const
-{
-    return m_netRole == ENetRole::Authority;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsSimulated(void) const
-{
-    return m_netRole == ENetRole::SimulatedProxy;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-ENetRole AActor::GetNetRole(void) const { return m_netRole; }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetRole(ENetRole role) { m_netRole = role; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::RemoveComponent(const FString& name)
@@ -243,31 +212,6 @@ void AActor::Scale(Float32 x, Float32 y, Float32 z)
     }
     else { m_transform->Scale(FVector3(x, y, z)); }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetUpdateFrequency(Float32 frequency)
-{
-    m_netUpdateFrequency = frequency;
-    m_hasSetUpdateFrequency = true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Float32 AActor::GetNetUpdateFrequency(void) const
-{
-    return m_netUpdateFrequency;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetOwningClientID(UInt32 id) { m_owningClientID = id; }
-
-///////////////////////////////////////////////////////////////////////////////
-UInt32 AActor::GetOwningClientID(void) const { return m_owningClientID; }
-
-///////////////////////////////////////////////////////////////////////////////
-UInt32 AActor::GetNetworkID(void) const { return m_networkID; }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetworkID(UInt32 id) { m_networkID = id; }
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(AActor);
