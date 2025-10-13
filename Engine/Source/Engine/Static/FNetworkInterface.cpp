@@ -4,6 +4,7 @@
 #include <Engine/Static/FNetworkInterface.hpp>
 #include <Engine/Core/Utils/FLogger.hpp>
 #include <Engine/Static/Engine.hpp>
+#include <Engine/Static/FNetworkSubsystem.hpp>
 #include <iostream>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,6 +325,29 @@ Bool FNetworkInterface::IsServer(void)
         return false;
     }
     return s_networkSubsystem->GetServer() != nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FConnectionInformation* FNetworkInterface::GetClientInformation(UInt32 clientID
+)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_networkSubsystem == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not initialized.");
+        return nullptr;
+    }
+
+    FNetworkServer* server = s_networkSubsystem->GetServer();
+    if (server == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not in server mode.");
+        return nullptr;
+    }
+
+    return server->GetClientInformation(clientID);
 }
 
 }   // namespace tkd
