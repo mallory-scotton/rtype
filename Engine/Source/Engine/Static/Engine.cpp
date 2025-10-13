@@ -124,6 +124,9 @@ bool Engine::Initialize(int argc, char* argv[])
                 m_exitMessage = "Failed to initialize network subsystem";
                 return false;
             }
+
+            // Setup network interface
+            Network::Setup(m_network.get());
         }
 
         FLogger::Info("All subsystems initialized successfully");
