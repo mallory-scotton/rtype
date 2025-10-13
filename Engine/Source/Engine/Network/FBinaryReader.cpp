@@ -44,6 +44,21 @@ bool FBinaryReader::Read(FString& value)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool FBinaryReader::Read(FVector3& value)
+{
+    return Read(value.x) && Read(value.y) && Read(value.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FBinaryReader::Read(FRotator& value)
+{
+    float pitch, yaw, roll;
+    if (!Read(pitch) || !Read(yaw) || !Read(roll)) { return false; }
+    value = FRotator(pitch, yaw, roll);
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool FBinaryReader::ReadBytes(void* buffer, SizeT size)
 {
     if (m_offset + size > m_size) { return false; }

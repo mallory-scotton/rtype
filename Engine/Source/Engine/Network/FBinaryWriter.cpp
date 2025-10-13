@@ -59,6 +59,22 @@ void FBinaryWriter::Write(const FString& str)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FBinaryWriter::Write(const FVector3& value)
+{
+    Write(value.x);
+    Write(value.y);
+    Write(value.z);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FBinaryWriter::Write(const FRotator& value)
+{
+    Write(value.GetPitch());
+    Write(value.GetYaw());
+    Write(value.GetRoll());
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FBinaryWriter::WriteBytes(const UInt8* data, SizeT size)
 {
     SizeT needed = m_offset + size;
