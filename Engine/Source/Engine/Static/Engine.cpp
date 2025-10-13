@@ -118,15 +118,17 @@ bool Engine::Initialize(int argc, char* argv[])
 
             // Initialize network subsystem (server only)
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
+
+            // Setup network interface
+            Network::Setup(m_network.get());
+
+            // Initialize network subsystem
             if (!m_network || !m_network->Initialize())
             {
                 m_exitCode = TKD_EXIT_FAILURE;
                 m_exitMessage = "Failed to initialize network subsystem";
                 return false;
             }
-
-            // Setup network interface
-            Network::Setup(m_network.get());
         }
 
         FLogger::Info("All subsystems initialized successfully");
