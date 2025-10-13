@@ -447,4 +447,18 @@ void FNetworkServer::Cleanup(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+FConnectionInformation* FNetworkServer::GetClientInformation(UInt32 clientID
+) const
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+    auto it = m_clientIDToEndpoint.find(clientID);
+    if (it != m_clientIDToEndpoint.end())
+    {
+        auto connIt = m_connections.find(it->second);
+        if (connIt != m_connections.end()) { return connIt->second.get(); }
+    }
+    return nullptr;
+}
+
 }   // namespace tkd
