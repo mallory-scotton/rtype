@@ -373,6 +373,7 @@ const TTransform<T> TTransform<T>::Identity = TTransform<T>();
 /// \tparam T The type of the transform components
 /// \param lhs The left-hand side transform
 /// \param rhs The right-hand side transform
+///
 /// \return The combined transform
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -395,6 +396,7 @@ TTransform<T> operator*(const TTransform<T>& lhs, const TTransform<T>& rhs)
 /// \tparam T The type of the transform components
 /// \param lhs The transform to modify
 /// \param rhs The transform to combine with
+///
 /// \return Reference to the modified transform
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -411,6 +413,7 @@ TTransform<T>& operator*=(TTransform<T>& lhs, const TTransform<T>& rhs)
 /// \tparam T The type of the transform components
 /// \param lhs The left-hand side transform
 /// \param rhs The right-hand side transform
+///
 /// \return True if transforms are equal
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -428,6 +431,7 @@ bool operator==(const TTransform<T>& lhs, const TTransform<T>& rhs)
 /// \tparam T The type of the transform components
 /// \param lhs The left-hand side transform
 /// \param rhs The right-hand side transform
+///
 /// \return True if transforms are not equal
 ///
 ///////////////////////////////////////////////////////////////////////////////
