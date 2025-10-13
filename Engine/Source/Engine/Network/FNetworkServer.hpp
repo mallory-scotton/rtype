@@ -105,6 +105,7 @@ private:
     using ConnectionsMap =
         std::unordered_map<FEndpoint, std::unique_ptr<FConnectionInformation>>;
     using ClientEndpointMap = std::unordered_map<UInt32, FEndpoint>;
+    using Super = FNetworkBase;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -165,7 +166,7 @@ public:
     /// \param deltaTime Time elapsed since last update in seconds
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Update(float deltaTime);
+    virtual void Update(float deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Broadcast a packet to all connected clients

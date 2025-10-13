@@ -105,6 +105,10 @@ bool FNetworkServer::Start(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
+    // Call base class update (if any)
+    Super::Update(deltaTime);
+
+    // Get current time
     auto now = SteadyClock::now();
 
     // std::cout << "[SERVER] updating all by yourself handsome?" << std::endl;
