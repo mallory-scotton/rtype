@@ -213,7 +213,11 @@ void FNetworkClient::SetupDefaultHandlers(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
 {
+    // Don't update if not running
     if (!IsRunning()) { return; }
+
+    // Update Superclass (process incoming packets)
+    Super::Update(deltaTime);
 
     // Don't continue updating if disconnected after timeout
     if (m_connectionState == EConnectionState::Disconnected)
