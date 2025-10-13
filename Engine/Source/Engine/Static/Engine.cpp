@@ -98,29 +98,8 @@ bool Engine::Initialize(int argc, char* argv[])
         // Set debug mode for window
         if (m_settings.debug) { m_window->GetWindow()->SetDebugMode(true); }
 
-        // // Setup render callback
-        // SetupRenderCallback();
-
-        // FLogger::Info("Connecting to server...");
-
-        // // Initialize network interface and connect to server (client only)
-        // std::string serverHost = "127.0.0.1";          // Default localhost
-        // UInt16 serverPort = m_settings.network.port;   // Use server port
-
-        // if (!Network::Connect(serverHost, serverPort))
-        // {
-        //     FLogger::Warn(
-        //         "Failed to connect to server at " + serverHost + ":" +
-        //         std::to_string(serverPort)
-        //     );
-        // }
-        // else
-        // {
-        //     FLogger::Info(
-        //         "Successfully connected to server at " + serverHost + ":" +
-        //         std::to_string(serverPort)
-        //     );
-        // }
+        // Setup render callback
+        SetupRenderCallback();
 #endif
 
         if (m_settings.network.enabled)
