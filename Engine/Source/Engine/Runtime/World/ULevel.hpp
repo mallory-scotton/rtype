@@ -9,6 +9,7 @@
 #include <Engine/Assets/UAsset.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
+#include <Engine/Runtime/Core/AGameMode.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -23,7 +24,7 @@ class UWorld;
 ///////////////////////////////////////////////////////////////////////////////
 // Class ULevel
 ///////////////////////////////////////////////////////////////////////////////
-class ULevel
+class ULevel : public UObject
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -32,9 +33,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct PropertyEntry
     {
-        FString name;   ///< Property name
-        SizeT size;     ///< Property size (e.g., int, float, string)
-        std::vector<Byte> value;   ///< Property value as byte array
+        FString name;              //<! Property name
+        SizeT size;                //<! Property size
+        std::vector<Byte> value;   //<! Property value as byte array
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -43,29 +44,29 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct ActorEntry
     {
-        FString class_name;                  ///< Actor class name
-        FString name;                        ///< Actor name
-        bool isActive;                       ///< Whether the actor is active
-        FVector3 position;                   ///< Actor position
-        FRotator rotation;                   ///< Actor rotation
-        FVector3 scale;                      ///< Actor scale
-        TVector<PropertyEntry> properties;   ///< List of properties
+        FString class_name;                  //<! Actor class name
+        FString name;                        //<! Actor name
+        bool isActive;                       //<! Whether the actor is active
+        FVector3 position;                   //<! Actor position
+        FRotator rotation;                   //<! Actor rotation
+        FVector3 scale;                      //<! Actor scale
+        TVector<PropertyEntry> properties;   //<! List of properties
     };
 
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    // AGameMode m_gameMode;               ///< Pointer to the game mode
-    TVector<ActorEntry> m_actorEntries;   ///< List of actor entries
-    FString m_levelName;                  ///< Name of the level
+    AGameMode m_gameMode;                 //<! Pointer to the game mode
+    TVector<ActorEntry> m_actorEntries;   //<! List of actor entries
+    FString m_levelName;                  //<! Name of the level
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ULevel() = default;
+    ULevel(void) = default;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -75,28 +76,58 @@ public:
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Get the game mode
+    ///
+    /// \return The current game mode
     ///
     ///////////////////////////////////////////////////////////////////////////
-    // const AGameMode& GetGameMode(void) const { return m_gameMode; }
+    const AGameMode& GetGameMode(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Set the game mode
+    ///
+    /// \param gameMode The new game mode
     ///
     ///////////////////////////////////////////////////////////////////////////
-    // void SetGameMode(const AGameMode& gameMode) { m_gameMode = gameMode; }
+    void SetGameMode(const AGameMode& gameMode);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Get the list of actor entries
+    ///
+    /// \return The vector of actor entries
     ///
     ///////////////////////////////////////////////////////////////////////////
     const TVector<ActorEntry>& GetActorEntries(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Set the list of actor entries
+    ///
+    /// \param actors The new vector of actor entries
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetActorEntries(const TVector<ActorEntry>& actors);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add an actor entry to the level
+    ///
+    /// \param actor The actor to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddActorEntry(const ActorEntry& actor);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add an actor entry to the level
+    ///
+    /// \param className the class name of the actor
+    /// \param actorName the name of the actor
+    /// \param transform the transform of the actor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddActorEntry(
+        const FString& className,
+        const FString& actorName,
+        const FTransform& transform
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the level name
@@ -196,6 +227,12 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::vector<Byte> SerializeLevelData(void) const;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Definition
+    ///////////////////////////////////////////////////////////////////////////
+    DECLARE_CLASS_WITH_SUPER(ULevel, UObject)
 };
 
 }   // namespace tkd
