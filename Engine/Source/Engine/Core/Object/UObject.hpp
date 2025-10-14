@@ -271,6 +271,45 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void SetNetworkID(UInt32 id);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Template method to cast this object to a derived type.
+    ///
+    /// \tparam T The type to cast to. Must be derived from UObject.
+    ///
+    /// \return A pointer to the object casted to type T, or nullptr if the
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    T* As(void)
+    {
+        static_assert(
+            std::is_base_of<UObject, T>::value,
+            "T must be derived from UObject"
+        );
+
+        return dynamic_cast<T*>(this);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check wether this object is of a specific type.
+    ///
+    /// \tparam T The type of the class to create. Must be derived from
+    /// UObject.
+    ///
+    /// \return True or false depending on success
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    Bool Is(void) const
+    {
+        static_assert(
+            std::is_base_of<UObject, T>::value,
+            "T must be derived from UObject"
+        );
+
+        return dynamic_cast<const T*>(this) != nullptr;
+    }
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class metadata
