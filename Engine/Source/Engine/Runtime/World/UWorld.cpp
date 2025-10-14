@@ -11,10 +11,33 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-UWorld::UWorld(void)
-    : m_actors()
+UWorld::UWorld(const FString& name)
+    : UObject(name)
+    , m_actors()
     , m_worldTime(0.0f)
-{}
+{
+    auto classes = UClass::GetAllClasses();
+
+    for (auto* cls: classes)
+    {
+        if (cls && cls->IsChildOf(ULevel::StaticClass()))
+        {
+            UObject* instance = cls->CreateInstance();
+            if (instance)
+            {
+                ULevel* level = dynamic_cast<ULevel*>(instance);
+                if (level) { m_loadedLevels.push_back(*level); }
+                delete instance;
+            }
+        }
+    }
+
+    if (!m_loadedLevels.empty())
+    {
+        m_currentLevel = m_loadedLevels.front();
+        SpawnLevel(m_currentLevel);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<std::shared_ptr<AActor>>& UWorld::GetActors(void) const
@@ -64,7 +87,13 @@ ULevel* UWorld::GetCurrentLevel(void) { return &m_currentLevel; }
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::BeginPlay(void)
 {
+    // Initialize world time
     m_worldTime = 0.0f;
+
+    // Begin play for game mode
+    m_currentLevel.GetGameMode().BeginPlay();
+
+    // Begin play
     for (const auto& actor: m_actors) { actor->BeginPlay(); }
 }
 
@@ -89,6 +118,9 @@ void UWorld::Tick(Float32 deltaTime)
         m_actors.end()
     );
 
+    // Tick the game mode
+    m_currentLevel.GetGameMode().Tick(deltaTime);
+
     // Tick all active actors
     for (const auto& actor: m_actors)
     {
@@ -99,6 +131,10 @@ void UWorld::Tick(Float32 deltaTime)
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::EndPlay(void)
 {
+    // End play for game mode
+    m_currentLevel.GetGameMode().EndPlay();
+
+    // End play for all actors
     for (const auto& actor: m_actors)
     {
         if (actor) { actor->EndPlay(); }
@@ -176,6 +212,12 @@ bool UWorld::ChangeLevel(const FString& levelName)
 
     // Level not found
     return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const AGameMode& UWorld::GetGameMode(void) const
+{
+    return m_currentLevel.GetGameMode();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
