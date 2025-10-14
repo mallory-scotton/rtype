@@ -21,4 +21,7 @@ RTypeGame::RTypeGame(void)
     SetDefaultLevel("L_RType_Level1");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_CLASS_WITH_SUPER(RTypeGame, UGame)
+
 }   // namespace tkd
