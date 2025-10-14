@@ -178,4 +178,7 @@ bool UWorld::ChangeLevel(const FString& levelName)
     return false;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_CLASS_WITH_SUPER(UWorld, UObject)
+
 }   // namespace tkd

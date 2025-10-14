@@ -24,17 +24,19 @@ namespace tkd
 /// \brief The world class, representing the game world
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UWorld : public ITickable
+class UWorld
+    : public UObject
+    , public ITickable
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::vector<std::shared_ptr<AActor>>
-        m_actors;                     //<! The list of actors in the world
-    float m_worldTime;                //<! The current world time
-    ULevel m_currentLevel;            //<! The current level
-    TVector<ULevel> m_loadedLevels;   //<! The loaded levels
+        m_actors;                         //<! The list of actors in the world
+    float m_worldTime;                    //<! The current world time
+    ULevel m_currentLevel;                //<! The current level
+    std::vector<ULevel> m_loadedLevels;   //<! The loaded levels
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -256,6 +258,12 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool ChangeLevel(const FString& levelName);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Definition
+    ///////////////////////////////////////////////////////////////////////////
+    DECLARE_CLASS_WITH_SUPER(UWorld, UObject)
 };
 
 }   // namespace tkd
