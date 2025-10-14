@@ -317,6 +317,493 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TVector3<T> Normalized(void) const { return Normalize(*this); }
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the dot product with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The dot product.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Dot(const TVector3<T>& other) const
+    {
+        return x * other.x + y * other.y + z * other.z;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the cross product with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The cross product vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Cross(const TVector3<T>& other) const
+    {
+        return TVector3<T>(
+            y * other.z - z * other.y,
+            z * other.x - x * other.z,
+            x * other.y - y * other.x
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the distance to another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The distance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Distance(const TVector3<T>& other) const
+    {
+        T dx = x - other.x;
+        T dy = y - other.y;
+        T dz = z - other.z;
+        return static_cast<T>(std::sqrt(dx * dx + dy * dy + dz * dz));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the squared distance to another vector (faster).
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The squared distance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T DistanceSquared(const TVector3<T>& other) const
+    {
+        T dx = x - other.x;
+        T dy = y - other.y;
+        T dz = z - other.z;
+        return dx * dx + dy * dy + dz * dz;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Projects this vector onto another vector.
+    ///
+    /// \param other The vector to project onto.
+    ///
+    /// \return The projected vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Project(const TVector3<T>& other) const
+    {
+        T dot = x * other.x + y * other.y + z * other.z;
+        T lenSq = other.x * other.x + other.y * other.y + other.z * other.z;
+
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+        if (std::abs(lenSq) < epsilon) { return TVector3<T>::Zero; }
+
+        T scale = dot / lenSq;
+        return other * scale;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Reflects this vector around a normal vector.
+    ///
+    /// \param normal The normal vector (should be normalized).
+    ///
+    /// \return The reflected vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Reflect(const TVector3<T>& normal) const
+    {
+        T dot = x * normal.x + y * normal.y + z * normal.z;
+        return TVector3<T>(
+            x - 2 * dot * normal.x,
+            y - 2 * dot * normal.y,
+            z - 2 * dot * normal.z
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the angle between this vector and another (in radians).
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The angle in radians.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T Angle(const TVector3<T>& other) const
+    {
+        T dot = x * other.x + y * other.y + z * other.z;
+        T len1 = Length();
+        T len2 = other.Length();
+
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+        if (len1 < epsilon || len2 < epsilon) { return static_cast<T>(0); }
+
+        T cosAngle = dot / (len1 * len2);
+        cosAngle = std::max(
+            static_cast<T>(-1), std::min(static_cast<T>(1), cosAngle)
+        );
+        return static_cast<T>(std::acos(cosAngle));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if this vector is parallel to another.
+    ///
+    /// \param other The other vector.
+    /// \param tolerance The tolerance for comparison.
+    ///
+    /// \return True if vectors are parallel.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsParallel(
+        const TVector3<T>& other, T tolerance = static_cast<T>(0.001)
+    ) const
+    {
+        TVector3<T> cross = Cross(other);
+        return cross.LengthSquared() < tolerance * tolerance;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if this vector is perpendicular to another.
+    ///
+    /// \param other The other vector.
+    /// \param tolerance The tolerance for comparison.
+    ///
+    /// \return True if vectors are perpendicular.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsPerpendicular(
+        const TVector3<T>& other, T tolerance = static_cast<T>(0.001)
+    ) const
+    {
+        T dot = Dot(other);
+        return std::abs(dot) < tolerance;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if this vector is normalized (unit length).
+    ///
+    /// \param tolerance The tolerance for comparison.
+    ///
+    /// \return True if the vector is normalized.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsNormalized(T tolerance = static_cast<T>(0.001)) const
+    {
+        T lenSq = LengthSquared();
+        return std::abs(lenSq - static_cast<T>(1)) < tolerance;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if this vector is zero (or near zero).
+    ///
+    /// \param tolerance The tolerance for comparison.
+    ///
+    /// \return True if the vector is zero.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsZero(T tolerance = static_cast<T>(0.001)) const
+    {
+        return std::abs(x) < tolerance && std::abs(y) < tolerance &&
+               std::abs(z) < tolerance;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the component-wise absolute value.
+    ///
+    /// \return The absolute value vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Abs(void) const
+    {
+        return TVector3<T>(std::abs(x), std::abs(y), std::abs(z));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the component-wise minimum with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The component-wise minimum.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Min(const TVector3<T>& other) const
+    {
+        return TVector3<T>(
+            std::min(x, other.x), std::min(y, other.y), std::min(z, other.z)
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the component-wise maximum with another vector.
+    ///
+    /// \param other The other vector.
+    ///
+    /// \return The component-wise maximum.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Max(const TVector3<T>& other) const
+    {
+        return TVector3<T>(
+            std::max(x, other.x), std::max(y, other.y), std::max(z, other.z)
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clamps each component between min and max values.
+    ///
+    /// \param min The minimum value.
+    /// \param max The maximum value.
+    ///
+    /// \return The clamped vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Clamp(const T& min, const T& max) const
+    {
+        return TVector3<T>(
+            std::max(min, std::min(max, x)),
+            std::max(min, std::min(max, y)),
+            std::max(min, std::min(max, z))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clamps each component between corresponding components of min
+    /// and max vectors.
+    ///
+    /// \param min The minimum vector.
+    /// \param max The maximum vector.
+    ///
+    /// \return The clamped vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Clamp(const TVector3<T>& min, const TVector3<T>& max) const
+    {
+        return TVector3<T>(
+            std::max(min.x, std::min(max.x, x)),
+            std::max(min.y, std::min(max.y, y)),
+            std::max(min.z, std::min(max.z, z))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Linearly interpolates between this vector and another.
+    ///
+    /// \param other The target vector.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Lerp(const TVector3<T>& other, T t) const
+    {
+        return TVector3<T>(
+            x + (other.x - x) * t, y + (other.y - y) * t, z + (other.z - z) * t
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spherically interpolates between this vector and another.
+    ///
+    /// \param other The target vector.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Slerp(const TVector3<T>& other, T t) const
+    {
+        T dot = Dot(other);
+        T len1 = Length();
+        T len2 = other.Length();
+
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+        if (len1 < epsilon || len2 < epsilon) { return Lerp(other, t); }
+
+        dot = dot / (len1 * len2);
+        dot = std::max(static_cast<T>(-1), std::min(static_cast<T>(1), dot));
+
+        T theta = static_cast<T>(std::acos(dot)) * t;
+        TVector3<T> relative = (other - *this * dot).Normalized();
+
+        return (*this * static_cast<T>(std::cos(theta))) +
+               (relative * static_cast<T>(std::sin(theta)));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the largest component value.
+    ///
+    /// \return The maximum component.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T MaxComponent(void) const { return std::max(x, std::max(y, z)); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the smallest component value.
+    ///
+    /// \return The minimum component.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    T MinComponent(void) const { return std::min(x, std::min(y, z)); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the index of the largest component (0=x, 1=y, 2=z).
+    ///
+    /// \return The index of the maximum component.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    SizeT MaxComponentIndex(void) const
+    {
+        if (x >= y && x >= z) { return 0; }
+        if (y >= z) { return 1; }
+        return 2;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the index of the smallest component (0=x, 1=y, 2=z).
+    ///
+    /// \return The index of the minimum component.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    SizeT MinComponentIndex(void) const
+    {
+        if (x <= y && x <= z) { return 0; }
+        if (y <= z) { return 1; }
+        return 2;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns a vector with each component rounded to nearest integer.
+    ///
+    /// \return The rounded vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Round(void) const
+    {
+        return TVector3<T>(
+            static_cast<T>(std::round(x)),
+            static_cast<T>(std::round(y)),
+            static_cast<T>(std::round(z))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns a vector with each component rounded down.
+    ///
+    /// \return The floored vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Floor(void) const
+    {
+        return TVector3<T>(
+            static_cast<T>(std::floor(x)),
+            static_cast<T>(std::floor(y)),
+            static_cast<T>(std::floor(z))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns a vector with each component rounded up.
+    ///
+    /// \return The ceiled vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Ceil(void) const
+    {
+        return TVector3<T>(
+            static_cast<T>(std::ceil(x)),
+            static_cast<T>(std::ceil(y)),
+            static_cast<T>(std::ceil(z))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the sign of each component (-1, 0, or 1).
+    ///
+    /// \return The sign vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Sign(void) const
+    {
+        return TVector3<T>(
+            x > 0 ? static_cast<T>(1)
+                  : (x < 0 ? static_cast<T>(-1) : static_cast<T>(0)),
+            y > 0 ? static_cast<T>(1)
+                  : (y < 0 ? static_cast<T>(-1) : static_cast<T>(0)),
+            z > 0 ? static_cast<T>(1)
+                  : (z < 0 ? static_cast<T>(-1) : static_cast<T>(0))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Scales this vector to a target length.
+    ///
+    /// \param targetLength The desired length.
+    ///
+    /// \return The scaled vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> SetLength(T targetLength) const
+    {
+        T len = Length();
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+
+        if (len < epsilon) { return TVector3<T>::Zero; }
+
+        return (*this) * (targetLength / len);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Limits the length of this vector to a maximum value.
+    ///
+    /// \param maxLength The maximum length.
+    ///
+    /// \return The limited vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> LimitLength(T maxLength) const
+    {
+        T lenSq = LengthSquared();
+        T maxLenSq = maxLength * maxLength;
+
+        if (lenSq <= maxLenSq) { return *this; }
+
+        return (*this) * (maxLength / std::sqrt(lenSq));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns a vector perpendicular to this one.
+    ///
+    /// \return A perpendicular vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> Perpendicular(void) const
+    {
+        T ax = std::abs(x);
+        T ay = std::abs(y);
+        T az = std::abs(z);
+
+        if (ax < ay && ax < az) { return TVector3<T>(0, -z, y).Normalized(); }
+        else if (ay < az) { return TVector3<T>(-z, 0, x).Normalized(); }
+        else { return TVector3<T>(-y, x, 0).Normalized(); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Rotates this vector around an axis by an angle (in radians).
+    ///
+    /// \param axis The rotation axis (should be normalized).
+    /// \param angle The rotation angle in radians.
+    ///
+    /// \return The rotated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector3<T> RotateAroundAxis(const TVector3<T>& axis, T angle) const
+    {
+        T cosAngle = static_cast<T>(std::cos(angle));
+        T sinAngle = static_cast<T>(std::sin(angle));
+
+        TVector3<T> parallel = axis * Dot(axis);
+        TVector3<T> perpendicular = *this - parallel;
+        TVector3<T> w = axis.Cross(*this);
+
+        return parallel + (perpendicular * cosAngle) + (w * sinAngle);
+    }
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Normalizes the vector in place. If the vector is zero, it
@@ -357,6 +844,575 @@ public:
     {
         return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Cross product of two vectors.
+    ///
+    /// \param lhs The left-hand side vector.
+    /// \param rhs The right-hand side vector.
+    ///
+    /// \return The cross product vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Cross(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return TVector3<T>(
+            lhs.y * rhs.z - lhs.z * rhs.y,
+            lhs.z * rhs.x - lhs.x * rhs.z,
+            lhs.x * rhs.y - lhs.y * rhs.x
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the distance between two vectors.
+    ///
+    /// \param lhs The first vector.
+    /// \param rhs The second vector.
+    ///
+    /// \return The distance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Distance(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.Distance(rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the squared distance between two vectors.
+    ///
+    /// \param lhs The first vector.
+    /// \param rhs The second vector.
+    ///
+    /// \return The squared distance.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T DistanceSquared(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.DistanceSquared(rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Projects one vector onto another.
+    ///
+    /// \param vec The vector to project.
+    /// \param onto The vector to project onto.
+    ///
+    /// \return The projected vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Project(const TVector3<T>& vec, const TVector3<T>& onto)
+    {
+        return vec.Project(onto);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Reflects a vector around a normal.
+    ///
+    /// \param vec The vector to reflect.
+    /// \param normal The normal vector.
+    ///
+    /// \return The reflected vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        Reflect(const TVector3<T>& vec, const TVector3<T>& normal)
+    {
+        return vec.Reflect(normal);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Refracts a vector through a surface with a given index of
+    /// refraction.
+    ///
+    /// \param vec The incident vector (should be normalized).
+    /// \param normal The surface normal (should be normalized).
+    /// \param eta The ratio of indices of refraction.
+    ///
+    /// \return The refracted vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        Refract(const TVector3<T>& vec, const TVector3<T>& normal, T eta)
+    {
+        T dot = Dot(vec, normal);
+        T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - dot * dot);
+
+        if (k < static_cast<T>(0)) { return TVector3<T>::Zero; }
+
+        return vec * eta - normal * (eta * dot + std::sqrt(k));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the angle between two vectors (in radians).
+    ///
+    /// \param lhs The first vector.
+    /// \param rhs The second vector.
+    ///
+    /// \return The angle in radians.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Angle(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.Angle(rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Linearly interpolates between two vectors.
+    ///
+    /// \param start The start vector.
+    /// \param end The end vector.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        Lerp(const TVector3<T>& start, const TVector3<T>& end, T t)
+    {
+        return start.Lerp(end, t);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Linearly interpolates between two vectors without clamping t.
+    ///
+    /// \param start The start vector.
+    /// \param end The end vector.
+    /// \param t The interpolation factor (can be outside 0-1 range).
+    ///
+    /// \return The interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        LerpUnclamped(const TVector3<T>& start, const TVector3<T>& end, T t)
+    {
+        return start.Lerp(end, t);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spherically interpolates between two vectors.
+    ///
+    /// \param start The start vector.
+    /// \param end The end vector.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        Slerp(const TVector3<T>& start, const TVector3<T>& end, T t)
+    {
+        return start.Slerp(end, t);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Smoothly interpolates between two vectors using cubic Hermite
+    /// interpolation.
+    ///
+    /// \param start The start vector.
+    /// \param end The end vector.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The smoothly interpolated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        SmoothStep(const TVector3<T>& start, const TVector3<T>& end, T t)
+    {
+        t = std::max(static_cast<T>(0), std::min(static_cast<T>(1), t));
+        t = t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
+        return start.Lerp(end, t);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the component-wise minimum of two vectors.
+    ///
+    /// \param lhs The first vector.
+    /// \param rhs The second vector.
+    ///
+    /// \return The minimum vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Min(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.Min(rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Returns the component-wise maximum of two vectors.
+    ///
+    /// \param lhs The first vector.
+    /// \param rhs The second vector.
+    ///
+    /// \return The maximum vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Max(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.Max(rhs);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clamps a vector between min and max values.
+    ///
+    /// \param vec The vector to clamp.
+    /// \param min The minimum value.
+    /// \param max The maximum value.
+    ///
+    /// \return The clamped vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        Clamp(const TVector3<T>& vec, const T& min, const T& max)
+    {
+        return vec.Clamp(min, max);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Clamps a vector between min and max vectors.
+    ///
+    /// \param vec The vector to clamp.
+    /// \param min The minimum vector.
+    /// \param max The maximum vector.
+    ///
+    /// \return The clamped vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> Clamp(
+        const TVector3<T>& vec, const TVector3<T>& min, const TVector3<T>& max
+    )
+    {
+        return vec.Clamp(min, max);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Moves a point towards a target at a specified maximum distance.
+    ///
+    /// \param current The current position.
+    /// \param target The target position.
+    /// \param maxDistanceDelta The maximum distance to move.
+    ///
+    /// \return The new position.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> MoveTowards(
+        const TVector3<T>& current,
+        const TVector3<T>& target,
+        T maxDistanceDelta
+    )
+    {
+        TVector3<T> delta = target - current;
+        T distSq = delta.LengthSquared();
+
+        if (distSq <= maxDistanceDelta * maxDistanceDelta ||
+            distSq == static_cast<T>(0))
+        {
+            return target;
+        }
+
+        T dist = std::sqrt(distSq);
+        return current + delta * (maxDistanceDelta / dist);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Scales a vector towards a target at a specified rate.
+    ///
+    /// \param current The current vector.
+    /// \param target The target vector.
+    /// \param maxRadiansDelta The maximum rotation in radians.
+    /// \param maxMagnitudeDelta The maximum change in magnitude.
+    ///
+    /// \return The rotated vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> RotateTowards(
+        const TVector3<T>& current,
+        const TVector3<T>& target,
+        T maxRadiansDelta,
+        T maxMagnitudeDelta
+    )
+    {
+        T currentLen = current.Length();
+        T targetLen = target.Length();
+
+        constexpr T epsilon = std::numeric_limits<T>::epsilon();
+        if (currentLen < epsilon || targetLen < epsilon)
+        {
+            return MoveTowards(current, target, maxMagnitudeDelta);
+        }
+
+        TVector3<T> currentNorm = current / currentLen;
+        TVector3<T> targetNorm = target / targetLen;
+
+        T angle = Angle(currentNorm, targetNorm);
+
+        if (angle < epsilon)
+        {
+            return MoveTowards(current, target, maxMagnitudeDelta);
+        }
+
+        if (angle > maxRadiansDelta) { angle = maxRadiansDelta; }
+
+        TVector3<T> axis = Cross(currentNorm, targetNorm).Normalized();
+        TVector3<T> rotated = currentNorm.RotateAroundAxis(axis, angle);
+
+        T newLen = currentLen +
+                   std::max(
+                       -maxMagnitudeDelta,
+                       std::min(maxMagnitudeDelta, targetLen - currentLen)
+                   );
+
+        return rotated * newLen;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gradually changes a vector towards a target with velocity
+    /// smoothing.
+    ///
+    /// \param current The current position.
+    /// \param target The target position.
+    /// \param currentVelocity The current velocity (modified by reference).
+    /// \param smoothTime The approximate time to reach the target.
+    /// \param maxSpeed The maximum speed (optional).
+    /// \param deltaTime The time since last call.
+    ///
+    /// \return The smoothed position.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> SmoothDamp(
+        const TVector3<T>& current,
+        const TVector3<T>& target,
+        TVector3<T>& currentVelocity,
+        T smoothTime,
+        T maxSpeed,
+        T deltaTime
+    )
+    {
+        smoothTime = std::max(static_cast<T>(0.0001), smoothTime);
+        T omega = static_cast<T>(2) / smoothTime;
+        T x = omega * deltaTime;
+        T exp = static_cast<T>(1) /
+                (static_cast<T>(1) + x + static_cast<T>(0.48) * x * x +
+                 static_cast<T>(0.235) * x * x * x);
+
+        TVector3<T> change = current - target;
+        TVector3<T> originalTo = target;
+
+        T maxChange = maxSpeed * smoothTime;
+        change = change.LimitLength(maxChange);
+        target = current - change;
+
+        TVector3<T> temp = (currentVelocity + omega * change) * deltaTime;
+        currentVelocity = (currentVelocity - omega * temp) * exp;
+        TVector3<T> output = target + (change + temp) * exp;
+
+        if (Dot(originalTo - current, output - originalTo) > static_cast<T>(0))
+        {
+            output = originalTo;
+            currentVelocity = (output - originalTo) / deltaTime;
+        }
+
+        return output;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Simplified SmoothDamp with default max speed.
+    ///
+    /// \param current The current position.
+    /// \param target The target position.
+    /// \param currentVelocity The current velocity (modified by reference).
+    /// \param smoothTime The approximate time to reach the target.
+    /// \param deltaTime The time since last call.
+    ///
+    /// \return The smoothed position.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> SmoothDamp(
+        const TVector3<T>& current,
+        const TVector3<T>& target,
+        TVector3<T>& currentVelocity,
+        T smoothTime,
+        T deltaTime
+    )
+    {
+        return SmoothDamp(
+            current,
+            target,
+            currentVelocity,
+            smoothTime,
+            std::numeric_limits<T>::infinity(),
+            deltaTime
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Calculates a position between three points using Catmull-Rom
+    /// spline.
+    ///
+    /// \param p0 The first control point.
+    /// \param p1 The start point.
+    /// \param p2 The end point.
+    /// \param p3 The second control point.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated position.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> CatmullRom(
+        const TVector3<T>& p0,
+        const TVector3<T>& p1,
+        const TVector3<T>& p2,
+        const TVector3<T>& p3,
+        T t
+    )
+    {
+        T t2 = t * t;
+        T t3 = t2 * t;
+
+        return static_cast<T>(0.5) *
+               ((static_cast<T>(2) * p1) + (-p0 + p2) * t +
+                (static_cast<T>(2) * p0 - static_cast<T>(5) * p1 +
+                 static_cast<T>(4) * p2 - p3) *
+                    t2 +
+                (-p0 + static_cast<T>(3) * p1 - static_cast<T>(3) * p2 + p3) *
+                    t3);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Calculates a position on a cubic Bezier curve.
+    ///
+    /// \param p0 The start point.
+    /// \param p1 The first control point.
+    /// \param p2 The second control point.
+    /// \param p3 The end point.
+    /// \param t The interpolation factor (0 to 1).
+    ///
+    /// \return The interpolated position.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> BezierCubic(
+        const TVector3<T>& p0,
+        const TVector3<T>& p1,
+        const TVector3<T>& p2,
+        const TVector3<T>& p3,
+        T t
+    )
+    {
+        T u = static_cast<T>(1) - t;
+        T tt = t * t;
+        T uu = u * u;
+        T uuu = uu * u;
+        T ttt = tt * t;
+
+        return (p0 * uuu) + (p1 * static_cast<T>(3) * uu * t) +
+               (p2 * static_cast<T>(3) * u * tt) + (p3 * ttt);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Projects a vector onto a plane defined by a normal.
+    ///
+    /// \param vec The vector to project.
+    /// \param planeNormal The plane normal (should be normalized).
+    ///
+    /// \return The projected vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T>
+        ProjectOnPlane(const TVector3<T>& vec, const TVector3<T>& planeNormal)
+    {
+        T dot = Dot(vec, planeNormal);
+        return vec - planeNormal * dot;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Orthonormalizes two vectors (Gram-Schmidt).
+    ///
+    /// \param normal The normal vector (will be normalized).
+    /// \param tangent The tangent vector (will be made perpendicular and
+    /// normalized).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void OrthoNormalize(TVector3<T>& normal, TVector3<T>& tangent)
+    {
+        normal = normal.Normalized();
+        tangent = ProjectOnPlane(tangent, normal).Normalized();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Orthonormalizes three vectors (Gram-Schmidt).
+    ///
+    /// \param normal The normal vector (will be normalized).
+    /// \param tangent The tangent vector (will be made perpendicular and
+    /// normalized).
+    /// \param binormal The binormal vector (will be made perpendicular and
+    /// normalized).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void OrthoNormalize(
+        TVector3<T>& normal, TVector3<T>& tangent, TVector3<T>& binormal
+    )
+    {
+        normal = normal.Normalized();
+        tangent = ProjectOnPlane(tangent, normal).Normalized();
+        binormal = ProjectOnPlane(ProjectOnPlane(binormal, normal), tangent)
+                       .Normalized();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Computes the triple product (scalar triple product).
+    ///
+    /// \param a The first vector.
+    /// \param b The second vector.
+    /// \param c The third vector.
+    ///
+    /// \return The triple product value.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T TripleProduct(
+        const TVector3<T>& a, const TVector3<T>& b, const TVector3<T>& c
+    )
+    {
+        return Dot(Cross(a, b), c);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Generates a random vector within a unit sphere.
+    ///
+    /// \return A random vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> RandomInUnitSphere(void)
+    {
+        T theta = static_cast<T>(rand()) / static_cast<T>(RAND_MAX) *
+                  static_cast<T>(2) * static_cast<T>(M_PI);
+        T phi = static_cast<T>(std::acos(
+            static_cast<T>(2) * static_cast<T>(rand()) /
+                static_cast<T>(RAND_MAX) -
+            static_cast<T>(1)
+        ));
+        T r = static_cast<T>(std::pow(
+            static_cast<T>(rand()) / static_cast<T>(RAND_MAX),
+            static_cast<T>(1.0 / 3.0)
+        ));
+
+        return TVector3<T>(
+            r * static_cast<T>(std::sin(phi)) *
+                static_cast<T>(std::cos(theta)),
+            r * static_cast<T>(std::sin(phi)) *
+                static_cast<T>(std::sin(theta)),
+            r * static_cast<T>(std::cos(phi))
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Generates a random unit vector on the surface of a unit sphere.
+    ///
+    /// \return A random unit vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TVector3<T> RandomOnUnitSphere(void)
+    {
+        return RandomInUnitSphere().Normalized();
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -372,6 +1428,18 @@ template <typename T>
 const TVector3<T> TVector3<T>::UnitY(0, 1, 0);
 template <typename T>
 const TVector3<T> TVector3<T>::UnitZ(0, 0, 1);
+template <typename T>
+const TVector3<T> TVector3<T>::Up(0, 1, 0);
+template <typename T>
+const TVector3<T> TVector3<T>::Down(0, -1, 0);
+template <typename T>
+const TVector3<T> TVector3<T>::Right(1, 0, 0);
+template <typename T>
+const TVector3<T> TVector3<T>::Left(-1, 0, 0);
+template <typename T>
+const TVector3<T> TVector3<T>::Forward(0, 0, 1);
+template <typename T>
+const TVector3<T> TVector3<T>::Back(0, 0, -1);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Unary plus operator. Returns the vector unchanged.
