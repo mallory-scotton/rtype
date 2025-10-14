@@ -74,20 +74,9 @@ void FWorldSubsystem::ThreadLoop(void)
     {   // BEGIN PLAY
         std::unique_lock lock(m_worldMutex);
 
-        // ?TEMPORARY: Spawn a player controller and a player pawn
-        auto ctrl =
-            m_world->SpawnActor<APlayerController>("BP_PlayerController");
-        auto plyr = m_world->SpawnActor<APawn>("BP_Player");
-#if TKD_ENGINE_CLIENT
-        ctrl->SetInputManager(
-            ::Engine::GetInstance().GetWindow()->GetInputManager()
-        );
-        plyr->SetNetRole(ENetRole::AutonomousProxy);
-#elif TKD_ENGINE_SERVER
-        plyr->SetNetRole(ENetRole::Authority);
-#endif
-        ctrl->Possess(plyr);
-        // ?TEMPORARY
+        //? BEGIN TEMPORARY
+        // TODO: Load default level if specified
+        //? END TEMPORARY
 
         m_world->BeginPlay();
     }
