@@ -343,6 +343,20 @@ public:
             vec.x * invLength, vec.y * invLength, vec.z * invLength
         );
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Dot product of two vectors.
+    ///
+    /// \param lhs The left-hand side vector.
+    /// \param rhs The right-hand side vector.
+    ///
+    /// \return The dot product.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Dot(const TVector3<T>& lhs, const TVector3<T>& rhs)
+    {
+        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
