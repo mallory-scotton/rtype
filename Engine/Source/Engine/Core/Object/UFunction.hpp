@@ -157,7 +157,8 @@ public:
     /// \param parameters Parameters to pass to the function
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Execute(const std::vector<Byte>& parameters) override
+    virtual void ExecuteSerialized(const std::vector<Byte>& parameters
+    ) override
     {
         // Deserialize parameters using tuple unpacking
         FBinaryReader reader(parameters);
