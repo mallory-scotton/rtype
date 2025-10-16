@@ -11,6 +11,7 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Object/UObject.hpp>
+#include <Engine/Network/FBinaryWriter.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -361,6 +362,20 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void ClearDirty(void) override { m_isDirty = false; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Serialize the property to a byte vector
+    ///
+    /// \return The serialized property data
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual std::vector<Byte> Serialize(void) const override
+    {
+        std::vector<Byte> data;
+        FBinaryWriter writer(data);
+        writer.Write(m_value);
+        return data;
+    }
 };
 
 }   // namespace tkd
