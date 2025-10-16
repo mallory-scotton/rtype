@@ -120,6 +120,14 @@ void FNetworkBase::HandleRPCPacket(
     // The world thread will process them via ProcessDeferredRPCs()
     std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
     m_deferredRPCs.push({ packet, endpoint });
+
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Queued RPC '{}' from {} for deferred execution on Actor ID {}",
+        packet.functionName.CStr(),
+        endpoint.address().to_string().c_str(),
+        UUID(packet.actorID).ToString().c_str()
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
