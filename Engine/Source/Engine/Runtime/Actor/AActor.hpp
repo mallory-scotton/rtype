@@ -38,15 +38,52 @@ public:
 
 public:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Struct to hold transform prediction data
+    /// \brief Struct to hold move data for replication
     ///
     ///////////////////////////////////////////////////////////////////////////
-    struct FTransformPrediction
+    struct FMoveData
     {
-        UInt32 timestamp;       //<! Time of the move
-        Float32 deltaTime;      //<! Time since the last move
-        FTransform transform;   //<! Actor's transform before the move
-        FVector3 velocity;      //<! Actor's velocity during the move
+        UInt32 timestamp;            //<! Time of the move
+        Float32 deltaTime;           //<! Time since the last move
+        FVector3 inputVector;        //<! Input vector for this move
+        FTransform startTransform;   //<! Transform before the move
+        FTransform endTransform;     //<! Transform after the move
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Default constructor
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        FMoveData(void)
+            : timestamp(0)
+            , deltaTime(0.0f)
+            , inputVector(FVector3::Zero)
+            , startTransform(FTransform::Identity)
+            , endTransform(FTransform::Identity)
+        {}
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Parameterized constructor
+        ///
+        /// \param ts The timestamp of the move
+        /// \param dt The delta time since the last move
+        /// \param input The input vector for this move
+        /// \param start The starting transform before the move
+        /// \param end The ending transform after the move
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        FMoveData(
+            UInt32 ts,
+            Float32 dt,
+            const FVector3& input,
+            const FTransform& start,
+            const FTransform& end
+        )
+            : timestamp(ts)
+            , deltaTime(dt)
+            , inputVector(input)
+            , startTransform(start)
+            , endTransform(end)
+        {}
     };
 
 private:
@@ -57,10 +94,38 @@ private:
     UProperty<Bool> m_isActive;          //<! Whether the actor is active
     TVector<Component> m_components;     //<! The actor's components
     bool m_markedForDeletion;            //<! Marked for deletion
-    std::vector<FTransformPrediction>
-        m_transformPredictions;          //<! Transform predictions
-    UInt32 m_transformTimestamp;         //<! Timestamp of the last transform
-    FTransform m_pendingTransform;       //<! Pending transform for replication
+
+    // Client-side prediction
+    std::vector<FMoveData> m_pendingMoves;   //<! Unacknowledged moves (client)
+    UInt32 m_moveTimestamp;                  //<! Current move timestamp
+
+    // Server reconciliation
+    UInt32 m_lastAcknowledgedMove;   //<! Last move processed by server
+    FTransform m_serverTransform;    //<! Last known server transform
+
+    // Movement state
+    FTransform m_pendingTransform;   //<! Pending transform for replication
+    FVector3 m_lastInputVector;      //<! Last input vector (client/server)
+    bool m_isMoving;                 //<! Whether we're currently moving
+    Float32 m_timeSinceLastInput;    //<! Time since last input (server)
+    Float32
+        m_timeSinceLastUpdate;   //<! Time since last network update (client)
+
+    // Interpolation for simulated proxies
+    FTransform
+        m_interpolationStart;   //<! Starting transform for interpolation
+    FTransform m_interpolationTarget;   //<! Target transform for interpolation
+    Float32 m_interpolationAlpha;       //<! Current interpolation alpha [0-1]
+    Float32 m_interpolationDuration;    //<! Duration of interpolation
+
+    // Network configuration
+    static constexpr UInt32 MAX_PENDING_MOVES = 32;   //<! Max buffered moves
+    static constexpr Float32 INPUT_THRESHOLD =
+        0.01f;   //<! Threshold for input change
+    static constexpr Float32 MOVEMENT_UPDATE_RATE =
+        0.1f;    //<! Keep-alive update rate (100ms)
+    static constexpr Float32 INTERPOLATION_TIME =
+        0.1f;    //<! Interpolation duration
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -69,12 +134,83 @@ public:
     UFunction<AActor*> OnActorBeginOverlap;
     UFunction<AActor*> OnActorEndOverlap;
 
+    // Movement RPCs
+    UFunction<UInt32, Float32, FVector3, FTransform> ServerMoveRPC;
+    UFunction<UInt32, FTransform> ClientAckMoveRPC;
+    UFunction<FTransform, FVector3>
+        MulticastMoveRPC;   //<! Replicate movement to all clients
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
     AActor(const FString& name = "AActor");
+
+protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Simulate movement locally (used by both client and server)
+    ///
+    /// \param inputVector The input vector for this move
+    /// \param deltaTime The time elapsed for this move
+    ///
+    /// \return The new transform after applying movement
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FTransform SimulateMovement(
+        const FVector3& inputVector,
+        Float32 deltaTime,
+        const FTransform& startTransform
+    );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Server RPC to process movement
+    ///
+    /// \param timestamp The timestamp of the move
+    /// \param deltaTime The time elapsed for this move
+    /// \param inputVector The input vector for this move
+    /// \param clientTransform The client's predicted transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_ServerMove(
+        UInt32 timestamp,
+        Float32 deltaTime,
+        const FVector3& inputVector,
+        const FTransform& clientTransform
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Client RPC to acknowledge movement and correct position
+    ///
+    /// \param timestamp The timestamp of the acknowledged move
+    /// \param serverTransform The authoritative server transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void
+        RPC_ClientAckMove(UInt32 timestamp, const FTransform& serverTransform);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Reconcile client prediction with server state
+    ///
+    /// \param serverTimestamp The timestamp acknowledged by server
+    /// \param serverTransform The authoritative server transform
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ReconcileMovement(
+        UInt32 serverTimestamp, const FTransform& serverTransform
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multicast RPC to replicate movement to all clients
+    ///
+    /// \param newTransform The new transform to replicate
+    /// \param velocity The current velocity/input vector
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_MulticastMove(
+        const FTransform& newTransform, const FVector3& velocity
+    );
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -370,6 +506,16 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void Scale(Float32 x, Float32 y, Float32 z);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Apply movement with client-side prediction and server
+    /// reconciliation
+    ///
+    /// \param inputVector The input vector for this frame
+    /// \param deltaTime The time elapsed since the last frame
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ApplyMovement(const FVector3& inputVector, Float32 deltaTime);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
