@@ -59,6 +59,9 @@ UObject::operator std::string(void) const
 const UUID& UObject::GetUUID(void) const { return m_objectID; }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UObject::SetUUID(const UUID& uuid) { m_objectID = uuid; }
+
+///////////////////////////////////////////////////////////////////////////////
 void UObject::RegisterProperty(IProperty* property)
 {
     if (property) { m_properties[property->GetName()] = property; }
