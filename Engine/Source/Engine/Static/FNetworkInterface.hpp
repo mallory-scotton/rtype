@@ -120,6 +120,17 @@ public:
     static Bool SendPacket(const IPacket& packet);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet over the network
+    ///
+    /// \param packet The packet to send
+    /// \param clientID The ID of the client to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendPacket(const IPacket& packet, UInt32 clientID);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Send a packet to a specific endpoint over the network
     ///
     /// \param packet The packet to send
@@ -162,6 +173,17 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static Bool SendReliablePacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a reliable packet over the network
+    ///
+    /// \param packet The packet to send reliably
+    /// \param clientID The ID of the client to send the packet to
+    ///
+    /// \return True if the packet was sent successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static Bool SendReliablePacket(const IPacket& packet, UInt32 clientID);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Send a reliable packet to a specific endpoint over the network
