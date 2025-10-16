@@ -15,6 +15,27 @@ UWorld::UWorld(const FString& name)
     : UObject(name, UUID() /* UUID 0000-0000-0000 */)
     , m_actors()
     , m_worldTime(0.0f)
+    , m_currentLevel()
+    , m_loadedLevels()
+    , SpawnActorRPC(
+          *this,
+          "SpawnActor",
+          ERPCType::Client,
+          std::bind(
+              &UWorld::RPC_SpawnActor,
+              this,
+              std::placeholders::_1,
+              std::placeholders::_2,
+              std::placeholders::_3,
+              std::placeholders::_4
+          )
+      )
+    , DestroyActorRPC(
+          *this,
+          "DestroyActor",
+          ERPCType::Client,
+          std::bind(&UWorld::RPC_DestroyActor, this, std::placeholders::_1)
+      )
 {
     auto classes = UClass::GetAllClasses();
 
@@ -224,6 +245,39 @@ const AGameMode& UWorld::GetGameMode(void) const
 const std::vector<ULevel>& UWorld::GetLoadedLevels(void) const
 {
     return m_loadedLevels;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_SpawnActor(
+    const FString& className,
+    const FTransform& transform,
+    const UUID& actorID,
+    UInt32 owningClientID
+)
+{
+    UClass* actorClass = UClass::FindClass(className);
+
+    if (actorClass == nullptr) { return; }
+
+    auto actor = SpawnActor(actorClass, transform);
+    if (actor)
+    {
+        actor->SetUUID(actorID);
+        actor->SetOwningClientID(owningClientID);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_DestroyActor(const UUID& actorID)
+{
+    auto it = std::find_if(
+        m_actors.begin(),
+        m_actors.end(),
+        [&actorID](const std::shared_ptr<AActor>& actor)
+        { return actor && actor->GetNetworkID() == actorID; }
+    );
+
+    if (it != m_actors.end()) { (*it)->MarkForDeletion(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
