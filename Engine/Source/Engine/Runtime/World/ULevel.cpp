@@ -20,8 +20,8 @@ namespace tkd
 ULevel::ULevel(const FString& name)
     : UObject(name)
     , m_gameMode()
-    , m_levelName("")
     , m_actorEntries()
+    , m_levelName("")
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
