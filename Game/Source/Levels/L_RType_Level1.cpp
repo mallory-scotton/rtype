@@ -13,6 +13,7 @@ namespace tkd
 L_RType_Level1::L_RType_Level1()
     : Super("L_RType_Level1")
 {
+    this->SetLevelName("L_RType_Level1");
     this->SetGameMode(m_myGameMode);
 }
 
