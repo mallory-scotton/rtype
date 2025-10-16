@@ -411,7 +411,7 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
         if (object)
         {
             auto rpc = object->GetFunction(packet.functionName);
-            if (rpc) { rpc->Execute(packet.parameters); }
+            if (rpc) { rpc->ExecuteSerialized(packet.parameters); }
         }
 
         localQueue.pop();

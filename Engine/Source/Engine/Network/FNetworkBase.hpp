@@ -55,11 +55,12 @@ class UWorld;
 ///////////////////////////////////////////////////////////////////////////////
 enum class EDisconnectionReason : UInt32
 {
-    Unknown = 0,    //<! No specific reason
-    Timeout = 1,    //<! Disconnected due to timeout
-    Kicked = 2,     //<! Disconnected by server (kicked)
-    Shutdown = 3,   //<! Disconnected due to server shutdown
-    Error = 4,      //<! Disconnected due to an error
+    Unknown = 0,           //<! No specific reason
+    Timeout = 1,           //<! Disconnected due to timeout
+    Kicked = 2,            //<! Disconnected by server (kicked)
+    Shutdown = 3,          //<! Disconnected due to server shutdown
+    Error = 4,             //<! Disconnected due to an error
+    ClientRequested = 5,   //<! Disconnected at client's request
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,8 +73,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_PACKET_SIZE = 1452;
-    static constexpr Float32 ACK_TIMEOUT = 0.5f;   //<! 500 ms
+    static constexpr SizeT MAX_PACKET_SIZE = 1472;   //<! Max UDP packet size
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
 
 public:
     ///////////////////////////////////////////////////////////////////////////
