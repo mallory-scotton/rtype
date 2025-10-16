@@ -361,7 +361,7 @@ void FNetworkServer::HandleConnectPacket(
     connection->lastActivity = SteadyClock::now();
     connection->connected = true;
 
-    uint32_t assignedClientId = connection->clientID;
+    UInt32 assignedClientId = connection->clientID;
 
     // Store connection
     m_connections[endpoint] = std::move(connection);
@@ -377,44 +377,16 @@ void FNetworkServer::HandleConnectPacket(
 
     SendReliablePacket(response, endpoint);
 
-    //?BEGIN TEMPORARY
+    {
+        // Add a new RPC deferred call to spawn the client entity
+        Packets::RemoteProcedureCall rpc(
+            "SpawnClient", ERPCType::Server, UUID::World, assignedClientId
+        );
 
-    Packets::RemoteProcedureCall rpc1;
-    rpc1.functionName = "SpawnActor";
-    rpc1.rpcType = ERPCType::Client;
-    rpc1.actorID = UUID::World.Data();
-    FBinaryWriter writer1(rpc1.parameters);
-
-    UUID ActorUUID = UUID::V4();
-
-    writer1.Write(FString("BP_Player"));
-    writer1.Write(TTransform<Float32>::Identity);
-    writer1.Write(ActorUUID);
-    writer1.Write(assignedClientId);
-    SendReliablePacket(rpc1, endpoint);
-
-    Packets::RemoteProcedureCall rpc2;
-    rpc2.functionName = "SpawnActor";
-    rpc2.rpcType = ERPCType::Client;
-    rpc2.actorID = UUID::World.Data();
-    FBinaryWriter writer2(rpc2.parameters);
-
-    writer2.Write(FString("BP_PlayerController"));
-    writer2.Write(TTransform<Float32>::Identity);
-    writer2.Write(UUID::Local);
-    writer2.Write(assignedClientId);
-    SendReliablePacket(rpc2, endpoint);
-
-    Packets::RemoteProcedureCall rpc3;
-    rpc3.functionName = "Possess";
-    rpc3.rpcType = ERPCType::Client;
-    rpc3.actorID = UUID::Local.Data();
-    FBinaryWriter writer3(rpc3.parameters);
-
-    writer3.Write(ActorUUID);
-    SendReliablePacket(rpc3, endpoint);
-
-    //?END TEMPORARY
+        // Add parameters to the RPC
+        std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+        m_deferredRPCs.push({ rpc, endpoint });
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
