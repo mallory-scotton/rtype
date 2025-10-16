@@ -621,6 +621,10 @@ FString FNetworkDebug::GetPacketTypeName(UInt16 packetType) const
     {
         return "Replication";
     }
+    else if (packetType == Packets::Snapshot::GetStaticType())
+    {
+        return "Snapshot";
+    }
     return FString::Format("Unknown ({0})", packetType);
 }
 
@@ -1058,12 +1062,24 @@ void FNetworkDebug::PreviewDisconnectPacket(
     const char* reasonStr = "Unknown";
     switch (reason)
     {
-    case 0: reasonStr = "Unknown"; break;
-    case 1: reasonStr = "Client Requested"; break;
-    case 2: reasonStr = "Timeout"; break;
-    case 3: reasonStr = "Kicked"; break;
-    case 4: reasonStr = "Server Shutdown"; break;
-    case 5: reasonStr = "Connection Lost"; break;
+    case static_cast<UInt32>(EDisconnectionReason::Unknown):
+        reasonStr = "Unknown";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::ClientRequested):
+        reasonStr = "Client Requested";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Timeout):
+        reasonStr = "Timeout";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Kicked):
+        reasonStr = "Kicked";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Shutdown):
+        reasonStr = "Server Shutdown";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Error):
+        reasonStr = "Connection Lost";
+        break;
     }
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "%s", reasonStr);
 
