@@ -10,6 +10,16 @@ namespace tkd::Packets
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+RemoteProcedureCall::RemoteProcedureCall(
+    const FString& name, ERPCType type, const UUID& uuid
+)
+    : actorID(uuid.Data())
+    , rpcType(type)
+    , functionName(name)
+    , parameters()
+{}
+
+///////////////////////////////////////////////////////////////////////////////
 bool RemoteProcedureCall::Serialize(FBinaryWriter& writer) const
 {
     writer.WriteBytes(
