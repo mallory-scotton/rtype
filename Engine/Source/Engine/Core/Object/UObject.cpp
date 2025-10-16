@@ -14,8 +14,12 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-UObject::UObject(const FString& name)
-    : m_objectID(UUID::V4())
+std::vector<UObject*> UObject::s_registeredObjects;
+std::mutex UObject::s_objectMutex;
+
+///////////////////////////////////////////////////////////////////////////////
+UObject::UObject(const FString& name, const UUID& uuid)
+    : m_objectID(uuid)
     , m_name(name)
     , m_netRole(ENetRole::None)
     , m_networkID(0)
@@ -23,7 +27,21 @@ UObject::UObject(const FString& name)
     , m_netUpdateFrequency(10.0f)
     , m_timeSinceLastUpdate(0.0f)
     , m_hasSetUpdateFrequency(false)
-{}
+{
+    std::lock_guard<std::mutex> lock(s_objectMutex);
+    s_registeredObjects.push_back(this);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UObject::~UObject()
+{
+    std::lock_guard<std::mutex> lock(s_objectMutex);
+
+    auto it = std::find(
+        s_registeredObjects.begin(), s_registeredObjects.end(), this
+    );
+    if (it != s_registeredObjects.end()) { s_registeredObjects.erase(it); }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 UObject::operator UUID::DataType(void) const { return m_objectID.Data(); }
@@ -154,6 +172,39 @@ UInt32 UObject::GetNetworkID(void) const { return m_networkID; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UObject::SetNetworkID(UInt32 id) { m_networkID = id; }
+
+///////////////////////////////////////////////////////////////////////////////
+const std::vector<UObject*>& UObject::GetRegisteredObjects(void)
+{
+    std::lock_guard<std::mutex> lock(s_objectMutex);
+    return s_registeredObjects;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UObject* UObject::FindByUUID(const UUID& uuid)
+{
+    std::lock_guard<std::mutex> lock(s_objectMutex);
+
+    for (auto obj: s_registeredObjects)
+    {
+        if (obj && obj->GetUUID() == uuid) { return obj; }
+    }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UObject* UObject::FindByName(const FString& name)
+{
+    std::lock_guard<std::mutex> lock(s_objectMutex);
+
+    for (auto obj: s_registeredObjects)
+    {
+        if (obj && obj->GetName() == name) { return obj; }
+    }
+
+    return nullptr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(UObject)
