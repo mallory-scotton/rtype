@@ -292,6 +292,17 @@ private:
     );
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a Snapshot packet from server
+    ///
+    /// \param packet The received packet
+    /// \param endpoint The endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleSnapshotPacket(
+        const Packets::Snapshot& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Internal disconnect implementation
     ///
     /// \param reason Reason for disconnection

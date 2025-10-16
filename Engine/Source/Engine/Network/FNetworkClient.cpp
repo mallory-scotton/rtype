@@ -208,6 +208,12 @@ void FNetworkClient::SetupDefaultHandlers(void)
         [this](const Packets::HeartBeat& packet, const FEndpoint& endpoint)
         { HandleHeartbeatPacket(packet, endpoint); }
     );
+
+    // Register handler for Snapshot packets
+    RegisterPacketHandler<Packets::Snapshot>(
+        [this](const Packets::Snapshot& packet, const FEndpoint& endpoint)
+        { HandleSnapshotPacket(packet, endpoint); }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -399,6 +405,40 @@ void FNetworkClient::HandleHeartbeatPacket(
         return;
     }
 
+    if (m_connection) { m_connection->lastActivity = SteadyClock::now(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::HandleSnapshotPacket(
+    const Packets::Snapshot& packet, const FEndpoint& endpoint
+)
+{
+    // Only accept snapshot packets from our server
+    if (endpoint != m_serverEndpoint ||
+        m_connectionState != EConnectionState::Connected)
+    {
+        return;
+    }
+
+    {
+        // Prepare a buffer to serialize the snapshot packet
+        std::vector<Byte> packetData;
+        FBinaryWriter writer(packetData);
+
+        // Serialize the packet into the buffer
+        if (!packet.Serialize(writer)) { return; }
+
+        // Create a RemoteProcedureCall packet to handle the snapshot
+        Packets::RemoteProcedureCall rpc(
+            "SyncSnapshot", ERPCType::Client, UUID::Nil, packetData
+        );
+
+        // Enqueue the RPC for deferred execution
+        std::lock_guard lock(m_rpcQueueMutex);
+        m_deferredRPCs.push({ rpc, endpoint });
+    }
+
+    // Update last activity time
     if (m_connection) { m_connection->lastActivity = SteadyClock::now(); }
 }
 
