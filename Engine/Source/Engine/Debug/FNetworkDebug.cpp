@@ -1152,14 +1152,16 @@ void FNetworkDebug::PreviewRemoteProcedureCallPacket(
     std::vector<Byte> parameters;
 
     if (!reader.ReadBytes(actorID.data(), actorID.size()) ||
-        !reader.Read(rpcType) || !reader.Read(functionName) ||
-        !reader.Read(parameters))
+        !reader.Read(rpcType) || !reader.Read(functionName))
     {
         ImGui::TextColored(
             ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to deserialize packet"
         );
         return;
     }
+
+    // Remaining bytes are parameters
+    reader.Read(parameters);
 
     ImGui::Text("Remote Procedure Call Packet");
     ImGui::Separator();
@@ -1198,17 +1200,21 @@ void FNetworkDebug::PreviewRemoteProcedureCallPacket(
     ImVec4 rpcTypeColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     switch (rpcType)
     {
-    case 0:
+    case static_cast<UInt8>(ERPCType::Server):
         rpcTypeStr = "Server";
         rpcTypeColor = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
         break;
-    case 1:
+    case static_cast<UInt8>(ERPCType::Client):
         rpcTypeStr = "Client";
         rpcTypeColor = ImVec4(0.4f, 0.4f, 1.0f, 1.0f);
         break;
-    case 2:
+    case static_cast<UInt8>(ERPCType::Multicast):
         rpcTypeStr = "Multicast";
         rpcTypeColor = ImVec4(0.4f, 1.0f, 0.4f, 1.0f);
+        break;
+    default:
+        rpcTypeStr = "Unknown";
+        rpcTypeColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
         break;
     }
     ImGui::TextColored(rpcTypeColor, "%s (%u)", rpcTypeStr, rpcType);
