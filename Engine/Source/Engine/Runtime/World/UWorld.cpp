@@ -19,6 +19,7 @@ UWorld::UWorld(const FString& name)
     , m_worldTime(0.0f)
     , m_currentLevel()
     , m_loadedLevels()
+    , m_lastSnapshotID(0)
     , SpawnActorRPC(
           *this,
           "SpawnActor",
@@ -58,6 +59,12 @@ UWorld::UWorld(const FString& name)
               std::placeholders::_3
           ),
           true
+      )
+    , SyncSnapshotRPC(
+          *this,
+          "SyncSnapshot",
+          ERPCType::Client,
+          std::bind(&UWorld::RPC_SyncSnapshot, this, std::placeholders::_1)
       )
 {
 #if TKD_ENGINE_SERVER
@@ -278,6 +285,87 @@ const std::vector<ULevel>& UWorld::GetLoadedLevels(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_SyncSnapshot(const std::vector<Byte>& snapshotData)
+{
+    // Create a snapshot object to hold the deserialized data
+    Packets::Snapshot snapshot;
+    FBinaryReader reader(
+        snapshotData.data(), static_cast<SizeT>(snapshotData.size())
+    );
+
+    // Try to deserialize the snapshot
+    if (!snapshot.Deserialize(reader)) { return; }
+
+    // Verify snapshot ID
+    if (snapshot.snapshotID < /*=*/m_lastSnapshotID) { return; }
+
+    // Update last processed snapshot ID
+    m_lastSnapshotID = snapshot.snapshotID;
+
+    // Loop through each actor state in the snapshot
+    for (const auto& actorState: snapshot.actors)
+    {
+        // Find the actor in the current world by its UUID
+        auto it = std::find_if(
+            m_actors.begin(),
+            m_actors.end(),
+            [&actorState](const std::shared_ptr<AActor>& actor)
+            { return actor && actor->GetUUID() == actorState.id; }
+        );
+
+        if (it != m_actors.end())
+        {
+            // Actor exists, update its state
+            auto& actor = *it;
+            actor->SetTransform(actorState.transform);
+
+            // Update properties
+            for (const auto& [propName, propData]: actorState.properties)
+            {
+                auto propPtr = actor->GetProperty(propName);
+                if (propPtr)
+                {
+                    propPtr->SetValue(
+                        static_cast<const void*>(propData.data()),
+                        propData.size()
+                    );
+                }
+            }
+        }
+        else
+        {
+            // Actor does not exist, spawn it
+            UClass* actorClass = UClass::FindClass(actorState.className);
+            if (actorClass)
+            {
+                auto newActor = SpawnActor(actorClass, actorState.transform);
+                if (newActor)
+                {
+                    // Set network-related properties
+                    newActor->SetUUID(actorState.id);
+                    newActor->SetOwningClientID(actorState.owningClientID);
+                    newActor->SetNetRole(ENetRole::SimulatedProxy);
+
+                    // Set properties
+                    for (const auto& [propName, propData]:
+                         actorState.properties)
+                    {
+                        auto propPtr = newActor->GetProperty(propName);
+                        if (propPtr)
+                        {
+                            propPtr->SetValue(
+                                static_cast<const void*>(propData.data()),
+                                propData.size()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UWorld::RPC_SpawnActor(
     const FString& className,
     const FTransform& transform,
@@ -372,6 +460,9 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
     ));
     // ? END TEMPORARY
 
+    // Create a snapshot of the current world state to send to the new client
+    Packets::Snapshot snapshot(*this);
+
     // Spawn the player actor
     auto playerObj = SpawnActor(plyrClass, transform);
     auto player = playerObj->As<APawn>();
@@ -392,6 +483,9 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
 
     // Set the owning client ID for the RPC
     SetOwningClientID(owningClientID);
+
+    // Send Snapshot to the new client
+    Network::SendReliablePacket(snapshot, owningClientID);
 
     // Prepare the RPC to spawn the player on the client
     this->SpawnPlayerRPC(

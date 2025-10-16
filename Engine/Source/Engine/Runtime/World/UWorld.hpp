@@ -37,6 +37,7 @@ private:
     float m_worldTime;                    //<! The current world time
     ULevel m_currentLevel;                //<! The current level
     std::vector<ULevel> m_loadedLevels;   //<! The loaded levels
+    UInt32 m_lastSnapshotID;              //<! The last snapshot ID
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -46,6 +47,7 @@ public:
     UFunction<UUID> DestroyActorRPC;
     UFunction<UInt32> SpawnClientRPC;
     UFunction<UInt32, UUID, FTransform> SpawnPlayerRPC;
+    UFunction<std::vector<Byte>> SyncSnapshotRPC;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -102,6 +104,14 @@ private:
         const UUID& playerID,
         const FTransform& transform
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sync snapshot RPC handler
+    ///
+    /// \param snapshot The snapshot data
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_SyncSnapshot(const std::vector<Byte>& snapshot);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
