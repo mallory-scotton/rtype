@@ -2,6 +2,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/World/UWorld.hpp>
+#include <Engine/Runtime/Actor.hpp>
+#include <Engine/Runtime/Controllers.hpp>
 #include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,20 +30,48 @@ UWorld::UWorld(const FString& name)
               std::placeholders::_2,
               std::placeholders::_3,
               std::placeholders::_4
-          )
+          ),
+          true
       )
     , DestroyActorRPC(
           *this,
           "DestroyActor",
           ERPCType::Client,
-          std::bind(&UWorld::RPC_DestroyActor, this, std::placeholders::_1)
+          std::bind(&UWorld::RPC_DestroyActor, this, std::placeholders::_1),
+          true
+      )
+    , SpawnClientRPC(
+          *this,
+          "SpawnClient",
+          ERPCType::Server,
+          std::bind(&UWorld::RPC_SpawnClient, this, std::placeholders::_1)
+      )
+    , SpawnPlayerRPC(
+          *this,
+          "SpawnPlayer",
+          ERPCType::Client,
+          std::bind(
+              &UWorld::RPC_SpawnPlayer,
+              this,
+              std::placeholders::_1,
+              std::placeholders::_2,
+              std::placeholders::_3
+          ),
+          true
       )
 {
+#if TKD_ENGINE_SERVER
+    SetNetRole(ENetRole::Authority);
+#else
+    SetNetRole(ENetRole::SimulatedProxy);
+#endif
+
     auto classes = UClass::GetAllClasses();
 
     for (auto* cls: classes)
     {
-        if (cls && cls->IsChildOf(ULevel::StaticClass()))
+        if (cls && cls->IsChildOf(ULevel::StaticClass()) &&
+            cls != ULevel::StaticClass())
         {
             UObject* instance = cls->CreateInstance();
             if (instance)
@@ -264,6 +294,7 @@ void UWorld::RPC_SpawnActor(
     {
         actor->SetUUID(actorID);
         actor->SetOwningClientID(owningClientID);
+        actor->SetNetRole(ENetRole::SimulatedProxy);
     }
 }
 
@@ -278,6 +309,82 @@ void UWorld::RPC_DestroyActor(const UUID& actorID)
     );
 
     if (it != m_actors.end()) { (*it)->MarkForDeletion(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_SpawnPlayer(
+    UInt32 owningClientID, const UUID& playerID, const FTransform& transform
+)
+{
+    // Get the player and controller classes from the game mode
+    UClass* plyrClass = GetGameMode().GetActorClass();
+    UClass* ctlrClass = GetGameMode().GetPlayerControllerClass();
+
+    // Check if both classes are valid
+    if (plyrClass == nullptr || ctlrClass == nullptr) { return; }
+
+    // Spawn the player actor
+    auto playerObj = SpawnActor(plyrClass, transform);
+    auto controllerObj = SpawnActor(ctlrClass, FTransform::Identity);
+    auto player = playerObj->As<APawn>();
+    auto controller = controllerObj->As<APlayerController>();
+
+    // Check if both actors were spawned successfully
+    if (player == nullptr || controller == nullptr)
+    {
+        if (playerObj) { playerObj->MarkForDeletion(); }
+        if (controllerObj) { controllerObj->MarkForDeletion(); }
+        return;
+    }
+
+    // Set up the player actor
+    player->SetUUID(playerID);
+    player->SetOwningClientID(owningClientID);
+    player->SetNetRole(ENetRole::AutonomousProxy);
+
+    // Set up the controller actor
+    controller->SetOwningClientID(owningClientID);
+    controller->SetNetRole(ENetRole::AutonomousProxy);
+    controller->Possess(player);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_SpawnClient(UInt32 owningClientID)
+{
+    // Get the player class from the game mode
+    UClass* plyrClass = GetGameMode().GetActorClass();
+
+    // Check if the class is valid
+    if (plyrClass == nullptr) { return; }
+
+    // Spawn the player actor
+    auto playerObj = SpawnActor(plyrClass, FTransform::Identity);
+    auto player = playerObj->As<APawn>();
+
+    // Check if the actor was spawned successfully
+    if (player == nullptr)
+    {
+        if (playerObj) { playerObj->MarkForDeletion(); }
+        return;
+    }
+
+    // Set up the player actor
+    player->SetOwningClientID(owningClientID);
+    player->SetNetRole(ENetRole::Authority);
+
+    // Notify the game mode of the new player
+    // GetGameMode().OnPlayerJoined(player);
+
+    // Set the owning client ID for the RPC
+    SetOwningClientID(owningClientID);
+
+    // Prepare the RPC to spawn the player on the client
+    this->SpawnPlayerRPC(
+        owningClientID, player->GetUUID(), player->GetTransform()
+    );
+
+    // Reset the owning client ID
+    SetOwningClientID(0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
