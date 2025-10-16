@@ -26,7 +26,7 @@ void Snapshot::SetupFromWorld(const UWorld& world)
     for (const auto& actorPtr: worldActors)
     {
         // Skip null or inactive actors
-        if (actorPtr == nullptr || !actorPtr->IsActive()) { continue; }
+        if (!actorPtr || !actorPtr->IsActive()) { continue; }
 
         // Create an ActorState for each actor
         ActorState state;
@@ -45,6 +45,9 @@ void Snapshot::SetupFromWorld(const UWorld& world)
             // Create the vector to hold the serialized property data
             state.properties[propName] = propPtr->Serialize();
         }
+
+        // Add the actor state to the snapshot
+        actors.push_back(std::move(state));
     }
 }
 
@@ -130,7 +133,7 @@ SizeT Snapshot::GetSize(void) const
         for (const auto& [name, data]: actor.properties)
         {
             size += sizeof(SizeT) + name.Size();   // Property name
-            size += sizeof(Byte) + data.size();    // Property data
+            size += sizeof(SizeT) + data.size();   // Property data
         }
     }
 
