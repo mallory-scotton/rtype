@@ -396,14 +396,11 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
         const auto& packet = deferredRPC.packet;
 
         // Execute the RPC directly on the world (already locked by caller)
-        auto actors = world.GetActors();
-        for (auto& actor: actors)
+        auto object = UObject::FindByUUID(UUID(packet.actorID));
+        if (object)
         {
-            if (actor && actor->GetClass()->GetName() == "BP_Player")
-            {
-                auto rpc = actor->GetFunction(packet.functionName);
-                if (rpc) { rpc->Execute(packet.parameters); }
-            }
+            auto rpc = object->GetFunction(packet.functionName);
+            if (rpc) { rpc->Execute(packet.parameters); }
         }
 
         localQueue.pop();
