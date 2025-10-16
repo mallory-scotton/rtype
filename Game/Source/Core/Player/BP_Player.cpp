@@ -33,7 +33,11 @@ BP_Player::BP_Player(UInt32 playerColor)
       )
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
+    , m_lastPosition(FVector3::Zero)
 {
+    // Enable transform replication for networked movement
+    SetTransformReplicated(true);
+
     auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
     Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
 
@@ -94,45 +98,66 @@ void BP_Player::SetupAnimations(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::Tick(Float32 deltaTime)
 {
-    // Determine how to handle movement based on network role
+    // For locally controlled players, use input velocity
     if (IsLocallyControlled())
     {
-        // Use client-side prediction
-        // (Movement input handled in BP_PlayerController)
+        // Build input vector from velocity
+        FVector3 inputVector(velocity->x, velocity->y, 0.0f);
+
+        // Normalize and scale the input if there is movement
+        FVector3 scaledInput = FVector3::Zero;
+        if (inputVector.Length() > 0.0f)
+        {
+            // Normalize the input vector
+            FVector3 normalizedInput = inputVector.Normalized();
+
+            // Scale by speed
+            scaledInput = normalizedInput * speed();
+        }
+
+        // ALWAYS call ApplyMovement, even with zero input
+        // This ensures stop commands are sent to the server
+        ApplyMovement(scaledInput, deltaTime);
     }
-    else if (IsAuthority())
+    else if (!IsAuthority())
     {
-        // Server authoritative movement
-        // (Processed via ServerMove RPC)
-    }
-    else
-    {
-        // Simulated proxy - just interpolate replicated position
-        // (Handled automatically by replication system)
+        // For simulated proxies (other players we see),
+        // calculate velocity from movement for animations
+        // The movement is already being interpolated by AActor::Tick
+
+        FVector3 currentPosition = GetTransform().GetPosition();
+
+        // Calculate movement delta from last frame
+        FVector3 movementDelta = currentPosition - m_lastPosition;
+
+        // Update velocity property for animation (normalized direction)
+        if (movementDelta.Length() > 0.01f && deltaTime > 0.0f)
+        {
+            FVector3 velocityDir = movementDelta / deltaTime;
+            // Normalize to -1 to 1 range for animation
+            Float32 maxSpeed = speed();
+            if (maxSpeed > 0.0f)
+            {
+                velocity->x = Math<Float32>::Clamp(
+                    velocityDir.x / maxSpeed, -1.0f, 1.0f
+                );
+                velocity->y = Math<Float32>::Clamp(
+                    velocityDir.y / maxSpeed, -1.0f, 1.0f
+                );
+            }
+        }
+        else { velocity = FVector2f::Zero; }
+
+        // Update last position for next frame
+        m_lastPosition = currentPosition;
     }
 
-    // Call original tick for animations and other logic
+    // Call parent tick for components (handles interpolation for simulated
+    // proxies)
     Super::Tick(deltaTime);
 
     // Add time to last fired time
     m_lastFiredTime += deltaTime;
-
-    // Move player based on velocity and speed
-    if (velocity() != 0.0f)
-    {
-        // Normalize velocity to ensure consistent speed in all directions
-        if (velocity().Length() != 0.0f)
-        {
-            velocity = velocity().Normalized();
-        }
-
-        // Update transform
-        Translate(FVector3(
-            velocity->x * (speed * 1.5f) * deltaTime,
-            velocity->y * speed * deltaTime,
-            0.0f
-        ));
-    }
 
     // Update animation state based on movement
     UpdateAnimationState();
@@ -140,8 +165,8 @@ void BP_Player::Tick(Float32 deltaTime)
     // Update last velocity if there is movement
     if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
 
-    // Reset velocity for next frame
-    velocity = FVector2f::Zero;
+    // Reset velocity for next frame (only for locally controlled)
+    if (IsLocallyControlled()) { velocity = FVector2f::Zero; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -220,6 +245,27 @@ void BP_Player::MoveVertical(Float32 value)
 {
     value = Math<float>::Clamp(value, -1.0f, 1.0f);
     velocity->y += value;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FTransform BP_Player::SimulateMovement(
+    const FVector3& inputVector,
+    Float32 deltaTime,
+    const FTransform& startTransform
+)
+{
+    // Create result transform from start
+    FTransform result = startTransform;
+
+    // Apply movement with player's speed
+    if (inputVector.Length() > 0.0f)
+    {
+        // Input is already scaled by speed in Tick, so just apply directly
+        FVector3 movement = inputVector * deltaTime;
+        result.Translate(movement);
+    }
+
+    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
