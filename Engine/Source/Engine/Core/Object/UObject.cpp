@@ -129,8 +129,7 @@ void UObject::SetName(const FString& name) { m_name = name; }
 ///////////////////////////////////////////////////////////////////////////////
 Bool UObject::IsLocallyControlled(void) const
 {
-    // TODO: Add proper locally controller check
-    return true;
+    return m_netRole == ENetRole::AutonomousProxy;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
