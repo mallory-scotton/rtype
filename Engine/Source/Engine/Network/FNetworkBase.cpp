@@ -202,8 +202,9 @@ bool FNetworkBase::SendReliablePacket(
     if (!m_socket || !m_running) { return false; }
 
     // Serialize packet with Reliable flag
-    auto data =
-        m_packetManager.SerializePacket(packet, EPacketFlags::Reliable);
+    auto data = m_packetManager.SerializePacket(
+        packet, static_cast<UInt8>(EPacketFlags::Reliable)
+    );
     if (data.empty()) { return false; }
 
     // Deserialize header to get sequence number
@@ -322,7 +323,7 @@ void FNetworkBase::ProcessReceivedData(
     }
 
     // Handle reliable packet acknowledgment
-    if (header.flags == static_cast<UInt16>(EPacketFlags::Reliable))
+    if (header.HasFlag(EPacketFlags::Reliable))
     {
         // Send acknowledgment for reliable packets
         Packets::Acknowledgment ackPacket;

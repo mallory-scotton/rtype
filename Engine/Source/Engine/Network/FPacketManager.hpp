@@ -67,7 +67,8 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::vector<UInt8> SerializePacket(
-        const IPacket& packet, EPacketFlags flags = EPacketFlags::None
+        const IPacket& packet,
+        UInt8 flags = static_cast<UInt8>(EPacketFlags::None)
     );
 
     ///////////////////////////////////////////////////////////////////////////
