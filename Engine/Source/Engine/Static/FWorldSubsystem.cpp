@@ -173,4 +173,25 @@ void FWorldSubsystem::ThreadLoop(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+const AGameMode& FWorldSubsystem::GetGameMode(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::vector<ULevel>& FWorldSubsystem::GetLoadedLevels(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetLoadedLevels();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ULevel* FWorldSubsystem::GetCurrentLevel(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetCurrentLevel();
+}
+
 }   // namespace tkd::__internal
