@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Core/Object/IFunction.hpp>
+#include <Engine/Core/Utils/FLogger.hpp>
 #include <Engine/Network/FBinaryReader.hpp>
 #include <Engine/Network/FBinaryWriter.hpp>
 #include <Engine/Static/FNetworkInterface.hpp>
@@ -45,6 +46,7 @@ private:
     UObject& m_owner;   //<! Owner object
     Type m_function;    //<! Function object
     ERPCType m_rpc;     //<! RPC type
+    bool m_reliable;    //<! Is the RPC reliable
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -60,12 +62,14 @@ public:
         UObject& owner,
         const FString& name,
         ERPCType rpc = ERPCType::None,
-        const Type& function = nullptr
+        const Type& function = nullptr,
+        bool reliable = false
     )
         : m_name(name)
         , m_owner(owner)
         , m_function(function)
         , m_rpc(rpc)
+        , m_reliable(reliable)
     {
         owner.RegisterFunction(this);
 
@@ -285,7 +289,8 @@ private:
         // Send the RPC packet
         if (m_rpc == ERPCType::Server || m_rpc == ERPCType::Multicast)
         {
-            Network::SendPacket(rpc);
+            if (m_reliable) { Network::SendReliablePacket(rpc); }
+            else { Network::SendPacket(rpc); }
         }
         else
         {
@@ -296,7 +301,11 @@ private:
 
                 if (info && info->connected)
                 {
-                    Network::SendPacket(rpc, info->endpoint);
+                    if (m_reliable)
+                    {
+                        Network::SendReliablePacket(rpc, info->endpoint);
+                    }
+                    else { Network::SendPacket(rpc, info->endpoint); }
                 }
             }
         }
