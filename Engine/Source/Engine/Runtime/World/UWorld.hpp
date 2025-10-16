@@ -108,7 +108,18 @@ public:
         T* actor = dynamic_cast<T*>(instance);
         if (actor == nullptr)
         {
-            delete instance;
+            // Use shared_ptr with custom deleter to properly destroy the
+            // object
+            std::shared_ptr<UObject>(
+                instance,
+                [](UObject* obj)
+                {
+                    // If UObject has a proper cleanup method, call it here
+                    // Otherwise, this will call the correct destructor through
+                    // the actual type
+                    delete static_cast<AActor*>(obj);
+                }
+            );
             return nullptr;
         }
 
