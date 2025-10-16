@@ -80,7 +80,8 @@ std::vector<UInt8>
     header.checksum =
         CalculateChecksum(checksumBuffer.data(), checksumBuffer.size());
 
-    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+    SizeT checksumOffset =
+        sizeof(UInt32) * 4 + sizeof(UInt16) * 2 + sizeof(UInt8);
     std::memcpy(
         buffer.data() + checksumOffset, &header.checksum, sizeof(UInt32)
     );
@@ -95,7 +96,8 @@ bool FPacketManager::ValidateChecksum(
 {
     std::vector<UInt8> checksumBuffer;
 
-    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+    SizeT checksumOffset =
+        sizeof(UInt32) * 4 + sizeof(UInt16) * 2 + sizeof(UInt8);
 
     checksumBuffer.insert(checksumBuffer.end(), data, data + checksumOffset);
 
