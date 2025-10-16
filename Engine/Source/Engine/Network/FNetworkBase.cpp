@@ -378,6 +378,8 @@ void FNetworkBase::FlushPackets(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
 {
+    TKD_UNUSED(world);
+
     // Process all queued RPCs
     // IMPORTANT: This is called from UWorld::Tick(), which already holds
     // m_worldMutex The world is passed as a parameter to avoid re-locking
