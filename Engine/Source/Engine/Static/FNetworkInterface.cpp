@@ -362,4 +362,16 @@ void FNetworkInterface::ProcessDeferredRPCs(UWorld& world)
     s_networkSubsystem->ProcessDeferredRPCs(world);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+UInt32 FNetworkInterface::GetClientID(void)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_networkSubsystem == nullptr) { return 0; }
+
+    FNetworkClient* client = s_networkSubsystem->GetClient();
+    if (client == nullptr) { return 0; }
+
+    return client->GetClientID().value_or(0);
+}
+
 }   // namespace tkd
