@@ -45,6 +45,7 @@ public:
     {
         UInt32 timestamp;            //<! Time of the move
         Float32 deltaTime;           //<! Time since the last move
+        Float32 clientTime;          //<! Client time when move was generated
         FVector3 inputVector;        //<! Input vector for this move
         FTransform startTransform;   //<! Transform before the move
         FTransform endTransform;     //<! Transform after the move
@@ -56,6 +57,7 @@ public:
         FMoveData(void)
             : timestamp(0)
             , deltaTime(0.0f)
+            , clientTime(0.0f)
             , inputVector(FVector3::Zero)
             , startTransform(FTransform::Identity)
             , endTransform(FTransform::Identity)
@@ -66,6 +68,7 @@ public:
         ///
         /// \param ts The timestamp of the move
         /// \param dt The delta time since the last move
+        /// \param ct The client time when move was generated
         /// \param input The input vector for this move
         /// \param start The starting transform before the move
         /// \param end The ending transform after the move
@@ -74,12 +77,14 @@ public:
         FMoveData(
             UInt32 ts,
             Float32 dt,
+            Float32 ct,
             const FVector3& input,
             const FTransform& start,
             const FTransform& end
         )
             : timestamp(ts)
             , deltaTime(dt)
+            , clientTime(ct)
             , inputVector(input)
             , startTransform(start)
             , endTransform(end)
@@ -117,6 +122,12 @@ private:
     FTransform m_interpolationTarget;   //<! Target transform for interpolation
     Float32 m_interpolationAlpha;       //<! Current interpolation alpha [0-1]
     Float32 m_interpolationDuration;    //<! Duration of interpolation
+    FVector3 m_extrapolationVelocity;   //<! Velocity for extrapolation
+
+    // Network timing
+    Float32 m_clientTime;           //<! Client-side time accumulator
+    Float32 m_estimatedRTT;         //<! Estimated round-trip time
+    Float32 m_lastMoveClientTime;   //<! Client time of last move sent
 
     // Network configuration
     static constexpr UInt32 MAX_PENDING_MOVES = 32;   //<! Max buffered moves
@@ -126,6 +137,8 @@ private:
         0.1f;    //<! Keep-alive update rate (100ms)
     static constexpr Float32 INTERPOLATION_TIME =
         0.1f;    //<! Interpolation duration
+    static constexpr Float32 EXTRAPOLATION_LIMIT =
+        0.25f;   //<! Max time to extrapolate (250ms)
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -135,9 +148,9 @@ public:
     UFunction<AActor*> OnActorEndOverlap;
 
     // Movement RPCs
-    UFunction<UInt32, Float32, FVector3, FTransform> ServerMoveRPC;
-    UFunction<UInt32, FTransform> ClientAckMoveRPC;
-    UFunction<FTransform, FVector3>
+    UFunction<UInt32, Float32, Float32, FVector3, FTransform> ServerMoveRPC;
+    UFunction<UInt32, Float32, FTransform> ClientAckMoveRPC;
+    UFunction<FTransform, FVector3, Float32>
         MulticastMoveRPC;   //<! Replicate movement to all clients
 
 public:
@@ -169,6 +182,7 @@ private:
     ///
     /// \param timestamp The timestamp of the move
     /// \param deltaTime The time elapsed for this move
+    /// \param clientTime The client time when move was generated
     /// \param inputVector The input vector for this move
     /// \param clientTransform The client's predicted transform
     ///
@@ -176,6 +190,7 @@ private:
     void RPC_ServerMove(
         UInt32 timestamp,
         Float32 deltaTime,
+        Float32 clientTime,
         const FVector3& inputVector,
         const FTransform& clientTransform
     );
@@ -184,11 +199,13 @@ private:
     /// \brief Client RPC to acknowledge movement and correct position
     ///
     /// \param timestamp The timestamp of the acknowledged move
+    /// \param serverTime The server time when processing this move
     /// \param serverTransform The authoritative server transform
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void
-        RPC_ClientAckMove(UInt32 timestamp, const FTransform& serverTransform);
+    void RPC_ClientAckMove(
+        UInt32 timestamp, Float32 serverTime, const FTransform& serverTransform
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Reconcile client prediction with server state
@@ -206,10 +223,13 @@ private:
     ///
     /// \param newTransform The new transform to replicate
     /// \param velocity The current velocity/input vector
+    /// \param serverTime The server time when this update was sent
     ///
     ///////////////////////////////////////////////////////////////////////////
     void RPC_MulticastMove(
-        const FTransform& newTransform, const FVector3& velocity
+        const FTransform& newTransform,
+        const FVector3& velocity,
+        Float32 serverTime
     );
 
 public:
