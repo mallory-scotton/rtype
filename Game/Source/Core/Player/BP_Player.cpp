@@ -19,13 +19,17 @@ BP_Player::BP_Player(UInt32 playerColor)
           *this,
           "ServerFire",
           ERPCType::Server,
-          std::bind(&BP_Player::RPC_ServerFire, this)
+          std::bind(&BP_Player::RPC_ServerFire, this),
+          true
       )
     , MulticastFire(
           *this,
           "MulticastFire",
           ERPCType::Multicast,
-          std::bind(&BP_Player::RPC_MulticastFire, this, std::placeholders::_1)
+          std::bind(
+              &BP_Player::RPC_MulticastFire, this, std::placeholders::_1
+          ),
+          true
       )
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
