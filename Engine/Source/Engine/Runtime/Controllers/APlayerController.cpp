@@ -14,7 +14,9 @@ namespace tkd
 APlayerController::APlayerController(const FString& name)
     : AController(name)
     , m_inputManager(nullptr)
-{}
+{
+    SetUUID(UUID::Fill(1));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 APlayerController::~APlayerController() { ClearInputBindings(); }
