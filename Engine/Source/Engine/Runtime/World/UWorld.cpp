@@ -285,10 +285,16 @@ void UWorld::RPC_SpawnActor(
     UInt32 owningClientID
 )
 {
+    // Find the class by name
     UClass* actorClass = UClass::FindClass(className);
 
+    // Check if the class is valid
     if (actorClass == nullptr) { return; }
 
+    // Check if the RPC is for the local client (to avoid duplicate spawns)
+    if (Network::GetClientID() == owningClientID) { return; }
+
+    // Spawn the actor
     auto actor = SpawnActor(actorClass, transform);
     if (actor)
     {
@@ -357,8 +363,17 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
     // Check if the class is valid
     if (plyrClass == nullptr) { return; }
 
+    // ? BEGIN TEMPORARY
+    FTransform transform = FTransform::Identity;
+    transform.SetPosition(TVector3<float>(
+        static_cast<float>(std::rand() % 500 - 250),
+        static_cast<float>(std::rand() % 500 - 250),
+        0.0f
+    ));
+    // ? END TEMPORARY
+
     // Spawn the player actor
-    auto playerObj = SpawnActor(plyrClass, FTransform::Identity);
+    auto playerObj = SpawnActor(plyrClass, transform);
     auto player = playerObj->As<APawn>();
 
     // Check if the actor was spawned successfully
@@ -382,6 +397,16 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
     this->SpawnPlayerRPC(
         owningClientID, player->GetUUID(), player->GetTransform()
     );
+
+    // Also spawn the actor for all other clients
+    this->SpawnActorRPC.SetRPCType(ERPCType::Multicast);
+    this->SpawnActorRPC(
+        plyrClass->GetName(),
+        player->GetTransform(),
+        player->GetUUID(),
+        owningClientID
+    );
+    this->SpawnActorRPC.SetRPCType(ERPCType::Client);
 
     // Reset the owning client ID
     SetOwningClientID(0);
