@@ -12,7 +12,7 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 UWorld::UWorld(const FString& name)
-    : UObject(name)
+    : UObject(name, UUID() /* UUID 0000-0000-0000 */)
     , m_actors()
     , m_worldTime(0.0f)
 {
@@ -27,7 +27,7 @@ UWorld::UWorld(const FString& name)
             {
                 ULevel* level = dynamic_cast<ULevel*>(instance);
                 if (level) { m_loadedLevels.push_back(*level); }
-                delete instance;
+                delete static_cast<ULevel*>(instance);
             }
         }
     }
