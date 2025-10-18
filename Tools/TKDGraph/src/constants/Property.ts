@@ -27,7 +27,7 @@ export function generatePropertySetter(entry: PropertyEntry): NodeTemplate {
         { id: '', type: entry.type }
       ]
     },
-    snippet: `{RESULT} = {A};`,
+    snippet: `{INPUT_2} = {OUTPUT_2};\n{OUTPUT_1}`,
     tags: ['property', 'setter', entry.type]
   };
 }
@@ -50,7 +50,7 @@ export function generatePropertyGetter(entry: PropertyEntry): NodeTemplate {
       inputs: [],
       outputs: [{ id: '', type: entry.type, label: entry.name }]
     },
-    snippet: `${entry.type} {RESULT} = {A};`,
+    snippet: `${entry.type} {OUTPUT_1} = UProperty_${entry.name};`,
     tags: ['property', 'getter', entry.type]
   };
 }
