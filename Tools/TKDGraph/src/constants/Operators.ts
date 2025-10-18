@@ -64,10 +64,10 @@ function generateOperator(inputs: PinType[], output: PinType, operator: string):
       type: 'operator'
     },
     tags: tags,
-    snippet: `${convertPinTypeToEngineType(output)} {RESULT} = ${
+    snippet: `${convertPinTypeToEngineType(output)} {OUTPUT_1} = ${
       inputs.length > 1
-        ? inputs.map((_, index) => `{${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[index]}}`).join(` ${snippetOperator} `)
-        : `${snippetOperator}{A}`
+        ? inputs.map((_, index) => `{INPUT_${index + 1}}`).join(` ${snippetOperator} `)
+        : `${snippetOperator}{INPUT_1}`
     };`
   };
 }
