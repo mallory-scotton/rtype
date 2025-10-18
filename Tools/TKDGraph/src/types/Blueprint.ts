@@ -24,6 +24,7 @@ export type BlueprintType =
  */
 export interface NodeEntry {
   data: NodeData;
+  template: string;
   position: { x: number; y: number };
   dimensions?: { width: number; height: number };
 }
