@@ -1,6 +1,6 @@
 /** Dependencies */
 import type { PinType } from '../types';
-import type { NodeTemplate } from '../utils/NodeRegistry';
+import type { NodeTemplate } from '../utils';
 import { convertPinTypeToEngineType, convertOperatorSymbolToSnippetOperator } from '../utils';
 
 /**
