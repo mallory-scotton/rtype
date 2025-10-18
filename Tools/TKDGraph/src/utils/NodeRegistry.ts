@@ -177,7 +177,7 @@ export class NodeRegistry {
    * @returns A unique string ID
    */
   generateUniqueId(prefix: string = 'bue-'): string {
-    return `${prefix}${Math.random().toString(36).substr(2, 18)}`;
+    return `${prefix}${Math.random().toString(36).substring(2, 18)}${Math.random().toString(36).substring(2, 18)}`;
   }
 
   /**
