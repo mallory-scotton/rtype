@@ -160,3 +160,50 @@ export const Operators: NodeTemplate[] = [
   generateOperator(['name', 'name'], 'bool', '=='),
   generateOperator(['name', 'name'], 'bool', '!=')
 ];
+
+/**
+ * @brief Generates a cast operator node template.
+ * @param input - The input pin type.
+ * @param output - The output pin type.
+ * @returns The generated node template.
+ */
+function generateCastOperator(input: PinType, output: PinType): NodeTemplate {
+  return {
+    id: `cast_${input}_to_${output}`,
+    name: `Cast ${input} to ${output}`,
+    category: 'Operators',
+    data: {
+      id: '',
+      roundedBg: true,
+      inputs: [{ id: '', type: input }],
+      outputs: [{ id: '', type: output }],
+      type: 'cast'
+    },
+    tags: ['operator', 'cast', `${input}_to_${output}`],
+    snippet: `${convertPinTypeToEngineType(output)} {RESULT} = static_cast<${convertPinTypeToEngineType(output)}>({A});`
+  };
+}
+
+/**
+ * @brief List of cast operator node templates.
+ */
+export const CastOperators: NodeTemplate[] = [
+  ...['float', 'int', 'real', 'byte', 'bool']
+    .map((fromType) => {
+      return ['float', 'int', 'real', 'byte', 'bool']
+        .filter((toType) => fromType !== toType)
+        .map((toType) => {
+          return generateCastOperator(fromType as PinType, toType as PinType);
+        });
+    })
+    .reduce((acc, val) => acc.concat(val), []),
+  ...['float', 'int', 'real', 'byte', 'bool'].map((fromType) => {
+    return generateCastOperator(fromType as PinType, 'string');
+  }),
+  ...['float', 'int', 'real', 'byte', 'bool'].map((fromType) => {
+    return generateCastOperator(fromType as PinType, 'text');
+  }),
+  ...['float', 'int', 'real', 'byte', 'bool'].map((fromType) => {
+    return generateCastOperator(fromType as PinType, 'name');
+  })
+];
