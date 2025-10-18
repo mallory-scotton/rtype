@@ -79,7 +79,7 @@ export const FlowControl: NodeTemplate[] = [
       ],
       label: 'Do N'
     },
-    snippet: `for (int i = 0; i < {N}; i++)\n{\n{LOOP_BODY}\n}`
+    snippet: `for (int i = 0; i < {INTPUT_2}; i++)\n{\n{OUTPUT_1}\n}\n{OUTPUT_2}`
   },
   {
     id: 'flow_is_valid',
