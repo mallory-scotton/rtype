@@ -30,5 +30,6 @@ export interface PinData {
   type: PinType;
   label?: string;
   filled?: boolean;
+  value?: any;
   noMarginBottom?: boolean;
 }
