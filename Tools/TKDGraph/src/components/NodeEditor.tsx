@@ -2,6 +2,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { BlueprintCanvas } from './BlueprintCanvas';
 import { BlueprintExplorer } from './BlueprintExplorer';
+import { PropertyDrawer } from './PropertyDrawer';
 import { EditorContext } from '../context';
 
 /**
@@ -53,26 +54,22 @@ export const NodeEditor: React.FC = () => {
   return (
     <div id='blueprint-render-playground'>
       <div className='bue-render'>
-        <div className='frame'>
+        <div className='frame-header'>
+          <button
+            className='frame-header__back-btn'
+            onClick={() => setCurrentBlueprintIndex(-1)}
+            title='Back to Blueprint Explorer'
+          >
+            ← Back
+          </button>
+          <span className='frame-header__blueprint-name'>{currentBlueprint.className}</span>
+          {showSavedIndicator && <span className='frame-header__auto-save-indicator'>✓ Auto-saved</span>}
+          <button className='frame-header__save-btn' onClick={handleSaveBlueprint} title='Save blueprint to JSON file'>
+            💾 Save
+          </button>
+        </div>
+        <div className='frame' style={{ left: '280px', right: '380px' }}>
           <BlueprintCanvas />
-          <div className='frame-header'>
-            <button
-              className='frame-header__back-btn'
-              onClick={() => setCurrentBlueprintIndex(-1)}
-              title='Back to Blueprint Explorer'
-            >
-              ← Back
-            </button>
-            <span className='frame-header__blueprint-name'>{currentBlueprint.className}</span>
-            {showSavedIndicator && <span className='frame-header__auto-save-indicator'>✓ Auto-saved</span>}
-            <button
-              className='frame-header__save-btn'
-              onClick={handleSaveBlueprint}
-              title='Save blueprint to JSON file'
-            >
-              💾 Save
-            </button>
-          </div>
           <div className='blueprint-type'>{currentBlueprint.type}</div>
           <div className='panel'></div>
           <div className='overlay' style={{ display: 'none' }}>
@@ -80,6 +77,7 @@ export const NodeEditor: React.FC = () => {
           </div>
         </div>
       </div>
+      <PropertyDrawer isOpen={true} />
     </div>
   );
 };

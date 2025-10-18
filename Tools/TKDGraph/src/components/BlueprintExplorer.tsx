@@ -15,7 +15,17 @@ export const BlueprintExplorer: React.FC = () => {
   const [newBlueprintType, setNewBlueprintType] = useState<BlueprintType>('AActor');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const blueprintTypes: BlueprintType[] = ['AActor', 'APawn', 'AGameMode', 'AHud', 'UActorComponent'];
+  const blueprintTypes: BlueprintType[] = [
+    'AActor',
+    'APawn',
+    'AGameMode',
+    'AHud',
+    'UActorComponent',
+    'AController',
+    'APlayerController',
+    'AAIController',
+    'ANetworkController'
+  ];
 
   /**
    * @brief Handle creating a new blueprint

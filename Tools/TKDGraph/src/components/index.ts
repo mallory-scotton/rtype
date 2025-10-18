@@ -6,3 +6,4 @@ export * from './ContextMenu';
 export * from './Node';
 export * from './Pin';
 export * from './NodeEditor';
+export * from './PropertyDrawer';

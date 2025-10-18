@@ -24,7 +24,8 @@
     background-color: #a6a6a6;
     height: 100%;
     overflow: hidden;
-    position: relative
+    position: relative;
+    transition: left 0.3s ease, right 0.3s ease;
 }
 
 .bue-render .layer {
@@ -2521,6 +2522,252 @@
     color: #00aaf5
 }
 
+/* PropertyDrawer Component - UE5 Dual Sidebar Style */
+
+/* Left Sidebar - Property List */
+.property-sidebar-left {
+    position: fixed;
+    left: 0;
+    top: 40px;
+    bottom: 0;
+    width: 280px;
+    background: #1e1e1e;
+    border-right: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    z-index: 900;
+}
+
+/* Right Sidebar - Details/Settings */
+.property-sidebar-right {
+    position: fixed;
+    right: 0;
+    top: 40px;
+    bottom: 0;
+    width: 380px;
+    background: #252525;
+    border-left: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+    z-index: 900;
+}
+
+/* Sidebar Headers */
+.property-sidebar-header {
+    background: #1a1a1a;
+    border-bottom: 1px solid #444;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.property-sidebar-header h3 {
+    color: #ddd;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.property-count {
+    background: #0E4C92;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Sidebar Content */
+.property-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Property List (Left Sidebar) */
+.property-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.property-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid #2a2a2a;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.property-list-item:hover {
+    background: #252525;
+}
+
+.property-list-item-icon {
+    font-size: 14px;
+    margin-right: 10px;
+    opacity: 0.7;
+}
+
+.property-list-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.property-list-item-name {
+    color: #ddd;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.property-list-item-type {
+    color: #888;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.property-list-item-delete {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.property-list-item:hover .property-list-item-delete {
+    opacity: 1;
+}
+
+.property-list-item-delete:hover {
+    background: #c93030;
+    color: #fff;
+}
+
+/* Property Sections (Right Sidebar) */
+.property-section {
+    padding: 16px;
+    border-bottom: 1px solid #333;
+}
+
+.property-section h3 {
+    color: #aaa;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin: 0 0 12px 0;
+    letter-spacing: 0.5px;
+}
+
+.property-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.property-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.property-form-group label {
+    color: #aaa;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.property-form-group input,
+.property-form-group select {
+    background: #2b2b2b;
+    border: 1px solid #444;
+    border-radius: 2px;
+    color: #ddd;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.property-form-group input:focus,
+.property-form-group select:focus {
+    outline: none;
+    border-color: #0E4C92;
+    background: #333;
+}
+
+.property-form-group input::placeholder {
+    color: #666;
+}
+
+.property-vector-inputs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.property-vector-inputs input {
+    background: #2b2b2b;
+    border: 1px solid #444;
+    border-radius: 2px;
+    color: #ddd;
+    padding: 8px 10px;
+    font-size: 13px;
+}
+
+.property-vector-inputs input:focus {
+    outline: none;
+    border-color: #0E4C92;
+    background: #333;
+}
+
+.property-add-button {
+    background: #0E4C92;
+    border: none;
+    border-radius: 2px;
+    color: #fff;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+.property-add-button:hover {
+    background: #0d5bb5;
+}
+
+.property-add-button:active {
+    background: #0a3d7a;
+}
+
+.property-add-button:disabled {
+    background: #444;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.property-empty-state {
+    color: #666;
+    font-size: 13px;
+    text-align: center;
+    padding: 40px 20px;
+    font-style: italic;
+}
+
 .bue-render .pin .connector-set.interface {
     color: #f1ffaa
 }
@@ -3594,6 +3841,29 @@
     font-weight: 400;
     color: #ddd;
     flex: 1;
+}
+
+.bue-render .frame-header__properties-btn {
+    background: #2b2b2b;
+    border: 1px solid #444;
+    color: #ddd;
+    padding: 6px 14px;
+    margin-right: 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: all;
+}
+
+.bue-render .frame-header__properties-btn:hover {
+    background: #0E4C92;
+    border-color: #0E4C92;
+    color: #fff;
 }
 
 .bue-render .frame-header__save-btn {

@@ -1,12 +1,22 @@
 /** Dependencies */
 import type { NodeData } from './Node';
 import type { Connection } from './Connection';
+import type { PinType } from './Pin';
 
 /**
  * @brief Blueprint Type enumeration
  * @description Represents a blueprint consisting of multiple nodes.
  */
-export type BlueprintType = 'AActor' | 'APawn' | 'AGameMode' | 'AHud' | 'UActorComponent';
+export type BlueprintType =
+  | 'AActor'
+  | 'APawn'
+  | 'AGameMode'
+  | 'AHud'
+  | 'UActorComponent'
+  | 'AController'
+  | 'APlayerController'
+  | 'AAIController'
+  | 'ANetworkController';
 
 /**
  * @brief Node Entry Interface
@@ -24,7 +34,7 @@ export interface NodeEntry {
  */
 export interface PropertyEntry {
   name: string;
-  type: string;
+  type: Exclude<PinType, 'exec'>;
   value: any;
   options?: Record<string, any>;
 }
