@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, type ReactElement } from 'react';
 import type { BlueprintData, CanvasTransform, NodeEntry, Connection as ConnectionType, PinDirection } from '../types';
 import { Node } from './Node';
 import { Connection } from './Connection';
+import { ContextMenu } from './ContextMenu';
 import { useContext } from 'react';
 import { EditorContext } from '../context/EditorContext';
 import { computeConnectionRenderData, computeTempConnectionRenderData } from '../utils';
@@ -48,8 +49,18 @@ export const BlueprintCanvas: React.FC = () => {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
   const handleWheel = (event: WheelEvent) => {
+    // Don't prevent default or handle wheel if we're scrolling in the context menu
+    if (contextMenu) {
+      const target = event.target as HTMLElement;
+      // Check if the target is within a context menu or scrollable area
+      if (target.closest('[data-context-menu]')) {
+        return; // Let the context menu handle its own scrolling
+      }
+    }
+
     event.preventDefault();
 
     if (!canvasRef.current) return;
@@ -85,7 +96,11 @@ export const BlueprintCanvas: React.FC = () => {
     if (event.button === 0 && !event.shiftKey) {
       const target = event.target as HTMLElement;
       // Check if click is on canvas background (not on node, pin, or connection)
-      if (target.classList.contains('canvas') || target.classList.contains('layer')) {
+      if (
+        target.classList.contains('canvas') ||
+        target.classList.contains('layer') ||
+        target.classList.contains('reference')
+      ) {
         setSelectedNodeId(null);
       }
     }
@@ -351,6 +366,98 @@ export const BlueprintCanvas: React.FC = () => {
     setSelectedNodeId(nodeId);
   };
 
+  // Handle context menu (right click)
+  const handleContextMenu = (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    // Only show context menu on canvas or reference background
+    if (target.classList.contains('canvas') || target.classList.contains('reference')) {
+      event.preventDefault();
+      setContextMenu({ x: event.clientX, y: event.clientY });
+    }
+  };
+
+  // Handle node spawn from context menu
+  const handleSpawnNode = (templateId: string) => {
+    console.log('BlueprintCanvas: handleSpawnNode called with templateId:', templateId);
+    console.log('Current state:', {
+      currentBlueprintIndex,
+      hasContextMenu: !!contextMenu,
+      hasCanvasRef: !!canvasRef.current
+    });
+
+    if (currentBlueprintIndex < 0 || !contextMenu || !canvasRef.current) {
+      console.log('BlueprintCanvas: Early return - missing requirements');
+      return;
+    }
+
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+    const template = nodeRegistry.getTemplate(templateId);
+    console.log('BlueprintCanvas: Template found:', template);
+
+    if (!template) {
+      console.log('BlueprintCanvas: Template not found for ID:', templateId);
+      return;
+    }
+
+    const nodeData = nodeRegistry.generateNodeDataFromTemplate(template);
+    console.log('BlueprintCanvas: Generated node data:', nodeData);
+
+    if (!nodeData) {
+      console.log('BlueprintCanvas: Failed to generate node data!');
+      return;
+    }
+
+    // Convert screen position to canvas position
+    const rect = canvasRef.current.getBoundingClientRect();
+    const canvasX = (contextMenu.x - rect.left - canvasTransform.translateX) / canvasTransform.scale;
+    const canvasY = (contextMenu.y - rect.top - canvasTransform.translateY) / canvasTransform.scale;
+
+    const newNode: NodeEntry = {
+      data: nodeData,
+      position: { x: canvasX, y: canvasY }
+    };
+
+    console.log('BlueprintCanvas: Creating new node at position:', newNode.position);
+
+    const updatedBlueprints = [...blueprints];
+    updatedBlueprints[currentBlueprintIndex] = {
+      ...currentBlueprint,
+      nodes: [...currentBlueprint.nodes, newNode]
+    };
+
+    console.log(
+      'BlueprintCanvas: Updating blueprints, new node count:',
+      updatedBlueprints[currentBlueprintIndex].nodes.length
+    );
+    setBlueprints(updatedBlueprints);
+    setContextMenu(null);
+  };
+
+  // Handle node deletion
+  const handleDeleteNode = (nodeId: string) => {
+    if (currentBlueprintIndex < 0) return;
+
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+
+    // Remove the node
+    const updatedNodes = currentBlueprint.nodes.filter((node) => node.data.id !== nodeId);
+
+    // Remove all connections involving this node
+    const updatedConnections = currentBlueprint.connections.filter(
+      (conn) => conn.sourceNodeId !== nodeId && conn.targetNodeId !== nodeId
+    );
+
+    const updatedBlueprints = [...blueprints];
+    updatedBlueprints[currentBlueprintIndex] = {
+      ...currentBlueprint,
+      nodes: updatedNodes,
+      connections: updatedConnections
+    };
+
+    setBlueprints(updatedBlueprints);
+    setSelectedNodeId(null);
+  };
+
   // Recompute connections whenever nodes move or connections change
   useEffect(() => {
     if (currentBlueprintIndex < 0 || !canvasRef.current) return;
@@ -427,14 +534,16 @@ export const BlueprintCanvas: React.FC = () => {
 
     canvasElement.addEventListener('wheel', handleWheel, { passive: false });
     canvasElement.addEventListener('mousedown', handleMouseDown);
+    canvasElement.addEventListener('contextmenu', handleContextMenu);
 
     return () => {
       canvasElement.removeEventListener('wheel', handleWheel);
       canvasElement.removeEventListener('mousedown', handleMouseDown);
+      canvasElement.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [canvasTransform]);
+  }, [canvasTransform, contextMenu]);
 
-  // Keyboard event listeners for ALT and CTRL keys
+  // Keyboard event listeners for ALT, CTRL, Delete, ESC, and Arrow keys
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Alt') {
@@ -442,6 +551,57 @@ export const BlueprintCanvas: React.FC = () => {
       }
       if (event.key === 'Control') {
         setIsCtrlPressed(true);
+      }
+
+      // Handle Escape key to close context menu
+      if (event.key === 'Escape' && contextMenu) {
+        event.preventDefault();
+        setContextMenu(null);
+      }
+
+      // Handle Delete key
+      if (event.key === 'Delete' && selectedNodeId) {
+        event.preventDefault();
+        handleDeleteNode(selectedNodeId);
+      }
+
+      // Handle arrow keys for moving selected node
+      if (selectedNodeId && currentBlueprintIndex >= 0) {
+        const currentBlueprint = blueprints[currentBlueprintIndex];
+        const selectedNode = currentBlueprint.nodes.find((node) => node.data.id === selectedNodeId);
+
+        if (selectedNode) {
+          let moved = false;
+          let newPosition = { ...selectedNode.position };
+          const moveAmount = event.shiftKey ? 10 : 1; // Hold shift for larger movements
+
+          switch (event.key) {
+            case 'ArrowUp':
+              event.preventDefault();
+              newPosition.y -= moveAmount;
+              moved = true;
+              break;
+            case 'ArrowDown':
+              event.preventDefault();
+              newPosition.y += moveAmount;
+              moved = true;
+              break;
+            case 'ArrowLeft':
+              event.preventDefault();
+              newPosition.x -= moveAmount;
+              moved = true;
+              break;
+            case 'ArrowRight':
+              event.preventDefault();
+              newPosition.x += moveAmount;
+              moved = true;
+              break;
+          }
+
+          if (moved) {
+            handleNodePositionChange(selectedNodeId, newPosition);
+          }
+        }
       }
     };
 
@@ -462,7 +622,7 @@ export const BlueprintCanvas: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [selectedNodeId, currentBlueprintIndex, blueprints, contextMenu]);
 
   // Initialize blueprint on mount if needed
   useEffect(() => {
@@ -615,6 +775,16 @@ export const BlueprintCanvas: React.FC = () => {
         {tempConnection}
         {nodes}
       </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          position={contextMenu}
+          nodeRegistry={nodeRegistry}
+          onSpawnNode={handleSpawnNode}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 };

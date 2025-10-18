@@ -109,12 +109,18 @@ export const Node: React.FC<NodeProps> = ({
       onPositionChange?.(data.id, { x: newX, y: newY });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (event: MouseEvent) => {
       setIsDragging(false);
 
+      // Calculate final position based on mouse position at mouseup (not currentPosition)
+      const deltaX = (event.clientX - dragStartPos.current.x) / scale;
+      const deltaY = (event.clientY - dragStartPos.current.y) / scale;
+      const finalX = nodeStartPos.current.x + deltaX;
+      const finalY = nodeStartPos.current.y + deltaY;
+
       // Snap to grid on mouse up
-      const snappedX = snapToGrid(currentPosition.x, 16);
-      const snappedY = snapToGrid(currentPosition.y, 16);
+      const snappedX = snapToGrid(finalX, 16);
+      const snappedY = snapToGrid(finalY, 16);
 
       setCurrentPosition({ x: snappedX, y: snappedY });
       onPositionChange?.(data.id, { x: snappedX, y: snappedY });
@@ -128,7 +134,7 @@ export const Node: React.FC<NodeProps> = ({
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, currentPosition, data.id, onPositionChange, onDragEnd, scale]);
+  }, [isDragging, data.id, onPositionChange, onDragEnd, scale]);
 
   return (
     <div
