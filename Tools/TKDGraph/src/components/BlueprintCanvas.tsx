@@ -529,6 +529,7 @@ export const BlueprintCanvas: React.FC = () => {
     const canvasY = (contextMenu.y - rect.top - canvasTransform.translateY) / canvasTransform.scale;
 
     const newNode: NodeEntry = {
+      template: templateId,
       data: nodeData,
       position: { x: canvasX, y: canvasY }
     };
