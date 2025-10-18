@@ -4,6 +4,7 @@ import { EditorContext } from './context';
 import { NodeRegistry } from './utils';
 import { useState, useEffect } from 'react';
 import type { BlueprintData } from './types';
+import { generateCodeFromEvent } from './utils/Code';
 
 const STORAGE_KEY = 'tkd-graph-blueprints';
 const STORAGE_INDEX_KEY = 'tkd-graph-current-index';
@@ -88,6 +89,12 @@ function App() {
     addBlueprint,
     removeBlueprint
   };
+
+  // Example usage of generateCodeFromEvent
+  if (blueprints.length > 0) {
+    const code = generateCodeFromEvent(blueprints[0], 'event_tick', nodeRegistry);
+    console.log(code);
+  }
 
   return (
     <>
