@@ -56,6 +56,7 @@ export function convertPinTypeToDefaultValue(pinType: PinType): any {
     case 'vector':
     case 'rotator':
     case 'transform':
+      return '';
     case 'object':
       return null;
     default:
