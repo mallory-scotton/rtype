@@ -29,7 +29,7 @@ export const FlowControl: NodeTemplate[] = [
       ],
       label: 'Branch'
     },
-    snippet: `if ({CONDITION})\n{INDENT}{\n{INDENT+1}{TRUE}\n{INDENT}}\n{INDENT}else\n{INDENT}{\n{INDENT+1}{FALSE}\n{INDENT}}`
+    snippet: `if ({INPUT_2})\n{\n{OUTPUT_1}\n}\nelse\n{\n{OUTPUT_2}\n}`
   },
   {
     id: 'flow_sequence',
@@ -53,7 +53,7 @@ export const FlowControl: NodeTemplate[] = [
       ],
       label: 'Sequence'
     },
-    snippet: `{INPUT}\n{INDENT}{THEN_1}\n{INDENT}{THEN_2}\n{INDENT}{THEN_3}`
+    snippet: `{\n{OUTPUT_1}\n}\n{\n{OUTPUT_2}\n}\n{\n{OUTPUT_3}\n}`
   },
   {
     id: 'flow_do_n',
@@ -79,6 +79,32 @@ export const FlowControl: NodeTemplate[] = [
       ],
       label: 'Do N'
     },
-    snippet: `for (int i = 0; i < {N}; i++)\n{INDENT}{\n{INDENT+1}{LOOP_BODY}\n{INDENT}}`
+    snippet: `for (int i = 0; i < {N}; i++)\n{\n{LOOP_BODY}\n}`
+  },
+  {
+    id: 'flow_is_valid',
+    name: 'Is Valid',
+    category: 'Flow Control',
+    description: 'Checks if the input object is valid (not null).',
+    tags: ['flow', 'is valid', 'null check'],
+    data: {
+      id: '',
+      type: 'function',
+      header: {
+        label: 'Is Valid',
+        type: 'macro',
+        icon: 'isvalid'
+      },
+      inputs: [
+        { id: '', type: 'exec', label: 'Exec' },
+        { id: '', type: 'object', label: 'Input Object' }
+      ],
+      outputs: [
+        { id: '', type: 'exec', label: 'Is Valid' },
+        { id: '', type: 'exec', label: 'Is Not Valid' }
+      ],
+      label: 'Is Valid'
+    },
+    snippet: `if ({INPUT_2} != nullptr)\n{\n{OUTPUT_1}\n}\nelse\n{\n{OUTPUT_2}\n}`
   }
 ];
