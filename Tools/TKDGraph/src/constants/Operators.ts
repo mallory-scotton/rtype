@@ -180,7 +180,7 @@ function generateCastOperator(input: PinType, output: PinType): NodeTemplate {
       type: 'cast'
     },
     tags: ['operator', 'cast', `${input}_to_${output}`],
-    snippet: `${convertPinTypeToEngineType(output)} {RESULT} = static_cast<${convertPinTypeToEngineType(output)}>({A});`
+    snippet: `${convertPinTypeToEngineType(output)} {OUTPUT_1} = static_cast<${convertPinTypeToEngineType(output)}>({INPUT_1});`
   };
 }
 
