@@ -12,6 +12,7 @@ export interface NodeTemplate {
   description?: string;
   tags?: string[];
   data: NodeData;
+  snippet: string;
 }
 
 /**
