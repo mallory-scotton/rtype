@@ -30,7 +30,7 @@ export const VectorFunctions = [
       { type: 'float', label: 'Z' }
     ],
     tags: ['vector', 'math', 'decompose'],
-    snippet: 'Float32 {OUTPUT_1} = {INPUT_1}.x; Float32 {OUTPUT_2} = {INPUT_1}.y; Float32 {OUTPUT_3} = {INPUT_1}.z;',
+    snippet: 'Float32 {OUTPUT_1} = {INPUT_1}.x;\nFloat32 {OUTPUT_2} = {INPUT_1}.y;\nFloat32 {OUTPUT_3} = {INPUT_1}.z;',
     pure: true
   })
 ];
