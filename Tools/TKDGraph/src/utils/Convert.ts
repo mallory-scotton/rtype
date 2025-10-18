@@ -36,6 +36,34 @@ export function convertPinTypeToEngineType(pinType: PinType): string {
 }
 
 /**
+ * @brief Converts a pin type to its default value.
+ * @param pinType - The pin type to convert.
+ * @returns The default value for the given pin type.
+ */
+export function convertPinTypeToDefaultValue(pinType: PinType): any {
+  switch (pinType) {
+    case 'byte':
+    case 'int':
+    case 'float':
+    case 'real':
+      return 0;
+    case 'bool':
+      return false;
+    case 'string':
+    case 'text':
+    case 'name':
+      return '';
+    case 'vector':
+    case 'rotator':
+    case 'transform':
+    case 'object':
+      return null;
+    default:
+      return null;
+  }
+}
+
+/**
  * @brief Converts an operator symbol to its corresponding snippet operator.
  * @param operator - The operator symbol to convert.
  * @returns The corresponding snippet operator as a string.
