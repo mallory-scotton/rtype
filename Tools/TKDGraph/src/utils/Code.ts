@@ -52,6 +52,9 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
       return '';
     }
 
+    // Hold the code to place before
+    let prefixCode = '';
+
     // Process input connections first
     node.data.inputs?.forEach((inputPin, inputIdx) => {
       // Get the placeholder for this input
@@ -78,20 +81,22 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
         let value = inputPin.value || convertPinTypeToDefaultValue(inputPin.type);
         let symbol = convertPinTypeToEngineType(inputPin.type);
 
-        snippet = snippet.replace(placeholder, value === null ? 'nullptr' : `${symbol}(${value.toString()})`);
+        snippet = snippet.replaceAll(placeholder, value === null ? 'nullptr' : `${symbol}(${value.toString()})`);
         return;
       }
 
       // Check pin type
       if (inputPin.type === 'exec') {
         //? INFO: The exec input is handled recursively by the output processing
-        snippet = snippet.replace(placeholder, '');
+        snippet = snippet.replaceAll(placeholder, '');
       } else {
         const connectedNodeId =
           connectedPin.targetNodeId === nodeId ? connectedPin.sourceNodeId : connectedPin.targetNodeId;
         const code = buildCodeFromNode(connectedNodeId);
 
-        snippet = code + '\n' + snippet;
+        if (code && code.length > 0) {
+          prefixCode += code + '\n';
+        }
 
         snippet = snippet.replace(
           placeholder,
@@ -99,6 +104,9 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
         );
       }
     });
+
+    // Prepend any prefix code from inputs
+    snippet = prefixCode + snippet;
 
     // Process output connections
     node.data.outputs?.forEach((outputPin, outputIdx) => {
@@ -123,19 +131,19 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
 
       // If not connected, skip
       if (!connectedPin) {
-        snippet = snippet.replace(placeholder, '');
+        snippet = snippet.replaceAll(placeholder, '');
         return;
       }
 
       if (outputPin.type === 'exec') {
-        snippet = snippet.replace(
+        snippet = snippet.replaceAll(
           placeholder,
           buildCodeFromNode(
             connectedPin.targetNodeId === nodeId ? connectedPin.sourceNodeId : connectedPin.targetNodeId
           )
         );
       } else {
-        snippet = snippet.replace(placeholder, normalizeIds(outputPin.id));
+        snippet = snippet.replaceAll(placeholder, normalizeIds(outputPin.id));
       }
     });
 
