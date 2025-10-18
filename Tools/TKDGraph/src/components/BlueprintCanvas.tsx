@@ -506,32 +506,20 @@ export const BlueprintCanvas: React.FC = () => {
 
   // Handle node spawn from context menu
   const handleSpawnNode = (templateId: string) => {
-    console.log('BlueprintCanvas: handleSpawnNode called with templateId:', templateId);
-    console.log('Current state:', {
-      currentBlueprintIndex,
-      hasContextMenu: !!contextMenu,
-      hasCanvasRef: !!canvasRef.current
-    });
-
     if (currentBlueprintIndex < 0 || !contextMenu || !canvasRef.current) {
-      console.log('BlueprintCanvas: Early return - missing requirements');
       return;
     }
 
     const currentBlueprint = blueprints[currentBlueprintIndex];
     const template = nodeRegistry.getTemplate(templateId);
-    console.log('BlueprintCanvas: Template found:', template);
 
     if (!template) {
-      console.log('BlueprintCanvas: Template not found for ID:', templateId);
       return;
     }
 
     const nodeData = nodeRegistry.generateNodeDataFromTemplate(template);
-    console.log('BlueprintCanvas: Generated node data:', nodeData);
 
     if (!nodeData) {
-      console.log('BlueprintCanvas: Failed to generate node data!');
       return;
     }
 
@@ -545,18 +533,12 @@ export const BlueprintCanvas: React.FC = () => {
       position: { x: canvasX, y: canvasY }
     };
 
-    console.log('BlueprintCanvas: Creating new node at position:', newNode.position);
-
     const updatedBlueprints = [...blueprints];
     updatedBlueprints[currentBlueprintIndex] = {
       ...currentBlueprint,
       nodes: [...currentBlueprint.nodes, newNode]
     };
 
-    console.log(
-      'BlueprintCanvas: Updating blueprints, new node count:',
-      updatedBlueprints[currentBlueprintIndex].nodes.length
-    );
     setBlueprints(updatedBlueprints);
     setContextMenu(null);
   };

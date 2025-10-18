@@ -35,7 +35,6 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, nodeRegistry
 
   // Handle node selection
   const handleSelectNode = (templateId: string, templateName: string) => {
-    console.log('ContextMenu: Selected template:', templateName, 'ID:', templateId);
     onSpawnNode(templateId);
   };
 
@@ -178,7 +177,6 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, nodeRegistry
                   onMouseDown={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log('ContextMenu: MouseDown on template:', template.name, 'ID:', template.id);
                     handleSelectNode(template.id, template.name);
                   }}
                 >

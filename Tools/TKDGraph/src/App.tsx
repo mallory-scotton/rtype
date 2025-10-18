@@ -18,7 +18,6 @@ function App() {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        console.log('Loaded blueprints from localStorage:', parsed.length);
         return parsed;
       }
     } catch (error) {
@@ -57,7 +56,6 @@ function App() {
     try {
       if (blueprints.length > 0) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(blueprints));
-        console.log('Auto-saved blueprints to localStorage:', blueprints.length);
       } else {
         // Clear storage if no blueprints
         localStorage.removeItem(STORAGE_KEY);
