@@ -20,7 +20,7 @@ interface NodeProps {
   onConnectionEnd?: (pinId: string, direction: PinDirection, pinType: string) => void;
   onPinHover?: (pinId: string, direction: PinDirection, pinType: string, isHovering: boolean) => void;
   onDisruptConnection?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onClick?: (nodeId: string) => void;
+  onClick?: (nodeId: string, event?: React.MouseEvent) => void;
   scale?: number;
   isCtrlPressed?: boolean;
 }
@@ -87,7 +87,7 @@ export const Node: React.FC<NodeProps> = ({
     }
 
     event.stopPropagation();
-    onClick?.(data.id);
+    onClick?.(data.id, event);
     setIsDragging(true);
     dragStartPos.current = { x: event.clientX, y: event.clientY };
     nodeStartPos.current = { ...currentPosition };

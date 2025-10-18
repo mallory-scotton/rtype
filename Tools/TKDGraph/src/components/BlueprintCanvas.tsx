@@ -46,10 +46,20 @@ export const BlueprintCanvas: React.FC = () => {
   >([]);
   const [forceUpdate, setForceUpdate] = useState(0);
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
-  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
   const [isAltPressed, setIsAltPressed] = useState(false);
   const [isCtrlPressed, setIsCtrlPressed] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [multiSelectBox, setMultiSelectBox] = useState<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+  } | null>(null);
+  const isDrawingMultiSelect = useRef(false);
+  const multiSelectStartNodeIds = useRef<string[]>([]);
+  const dragStartPositions = useRef<Map<string, { x: number; y: number }>>(new Map());
+  const draggedNodeId = useRef<string | null>(null);
 
   const handleWheel = (event: WheelEvent) => {
     // Don't prevent default or handle wheel if we're scrolling in the context menu
@@ -92,16 +102,38 @@ export const BlueprintCanvas: React.FC = () => {
   };
 
   const handleMouseDown = (event: MouseEvent) => {
-    // Handle left click on canvas background to deselect node
-    if (event.button === 0 && !event.shiftKey) {
-      const target = event.target as HTMLElement;
-      // Check if click is on canvas background (not on node, pin, or connection)
-      if (
-        target.classList.contains('canvas') ||
-        target.classList.contains('layer') ||
-        target.classList.contains('reference')
-      ) {
-        setSelectedNodeId(null);
+    const target = event.target as HTMLElement;
+    const isCanvasBackground =
+      target.classList.contains('canvas') ||
+      target.classList.contains('layer') ||
+      target.classList.contains('reference');
+
+    // Close context menu if clicking outside of it
+    if (contextMenu && !target.closest('[data-context-menu]')) {
+      setContextMenu(null);
+    }
+
+    // Handle left click for multi-select or deselection
+    if (event.button === 0) {
+      if (isCanvasBackground && !event.shiftKey && !event.ctrlKey) {
+        // Start multi-select box or deselect all
+        if (!canvasRef.current) return;
+
+        const rect = canvasRef.current.getBoundingClientRect();
+        const startX = (event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale;
+        const startY = (event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale;
+
+        isDrawingMultiSelect.current = true;
+        multiSelectStartNodeIds.current = [...selectedNodeIds];
+        setMultiSelectBox({
+          startX,
+          startY,
+          currentX: startX,
+          currentY: startY
+        });
+
+        // Don't deselect yet - wait to see if it's a drag or just a click
+        return;
       }
     }
 
@@ -316,12 +348,38 @@ export const BlueprintCanvas: React.FC = () => {
   // Handle node drag start
   const handleNodeDragStart = (nodeId: string) => {
     isDraggingNodeRef.current = true;
-    setSelectedNodeId(nodeId);
+    draggedNodeId.current = nodeId;
+
+    // Add to selection if not already selected
+    if (!selectedNodeIds.includes(nodeId)) {
+      setSelectedNodeIds([nodeId]);
+      // Store only this node's position
+      if (currentBlueprintIndex >= 0) {
+        const node = blueprints[currentBlueprintIndex].nodes.find((n) => n.data.id === nodeId);
+        if (node) {
+          dragStartPositions.current.clear();
+          dragStartPositions.current.set(nodeId, { ...node.position });
+        }
+      }
+    } else {
+      // Store positions of all selected nodes
+      if (currentBlueprintIndex >= 0) {
+        dragStartPositions.current.clear();
+        for (const id of selectedNodeIds) {
+          const node = blueprints[currentBlueprintIndex].nodes.find((n) => n.data.id === id);
+          if (node) {
+            dragStartPositions.current.set(id, { ...node.position });
+          }
+        }
+      }
+    }
   };
 
   // Handle node drag end
   const handleNodeDragEnd = () => {
     isDraggingNodeRef.current = false;
+    draggedNodeId.current = null;
+    dragStartPositions.current.clear();
     // Force recompute connections after drag ends
     setTimeout(() => setForceUpdate((prev) => prev + 1), 0);
   };
@@ -350,20 +408,90 @@ export const BlueprintCanvas: React.FC = () => {
     if (currentBlueprintIndex < 0) return;
 
     const currentBlueprint = blueprints[currentBlueprintIndex];
-    const updatedNodes = currentBlueprint.nodes.map((node) => (node.data.id === nodeId ? { ...node, position } : node));
 
-    const updatedBlueprints = [...blueprints];
-    updatedBlueprints[currentBlueprintIndex] = {
-      ...currentBlueprint,
-      nodes: updatedNodes
-    };
+    // If this is the dragged node and multiple nodes are selected, move all selected nodes
+    if (isDraggingNodeRef.current && draggedNodeId.current === nodeId && selectedNodeIds.length > 1) {
+      const startPos = dragStartPositions.current.get(nodeId);
+      if (!startPos) {
+        // Fallback to single node update
+        const updatedNodes = currentBlueprint.nodes.map((node) =>
+          node.data.id === nodeId ? { ...node, position } : node
+        );
 
-    setBlueprints(updatedBlueprints);
+        const updatedBlueprints = [...blueprints];
+        updatedBlueprints[currentBlueprintIndex] = {
+          ...currentBlueprint,
+          nodes: updatedNodes
+        };
+        setBlueprints(updatedBlueprints);
+        return;
+      }
+
+      // Calculate delta from the dragged node's start position
+      const deltaX = position.x - startPos.x;
+      const deltaY = position.y - startPos.y;
+
+      // Update all selected nodes
+      const updatedNodes = currentBlueprint.nodes.map((node) => {
+        if (selectedNodeIds.includes(node.data.id)) {
+          const nodeStartPos = dragStartPositions.current.get(node.data.id);
+          if (nodeStartPos) {
+            return {
+              ...node,
+              position: {
+                x: nodeStartPos.x + deltaX,
+                y: nodeStartPos.y + deltaY
+              }
+            };
+          }
+        }
+        return node;
+      });
+
+      const updatedBlueprints = [...blueprints];
+      updatedBlueprints[currentBlueprintIndex] = {
+        ...currentBlueprint,
+        nodes: updatedNodes
+      };
+      setBlueprints(updatedBlueprints);
+    } else {
+      // Single node update
+      const updatedNodes = currentBlueprint.nodes.map((node) =>
+        node.data.id === nodeId ? { ...node, position } : node
+      );
+
+      const updatedBlueprints = [...blueprints];
+      updatedBlueprints[currentBlueprintIndex] = {
+        ...currentBlueprint,
+        nodes: updatedNodes
+      };
+      setBlueprints(updatedBlueprints);
+    }
   };
 
   // Handle node click (for selection)
-  const handleNodeClick = (nodeId: string) => {
-    setSelectedNodeId(nodeId);
+  const handleNodeClick = (nodeId: string, event?: React.MouseEvent) => {
+    if (event?.ctrlKey || event?.metaKey) {
+      // Toggle selection with Ctrl
+      if (selectedNodeIds.includes(nodeId)) {
+        setSelectedNodeIds(selectedNodeIds.filter((id) => id !== nodeId));
+      } else {
+        setSelectedNodeIds([...selectedNodeIds, nodeId]);
+      }
+    } else if (event?.shiftKey) {
+      // Add to selection with Shift
+      if (!selectedNodeIds.includes(nodeId)) {
+        setSelectedNodeIds([...selectedNodeIds, nodeId]);
+      }
+    } else {
+      // If clicking on an already selected node, don't change selection (allows dragging multiple nodes)
+      // If clicking on an unselected node, replace selection
+      if (!selectedNodeIds.includes(nodeId)) {
+        setSelectedNodeIds([nodeId]);
+      }
+      // Note: If the node is already selected, we keep the current selection
+      // This allows users to drag multiple selected nodes together
+    }
   };
 
   // Handle context menu (right click)
@@ -433,18 +561,19 @@ export const BlueprintCanvas: React.FC = () => {
     setContextMenu(null);
   };
 
-  // Handle node deletion
-  const handleDeleteNode = (nodeId: string) => {
-    if (currentBlueprintIndex < 0) return;
+  // Handle nodes deletion
+  const handleDeleteNodes = (nodeIds: string[]) => {
+    if (currentBlueprintIndex < 0 || nodeIds.length === 0) return;
 
     const currentBlueprint = blueprints[currentBlueprintIndex];
+    const nodeIdsSet = new Set(nodeIds);
 
-    // Remove the node
-    const updatedNodes = currentBlueprint.nodes.filter((node) => node.data.id !== nodeId);
+    // Remove the nodes
+    const updatedNodes = currentBlueprint.nodes.filter((node) => !nodeIdsSet.has(node.data.id));
 
-    // Remove all connections involving this node
+    // Remove all connections involving these nodes
     const updatedConnections = currentBlueprint.connections.filter(
-      (conn) => conn.sourceNodeId !== nodeId && conn.targetNodeId !== nodeId
+      (conn) => !nodeIdsSet.has(conn.sourceNodeId) && !nodeIdsSet.has(conn.targetNodeId)
     );
 
     const updatedBlueprints = [...blueprints];
@@ -455,7 +584,37 @@ export const BlueprintCanvas: React.FC = () => {
     };
 
     setBlueprints(updatedBlueprints);
-    setSelectedNodeId(null);
+    setSelectedNodeIds(selectedNodeIds.filter((id) => !nodeIdsSet.has(id)));
+  };
+
+  // Handle moving multiple nodes at once (for arrow keys)
+  const handleMoveNodes = (nodeIds: string[], dx: number, dy: number) => {
+    if (currentBlueprintIndex < 0 || nodeIds.length === 0) return;
+
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+    const nodeIdsSet = new Set(nodeIds);
+
+    // Update all nodes in a single operation
+    const updatedNodes = currentBlueprint.nodes.map((node) => {
+      if (nodeIdsSet.has(node.data.id)) {
+        return {
+          ...node,
+          position: {
+            x: node.position.x + dx,
+            y: node.position.y + dy
+          }
+        };
+      }
+      return node;
+    });
+
+    const updatedBlueprints = [...blueprints];
+    updatedBlueprints[currentBlueprintIndex] = {
+      ...currentBlueprint,
+      nodes: updatedNodes
+    };
+
+    setBlueprints(updatedBlueprints);
   };
 
   // Recompute connections whenever nodes move or connections change
@@ -527,6 +686,103 @@ export const BlueprintCanvas: React.FC = () => {
     };
   }, [connectingFrom]);
 
+  // Handle multi-select box drawing
+  useEffect(() => {
+    if (!isDrawingMultiSelect.current) return;
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDrawingMultiSelect.current || !canvasRef.current || !multiSelectBox) return;
+
+      const rect = canvasRef.current.getBoundingClientRect();
+      const currentX = (event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale;
+      const currentY = (event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale;
+
+      setMultiSelectBox({
+        ...multiSelectBox,
+        currentX,
+        currentY
+      });
+
+      // Calculate selection rectangle
+      const left = Math.min(multiSelectBox.startX, currentX);
+      const top = Math.min(multiSelectBox.startY, currentY);
+      const right = Math.max(multiSelectBox.startX, currentX);
+      const bottom = Math.max(multiSelectBox.startY, currentY);
+
+      // Check which nodes intersect with the selection box
+      if (currentBlueprintIndex >= 0) {
+        const currentBlueprint = blueprints[currentBlueprintIndex];
+        const newSelectedIds: string[] = [];
+
+        for (const node of currentBlueprint.nodes) {
+          const nodeElement = canvasRef.current.querySelector(`.node[data-id="${node.data.id}"]`) as HTMLElement;
+          if (!nodeElement) continue;
+
+          const nodeRect = nodeElement.getBoundingClientRect();
+          const nodeLeft = (nodeRect.left - rect.left - canvasTransform.translateX) / canvasTransform.scale;
+          const nodeTop = (nodeRect.top - rect.top - canvasTransform.translateY) / canvasTransform.scale;
+          const nodeRight = nodeLeft + nodeRect.width / canvasTransform.scale;
+          const nodeBottom = nodeTop + nodeRect.height / canvasTransform.scale;
+
+          // Check if node overlaps with selection box
+          if (left < nodeRight && right > nodeLeft && top < nodeBottom && bottom > nodeTop) {
+            // If Ctrl is pressed and node was already selected, don't add it (inverse selection)
+            const wasAlreadySelected = multiSelectStartNodeIds.current.includes(node.data.id);
+            if (event.ctrlKey || event.metaKey) {
+              if (!wasAlreadySelected) {
+                newSelectedIds.push(node.data.id);
+              }
+            } else if (event.shiftKey) {
+              // Shift key: only add to selection if it wasn't already selected
+              if (wasAlreadySelected || !multiSelectStartNodeIds.current.includes(node.data.id)) {
+                newSelectedIds.push(node.data.id);
+              }
+            } else {
+              newSelectedIds.push(node.data.id);
+            }
+          } else {
+            // Node outside selection box
+            if (event.shiftKey && multiSelectStartNodeIds.current.includes(node.data.id)) {
+              // Keep previously selected nodes with Shift
+              newSelectedIds.push(node.data.id);
+            } else if ((event.ctrlKey || event.metaKey) && multiSelectStartNodeIds.current.includes(node.data.id)) {
+              // Keep previously selected nodes with Ctrl
+              newSelectedIds.push(node.data.id);
+            }
+          }
+        }
+
+        setSelectedNodeIds(newSelectedIds);
+      }
+    };
+
+    const handleMouseUp = () => {
+      if (!isDrawingMultiSelect.current) return;
+
+      isDrawingMultiSelect.current = false;
+
+      // If no drag happened (click), deselect all
+      if (
+        multiSelectBox &&
+        Math.abs(multiSelectBox.currentX - multiSelectBox.startX) < 2 &&
+        Math.abs(multiSelectBox.currentY - multiSelectBox.startY) < 2
+      ) {
+        setSelectedNodeIds([]);
+      }
+
+      setMultiSelectBox(null);
+      multiSelectStartNodeIds.current = [];
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [multiSelectBox, canvasTransform, currentBlueprintIndex, blueprints]);
+
   // Attach event listeners with proper cleanup
   useEffect(() => {
     const canvasElement = canvasRef.current;
@@ -559,48 +815,45 @@ export const BlueprintCanvas: React.FC = () => {
         setContextMenu(null);
       }
 
-      // Handle Delete key
-      if (event.key === 'Delete' && selectedNodeId) {
+      // Handle Delete key - delete all selected nodes
+      if (event.key === 'Delete' && selectedNodeIds.length > 0) {
         event.preventDefault();
-        handleDeleteNode(selectedNodeId);
+        handleDeleteNodes(selectedNodeIds);
       }
 
-      // Handle arrow keys for moving selected node
-      if (selectedNodeId && currentBlueprintIndex >= 0) {
-        const currentBlueprint = blueprints[currentBlueprintIndex];
-        const selectedNode = currentBlueprint.nodes.find((node) => node.data.id === selectedNodeId);
+      // Handle arrow keys for moving selected nodes
+      if (selectedNodeIds.length > 0 && currentBlueprintIndex >= 0) {
+        let moved = false;
+        const moveAmount = event.shiftKey ? 10 : 1; // Hold shift for larger movements
+        let dx = 0;
+        let dy = 0;
 
-        if (selectedNode) {
-          let moved = false;
-          let newPosition = { ...selectedNode.position };
-          const moveAmount = event.shiftKey ? 10 : 1; // Hold shift for larger movements
+        switch (event.key) {
+          case 'ArrowUp':
+            event.preventDefault();
+            dy = -moveAmount;
+            moved = true;
+            break;
+          case 'ArrowDown':
+            event.preventDefault();
+            dy = moveAmount;
+            moved = true;
+            break;
+          case 'ArrowLeft':
+            event.preventDefault();
+            dx = -moveAmount;
+            moved = true;
+            break;
+          case 'ArrowRight':
+            event.preventDefault();
+            dx = moveAmount;
+            moved = true;
+            break;
+        }
 
-          switch (event.key) {
-            case 'ArrowUp':
-              event.preventDefault();
-              newPosition.y -= moveAmount;
-              moved = true;
-              break;
-            case 'ArrowDown':
-              event.preventDefault();
-              newPosition.y += moveAmount;
-              moved = true;
-              break;
-            case 'ArrowLeft':
-              event.preventDefault();
-              newPosition.x -= moveAmount;
-              moved = true;
-              break;
-            case 'ArrowRight':
-              event.preventDefault();
-              newPosition.x += moveAmount;
-              moved = true;
-              break;
-          }
-
-          if (moved) {
-            handleNodePositionChange(selectedNodeId, newPosition);
-          }
+        if (moved) {
+          // Move all selected nodes at once
+          handleMoveNodes(selectedNodeIds, dx, dy);
         }
       }
     };
@@ -622,7 +875,7 @@ export const BlueprintCanvas: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [selectedNodeId, currentBlueprintIndex, blueprints, contextMenu]);
+  }, [selectedNodeIds, currentBlueprintIndex, blueprints, contextMenu]);
 
   // Initialize blueprint on mount if needed
   useEffect(() => {
@@ -690,7 +943,7 @@ export const BlueprintCanvas: React.FC = () => {
       data={entry.data}
       position={entry.position}
       dimension={entry.dimensions}
-      selected={selectedNodeId === entry.data.id}
+      selected={selectedNodeIds.includes(entry.data.id)}
       onPositionChange={handleNodePositionChange}
       onDragStart={handleNodeDragStart}
       onDragEnd={handleNodeDragEnd}
@@ -774,6 +1027,24 @@ export const BlueprintCanvas: React.FC = () => {
         {connections}
         {tempConnection}
         {nodes}
+
+        {/* Multi-select box */}
+        {multiSelectBox && (
+          <div
+            className='multi-select'
+            style={{
+              position: 'absolute',
+              left: `${Math.min(multiSelectBox.startX, multiSelectBox.currentX)}px`,
+              top: `${Math.min(multiSelectBox.startY, multiSelectBox.currentY)}px`,
+              width: `${Math.abs(multiSelectBox.currentX - multiSelectBox.startX)}px`,
+              height: `${Math.abs(multiSelectBox.currentY - multiSelectBox.startY)}px`,
+              border: '2px dashed rgba(255, 255, 255, 0.5)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              pointerEvents: 'none',
+              zIndex: 1000
+            }}
+          />
+        )}
       </div>
 
       {/* Context Menu */}
