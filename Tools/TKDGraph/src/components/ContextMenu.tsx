@@ -34,7 +34,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, nodeRegistry
   }, [onClose]);
 
   // Handle node selection
-  const handleSelectNode = (templateId: string, templateName: string) => {
+  const handleSelectNode = (templateId: string, _: string) => {
     onSpawnNode(templateId);
   };
 

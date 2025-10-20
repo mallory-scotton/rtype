@@ -1,16 +1,16 @@
 /** Dependencies */
-import { useContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { BlueprintCanvas } from './BlueprintCanvas';
 import { BlueprintExplorer } from './BlueprintExplorer';
 import { PropertyDrawer } from './PropertyDrawer';
-import { EditorContext } from '../context';
+import { useEditor } from '../context';
 
 /**
  * @brief Node Editor Component
  * @description This component serves as the main editor for creating and managing nodes within the blueprint canvas.
  */
 export const NodeEditor: React.FC = () => {
-  const { currentBlueprintIndex, blueprints, setCurrentBlueprintIndex } = useContext(EditorContext);
+  const { currentBlueprintIndex, blueprints, setCurrentBlueprintIndex } = useEditor();
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
 
   // Get current blueprint (might be undefined)

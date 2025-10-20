@@ -1,6 +1,6 @@
 /** Dependencies */
-import { useContext, useState, useRef } from 'react';
-import { EditorContext } from '../context';
+import { useState, useRef } from 'react';
+import { useEditor } from '../context';
 import type { BlueprintData, BlueprintType } from '../types';
 
 /**
@@ -8,7 +8,7 @@ import type { BlueprintData, BlueprintType } from '../types';
  * @description This component allows users to create, open, or import blueprints before accessing the canvas.
  */
 export const BlueprintExplorer: React.FC = () => {
-  const { blueprints, setCurrentBlueprintIndex, addBlueprint, removeBlueprint } = useContext(EditorContext);
+  const { blueprints, setCurrentBlueprintIndex, addBlueprint, removeBlueprint } = useEditor();
 
   const [showNewBlueprintModal, setShowNewBlueprintModal] = useState(false);
   const [newBlueprintName, setNewBlueprintName] = useState('');

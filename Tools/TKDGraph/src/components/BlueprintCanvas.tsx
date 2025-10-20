@@ -4,8 +4,7 @@ import type { BlueprintData, CanvasTransform, NodeEntry, Connection as Connectio
 import { Node } from './Node';
 import { Connection } from './Connection';
 import { ContextMenu } from './ContextMenu';
-import { useContext } from 'react';
-import { EditorContext } from '../context/EditorContext';
+import { useEditor } from '../context/EditorContext';
 import { computeConnectionRenderData, computeTempConnectionRenderData } from '../utils';
 
 /**
@@ -14,7 +13,7 @@ import { computeConnectionRenderData, computeTempConnectionRenderData } from '..
  */
 export const BlueprintCanvas: React.FC = () => {
   const { nodeRegistry, blueprints, currentBlueprintIndex, addBlueprint, setCurrentBlueprintIndex, setBlueprints } =
-    useContext(EditorContext);
+    useEditor();
 
   const [canvasTransform, setCanvasTransform] = useState<CanvasTransform>({
     translateX: 0,

@@ -1,6 +1,6 @@
 /** Dependencies */
-import { useContext, useState } from 'react';
-import { EditorContext } from '../context';
+import { useState } from 'react';
+import { useEditor } from '../context';
 import { generatePropertyGetter, generatePropertySetter } from '../constants/Property';
 import type { PropertyEntry, PinType } from '../types';
 
@@ -9,7 +9,7 @@ import type { PropertyEntry, PinType } from '../types';
  * @description UE5-style dual sidebar for managing class properties
  */
 export const PropertyDrawer: React.FC<{ isOpen: boolean }> = ({ isOpen }) => {
-  const { blueprints, currentBlueprintIndex, setBlueprints, nodeRegistry } = useContext(EditorContext);
+  const { blueprints, currentBlueprintIndex, setBlueprints, nodeRegistry } = useEditor();
   const currentBlueprint = blueprints[currentBlueprintIndex];
 
   const [newProperty, setNewProperty] = useState<PropertyEntry>({
