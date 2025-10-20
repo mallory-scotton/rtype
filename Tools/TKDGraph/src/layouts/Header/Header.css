@@ -2,7 +2,7 @@
     display: grid;
     grid-template-columns: 81px 1fr;
     grid-template-rows: 34px 39px 50px;
-    height: 73px;
+    height: 123px;
     width: 100%;
 }
 
