@@ -1,0 +1,29 @@
+.ue-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #0F0F0F;
+    border: 1px solid #353535;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.ue-checkbox img {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    width: 16px;
+    height: 16px;
+}
+
+.ue-checkbox.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.ue-checkbox:hover:not(.disabled) {
+    border-color: #4A4A4A;
+}
