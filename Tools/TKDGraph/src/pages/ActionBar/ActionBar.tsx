@@ -60,6 +60,15 @@ export const ActionBar: React.FC = () => {
           <Icons.Simulate width={28} height={28} />
           <span>Simulation</span>
         </div>
+
+        <div className='ue-action-bar-item-button-group'>
+          <div className='ue-action-bar-item-button'>
+            <Icons.Play width={24} height={24} color='#8BC24A' />
+          </div>
+          <div className='ue-action-bar-item-button'>
+            <Icons.Stop width={24} height={24} color='#757575' />
+          </div>
+        </div>
       </div>
       <div className='ue-action-bar-item'></div>
     </div>

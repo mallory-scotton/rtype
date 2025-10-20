@@ -64,3 +64,26 @@
     background-color: #005BB5;
     color: #FFFFFF;
 }
+
+.ue-action-bar-item-button-group {
+    padding: 0 6px;
+    height: 80%;
+    background-color: #383838;
+    border-radius: 5px;
+}
+
+.ue-action-bar-item-button-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ue-action-bar-item-button-group .ue-action-bar-item-button {
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+}
+
+.ue-action-bar-item-button-group .ue-action-bar-item-button:hover {
+    background-color: #4D4D4D;
+}
