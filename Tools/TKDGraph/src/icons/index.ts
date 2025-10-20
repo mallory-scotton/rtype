@@ -42,3 +42,5 @@ export * from './BlueprintFind';
 export * from './HideUnrelated';
 export * from './Simulate';
 export * from './Details';
+export * from './Play';
+export * from './Stop';
