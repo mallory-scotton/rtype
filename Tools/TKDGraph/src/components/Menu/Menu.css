@@ -39,6 +39,7 @@
 }
 
 .ue-menu .ue-menu-item.selected .ue-menu-sub-element {
+    z-index: 999;
     cursor: default;
     --element-width: 350px;
     position: absolute;

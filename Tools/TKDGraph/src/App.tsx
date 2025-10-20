@@ -3,6 +3,8 @@ import { EditorProvider } from './context';
 import { MainLayout, HeaderLayout } from './layouts';
 import TKDLogo from '../assets/icons/logo.png';
 import { MainMenu } from './pages';
+import { Tab } from './components/Tab';
+import { Pawn } from './icons';
 
 /**
  * @brief Main application component that sets up the editor context and layout.
@@ -23,7 +25,10 @@ function App() {
               />
             </div>
             <MainMenu />
-            <div style={{ backgroundColor: 'rgba(0, 0, 255, .2)' }}></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+              <Tab title='BP_Player' selected={true} icon={<Pawn />} color='blueprint' />
+              <Tab title='BP_PlayerController' icon={<Pawn />} color='blueprint' />
+            </div>
             <div style={{ backgroundColor: '#242424' }}></div>
           </HeaderLayout>
         </MainLayout>
