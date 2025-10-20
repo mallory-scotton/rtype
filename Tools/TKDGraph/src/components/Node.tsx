@@ -20,6 +20,7 @@ interface NodeProps {
   onConnectionEnd?: (pinId: string, direction: PinDirection, pinType: string) => void;
   onPinHover?: (pinId: string, direction: PinDirection, pinType: string, isHovering: boolean) => void;
   onDisruptConnection?: (pinId: string, direction: PinDirection, pinType: string) => void;
+  onPinValueChange?: (pinId: string, value: any) => void;
   onClick?: (nodeId: string, event?: React.MouseEvent) => void;
   scale?: number;
   isCtrlPressed?: boolean;
@@ -41,6 +42,7 @@ export const Node: React.FC<NodeProps> = ({
   onConnectionEnd,
   onPinHover,
   onDisruptConnection,
+  onPinValueChange,
   onClick,
   scale = 1,
   isCtrlPressed = false
@@ -182,6 +184,7 @@ export const Node: React.FC<NodeProps> = ({
                 onConnectionEnd={onConnectionEnd}
                 onPinHover={onPinHover}
                 onDisruptConnection={onDisruptConnection}
+                onValueChange={onPinValueChange}
                 isCtrlPressed={isCtrlPressed}
               />
             ))}

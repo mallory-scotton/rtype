@@ -345,6 +345,37 @@ export const BlueprintCanvas: React.FC = () => {
     }
   };
 
+  // Handle pin value change
+  const handlePinValueChange = (pinId: string, value: any) => {
+    if (currentBlueprintIndex < 0) return;
+
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+    const updatedNodes = currentBlueprint.nodes.map((node) => {
+      const updatedInputs = node.data.inputs?.map((pin) => {
+        if (pin.id === pinId) {
+          return { ...pin, value };
+        }
+        return pin;
+      });
+
+      return {
+        ...node,
+        data: {
+          ...node.data,
+          inputs: updatedInputs
+        }
+      };
+    });
+
+    const updatedBlueprints = [...blueprints];
+    updatedBlueprints[currentBlueprintIndex] = {
+      ...currentBlueprint,
+      nodes: updatedNodes
+    };
+
+    setBlueprints(updatedBlueprints);
+  };
+
   // Handle node drag start
   const handleNodeDragStart = (nodeId: string) => {
     isDraggingNodeRef.current = true;
@@ -934,6 +965,7 @@ export const BlueprintCanvas: React.FC = () => {
       onConnectionEnd={handleConnectionEnd}
       onPinHover={handlePinHover}
       onDisruptConnection={handleDisruptConnection}
+      onPinValueChange={handlePinValueChange}
       onClick={handleNodeClick}
       scale={canvasTransform.scale}
       isCtrlPressed={isCtrlPressed}

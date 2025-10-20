@@ -81,7 +81,14 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
         let value = inputPin.value || convertPinTypeToDefaultValue(inputPin.type);
         let symbol = convertPinTypeToEngineType(inputPin.type);
 
-        snippet = snippet.replaceAll(placeholder, value === null ? 'nullptr' : `${symbol}(${value.toString()})`);
+        snippet = snippet.replaceAll(
+          placeholder,
+          value === null
+            ? 'nullptr'
+            : inputPin.type === 'string' || inputPin.type === 'name' || inputPin.type === 'text'
+            ? `${symbol}("${value.toString()}")`
+            : `${symbol}(${value.toString()})`
+        );
         return;
       }
 

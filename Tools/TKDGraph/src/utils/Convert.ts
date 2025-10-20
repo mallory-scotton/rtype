@@ -65,6 +65,15 @@ export function convertPinTypeToDefaultValue(pinType: PinType): any {
 }
 
 /**
+ * @brief Checks if a pin type can have an input field.
+ * @param pinType - The pin type to check.
+ * @returns True if the pin type can have an input field, false otherwise.
+ */
+export function canPinTypeHaveInput(pinType: PinType): boolean {
+  return ['byte', 'int', 'float', 'real', 'bool', 'string', 'text', 'name'].includes(pinType);
+}
+
+/**
  * @brief Converts an operator symbol to its corresponding snippet operator.
  * @param operator - The operator symbol to convert.
  * @returns The corresponding snippet operator as a string.
