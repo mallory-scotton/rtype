@@ -51,8 +51,8 @@ export const ActionBar: React.FC = () => {
           <span>Class Settings</span>
         </div>
 
-        <div className='ue-action-bar-item-button'>
-          <Icons.Save width={28} height={28} />
+        <div className='ue-action-bar-item-button primary'>
+          <Icons.Details width={28} height={28} />
           <span>Class Defaults</span>
         </div>
 
