@@ -2,7 +2,7 @@ import './App.css';
 import { EditorProvider } from './context';
 import { MainLayout, HeaderLayout } from './layouts';
 import TKDLogo from '../assets/icons/logo.png';
-import { MainMenu } from './pages';
+import { ActionBar, MainMenu } from './pages';
 import { Tab } from './components/Tab';
 import { Pawn } from './icons';
 
@@ -29,7 +29,7 @@ function App() {
               <Tab title='BP_Player' selected={true} icon={<Pawn />} color='blueprint' />
               <Tab title='BP_PlayerController' icon={<Pawn />} color='blueprint' />
             </div>
-            <div style={{ backgroundColor: '#242424' }}></div>
+            <ActionBar />
           </HeaderLayout>
         </MainLayout>
       </EditorProvider>
