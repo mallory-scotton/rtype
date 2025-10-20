@@ -1,6 +1,6 @@
 import './App.css';
 import { EditorProvider } from './context';
-import { MainLayout, HeaderLayout } from './layouts';
+import { MainLayout, HeaderLayout, EditorLayout } from './layouts';
 import TKDLogo from '../assets/icons/logo.png';
 import { ActionBar, MainMenu } from './pages';
 import { Tab } from './components/Tab';
@@ -31,6 +31,11 @@ function App() {
             </div>
             <ActionBar />
           </HeaderLayout>
+          <EditorLayout>
+            <div style={{backgroundColor: 'rgba(255, 0, 0, 0.2)'}}></div>
+            <div style={{backgroundColor: 'rgba(0, 255, 0, 0.2)'}}></div>
+            <div style={{backgroundColor: 'rgba(0, 0, 255, 0.2)'}}></div>
+          </EditorLayout>
         </MainLayout>
       </EditorProvider>
     </>
