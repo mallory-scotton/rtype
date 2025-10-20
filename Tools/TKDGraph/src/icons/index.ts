@@ -34,3 +34,4 @@ export * from './DefaultPawn';
 export * from './Character';
 export * from './Pawn';
 export * from './Texture';
+export * from './Compile';
