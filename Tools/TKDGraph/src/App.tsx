@@ -6,6 +6,9 @@ import { useState, useEffect } from 'react';
 import type { BlueprintData } from './types';
 import { generateCodeFromEvent } from './utils/Code';
 
+import { CheckBox } from './components/CheckBox';
+import { Input } from './components/Input';
+
 const STORAGE_KEY = 'tkd-graph-blueprints';
 const STORAGE_INDEX_KEY = 'tkd-graph-current-index';
 
