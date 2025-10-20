@@ -68,7 +68,7 @@ export const CompileStatusFailed: React.FC<IconProps> = ({ width = 16, height = 
  * @brief Icon Component
  * @description A React component that renders the "Compile Status Success" icon.
  */
-export const CompileStatusSucess: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
+export const CompileStatusSuccess: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
       <g clip-path='url(#clip0_7_11031)'>
