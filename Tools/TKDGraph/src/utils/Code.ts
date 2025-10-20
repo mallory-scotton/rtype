@@ -85,6 +85,8 @@ export function generateCodeFromEvent(blueprint: BlueprintData, eventId: string,
           placeholder,
           value === null
             ? 'nullptr'
+            : inputPin.type === 'object' && (inputPin.value ?? 'self') === 'self'
+            ? 'this'
             : inputPin.type === 'string' || inputPin.type === 'name' || inputPin.type === 'text'
             ? `${symbol}("${value.toString()}")`
             : `${symbol}(${value.toString()})`

@@ -122,6 +122,14 @@ export const Pin: React.FC<PinProps> = ({
       return null;
     }
 
+    if (data.type === 'object') {
+      return (
+        <span className='fake-input' contentEditable suppressContentEditableWarning>
+          {inputValue}
+        </span>
+      );
+    }
+
     if (data.type === 'bool') {
       return (
         <input

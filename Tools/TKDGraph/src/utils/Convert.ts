@@ -58,7 +58,7 @@ export function convertPinTypeToDefaultValue(pinType: PinType): any {
     case 'transform':
       return '';
     case 'object':
-      return null;
+      return 'self';
     default:
       return null;
   }
@@ -70,7 +70,7 @@ export function convertPinTypeToDefaultValue(pinType: PinType): any {
  * @returns True if the pin type can have an input field, false otherwise.
  */
 export function canPinTypeHaveInput(pinType: PinType): boolean {
-  return ['byte', 'int', 'float', 'real', 'bool', 'string', 'text', 'name'].includes(pinType);
+  return ['byte', 'object', 'int', 'float', 'real', 'bool', 'string', 'text', 'name'].includes(pinType);
 }
 
 /**
