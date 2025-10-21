@@ -142,7 +142,6 @@ export function correctSvgPathForKnot(
 export function computeConnectionRenderData(
   startElement: HTMLElement,
   endElement: HTMLElement,
-  canvasRect: DOMRect,
   scale: number
 ): {
   path: string;

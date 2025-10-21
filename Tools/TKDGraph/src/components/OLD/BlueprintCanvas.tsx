@@ -644,7 +644,6 @@ export const BlueprintCanvas: React.FC = () => {
       if (!canvasRef.current) return;
 
       const currentBlueprint = blueprints[currentBlueprintIndex];
-      const canvasRect = canvasRef.current.getBoundingClientRect();
       const newRenderConnections: typeof renderConnections = [];
 
       for (const connection of currentBlueprint.connections) {
@@ -656,7 +655,7 @@ export const BlueprintCanvas: React.FC = () => {
         ) as HTMLElement;
 
         if (sourcePin && targetPin) {
-          const renderData = computeConnectionRenderData(sourcePin, targetPin, canvasRect, canvasTransform.scale);
+          const renderData = computeConnectionRenderData(sourcePin, targetPin, canvasTransform.scale);
           if (renderData) {
             newRenderConnections.push({
               connection,
