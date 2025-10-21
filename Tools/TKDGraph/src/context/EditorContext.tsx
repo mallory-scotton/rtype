@@ -2,7 +2,7 @@
 import { NodeRegistry } from '../utils';
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { BlueprintData, MultiSelectBox, CanvasTransform } from '../types';
+import type { BlueprintData, MultiSelectBox, CanvasTransform, NodeEntry } from '../types';
 
 const STORAGE_KEY = 'tkd-graph-blueprints';
 const STORAGE_INDEX_KEY = 'tkd-graph-current-index';
@@ -30,6 +30,9 @@ interface EditorContextType {
   setCanvasTransform: (transform: CanvasTransform) => void;
   setSelectedNodeIds: (ids: string[]) => void;
   setIsPanning: (isPanning: boolean) => void;
+  addNodeToBlueprint: (nodeData: NodeEntry, blueprintIndex?: number) => void;
+  removeNodeFromBlueprint: (nodeId: string, blueprintIndex?: number) => void;
+  removeSelectedNodesFromCurrentBlueprint: () => void;
 }
 
 /**
@@ -51,6 +54,12 @@ interface EditorProviderProps {
 export function EditorProvider({ children }: EditorProviderProps) {
   const nodeRegistry = new NodeRegistry();
   const classList: string[] = [];
+  const [canvasTransform, setCanvasTransform] = useState<CanvasTransform>({ translateX: 0, translateY: 0, scale: 1 });
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const isDrawingMultiSelect = useRef(false);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const multiSelectStartNodeIds = useRef<string[]>([]);
+  const [isPanning, setIsPanning] = useState(false);
 
   // Load blueprints from localStorage on initial mount
   const [blueprints, setBlueprints] = useState<BlueprintData[]>(() => {
@@ -94,6 +103,24 @@ export function EditorProvider({ children }: EditorProviderProps) {
     setCurrentBlueprintIndex(-1);
   };
 
+  const addNodeToBlueprint = (nodeData: NodeEntry, blueprintIndex: number = currentBlueprintIndex) => {
+    setBlueprints((prev) => {
+      const newBlueprints = [...prev];
+      newBlueprints[blueprintIndex].nodes.push(nodeData);
+      return newBlueprints;
+    });
+  };
+
+  const removeNodeFromBlueprint = (nodeId: string, blueprintIndex: number = currentBlueprintIndex) => {
+    setBlueprints((prev) => {
+      const newBlueprints = [...prev];
+      newBlueprints[blueprintIndex].nodes = newBlueprints[blueprintIndex].nodes.filter(
+        (node) => node.data.id !== nodeId
+      );
+      return newBlueprints;
+    });
+  };
+
   // Auto-save blueprints to localStorage whenever they change
   useEffect(() => {
     try {
@@ -120,12 +147,16 @@ export function EditorProvider({ children }: EditorProviderProps) {
     }
   }, [currentBlueprintIndex]);
 
-  const [canvasTransform, setCanvasTransform] = useState<CanvasTransform>({ translateX: 0, translateY: 0, scale: 1 });
-  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
-  const isDrawingMultiSelect = useRef(false);
-  const canvasRef = useRef<HTMLDivElement | null>(null);
-  const multiSelectStartNodeIds = useRef<string[]>([]);
-  const [isPanning, setIsPanning] = useState(false);
+  const removeSelectedNodesFromCurrentBlueprint = () => {
+    setBlueprints((prev) => {
+      const newBlueprints = [...prev];
+      newBlueprints[currentBlueprintIndex].nodes = newBlueprints[currentBlueprintIndex].nodes.filter(
+        (node) => !selectedNodeIds.includes(node.data.id)
+      );
+      return newBlueprints;
+    });
+    setSelectedNodeIds([]);
+  };
 
   const contextValue: EditorContextType = {
     nodeRegistry,
@@ -146,7 +177,10 @@ export function EditorProvider({ children }: EditorProviderProps) {
     setMultiSelectBox,
     setCanvasTransform,
     setSelectedNodeIds,
-    setIsPanning
+    setIsPanning,
+    addNodeToBlueprint,
+    removeNodeFromBlueprint,
+    removeSelectedNodesFromCurrentBlueprint
   };
 
   return <EditorContext.Provider value={contextValue}>{children}</EditorContext.Provider>;
