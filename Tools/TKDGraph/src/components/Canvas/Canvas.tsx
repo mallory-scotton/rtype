@@ -82,8 +82,8 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
           const rect = canvasRef.current?.getBoundingClientRect();
           if (!rect) return;
 
-          const x = snapToGrid((event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale) - 90;
-          const y = snapToGrid((event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale) - 45;
+          const x = snapToGrid((event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale, 16) - 90;
+          const y = snapToGrid((event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale, 16) - 45;
 
           addNodeToBlueprint({
             position: { x, y },

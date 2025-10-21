@@ -32,7 +32,7 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
   const dragStartPos = useRef({ x: 0, y: 0 });
   const nodeStartPos = useRef({ x: 0, y: 0 });
   const initialNodePositions = useRef<Map<string, { x: number; y: number }>>(new Map());
-  const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 });
+  const [currentPosition, setCurrentPosition] = useState(entry.position);
 
   // Update position when entry position changes
   useEffect(() => {
