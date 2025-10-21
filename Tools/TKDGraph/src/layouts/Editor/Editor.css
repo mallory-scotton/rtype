@@ -10,7 +10,7 @@
     height: 100%;
 }
 
-.ue-editor-layout :nth-child(1)::after {
+.ue-editor-layout > :nth-child(1)::after {
     content: '';
     position: absolute;
     left: calc(100% - 4px);
@@ -20,7 +20,7 @@
     cursor: ew-resize;
 }
 
-.ue-editor-layout :nth-child(3)::after {
+.ue-editor-layout > :nth-child(3)::after {
     content: '';
     position: absolute;
     left: 0;

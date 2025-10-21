@@ -1,8 +1,8 @@
 /** Dependencies */
 import { NodeRegistry } from '../utils';
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { BlueprintData } from '../types';
+import type { BlueprintData, MultiSelectBox, CanvasTransform } from '../types';
 
 const STORAGE_KEY = 'tkd-graph-blueprints';
 const STORAGE_INDEX_KEY = 'tkd-graph-current-index';
@@ -15,10 +15,21 @@ interface EditorContextType {
   classList: string[];
   blueprints: BlueprintData[];
   currentBlueprintIndex: number;
+  multiSelectBox: MultiSelectBox | null;
+  canvasRef: React.RefObject<HTMLDivElement | null>;
+  canvasTransform: CanvasTransform;
+  selectedNodeIds: string[];
+  isDrawingMultiSelect: React.RefObject<boolean>;
+  multiSelectStartNodeIds: React.RefObject<string[]>;
+  isPanning: boolean;
   setBlueprints: (blueprints: BlueprintData[]) => void;
   setCurrentBlueprintIndex: (index: number) => void;
   addBlueprint: (blueprint: BlueprintData) => void;
   removeBlueprint: (index: number) => void;
+  setMultiSelectBox: (box: MultiSelectBox | null) => void;
+  setCanvasTransform: (transform: CanvasTransform) => void;
+  setSelectedNodeIds: (ids: string[]) => void;
+  setIsPanning: (isPanning: boolean) => void;
 }
 
 /**
@@ -67,6 +78,9 @@ export function EditorProvider({ children }: EditorProviderProps) {
     return -1;
   });
 
+  // Multi-select box state
+  const [multiSelectBox, setMultiSelectBox] = useState<MultiSelectBox | null>(null);
+
   const addBlueprint = (blueprint: BlueprintData) => {
     setBlueprints((prev) => {
       const newBlueprints = [...prev, blueprint];
@@ -106,15 +120,33 @@ export function EditorProvider({ children }: EditorProviderProps) {
     }
   }, [currentBlueprintIndex]);
 
+  const [canvasTransform, setCanvasTransform] = useState<CanvasTransform>({ translateX: 0, translateY: 0, scale: 1 });
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const isDrawingMultiSelect = useRef(false);
+  const canvasRef = useRef<HTMLDivElement | null>(null);
+  const multiSelectStartNodeIds = useRef<string[]>([]);
+  const [isPanning, setIsPanning] = useState(false);
+
   const contextValue: EditorContextType = {
     nodeRegistry,
     classList,
     blueprints,
     currentBlueprintIndex,
+    multiSelectBox,
+    canvasRef,
+    canvasTransform,
+    selectedNodeIds,
+    isDrawingMultiSelect,
+    multiSelectStartNodeIds,
+    isPanning,
     setBlueprints,
     setCurrentBlueprintIndex,
     addBlueprint,
-    removeBlueprint
+    removeBlueprint,
+    setMultiSelectBox,
+    setCanvasTransform,
+    setSelectedNodeIds,
+    setIsPanning
   };
 
   return <EditorContext.Provider value={contextValue}>{children}</EditorContext.Provider>;

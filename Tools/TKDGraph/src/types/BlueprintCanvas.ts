@@ -7,3 +7,14 @@ export type CanvasTransform = {
   translateY: number;
   scale: number;
 };
+
+/**
+ * @brief MultiSelectBox Type
+ * @description Represents the coordinates of a multi-selection box on the canvas.
+ */
+export type MultiSelectBox = {
+  startX: number;
+  startY: number;
+  currentX: number;
+  currentY: number;
+};

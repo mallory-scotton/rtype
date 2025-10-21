@@ -7,7 +7,7 @@
     position: relative;
 }
 
-.ue-vertical-layout :nth-child(1)::after {
+.ue-vertical-layout > :nth-child(1)::after {
     content: '';
     position: absolute;
     left: 0;

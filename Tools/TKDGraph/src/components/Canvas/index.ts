@@ -5,3 +5,5 @@ export * from './Node';
 export * from './Pin';
 export * from './Reference';
 export * from './ContextMenu';
+export * from './MultiSelect';
+export * from './Layer';
