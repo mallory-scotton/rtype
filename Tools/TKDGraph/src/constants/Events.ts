@@ -56,7 +56,8 @@ export const Events: NodeTemplate[] = [
       outputs: [{ id: '', type: 'exec' }],
       label: 'Begin Play'
     },
-    snippet: `{OUTPUT_1}`
+    snippet: `{OUTPUT_1}`,
+    once: true
   },
   {
     id: 'event_end_play',
@@ -76,7 +77,8 @@ export const Events: NodeTemplate[] = [
       outputs: [{ id: '', type: 'exec' }],
       label: 'End Play'
     },
-    snippet: `{OUTPUT_1}`
+    snippet: `{OUTPUT_1}`,
+    once: true
   },
   {
     id: 'event_tick',
@@ -99,7 +101,8 @@ export const Events: NodeTemplate[] = [
       ],
       label: 'Tick'
     },
-    snippet: `{OUTPUT_1}`
+    snippet: `{OUTPUT_1}`,
+    once: true
   },
   ...[
     'A',

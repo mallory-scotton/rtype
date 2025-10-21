@@ -90,6 +90,8 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
     data.roundedBg = data.roundedBg ?? true;
   } else if (data.type === 'comment') {
     classes.push('ncomment');
+  } else if (data.type === 'knot') {
+    classes.push('knot');
   }
 
   // Highlight if selected

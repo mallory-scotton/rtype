@@ -5,7 +5,7 @@ import type { PinData } from './Pin';
  * @brief Node types
  * @description Different types of nodes that can exist within the graph.
  */
-export type NodeType = 'function' | 'event' | 'getter' | 'setter' | 'cast' | 'operator' | 'comment';
+export type NodeType = 'function' | 'event' | 'getter' | 'setter' | 'cast' | 'operator' | 'comment' | 'knot';
 
 /**
  * @brief Represents the type of node headers.

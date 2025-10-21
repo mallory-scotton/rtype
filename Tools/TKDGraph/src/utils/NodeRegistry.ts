@@ -13,6 +13,8 @@ export interface NodeTemplate {
   tags?: string[];
   data: NodeData;
   snippet: string;
+  public?: boolean;
+  once?: boolean;
 }
 
 /**
@@ -43,6 +45,11 @@ export class NodeRegistry {
       console.warn(`Node template with id "${template.id}" already exists. Overwriting.`);
     }
 
+    // Set default values
+    template.once = template.once ?? false;
+    template.public = template.public ?? true;
+
+    // Add to templates map
     this.templates.set(template.id, template);
 
     // Add to category

@@ -32,4 +32,5 @@ export interface PinData {
   filled?: boolean;
   value?: any;
   noMarginBottom?: boolean;
+  hideInput?: boolean;
 }

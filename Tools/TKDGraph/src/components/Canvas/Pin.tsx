@@ -298,7 +298,7 @@ export const Pin: React.FC<PinProps> = ({ data, direction, nodeId: _nodeId }) =>
               }`}
             ></div>
             <div className='label-text'>{data.label ?? ''}</div>
-            {!data.filled && renderInputField()}
+            {!data.filled && !data.hideInput && renderInputField()}
           </>
         )}
         {direction === 'output' && (

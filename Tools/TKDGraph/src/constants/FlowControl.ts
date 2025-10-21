@@ -1,5 +1,6 @@
 /** Dependencies */
 import type { NodeTemplate } from '../utils';
+import type { PinType } from '../types';
 
 /**
  * @brief List of flow control node templates.
@@ -106,5 +107,37 @@ export const FlowControl: NodeTemplate[] = [
       label: 'Is Valid'
     },
     snippet: `if ({INPUT_2} != nullptr)\n{\n{OUTPUT_1}\n}\nelse\n{\n{OUTPUT_2}\n}`
-  }
+  },
+  ...[
+    'byte',
+    'int',
+    'float',
+    'string',
+    'bool',
+    'exec',
+    'vector',
+    'rotator',
+    'struct',
+    'object',
+    'transform',
+    'name',
+    'text',
+    'real'
+  ].map((type) => {
+    return {
+      id: `flow_knot_${type}`,
+      name: `Knot (${type})`,
+      category: 'Flow Control',
+      description: `A simple knot node for ${type} type.`,
+      tags: ['flow', 'knot', type],
+      data: {
+        id: '',
+        type: 'knot',
+        inputs: [{ id: '', type: type as PinType, hideInput: true }],
+        outputs: [{ id: '', type: type as PinType, hideInput: true }]
+      },
+      public: false,
+      snippet: `{OUTPUT_1}`
+    } as NodeTemplate;
+  })
 ];
