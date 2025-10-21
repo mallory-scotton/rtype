@@ -1,8 +1,8 @@
 /** Dependencies */
 import { useState } from 'react';
-import { useEditor } from '../context';
-import { generatePropertyGetter, generatePropertySetter } from '../constants/Property';
-import type { PropertyEntry, PinType } from '../types';
+import { useEditor } from '../../context';
+import { generatePropertyGetter, generatePropertySetter } from '../../constants/Property';
+import type { PropertyEntry, PinType } from '../../types';
 
 /**
  * @brief Property Drawer Component

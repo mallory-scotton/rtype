@@ -1,7 +1,7 @@
 /** Dependencies */
 import { useState, useRef } from 'react';
-import { useEditor } from '../context';
-import type { BlueprintData, BlueprintType } from '../types';
+import { useEditor } from '../../context';
+import type { BlueprintData, BlueprintType } from '../../types';
 
 /**
  * @brief Blueprint Explorer Component

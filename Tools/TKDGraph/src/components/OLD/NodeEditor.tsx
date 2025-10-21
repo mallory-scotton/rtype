@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { BlueprintCanvas } from './BlueprintCanvas';
 import { BlueprintExplorer } from './BlueprintExplorer';
 import { PropertyDrawer } from './PropertyDrawer';
-import { useEditor } from '../context';
+import { useEditor } from '../../context';
 
 /**
  * @brief Node Editor Component

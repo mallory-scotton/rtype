@@ -1,11 +1,17 @@
 /** Dependencies */
 import { useState, useEffect, useRef, type ReactElement } from 'react';
-import type { BlueprintData, CanvasTransform, NodeEntry, Connection as ConnectionType, PinDirection } from '../types';
+import type {
+  BlueprintData,
+  CanvasTransform,
+  NodeEntry,
+  Connection as ConnectionType,
+  PinDirection
+} from '../../types';
 import { Node } from './Node';
 import { Connection } from './Connection';
 import { ContextMenu } from './ContextMenu';
-import { useEditor } from '../context/EditorContext';
-import { computeConnectionRenderData, computeTempConnectionRenderData } from '../utils';
+import { useEditor } from '../../context';
+import { computeConnectionRenderData, computeTempConnectionRenderData } from '../../utils';
 
 /**
  * @brief BlueprintCanvas Component

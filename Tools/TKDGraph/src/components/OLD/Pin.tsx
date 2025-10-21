@@ -1,7 +1,7 @@
 /** Dependencies */
-import type { PinData, PinDirection } from '../types';
+import type { PinData, PinDirection } from '../../types';
 import React, { useState, useEffect } from 'react';
-import { canPinTypeHaveInput, convertPinTypeToDefaultValue } from '../utils/Convert';
+import { canPinTypeHaveInput, convertPinTypeToDefaultValue } from '../../utils/Convert';
 
 /**
  * @brief Interface for Pin component props

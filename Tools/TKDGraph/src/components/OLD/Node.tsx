@@ -1,8 +1,8 @@
 /** Dependencies */
-import type { NodeData, PinDirection } from '../types';
+import type { NodeData, PinDirection } from '../../types';
 import { Pin } from './Pin';
 import { useState, useRef, useEffect } from 'react';
-import { snapToGrid } from '../utils';
+import { snapToGrid } from '../../utils';
 
 /**
  * @brief Interface for Node component props

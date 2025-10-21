@@ -1,6 +1,6 @@
 /** Dependencies */
 import { useState, useRef, useEffect } from 'react';
-import type { NodeRegistry } from '../utils';
+import type { NodeRegistry } from '../../utils';
 
 /**
  * @brief Context Menu Props
