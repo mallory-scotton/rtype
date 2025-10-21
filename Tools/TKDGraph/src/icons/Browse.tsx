@@ -9,10 +9,10 @@ import type { IconProps } from './shared';
 export const Browse: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11085)'>
+      <g clipPath='url(#clip0_7_11085)'>
         <path
-          fill-rule='evenodd'
-          clip-rule='evenodd'
+          fillRule='evenodd'
+          clipRule='evenodd'
           d='M9.6 13.2999L6.9 15.9999C6.9 15.9999 6.7 15.9999 6.3 15.6999C6 15.2999 6 15.0999 6 15.0999L8.7 12.3999L9.6 13.2999Z'
           fill={color}
         />
@@ -21,15 +21,15 @@ export const Browse: React.FC<IconProps> = ({ width = 16, height = 16, color = '
           fill={color}
         />
         <path
-          fill-rule='evenodd'
-          clip-rule='evenodd'
+          fillRule='evenodd'
+          clipRule='evenodd'
           d='M0 13C0 13.6 0.4 14 1 14H5.1C5.7 13.5 6.4 12.8 7 12.1C6.7 11.4 6.6 10.6 6.6 9.8C6.8 7 9.3 4.7 12.1 4.7C12.7 4.7 13.2 4.8 13.7 5C14 5.1 14.5 5.4 15 5.7V5C15 4.4 14.6 4 14 4H0V13Z'
           fill={color}
         />
         <path
           opacity='0.5'
-          fill-rule='evenodd'
-          clip-rule='evenodd'
+          fillRule='evenodd'
+          clipRule='evenodd'
           d='M0 1C0 0.5 0.5 0 1 0H5.1C5.4 0 5.7 0.1 5.9 0.4L8.3 3H0V1Z'
           fill={color}
         />

@@ -9,11 +9,11 @@ import type { IconProps } from './shared';
 export const Actor: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_1288)'>
+      <g clipPath='url(#clip0_7_1288)'>
         <path
           opacity='0.5'
-          fill-rule='evenodd'
-          clip-rule='evenodd'
+          fillRule='evenodd'
+          clipRule='evenodd'
           d='M14 14L13 10L16 14V16H0V14L3 10L2 14H4H11H14Z'
           fill={color}
         />

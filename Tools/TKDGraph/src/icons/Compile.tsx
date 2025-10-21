@@ -9,7 +9,7 @@ import type { IconProps } from './shared';
 export const Compile: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11012)'>
+      <g clipPath='url(#clip0_7_11012)'>
         <path d='M5 16H1V20H5V16Z' fill={color} />
         <path d='M10 16H6V20H10V16Z' fill={color} />
         <path d='M15 16H11V20H15V16Z' fill={color} />
@@ -41,7 +41,7 @@ export const Compile: React.FC<IconProps> = ({ width = 16, height = 16, color = 
 export const CompileStatusFailed: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11027)'>
+      <g clipPath='url(#clip0_7_11027)'>
         <path
           d='M12.5 4.99998C10.5109 4.99998 8.60322 5.79015 7.1967 7.19668C5.79018 8.6032 5 10.5109 5 12.5C5 14.4891 5.79018 16.3968 7.1967 17.8033C8.60322 19.2098 10.5109 20 12.5 20C14.4859 19.9895 16.3874 19.1959 17.7917 17.7917C19.1959 16.3874 19.9895 14.4859 20 12.5C20.0148 11.511 19.831 10.529 19.4593 9.61239C19.0877 8.69575 18.5358 7.86304 17.8363 7.16363C17.1369 6.46421 16.3042 5.91232 15.3876 5.54066C14.4709 5.169 13.489 4.98514 12.5 4.99998Z'
           fill='black'
@@ -71,7 +71,7 @@ export const CompileStatusFailed: React.FC<IconProps> = ({ width = 16, height = 
 export const CompileStatusSuccess: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11031)'>
+      <g clipPath='url(#clip0_7_11031)'>
         <path
           d='M12.5 4.99998C10.5109 4.99998 8.60322 5.79015 7.1967 7.19668C5.79018 8.6032 5 10.5109 5 12.5C5 14.4891 5.79018 16.3968 7.1967 17.8033C8.60322 19.2098 10.5109 20 12.5 20C14.4859 19.9895 16.3874 19.1959 17.7917 17.7917C19.1959 16.3874 19.9895 14.4859 20 12.5C20.0148 11.511 19.831 10.529 19.4593 9.61239C19.0877 8.69575 18.5358 7.86304 17.8363 7.16363C17.1369 6.46421 16.3042 5.91232 15.3876 5.54066C14.4709 5.169 13.489 4.98514 12.5 4.99998Z'
           fill='black'
@@ -105,7 +105,7 @@ export const CompileStatusSuccess: React.FC<IconProps> = ({ width = 16, height =
 export const CompileStatusWarning: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11036)'>
+      <g clipPath='url(#clip0_7_11036)'>
         <path
           d='M12.5 4.99998C10.5109 4.99998 8.60322 5.79015 7.1967 7.19668C5.79018 8.6032 5 10.5109 5 12.5C5 14.4891 5.79018 16.3968 7.1967 17.8033C8.60322 19.2098 10.5109 20 12.5 20C14.4859 19.9895 16.3874 19.1959 17.7917 17.7917C19.1959 16.3874 19.9895 14.4859 20 12.5C20.0148 11.511 19.831 10.529 19.4593 9.61239C19.0877 8.69575 18.5358 7.86304 17.8363 7.16363C17.1369 6.46421 16.3042 5.91232 15.3876 5.54066C14.4709 5.169 13.489 4.98514 12.5 4.99998Z'
           fill='black'
@@ -131,7 +131,7 @@ export const CompileStatusWarning: React.FC<IconProps> = ({ width = 16, height =
 export const CompileStatusUnknown: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_11039)'>
+      <g clipPath='url(#clip0_7_11039)'>
         <path
           d='M19.6777 17.0206L13.882 6.99279C13.6727 6.68669 13.3923 6.43634 13.0649 6.26337C12.7376 6.09039 12.3733 6 12.0034 6C11.6334 6 11.2691 6.09039 10.9418 6.26337C10.6145 6.43634 10.3341 6.68669 10.1248 6.99279L4.2891 17.0206C4.11104 17.3004 4.01149 17.6232 4.00094 17.9549C3.99038 18.2867 4.06922 18.6152 4.22915 18.9058C4.43522 19.25 4.72908 19.5327 5.0804 19.7249C5.43171 19.917 5.82776 20.0116 6.22766 19.9989H17.9889C18.3415 20.0069 18.6899 19.9211 18.9988 19.7503C19.3077 19.5794 19.5661 19.3296 19.7476 19.0262C19.9242 18.7188 20.0112 18.3679 19.9988 18.0133C19.9865 17.6588 19.8752 17.3148 19.6777 17.0206Z'
           fill='black'

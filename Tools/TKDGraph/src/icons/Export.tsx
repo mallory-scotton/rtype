@@ -9,7 +9,7 @@ import type { IconProps } from './shared';
 export const Export: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_5535)'>
+      <g clipPath='url(#clip0_7_5535)'>
         <g opacity='0.7'>
           <path
             opacity='0.5'

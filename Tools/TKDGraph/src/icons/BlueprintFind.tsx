@@ -9,7 +9,7 @@ import type { IconProps } from './shared';
 export const BlueprintFind: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_5565)'>
+      <g clipPath='url(#clip0_7_5565)'>
         <mask
           id='mask0_7_5565'
           style={{ maskType: 'luminance' }}
@@ -27,8 +27,8 @@ export const BlueprintFind: React.FC<IconProps> = ({ width = 16, height = 16, co
           <path d='M7 6H5V8H7V6Z' fill={color} />
           <path opacity='0.5' d='M11 5V4H8V7H6V8H8V10H11V9H9V5H11Z' fill={color} />
           <path
-            fill-rule='evenodd'
-            clip-rule='evenodd'
+            fillRule='evenodd'
+            clipRule='evenodd'
             d='M5.2 12.0998L1.3 15.9998C0.97536 15.9494 0.68026 15.7822 0.47 15.5298C0.213046 15.3233 0.0448718 15.0264 0 14.6998L3.9 10.7998L5.2 12.0998Z'
             fill={color}
           />

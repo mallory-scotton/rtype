@@ -16,8 +16,8 @@ export const Credits: React.FC<IconProps> = ({ width = 16, height = 16, color = 
       />
       <path
         opacity='0.5'
-        fill-rule='evenodd'
-        clip-rule='evenodd'
+        fillRule='evenodd'
+        clipRule='evenodd'
         d='M8 5.5C9.08534 5.49787 10.1469 5.81807 11.05 6.42L14 2H2L5 6.42C5.88894 5.82746 6.9317 5.50769 8 5.5Z'
         fill={color}
       />

@@ -9,7 +9,7 @@ import type { IconProps } from './shared';
 export const BlueprintDiff: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
   return (
     <svg width={width} height={height} viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'>
-      <g clip-path='url(#clip0_7_5098)'>
+      <g clipPath='url(#clip0_7_5098)'>
         <path
           d='M19 1H15C14.4477 1 14 1.44772 14 2V5C14 5.55228 14.4477 6 15 6H19C19.5523 6 20 5.55228 20 5V2C20 1.44772 19.5523 1 19 1Z'
           fill={color}
