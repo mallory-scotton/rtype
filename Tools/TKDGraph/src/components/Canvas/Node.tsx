@@ -21,8 +21,15 @@ interface NodeProps {
  */
 export const Node: React.FC<NodeProps> = ({ entry }) => {
   // Use Editor Context
-  const { selectedNodeIds, setSelectedNodeIds, blueprints, currentBlueprintIndex, setBlueprints, canvasTransform } =
-    useEditor();
+  const {
+    selectedNodeIds,
+    setSelectedNodeIds,
+    blueprints,
+    currentBlueprintIndex,
+    setBlueprints,
+    canvasTransform,
+    triggerConnectionUpdate
+  } = useEditor();
 
   // Define CSS classes
   const classes: string[] = ['node'];
@@ -132,6 +139,9 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
       nodes: updatedNodes
     };
     setBlueprints(updatedBlueprints);
+
+    // Trigger connection updates
+    triggerConnectionUpdate();
   };
 
   /**
@@ -180,11 +190,18 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
         nodes: updatedNodes
       };
       setBlueprints(updatedBlueprints);
+
+      // Trigger connection updates after snapping
+      // Small delay to ensure React has re-rendered nodes with snapped positions
+      setTimeout(() => {
+        triggerConnectionUpdate();
+      }, 0);
     }
 
     // Clear initial positions
     initialNodePositions.current.clear();
   };
+
   const handleMouseDown = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     // Only handle left mouse button and not on pins
@@ -270,34 +287,11 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
         {data.roundedBg && <div className='round-bg'>{typeof data.roundedBg === 'string' ? data.roundedBg : ''}</div>}
         <div className='left-col'>
           {data.inputs &&
-            data.inputs.map((input) => (
-              <Pin
-                key={input.id}
-                data={input}
-                direction='input'
-                // onConnectionStart={onConnectionStart}
-                // onConnectionEnd={onConnectionEnd}
-                // onPinHover={onPinHover}
-                // onDisruptConnection={onDisruptConnection}
-                // onValueChange={onPinValueChange}
-                // isCtrlPressed={isCtrlPressed}
-              />
-            ))}
+            data.inputs.map((input) => <Pin key={input.id} data={input} direction='input' nodeId={data.id} />)}
         </div>
         <div className='right-col'>
           {data.outputs &&
-            data.outputs.map((output) => (
-              <Pin
-                key={output.id}
-                data={output}
-                direction='output'
-                // onConnectionStart={onConnectionStart}
-                // onConnectionEnd={onConnectionEnd}
-                // onPinHover={onPinHover}
-                // onDisruptConnection={onDisruptConnection}
-                // isCtrlPressed={isCtrlPressed}
-              />
-            ))}
+            data.outputs.map((output) => <Pin key={output.id} data={output} direction='output' nodeId={data.id} />)}
         </div>
       </div>
     </div>

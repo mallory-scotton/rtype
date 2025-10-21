@@ -1,6 +1,7 @@
 /** Forward export */
 export * from './Canvas';
 export * from './Connection';
+export * from './TempConnection';
 export * from './Node';
 export * from './Pin';
 export * from './Reference';

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import './Canvas.css';
 import { useEditor } from '../../context';
 import { Node } from './Node';
+import { Connection } from './Connection';
+import { TempConnection } from './TempConnection';
 import { snapToGrid } from '../../utils';
 
 /**
@@ -82,8 +84,10 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
           const rect = canvasRef.current?.getBoundingClientRect();
           if (!rect) return;
 
-          const x = snapToGrid((event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale, 16) - 90;
-          const y = snapToGrid((event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale, 16) - 45;
+          const x =
+            snapToGrid((event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale, 16) - 90;
+          const y =
+            snapToGrid((event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale, 16) - 45;
 
           addNodeToBlueprint({
             position: { x, y },
@@ -151,7 +155,17 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
         transform: `translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px) scale(${canvasTransform.scale})`
       }}
     >
+      {/* Render connections first (below nodes) */}
+      {currentBlueprint.connections.map((connection) => (
+        <Connection key={connection.id} connection={connection} />
+      ))}
+
+      {/* Render temporary connection while dragging */}
+      <TempConnection />
+
+      {/* Render nodes */}
       {...nodesWithFilledPins.map((entry, index) => <Node key={index} entry={entry} />)}
+
       {children}
     </div>
   );

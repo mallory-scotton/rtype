@@ -2,6 +2,7 @@
 import type { PinData, PinDirection } from '../../types';
 import React, { useState, useEffect } from 'react';
 import { canPinTypeHaveInput, convertPinTypeToDefaultValue } from '../../utils/Convert';
+import { useEditor } from '../../context';
 import './Pin.css';
 
 /**
@@ -11,28 +12,30 @@ import './Pin.css';
 interface PinProps {
   data: PinData;
   direction: PinDirection;
-  onConnectionStart?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onConnectionEnd?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onPinHover?: (pinId: string, direction: PinDirection, pinType: string, isHovering: boolean) => void;
-  onDisruptConnection?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onValueChange?: (pinId: string, value: any) => void;
-  isCtrlPressed?: boolean;
+  nodeId: string;
 }
 
 /**
  * @brief Pin component
- * @description This component represents a pin in a node, displaying its data.
+ * @description This component represents a pin in a node, displaying its data and handling connections.
  */
-export const Pin: React.FC<PinProps> = ({
-  data,
-  direction,
-  onConnectionStart,
-  onConnectionEnd,
-  onPinHover,
-  onDisruptConnection,
-  onValueChange,
-  isCtrlPressed = false
-}) => {
+export const Pin: React.FC<PinProps> = ({ data, direction, nodeId: _nodeId }) => {
+  const {
+    connectingFrom,
+    setConnectingFrom,
+    hoveredPin: _hoveredPin,
+    setHoveredPin,
+    setMousePosition,
+    isCtrlPressed,
+    blueprints,
+    currentBlueprintIndex,
+    createConnection,
+    deleteConnection,
+    updatePinValue,
+    canvasRef,
+    connectionCompletedRef
+  } = useEditor();
+
   const [inputValue, setInputValue] = useState<any>(data.value ?? convertPinTypeToDefaultValue(data.type));
 
   useEffect(() => {
@@ -44,30 +47,143 @@ export const Pin: React.FC<PinProps> = ({
     event.preventDefault();
 
     // If CTRL is pressed and pin is filled (connected), disrupt the connection
-    if (isCtrlPressed && data.filled && onDisruptConnection) {
-      onDisruptConnection(data.id, direction, data.type);
+    if (isCtrlPressed && data.filled) {
+      handleDisruptConnection();
     } else {
-      onConnectionStart?.(data.id, direction, data.type);
+      handleConnectionStart(event);
     }
   };
 
   const handleMouseUp = (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
-    onConnectionEnd?.(data.id, direction, data.type);
+    handleConnectionEnd();
   };
 
   const handleMouseEnter = () => {
-    onPinHover?.(data.id, direction, data.type, true);
+    setHoveredPin({ pinId: data.id, direction, pinType: data.type });
   };
 
   const handleMouseLeave = () => {
-    onPinHover?.(data.id, direction, data.type, false);
+    setHoveredPin(null);
+  };
+
+  const handleConnectionStart = (event: React.MouseEvent) => {
+    if (!canvasRef.current) return;
+
+    const pinElement = canvasRef.current.querySelector(`.pin[data-id="${data.id}"] .clink`) as HTMLElement;
+
+    if (pinElement) {
+      setConnectingFrom({
+        pinId: data.id,
+        direction,
+        pinType: data.type,
+        element: pinElement
+      });
+
+      // Set initial mouse position from the actual mouse event
+      setMousePosition({ x: event.clientX, y: event.clientY });
+    }
+  };
+
+  const handleConnectionEnd = () => {
+    if (!connectingFrom || currentBlueprintIndex < 0) {
+      setMousePosition(null);
+      return;
+    }
+
+    // Mark that we're handling the connection
+    connectionCompletedRef.current = true;
+
+    // Reset mouse position
+    setMousePosition(null);
+
+    // Prevent connecting same direction pins or same pin
+    if (connectingFrom.direction === direction || connectingFrom.pinId === data.id) {
+      setConnectingFrom(null);
+      return;
+    }
+
+    // Prevent connecting different pin types - types must match exactly
+    if (connectingFrom.pinType !== data.type) {
+      console.warn(`Cannot connect ${connectingFrom.pinType} to ${data.type}. Pin types must match.`);
+      setConnectingFrom(null);
+      return;
+    }
+
+    // Find the nodes that contain these pins
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+    let sourceNodeId = '';
+    let targetNodeId = '';
+    let sourcePinId = '';
+    let targetPinId = '';
+
+    // Output pins should be source, input pins should be target
+    if (direction === 'input') {
+      sourcePinId = connectingFrom.pinId;
+      targetPinId = data.id;
+    } else {
+      sourcePinId = data.id;
+      targetPinId = connectingFrom.pinId;
+    }
+
+    // Find node IDs
+    for (const node of currentBlueprint.nodes) {
+      const allPins = [...(node.data.inputs || []), ...(node.data.outputs || [])];
+      if (allPins.some((p) => p.id === sourcePinId)) {
+        sourceNodeId = node.data.id;
+      }
+      if (allPins.some((p) => p.id === targetPinId)) {
+        targetNodeId = node.data.id;
+      }
+    }
+
+    if (!sourceNodeId || !targetNodeId) {
+      setConnectingFrom(null);
+      return;
+    }
+
+    // Create the connection
+    createConnection(sourcePinId, targetPinId, sourceNodeId, targetNodeId);
+    setConnectingFrom(null);
+  };
+
+  const handleDisruptConnection = () => {
+    if (currentBlueprintIndex < 0 || !canvasRef.current) return;
+
+    const currentBlueprint = blueprints[currentBlueprintIndex];
+
+    // Find and remove the connection involving this pin
+    const connectionToRemove = currentBlueprint.connections.find(
+      (conn) => conn.sourcePinId === data.id || conn.targetPinId === data.id
+    );
+
+    if (connectionToRemove) {
+      deleteConnection(connectionToRemove.id);
+
+      // Start a new connection from the CLICKED pin (keep the other end)
+      // User wants to reconnect this pin to something else, keeping the other pin in place
+      const pinElement = canvasRef.current.querySelector(`.pin[data-id="${data.id}"] .clink`) as HTMLElement;
+      if (pinElement) {
+        setConnectingFrom({
+          pinId: data.id,
+          direction: direction,
+          pinType: data.type,
+          element: pinElement
+        });
+
+        // Set initial mouse position for smooth dragging
+        setMousePosition({
+          x: window.event ? (window.event as MouseEvent).clientX : 0,
+          y: window.event ? (window.event as MouseEvent).clientY : 0
+        });
+      }
+    }
   };
 
   const handleInputChange = (newValue: any) => {
     setInputValue(newValue);
-    onValueChange?.(data.id, newValue);
+    updatePinValue(data.id, newValue);
   };
 
   const handleInputClick = (event: React.MouseEvent) => {
