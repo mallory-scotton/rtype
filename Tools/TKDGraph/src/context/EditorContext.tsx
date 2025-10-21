@@ -150,6 +150,9 @@ export function EditorProvider({ children }: EditorProviderProps) {
   const removeSelectedNodesFromCurrentBlueprint = () => {
     setBlueprints((prev) => {
       const newBlueprints = [...prev];
+      newBlueprints[currentBlueprintIndex].connections = newBlueprints[currentBlueprintIndex].connections.filter(
+        (conn) => !selectedNodeIds.includes(conn.sourceNodeId) && !selectedNodeIds.includes(conn.targetNodeId)
+      );
       newBlueprints[currentBlueprintIndex].nodes = newBlueprints[currentBlueprintIndex].nodes.filter(
         (node) => !selectedNodeIds.includes(node.data.id)
       );
