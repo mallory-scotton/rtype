@@ -141,6 +141,7 @@ export class NodeRegistry {
    * @param templateId - The ID of the node template
    * @returns A new NodeData instance based on the template, or undefined if the template does not exist
    */
+  generateNodeDataFromTemplate(templateId: NodeTemplate): NodeData;
   generateNodeDataFromTemplate(templateId: string | NodeTemplate): NodeData | undefined {
     const template = typeof templateId === 'string' ? this.templates.get(templateId) : templateId;
     if (!template) {
