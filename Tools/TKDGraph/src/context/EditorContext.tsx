@@ -158,6 +158,22 @@ export function EditorProvider({ children }: EditorProviderProps) {
     setSelectedNodeIds([]);
   };
 
+  //! DEBUG ONLY
+  //! Ensure at least one blueprint exists
+  if (blueprints.length === 0) {
+    setBlueprints([
+      {
+        className: 'BP_Player',
+        type: 'APawn',
+        nodes: [],
+        connections: [],
+        properties: [],
+        functions: []
+      }
+    ]);
+    setCurrentBlueprintIndex(0);
+  }
+
   const contextValue: EditorContextType = {
     nodeRegistry,
     classList,

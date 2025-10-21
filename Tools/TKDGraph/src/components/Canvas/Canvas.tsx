@@ -106,10 +106,13 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
     currentBlueprint,
     removeSelectedNodesFromCurrentBlueprint,
     setSelectedNodeIds,
+    setIsBPressed,
     isBPressed,
     nodeRegistry,
     addNodeToBlueprint,
-    canvasTransform
+    canvasTransform,
+    canvasRef,
+    snapToGrid
   ]);
 
   // Mark pins as filled based on connections
