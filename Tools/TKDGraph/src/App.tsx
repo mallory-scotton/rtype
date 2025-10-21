@@ -2,8 +2,8 @@ import './App.css';
 import { EditorProvider } from './context';
 import { MainLayout, HeaderLayout, EditorLayout, VerticalLayout } from './layouts';
 import TKDLogo from '../assets/icons/logo.png';
-import { ActionBar, MainMenu } from './pages';
-import { Tab } from './components/Tab';
+import { ActionBar, MainMenu, BlueprintEditor } from './pages';
+import { Tab } from './components';
 import { Pawn } from './icons';
 
 /**
@@ -36,7 +36,7 @@ function App() {
               <div style={{ backgroundColor: 'rgba(255, 0, 255, 0.2)' }}></div>
               <div style={{ backgroundColor: 'rgba(255, 255, 0, 0.2)' }}></div>
             </VerticalLayout>
-            <div style={{ backgroundColor: 'rgba(0, 255, 0, 0.2)' }}></div>
+            <BlueprintEditor type='BLUEPRINT' />
             <div style={{ backgroundColor: 'rgba(0, 0, 255, 0.2)' }}></div>
           </EditorLayout>
         </MainLayout>
