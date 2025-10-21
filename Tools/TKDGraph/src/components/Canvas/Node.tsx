@@ -1,70 +1,33 @@
 /** Dependencies */
-import type { NodeData, PinDirection } from '../../types';
+import type { NodeData, NodeEntry, PinDirection } from '../../types';
 import { Pin } from './Pin';
 import { useState, useRef, useEffect } from 'react';
 import { snapToGrid } from '../../utils';
 import './Node.css';
+import { useEditor } from '../../context';
 
 /**
  * @brief Interface for Node component props
  * @description This interface defines the structure of the props that the Node component expects to receive.
  */
 interface NodeProps {
-  data: NodeData;
-  position: { x: number; y: number };
-  dimension?: { width: number; height: number };
-  selected?: boolean;
-  onPositionChange?: (nodeId: string, position: { x: number; y: number }) => void;
-  onDragStart?: (nodeId: string) => void;
-  onDragEnd?: (nodeId: string) => void;
-  onConnectionStart?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onConnectionEnd?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onPinHover?: (pinId: string, direction: PinDirection, pinType: string, isHovering: boolean) => void;
-  onDisruptConnection?: (pinId: string, direction: PinDirection, pinType: string) => void;
-  onPinValueChange?: (pinId: string, value: any) => void;
-  onClick?: (nodeId: string, event?: React.MouseEvent) => void;
-  scale?: number;
-  isCtrlPressed?: boolean;
+  entry: NodeEntry;
 }
 
 /**
  * @brief Node component
  * @description This component represents a node in a graph, displaying its data.
  */
-export const Node: React.FC<NodeProps> = ({
-  data,
-  position,
-  dimension,
-  selected,
-  onPositionChange,
-  onDragStart,
-  onDragEnd,
-  onConnectionStart,
-  onConnectionEnd,
-  onPinHover,
-  onDisruptConnection,
-  onPinValueChange,
-  onClick,
-  scale = 1,
-  isCtrlPressed = false
-}) => {
-  const classes: string[] = ['node'];
-  const [isDragging, setIsDragging] = useState(false);
-  const [currentPosition, setCurrentPosition] = useState(position);
-  const dragStartPos = useRef({ x: 0, y: 0 });
-  const nodeStartPos = useRef({ x: 0, y: 0 });
+export const Node: React.FC<NodeProps> = ({ entry }) => {
+  const { selectedNodeIds } = useEditor();
 
-  // Update position when prop changes (from external source)
-  useEffect(() => {
-    setCurrentPosition(position);
-  }, [position]);
+  const classes: string[] = ['node'];
+  const [isDragging, _] = useState(false);
+
+  const { data, position, dimensions } = entry;
 
   let allPins = [...(data.inputs || []), ...(data.outputs || [])];
   let nodeType = allPins.find((pin) => pin.type !== 'exec')?.type || '';
-
-  if (selected) {
-    classes.push('selected');
-  }
 
   if (data.type === 'getter') {
     classes.push(`nvariableget connector ${nodeType}`);
@@ -83,75 +46,23 @@ export const Node: React.FC<NodeProps> = ({
     classes.push('ncomment');
   }
 
-  const handleMouseDown = (event: React.MouseEvent) => {
-    // Only handle left mouse button and not on pins
-    if (event.button !== 0 || (event.target as HTMLElement).closest('.pin')) {
-      return;
-    }
-
-    event.stopPropagation();
-    onClick?.(data.id, event);
-    setIsDragging(true);
-    dragStartPos.current = { x: event.clientX, y: event.clientY };
-    nodeStartPos.current = { ...currentPosition };
-    onDragStart?.(data.id);
-  };
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (event: MouseEvent) => {
-      const deltaX = (event.clientX - dragStartPos.current.x) / scale;
-      const deltaY = (event.clientY - dragStartPos.current.y) / scale;
-
-      const newX = nodeStartPos.current.x + deltaX;
-      const newY = nodeStartPos.current.y + deltaY;
-
-      setCurrentPosition({ x: newX, y: newY });
-      // Update position immediately during drag (don't wait for mouse up)
-      onPositionChange?.(data.id, { x: newX, y: newY });
-    };
-
-    const handleMouseUp = (event: MouseEvent) => {
-      setIsDragging(false);
-
-      // Calculate final position based on mouse position at mouseup (not currentPosition)
-      const deltaX = (event.clientX - dragStartPos.current.x) / scale;
-      const deltaY = (event.clientY - dragStartPos.current.y) / scale;
-      const finalX = nodeStartPos.current.x + deltaX;
-      const finalY = nodeStartPos.current.y + deltaY;
-
-      // Snap to grid on mouse up
-      const snappedX = snapToGrid(finalX, 16);
-      const snappedY = snapToGrid(finalY, 16);
-
-      setCurrentPosition({ x: snappedX, y: snappedY });
-      onPositionChange?.(data.id, { x: snappedX, y: snappedY });
-      onDragEnd?.(data.id);
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, data.id, onPositionChange, onDragEnd, scale]);
+  if (selectedNodeIds.some((id) => id === entry.data.id)) {
+    classes.push('selected');
+  }
 
   return (
     <div
       data-id={data.id}
       style={{
         position: 'absolute',
-        transform: `translate(${currentPosition.x}px, ${currentPosition.y}px)`,
-        width: dimension?.width,
-        height: dimension?.height,
+        transform: `translate(${position.x}px, ${position.y}px)`,
+        width: dimensions?.width,
+        height: dimensions?.height,
         backgroundColor: data.backgroundColor,
         cursor: isDragging ? 'grabbing' : 'grab'
       }}
       className={classes.join(' ')}
-      onMouseDown={handleMouseDown}
+      // onMouseDown={handleMouseDown}
     >
       {data.header && data.type !== 'comment' && (
         <div className={`header node-color ${data.header.type} gradient`}>
@@ -181,12 +92,12 @@ export const Node: React.FC<NodeProps> = ({
                 key={input.id}
                 data={input}
                 direction='input'
-                onConnectionStart={onConnectionStart}
-                onConnectionEnd={onConnectionEnd}
-                onPinHover={onPinHover}
-                onDisruptConnection={onDisruptConnection}
-                onValueChange={onPinValueChange}
-                isCtrlPressed={isCtrlPressed}
+                // onConnectionStart={onConnectionStart}
+                // onConnectionEnd={onConnectionEnd}
+                // onPinHover={onPinHover}
+                // onDisruptConnection={onDisruptConnection}
+                // onValueChange={onPinValueChange}
+                // isCtrlPressed={isCtrlPressed}
               />
             ))}
         </div>
@@ -197,11 +108,11 @@ export const Node: React.FC<NodeProps> = ({
                 key={output.id}
                 data={output}
                 direction='output'
-                onConnectionStart={onConnectionStart}
-                onConnectionEnd={onConnectionEnd}
-                onPinHover={onPinHover}
-                onDisruptConnection={onDisruptConnection}
-                isCtrlPressed={isCtrlPressed}
+                // onConnectionStart={onConnectionStart}
+                // onConnectionEnd={onConnectionEnd}
+                // onPinHover={onPinHover}
+                // onDisruptConnection={onDisruptConnection}
+                // isCtrlPressed={isCtrlPressed}
               />
             ))}
         </div>
