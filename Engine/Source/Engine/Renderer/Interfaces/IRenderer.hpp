@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers/FString.hpp>
 #include <Engine/Core/Math.hpp>
+#include <Engine/Renderer/FCamera.hpp>
 #include <Engine/Renderer/FRenderStates.hpp>
 #include <Engine/Renderer/FView.hpp>
 #include <Engine/Renderer/Interfaces/IRenderTarget.hpp>
@@ -89,6 +90,36 @@ public:
     ) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw vertices with specified primitive type
+    ///
+    /// \param vertices Array of vertices
+    /// \param vertexCount Number of vertices
+    /// \param type Primitive type
+    /// \param transform Transformation to apply
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Draw(
+        const FVertex* vertices,
+        SizeT count,
+        EPrimitiveType type,
+        FTransform transform = FTransform::Identity
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw vertices with specified primitive type
+    ///
+    /// \param vertices Array of vertices
+    /// \param type Primitive type
+    /// \param transform Transformation to apply
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Draw(
+        const std::vector<FVertex>& vertices,
+        EPrimitiveType type,
+        FTransform transform = FTransform::Identity
+    ) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Draw a drawable object
     ///
     /// \param drawable Drawable to render
@@ -140,6 +171,22 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void EndFrame(void) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the camera of the renderer
+    ///
+    /// \param camera The camera to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetCamera(const FCamera& camera) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current 3D camera of the renderer
+    ///
+    /// \return A constant reference to the camera
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual const FCamera& GetCamera(void) const = 0;
 };
 
 }   // namespace tkd
