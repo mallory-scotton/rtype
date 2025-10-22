@@ -115,7 +115,7 @@ void Window::InitializeOpenGL(void)
     glLoadIdentity();
 
     // Clear color (background)
-    glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     // Enable smooth shading
     glShadeModel(GL_SMOOTH);
