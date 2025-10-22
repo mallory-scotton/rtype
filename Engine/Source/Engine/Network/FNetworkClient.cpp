@@ -3,6 +3,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkClient.hpp>
 #include <Engine/Core/Utils/FLogger.hpp>
+#include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -208,6 +210,12 @@ void FNetworkClient::SetupDefaultHandlers(void)
         [this](const Packets::HeartBeat& packet, const FEndpoint& endpoint)
         { HandleHeartbeatPacket(packet, endpoint); }
     );
+
+    // Register handler for property replication packets
+    RegisterPacketHandler<Packets::Replication>(
+        [this](const Packets::Replication& packet, const FEndpoint& endpoint)
+        { HandlePropertyReplicationPacket(packet, endpoint); }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,6 +241,12 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
     CheckConnectionAttemptTimeout(now);
     SendHeartbeat(now);
     CheckConnectionTimeout(now);
+
+    // Replicate dirty properties to server if connected
+    if (m_connectionState == EConnectionState::Connected)
+    {
+        ReplicateDirtyProperties();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -400,6 +414,180 @@ void FNetworkClient::HandleHeartbeatPacket(
     }
 
     if (m_connection) { m_connection->lastActivity = SteadyClock::now(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::HandlePropertyReplicationPacket(
+    const Packets::Replication& packet, const FEndpoint& endpoint
+)
+{
+    // Only accept replication packets from our server
+    if (endpoint != m_serverEndpoint ||
+        m_connectionState != EConnectionState::Connected)
+    {
+        return;
+    }
+
+    // Get the world subsystem from the engine
+    auto* worldSubsystem = Engine::GetInstance().GetWorld();
+    if (!worldSubsystem) { return; }
+
+    // Access the world and find the actor
+    worldSubsystem->WithWorld(
+        [&packet](UWorld& world)
+        {
+            // Convert actorID array to UUID
+            UUID actorID(packet.actorID);
+
+            // Find the actor by UUID
+            const auto& actors = world.GetActors();
+            AActor* targetActor = nullptr;
+
+            for (const auto& actor: actors)
+            {
+                if (!actor) { continue; }
+
+                if (actor->GetUUID() == actorID)
+                {
+                    targetActor = actor.get();
+                    break;
+                }
+            }
+
+            if (!targetActor)
+            {
+                FLogger::SetNamespace("Network");
+                FLogger::Warn(
+                    "Received replication for unknown actor: {}", actorID
+                );
+                return;
+            }
+
+            // Get the property
+            IProperty* property =
+                targetActor->GetProperty(packet.propertyName);
+
+            if (!property)
+            {
+                FLogger::SetNamespace("Network");
+                FLogger::Warn(
+                    "Received replication for unknown property '{}' on actor '{}'",
+                    packet.propertyName.CStr(),
+                    actorID
+                );
+                return;
+            }
+
+            // Deserialize the property value from byte array
+            try
+            {
+                // Update the property value with the received binary data
+                property->SetValue(packet.data.data(), packet.data.size());
+
+                FLogger::SetNamespace("Network");
+                FLogger::Info(
+                    "Updated property '{}' on actor '{}' from server replication",
+                    packet.propertyName.CStr(),
+                    actorID
+                );
+
+                // Clear dirty flag to avoid re-replicating this change
+                property->ClearDirty();
+            }
+            catch (const std::exception& e)
+            {
+                FLogger::SetNamespace("Network");
+                FLogger::Error(
+                    "Failed to update property '{}' on actor '{}': {}",
+                    packet.propertyName.CStr(),
+                    actorID,
+                    e.what()
+                );
+            }
+        }
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::ReplicateDirtyProperties(void)
+{
+    // Get the world subsystem from the engine
+    auto* worldSubsystem = Engine::GetInstance().GetWorld();
+    if (!worldSubsystem) { return; }
+
+    // Collect properties to replicate
+    std::vector<IProperty*> toReplicate;
+
+    worldSubsystem->WithWorld(
+        [&toReplicate](UWorld& world)
+        {
+            const auto& actors = world.GetActors();
+
+            for (const auto& actor: actors)
+            {
+                if (!actor) { continue; }
+
+                TVector<IProperty*> properties;
+                actor->GetLifetimeReplicatedProperties(properties);
+
+                for (auto* property: properties)
+                {
+                    // Check if the property is dirty
+                    if (property && property->IsDirty())
+                    {
+                        // Then push the modified property to the vector
+                        toReplicate.push_back(property);
+                    }
+                }
+            }
+        }
+    );
+    SendReplication(toReplicate);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::SendReplication(std::vector<IProperty*> toReplicate)
+{
+    // Send all collected properties
+    for (auto* property: toReplicate)
+    {
+        if (!property) { continue; }
+
+        auto& owner = property->GetOwner();
+
+        // Create replication packet
+        Packets::Replication replicationPacket;
+
+        // Set actor ID
+        std::string actorID = owner.GetObjectID();
+        std::memcpy(
+            replicationPacket.actorID.data(),
+            actorID.data(),
+            std::min(actorID.size(), replicationPacket.actorID.size())
+        );
+
+        replicationPacket.propertyName = property->GetName();
+        replicationPacket.timestamp = GetCurrentTimestamp();
+        FString propertyValue = property->ToString();
+
+        const char* cstr = propertyValue.CStr();
+        replicationPacket.data.assign(
+            reinterpret_cast<const Byte*>(cstr),
+            reinterpret_cast<const Byte*>(cstr + propertyValue.Size())
+        );
+
+        // Send the replication packet to the server
+        if (SendPacketToServer(replicationPacket)) { property->ClearDirty(); }
+        else
+        {
+            FLogger::SetNamespace("Network");
+            FLogger::Warn(
+                "Failed to replicate property '{}' of actor '{}'",
+                property->GetName().CStr(),
+                actorID
+            );
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
