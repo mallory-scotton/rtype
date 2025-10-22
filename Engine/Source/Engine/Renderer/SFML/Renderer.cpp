@@ -475,6 +475,8 @@ void Renderer::BeginFrame(void)
 
     UPlanePrimitive plane;
     plane.SetScale(FVector3(5.f));
+    plane.SetRotation(-90 * elapsedTime, 0.0f, 0.0f);
+    plane.SetBottomFaceCulled(false);
     plane.Draw(*this);
     //?TEMP
 }
