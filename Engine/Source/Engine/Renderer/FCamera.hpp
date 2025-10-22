@@ -1,0 +1,68 @@
+///////////////////////////////////////////////////////////////////////////////
+// Header guard
+///////////////////////////////////////////////////////////////////////////////
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Config.hpp>
+#include <Engine/Core/Math.hpp>
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace tkd
+///////////////////////////////////////////////////////////////////////////////
+namespace tkd
+{
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A class representing a 3D camera with position, orientation, and
+/// projection parameters.
+///
+///////////////////////////////////////////////////////////////////////////////
+class FCamera
+{
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    FVector3 position;          //<! The position in 3D space
+    FVector3 front;             //<! The forward direction vector
+    FVector3 up;                //<! The up direction vector
+    FVector3 right;             //<! The right direction vector
+    Float32 yaw;                //<! The yaw angle (in degrees)
+    Float32 pitch;              //<! The pitch angle (in degrees)
+    Float32 moveSpeed;          //<! Movement speed
+    Float32 mouseSensitivity;   //<! Mouse sensitivity
+    Float32 fov;                //<! Field of view (in degrees)
+    Float32 aspectRatio;        //<! Aspect ratio
+    Float32 nearPlane;          //<! Near clipping plane
+    Float32 farPlane;           //<! Far clipping plane
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructs a camera with default parameters.
+    ///
+    /// \param fov The field of view in degrees. Default is 60.0f.
+    /// \param aspect The aspect ratio. Default is 4.0f / 3
+    /// \param near The near clipping plane distance. Default is 0.1f.
+    /// \param far The far clipping plane distance. Default is 1000.0f.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FCamera(
+        Float32 fov = 60.0f,
+        Float32 aspect = 4.0f / 3.0f,
+        Float32 near = 0.1f,
+        Float32 far = 1000.0f
+    );
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Updates the camera's direction vectors based on the current yaw
+    /// and pitch angles.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateCameraVectors(void);
+};
+
+}   // namespace tkd
