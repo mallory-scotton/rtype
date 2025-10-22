@@ -478,6 +478,11 @@ void Renderer::BeginFrame(void)
     plane.SetRotation(-90 * elapsedTime, 0.0f, 0.0f);
     plane.SetBottomFaceCulled(false);
     plane.Draw(*this);
+
+    USpherePrimitive sphere;
+    sphere.SetPosition(0.f, std::sin(elapsedTime) * 5.f, 0.f);
+    sphere.SetColor(FColor(r, g, b, 1.f));
+    sphere.Draw(*this);
     //?TEMP
 }
 
