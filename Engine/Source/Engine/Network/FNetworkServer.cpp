@@ -122,13 +122,51 @@ void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkServer::BroadcastPacket(const IPacket& packet)
+Bool FNetworkServer::BroadcastPacket(const IPacket& packet)
 {
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
+    Bool result = true;
     for (const auto& [endpoint, connection]: m_connections)
     {
-        if (connection->connected) { SendPacket(packet, endpoint); }
+        if (connection->connected)
+        {
+            Bool current = SendPacket(packet, endpoint);
+            if (!current) { result = false; }
+        }
     }
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkServer::BroadcastReliablePacket(const IPacket& packet)
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+    Bool result = true;
+    for (const auto& [endpoint, connection]: m_connections)
+    {
+        if (connection->connected)
+        {
+            Bool current = SendReliablePacket(packet, endpoint);
+            if (!current) { result = false; }
+        }
+    }
+    return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkServer::BroadcastData(const std::vector<Byte>& data)
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+    Bool result = true;
+    for (const auto& [endpoint, connection]: m_connections)
+    {
+        if (connection->connected)
+        {
+            Bool current = SendData(data, endpoint);
+            if (!current) { result = false; }
+        }
+    }
+    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -342,7 +380,7 @@ void FNetworkServer::HandleConnectPacket(
     // Emit event
     EmitEvent(Events::ClientConnected{ assignedClientId, endpoint });
 
-    SendPacket(response, endpoint);
+    SendReliablePacket(response, endpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -615,6 +653,20 @@ void FNetworkServer::Cleanup(void)
         m_connections.clear();
         m_clientIDToEndpoint.clear();
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FConnectionInformation* FNetworkServer::GetClientInformation(UInt32 clientID
+) const
+{
+    std::lock_guard<std::mutex> lock(m_connectionsMutex);
+    auto it = m_clientIDToEndpoint.find(clientID);
+    if (it != m_clientIDToEndpoint.end())
+    {
+        auto connIt = m_connections.find(it->second);
+        if (connIt != m_connections.end()) { return connIt->second.get(); }
+    }
+    return nullptr;
 }
 
 }   // namespace tkd

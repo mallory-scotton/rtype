@@ -16,13 +16,9 @@ AActor::AActor(const FString& name)
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
-    , m_netRole(ENetRole::None)
-    , m_networkID(0)
-    , m_owningClientID(0)
-    , m_netUpdateFrequency(10.0f)
-    , m_timeSinceLastUpdate(0.0f)
-    , OnActorBeginOverlap("OnActorBeginOverlap", *this)
-    , OnActorEndOverlap("OnActorEndOverlap", *this)
+    , m_transformTimestamp(0)
+    , OnActorBeginOverlap(*this, "OnActorBeginOverlap")
+    , OnActorEndOverlap(*this, "OnActorEndOverlap")
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,6 +37,29 @@ void AActor::Tick(Float32 deltaTime)
     {
         if (component->IsActive()) { component->Tick(deltaTime); }
     }
+
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        if (IsLocallyControlled() && IsAuthority())
+        {
+            // TODO: Apply local input prediction here
+        }
+        else if (IsLocallyControlled())
+        {
+            // TODO: Apply client-side prediction here
+        }
+        else if (IsAuthority())
+        {
+            // TODO: Send transform updates to clients here
+        }
+        else
+        {
+            // TODO: Apply server simulation here
+        }
+    }
+
+    // Reset pending transform after applying it
+    m_pendingTransform = FTransform::Identity;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,31 +85,6 @@ Bool AActor::IsActive(void) const { return m_isActive.Get(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetActive(Bool isActive) { m_isActive = isActive; }
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsLocallyControlled(void) const
-{
-    // TODO: Add proper locally controller check
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsAuthority(void) const
-{
-    return m_netRole == ENetRole::Authority;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Bool AActor::IsSimulated(void) const
-{
-    return m_netRole == ENetRole::SimulatedProxy;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-ENetRole AActor::GetNetRole(void) const { return m_netRole; }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetRole(ENetRole role) { m_netRole = role; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::RemoveComponent(const FString& name)
@@ -135,74 +129,89 @@ bool AActor::IsTransformReplicated(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::SetTransformReplicated(Bool replicated)
 {
-    if (replicated) { m_transform.AddFlag(EPropertyFlags::Replicated); }
-    else { m_transform.RemoveFlag(EPropertyFlags::Replicated); }
+    if (replicated)
+    {
+        m_transform.AddFlag(EPropertyFlags::Replicated);
+        if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 20.f; }
+    }
+    else
+    {
+        m_transform.RemoveFlag(EPropertyFlags::Replicated);
+        if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 10.f; }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(const FVector3& translation)
 {
-    m_transform->Translate(translation);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Translate(translation);
+    }
+    else { m_transform->Translate(translation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(Float32 x, Float32 y, Float32 z)
 {
-    m_transform->Translate(FVector3(x, y, z));
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Translate(FVector3(x, y, z));
+    }
+    else { m_transform->Translate(FVector3(x, y, z)); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FVector3& rotation)
 {
     FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
-    m_transform->Rotate(rotator);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotator);
+    }
+    else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FRotator& rotation)
 {
-    m_transform->Rotate(rotation);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotation);
+    }
+    else { m_transform->Rotate(rotation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
 {
     FRotator rotator = FRotator(pitch, yaw, roll);
-    m_transform->Rotate(rotator);
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Rotate(rotator);
+    }
+    else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AActor::Scale(const FVector3& scale) { m_transform->Scale(scale); }
+void AActor::Scale(const FVector3& scale)
+{
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Scale(scale);
+    }
+    else { m_transform->Scale(scale); }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(Float32 x, Float32 y, Float32 z)
 {
-    m_transform->Scale(FVector3(x, y, z));
+    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    {
+        m_pendingTransform.Scale(FVector3(x, y, z));
+    }
+    else { m_transform->Scale(FVector3(x, y, z)); }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetUpdateFrequency(Float32 frequency)
-{
-    m_netUpdateFrequency = frequency;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-Float32 AActor::GetNetUpdateFrequency(void) const
-{
-    return m_netUpdateFrequency;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetOwningClientID(UInt32 id) { m_owningClientID = id; }
-
-///////////////////////////////////////////////////////////////////////////////
-UInt32 AActor::GetOwningClientID(void) const { return m_owningClientID; }
-
-///////////////////////////////////////////////////////////////////////////////
-UInt32 AActor::GetNetworkID(void) const { return m_networkID; }
-
-///////////////////////////////////////////////////////////////////////////////
-void AActor::SetNetworkID(UInt32 id) { m_networkID = id; }
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS(AActor);

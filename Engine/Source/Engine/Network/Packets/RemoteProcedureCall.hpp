@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core/Object/IFunction.hpp>
 #include <Engine/Network/Enumerations.hpp>
 #include <Engine/Network/TPacket.hpp>
 

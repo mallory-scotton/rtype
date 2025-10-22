@@ -41,7 +41,7 @@ bool RemoteProcedureCall::Deserialize(FBinaryReader& reader)
 SizeT RemoteProcedureCall::GetSize(void) const
 {
     return sizeof(SizeT) * 2 + actorID.size() + functionName.Size() +
-           parameters.size() * sizeof(Byte);
+           parameters.size() * sizeof(Byte) + sizeof(UInt8);
 }
 
 }   // namespace tkd::Packets

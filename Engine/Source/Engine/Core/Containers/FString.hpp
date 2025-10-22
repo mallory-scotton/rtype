@@ -2746,4 +2746,27 @@ struct hash<tkd::FString>
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Formateer specialization for FString.
+///
+///////////////////////////////////////////////////////////////////////////////
+template <>
+struct formatter<tkd::FString> : formatter<std::string_view>
+{
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Formats an FString for output.
+    ///
+    /// \param str The string to format.
+    /// \param ctx The format context.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename FormatContext>
+    auto format(const tkd::FString& str, FormatContext& ctx) const
+    {
+        return formatter<std::string_view>::format(
+            string_view(str.CStr()), ctx
+        );
+    }
+};
+
 }   // namespace std

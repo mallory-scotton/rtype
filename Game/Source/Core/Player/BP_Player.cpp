@@ -15,6 +15,18 @@ BP_Player::BP_Player(UInt32 playerColor)
     , speed(*this, "Speed", 200.0f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , playerColor(*this, "PlayerColor", playerColor % 5)
+    , ServerFire(
+          *this,
+          "ServerFire",
+          ERPCType::Server,
+          std::bind(&BP_Player::RPC_ServerFire, this)
+      )
+    , MulticastFire(
+          *this,
+          "MulticastFire",
+          ERPCType::Multicast,
+          std::bind(&BP_Player::RPC_MulticastFire, this, std::placeholders::_1)
+      )
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
 {
@@ -28,9 +40,6 @@ BP_Player::BP_Player(UInt32 playerColor)
     Abp->SetLocalTransform(
         FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
     );
-
-    // Set network update frequency
-    SetNetUpdateFrequency(10.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -154,7 +163,19 @@ void BP_Player::UpdateAnimationState(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Player::Fire(void)
 {
-    if (m_lastFiredTime >= 0.25f)
+    if (IsLocallyControlled() && m_lastFiredTime >= 0.25f)
+    {
+        // Call the server RPC to handle firing
+        this->ServerFire();
+        // Reset last fired time
+        m_lastFiredTime = 0.0f;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_ServerFire(void)
+{
+    if (IsAuthority() && m_lastFiredTime >= 0.25f)
     {
         // Reset last fired time
         m_lastFiredTime = 0.0f;
@@ -164,9 +185,23 @@ void BP_Player::Fire(void)
         transform.SetRotation(FRotator(0.f, 0.f, 0.f));
         transform.SetScale(FVector3f::One);
 
+        // Call multicast RPC to notify all clients
+        this->MulticastFire(transform);
+
         // Spawn a projectile
         World::SpawnActor("BP_Projectile", transform);
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_MulticastFire(FTransform transform)
+{
+    // Play firing effects on all clients,
+    if (IsAuthority()) { return; }
+
+    World::SpawnActor("BP_Projectile", transform);
+    // Reset last fired time
+    m_lastFiredTime = 0.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
