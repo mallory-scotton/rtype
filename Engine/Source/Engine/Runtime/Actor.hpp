@@ -7,5 +7,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Runtime/Actor/ACamera.hpp>
 #include <Engine/Runtime/Actor/AHUD.hpp>
 #include <Engine/Runtime/Actor/APawn.hpp>
