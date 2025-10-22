@@ -153,6 +153,10 @@ void FWindowSubsystem::ThreadLoop(void)
         {
             std::shared_lock lock(m_windowMutex);
 
+            // Begin rendering
+            m_renderer->BeginFrame();
+
+            // Execute render callback
             m_window->Draw(
                 [this]()
                 {
@@ -163,6 +167,9 @@ void FWindowSubsystem::ThreadLoop(void)
                     }
                 }
             );
+
+            // End rendering
+            m_renderer->EndFrame();
         }
 
         // Update performance metrics
