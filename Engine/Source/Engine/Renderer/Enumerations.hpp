@@ -41,7 +41,8 @@ enum class EPrimitiveType : UInt8
     Triangles,       //<! Individual triangles
     TriangleStrip,   //<! Triangle strip
     TriangleFan,     //<! Triangle fan
-    Quads            //<! Quadrilaterals
+    Quads,           //<! Quadrilaterals
+    QuadStrip        //<! Quad strip
 };
 
 }   // namespace tkd
