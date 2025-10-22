@@ -67,7 +67,7 @@ private:
     /// \brief Set the vertices of the plane
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetVertices(void);
+    void GenerateVertices(void);
 };
 
 }   // namespace tkd

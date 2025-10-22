@@ -11,10 +11,10 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 UPlanePrimitive::UPlanePrimitive(bool bottomFaceCulled, const FColor& color)
-    : UPrimitive(EPrimitiveType::Quads)
+    : UPrimitive(EPrimitiveType::Quads, color)
     , m_bottomFaceCulled(bottomFaceCulled)
 {
-    SetVertices();
+    GenerateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ void UPlanePrimitive::SetBottomFaceCulled(bool culled)
     if (m_bottomFaceCulled != culled)
     {
         m_bottomFaceCulled = culled;
-        SetVertices();
+        GenerateVertices();
     }
 }
 
@@ -34,7 +34,7 @@ TKD_NODISCARD bool UPlanePrimitive::IsBottomFaceCulled(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UPlanePrimitive::SetVertices(void)
+void UPlanePrimitive::GenerateVertices(void)
 {
     m_vertices.clear();
     m_vertices.push_back(FVertex(FVector3(-0.5f, 0.0f, 0.5f), m_color));
