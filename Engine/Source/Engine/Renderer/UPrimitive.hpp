@@ -95,7 +95,7 @@ public:
     /// \param color New color
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void SetColor(const FColor& color);
+    virtual void SetColor(const FColor& color);
 };
 
 }   // namespace tkd
