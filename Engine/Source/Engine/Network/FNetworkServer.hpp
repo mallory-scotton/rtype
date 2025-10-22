@@ -169,6 +169,15 @@ public:
     virtual void Update(float deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Replicate dirty properties to clients
+    ///
+    /// Iterates through all actors in the world and sends modified properties
+    /// to connected clients for replication.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ReplicateDirtyProperties(void);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Broadcast a packet to all connected clients
     ///
     /// \param packet The packet to broadcast
@@ -268,6 +277,17 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     void HandleHeartbeatPacket(
         const Packets::HeartBeat& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a property replication packet from a client
+    ///
+    /// \param packet The received property replication packet
+    /// \param endpoint The endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandlePropertyReplicationPacket(
+        const Packets::Replication& packet, const FEndpoint& endpoint
     );
 
     ///////////////////////////////////////////////////////////////////////////
