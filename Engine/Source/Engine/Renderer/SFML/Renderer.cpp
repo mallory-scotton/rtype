@@ -5,6 +5,13 @@
 #include <Engine/Config.hpp>
 #include <Engine/Renderer/SFML/Utils.hpp>
 #include <Engine/Renderer/SFML/Window.hpp>
+#if TKD_ENGINE_CLIENT
+    #include <GL/glu.h>
+    #include <SFML/OpenGL.hpp>
+#endif
+
+//?TEMP
+#include <Engine/Renderer/Primitives/UCubePrimitive.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -19,7 +26,10 @@ Renderer::Renderer(IWindow* window)
     : m_window(reinterpret_cast<sf::RenderWindow*>(window->GetNativeHandle()))
     , m_currentTarget(m_window)
     , m_currentView(/*FView::GetDefaultView()*/)
-{}
+{
+    // Set the camera to set the initial OpenGL states
+    SetCamera(m_camera);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::Clear(const FColor& color)
@@ -50,6 +60,24 @@ FView Renderer::GetDefaultView(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void Renderer::ApplyCameraView(void)
+{
+    // Apply camera view
+    FVector3 center = m_camera.position + m_camera.front;
+    gluLookAt(
+        m_camera.position.x,
+        m_camera.position.y,
+        m_camera.position.z,
+        center.x,
+        center.y,
+        center.z,
+        m_camera.up.x,
+        m_camera.up.y,
+        m_camera.up.z
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void Renderer::Draw(
     const FVertex2D* vertices,
     UInt32 vertexCount,
@@ -72,6 +100,252 @@ void Renderer::Draw(
         Utils::Convert(type),
         Utils::Convert(states)
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+inline void CalculateAndSetNormal(
+    const FVertex& v0, const FVertex& v1, const FVertex& v2
+)
+{
+    // Calculate edge vectors
+    float edge1X = v1.position.x - v0.position.x;
+    float edge1Y = v1.position.y - v0.position.y;
+    float edge1Z = v1.position.z - v0.position.z;
+
+    float edge2X = v2.position.x - v0.position.x;
+    float edge2Y = v2.position.y - v0.position.y;
+    float edge2Z = v2.position.z - v0.position.z;
+
+    // Cross product
+    float normalX = edge1Y * edge2Z - edge1Z * edge2Y;
+    float normalY = edge1Z * edge2X - edge1X * edge2Z;
+    float normalZ = edge1X * edge2Y - edge1Y * edge2X;
+
+    // Normalize
+    float length =
+        sqrtf(normalX * normalX + normalY * normalY + normalZ * normalZ);
+    if (length > 0.0001f)
+    {
+        normalX /= length;
+        normalY /= length;
+        normalZ /= length;
+    }
+
+    glNormal3f(normalX, normalY, normalZ);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::Draw(
+    const FVertex* vertices,
+    SizeT count,
+    EPrimitiveType type,
+    FTransform transform
+)
+{
+    glPushMatrix();
+
+    FVector3 position = transform.GetPosition();
+    FRotator rotation = transform.GetRotation();
+    FVector3 scale = transform.GetScale();
+
+    glTranslatef(position.x, position.y, position.z);
+    glRotatef(rotation.GetRoll(), 1.0f, 0.0f, 0.0f);
+    glRotatef(rotation.GetPitch(), 0.0f, 1.0f, 0.0f);
+    glRotatef(rotation.GetYaw(), 0.0f, 0.0f, 1.0f);
+    glScalef(scale.x, scale.y, scale.z);
+
+    // Set material color once for the entire object
+    if (count > 0)
+    {
+        glColor4f(
+            vertices[0].color.r,
+            vertices[0].color.g,
+            vertices[0].color.b,
+            vertices[0].color.a
+        );
+    }
+
+    switch (type)
+    {
+    case EPrimitiveType::Points       : glBegin(GL_POINTS); break;
+    case EPrimitiveType::Lines        : glBegin(GL_LINES); break;
+    case EPrimitiveType::LineStrip    : glBegin(GL_LINE_STRIP); break;
+    case EPrimitiveType::Triangles    : glBegin(GL_TRIANGLES); break;
+    case EPrimitiveType::TriangleStrip: glBegin(GL_TRIANGLE_STRIP); break;
+    case EPrimitiveType::TriangleFan  : glBegin(GL_TRIANGLE_FAN); break;
+    case EPrimitiveType::Quads        : glBegin(GL_QUADS); break;
+    case EPrimitiveType::QuadStrip    : glBegin(GL_QUAD_STRIP); break;
+    }
+
+    switch (type)
+    {
+    case EPrimitiveType::Triangles:
+        // Each set of 3 vertices forms a triangle
+        for (SizeT i = 0; i + 2 < count; i += 3)
+        {
+            const FVertex& v0 = vertices[i];
+            const FVertex& v1 = vertices[i + 1];
+            const FVertex& v2 = vertices[i + 2];
+
+            // Calculate and set normal for the triangle
+            CalculateAndSetNormal(v0, v1, v2);
+
+            // Render all three vertices with the same normal
+            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glVertex3f(v0.position.x, v0.position.y, v0.position.z);
+
+            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glVertex3f(v1.position.x, v1.position.y, v1.position.z);
+
+            glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+            glVertex3f(v2.position.x, v2.position.y, v2.position.z);
+        }
+        break;
+
+    case EPrimitiveType::TriangleStrip:
+        // Triangle strip: each new vertex forms a triangle with previous two
+        for (SizeT i = 0; i + 2 < count; i++)
+        {
+            const FVertex& v0 = vertices[i];
+            const FVertex& v1 = vertices[i + 1];
+            const FVertex& v2 = vertices[i + 2];
+
+            // Calculate normal (flip for odd triangles to maintain consistent
+            // winding)
+            if (i % 2 == 0) { CalculateAndSetNormal(v0, v1, v2); }
+            else { CalculateAndSetNormal(v0, v2, v1); }
+
+            // Only render the current vertex (strip already has previous
+            // vertices)
+            const FVertex& vertex = vertices[i];
+            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glVertex3f(
+                vertex.position.x, vertex.position.y, vertex.position.z
+            );
+        }
+        // Render last two vertices
+        for (SizeT i = (count >= 2 ? count - 2 : 0); i < count; i++)
+        {
+            const FVertex& vertex = vertices[i];
+            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glVertex3f(
+                vertex.position.x, vertex.position.y, vertex.position.z
+            );
+        }
+        break;
+
+    case EPrimitiveType::TriangleFan:
+        // Triangle fan: all triangles share the first vertex
+        if (count >= 3)
+        {
+            const FVertex& center = vertices[0];
+
+            for (SizeT i = 1; i + 1 < count; i++)
+            {
+                const FVertex& v1 = vertices[i];
+                const FVertex& v2 = vertices[i + 1];
+
+                // Calculate normal
+                CalculateAndSetNormal(center, v1, v2);
+
+                // Render center vertex for each triangle
+                glTexCoord3f(center.uv.x, center.uv.y, center.uv.z);
+                glVertex3f(
+                    center.position.x, center.position.y, center.position.z
+                );
+
+                glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+                glVertex3f(v1.position.x, v1.position.y, v1.position.z);
+
+                glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+                glVertex3f(v2.position.x, v2.position.y, v2.position.z);
+            }
+        }
+        break;
+
+    case EPrimitiveType::Quads:
+        // Each set of 4 vertices forms a quad
+        for (SizeT i = 0; i + 4 <= count; i += 4)
+        {
+            const FVertex& v0 = vertices[i];
+            const FVertex& v1 = vertices[i + 1];
+            const FVertex& v2 = vertices[i + 2];
+            const FVertex& v3 = vertices[i + 3];
+
+            // Calculate normal from first three vertices
+            CalculateAndSetNormal(v0, v1, v2);
+
+            // Render all four vertices with the same normal
+            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glVertex3f(v0.position.x, v0.position.y, v0.position.z);
+
+            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glVertex3f(v1.position.x, v1.position.y, v1.position.z);
+
+            glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+            glVertex3f(v2.position.x, v2.position.y, v2.position.z);
+
+            glTexCoord3f(v3.uv.x, v3.uv.y, v3.uv.z);
+            glVertex3f(v3.position.x, v3.position.y, v3.position.z);
+        }
+        break;
+
+    case EPrimitiveType::QuadStrip:
+        // Quad strip: each pair of new vertices forms a quad with previous
+        // pair
+        for (SizeT i = 0; i + 3 < count; i += 2)
+        {
+            const FVertex& v0 = vertices[i];
+            const FVertex& v1 = vertices[i + 1];
+            const FVertex& v2 = vertices[i + 2];
+
+            // Calculate normal
+            CalculateAndSetNormal(v0, v2, v1);
+
+            // Render current pair
+            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glVertex3f(v0.position.x, v0.position.y, v0.position.z);
+
+            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glVertex3f(v1.position.x, v1.position.y, v1.position.z);
+        }
+        // Render last pair if exists
+        for (SizeT i = (count >= 2 ? count - 2 : 0); i < count; i++)
+        {
+            const FVertex& vertex = vertices[i];
+            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glVertex3f(
+                vertex.position.x, vertex.position.y, vertex.position.z
+            );
+        }
+        break;
+
+    default:
+        // For Points, Lines, LineStrip: no normals needed, render as-is
+        for (SizeT i = 0; i < count; i++)
+        {
+            const FVertex& vertex = vertices[i];
+
+            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glVertex3f(
+                vertex.position.x, vertex.position.y, vertex.position.z
+            );
+        }
+        break;
+    }
+
+    glEnd();
+    glPopMatrix();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::Draw(
+    const std::vector<FVertex>& vertices,
+    EPrimitiveType type,
+    FTransform transform
+)
+{
+    this->Draw(vertices.data(), vertices.size(), type, transform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,6 +387,37 @@ void Renderer::BeginFrame(void)
 {
     // Apply current view
     m_currentTarget->setView(Utils::Convert(m_currentView));
+
+    // Clear depth and color buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity();
+
+    // Apply camera view
+    ApplyCameraView();
+
+    //?TEMP
+    static TimePoint last = SteadyClock::now();
+    static Float32 elapsedTime = 0.0f;
+    TimePoint now = SteadyClock::now();
+    Float32 deltaTime = std::chrono::duration<Float32>(now - last).count();
+    elapsedTime += deltaTime;
+    last = now;
+
+    Float32 speed = 1.0f;   // Adjust to make the color change faster/slower
+    Float32 r = 0.5f + 0.5f * std::sin(elapsedTime * speed + 0.0f);
+    Float32 g =
+        0.5f + 0.5f * std::sin(elapsedTime * speed + 2.0f * M_PI / 3.0f);
+    Float32 b =
+        0.5f + 0.5f * std::sin(elapsedTime * speed + 4.0f * M_PI / 3.0f);
+
+    UCubePrimitive cube;
+    cube.SetColor(FColor(r, g, b, 1.f));
+    cube.SetPosition(std::sin(elapsedTime) * 5.f, 0.f, 0.f);
+    cube.SetRotation(
+        elapsedTime * 90.f, elapsedTime * 45.f, elapsedTime * 30.f
+    );
+    cube.Draw(*this);
+    //?TEMP
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,6 +425,30 @@ void Renderer::EndFrame(void)
 {
     if (m_currentTarget == m_window) { m_window->display(); }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::SetCamera(const FCamera& camera)
+{
+    m_camera = camera;
+
+    // Apply OpenGL GLU perspective
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    sf::Vector2u size = m_currentTarget->getSize();
+    m_camera.aspectRatio =
+        static_cast<float>(size.x) / static_cast<float>(size.y);
+
+    gluPerspective(
+        camera.fov, m_camera.aspectRatio, camera.nearPlane, camera.farPlane
+    );
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FCamera& Renderer::GetCamera(void) const { return m_camera; }
 
 #endif
 

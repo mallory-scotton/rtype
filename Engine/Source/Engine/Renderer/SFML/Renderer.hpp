@@ -7,9 +7,11 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Renderer/FCamera.hpp>
 #include <Engine/Renderer/Interfaces/IRenderer.hpp>
 #include <Engine/Renderer/Interfaces/IWindow.hpp>
 #include <stack>
+
 #if TKD_ENGINE_CLIENT
     #include <SFML/Graphics.hpp>
 
@@ -37,6 +39,7 @@ private:
     sf::RenderWindow* m_window;              //<! SFML render window
     sf::RenderTarget* m_currentTarget;       //<! Current render target
     FView m_currentView;                     //<! Current view
+    FCamera m_camera;                        //<! 3D camera
     std::stack<FRectangle> m_scissorStack;   //<! Scissor test stack
 
 public:
@@ -104,6 +107,36 @@ public:
     ) override;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw vertices with specified primitive type
+    ///
+    /// \param vertices Array of vertices
+    /// \param vertexCount Number of vertices
+    /// \param type Primitive type
+    /// \param transform Transformation to apply
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Draw(
+        const FVertex* vertices,
+        SizeT count,
+        EPrimitiveType type,
+        FTransform transform = FTransform::Identity
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw vertices with specified primitive type
+    ///
+    /// \param vertices Array of vertices
+    /// \param type Primitive type
+    /// \param transform Transformation to apply
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Draw(
+        const std::vector<FVertex>& vertices,
+        EPrimitiveType type,
+        FTransform transform = FTransform::Identity
+    ) override;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the active render target
     ///
     /// \param target Render target (nullptr for default/window)
@@ -144,6 +177,29 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void EndFrame(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the camera of the renderer
+    ///
+    /// \param camera The camera to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetCamera(const FCamera& camera) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current 3D camera of the renderer
+    ///
+    /// \return A constant reference to the camera
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual const FCamera& GetCamera(void) const override;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Apply the camera view
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ApplyCameraView(void);
 };
 
 }   // namespace tkd::SFML
