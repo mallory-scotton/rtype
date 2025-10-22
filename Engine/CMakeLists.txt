@@ -106,6 +106,8 @@ target_link_libraries(TKDEngineClient
         asio::asio
         imgui::imgui
         ImGui-SFML::ImGui-SFML
+        GLU
+        GL
 )
 
 # Link libraries for server (minimal SFML components)
