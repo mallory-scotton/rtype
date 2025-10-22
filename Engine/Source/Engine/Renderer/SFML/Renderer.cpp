@@ -87,6 +87,21 @@ void Renderer::Draw(
 {
     if (vertices == nullptr || vertexCount == 0) { return; }
 
+    // Save the current OpenGL state
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glPushMatrix();
+
+    // Get the current window size and create a proper 2D view
+    sf::Vector2u size = m_currentTarget->getSize();
+    sf::View view2D(sf::FloatRect(
+        0.f, 0.f, static_cast<float>(size.x), static_cast<float>(size.y)
+    ));
+    m_currentTarget->setView(view2D);
+
+    // Reset to 2D mode for SFML rendering
+    m_window->resetGLStates();
+    m_window->pushGLStates();
+
     std::vector<sf::Vertex> sfmlVertices;
     sfmlVertices.reserve(vertexCount);
     for (UInt32 i = 0; i < vertexCount; ++i)
@@ -100,6 +115,29 @@ void Renderer::Draw(
         Utils::Convert(type),
         Utils::Convert(states)
     );
+
+    // Restore OpenGL state for 3D rendering
+    m_window->popGLStates();
+    glPopMatrix();
+    glPopAttrib();
+
+    // Reapply 3D camera after 2D rendering
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    // Update aspect ratio based on current size
+    m_camera.aspectRatio =
+        static_cast<float>(size.x) / static_cast<float>(size.y);
+
+    gluPerspective(
+        m_camera.fov,
+        m_camera.aspectRatio,
+        m_camera.nearPlane,
+        m_camera.farPlane
+    );
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    ApplyCameraView();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -385,11 +423,28 @@ void Renderer::PopScissorTest(void)
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::BeginFrame(void)
 {
+    // Get current window size and update aspect ratio
+    sf::Vector2u size = m_currentTarget->getSize();
+    m_camera.aspectRatio =
+        static_cast<float>(size.x) / static_cast<float>(size.y);
+
     // Apply current view
     m_currentTarget->setView(Utils::Convert(m_currentView));
 
     // Clear depth and color buffers
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set up 3D projection with updated aspect ratio
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        m_camera.fov,
+        m_camera.aspectRatio,
+        m_camera.nearPlane,
+        m_camera.farPlane
+    );
+
+    glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     // Apply camera view

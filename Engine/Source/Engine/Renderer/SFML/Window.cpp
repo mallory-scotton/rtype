@@ -402,6 +402,13 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
             m_dimension = FVector2u(event.size.width, event.size.height);
             this->Emit(Events::Resized{ oldSize, m_dimension });
 
+            // Update the SFML view to match the new window size
+            m_view.SetSize(
+                static_cast<float>(m_dimension.x),
+                static_cast<float>(m_dimension.y)
+            );
+            m_window->setView(Utils::Convert(m_view));
+
             // Default camera
             FCamera defaultCamera;
 
