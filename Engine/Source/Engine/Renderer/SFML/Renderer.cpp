@@ -11,7 +11,7 @@
 #endif
 
 //?TEMP
-#include <Engine/Renderer/Primitives/UCubePrimitive.hpp>
+#include <Engine/Renderer/Primitives.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -472,6 +472,10 @@ void Renderer::BeginFrame(void)
         elapsedTime * 90.f, elapsedTime * 45.f, elapsedTime * 30.f
     );
     cube.Draw(*this);
+
+    UPlanePrimitive plane;
+    plane.SetScale(FVector3(5.f));
+    plane.Draw(*this);
     //?TEMP
 }
 
