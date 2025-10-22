@@ -10,15 +10,10 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Constructor
-/// \param row Sprite sheet row to use for this monster
-///
-///////////////////////////////////////////////////////////////////////////////
 BP_Monster::BP_Monster(UInt32 row)
     : AActor("BP_Monster")
     , speed(*this, "Speed", 60.0f)
     , roamRadius(*this, "RoamRadius", 120.0f)
-    , spriteRow(*this, "SpriteRow", row % 4)
     , m_targetPosition(FVector3::Zero)
     , m_timeSinceTarget(0.0f)
 {
@@ -40,9 +35,6 @@ BP_Monster::BP_Monster(UInt32 row)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Called when the object is first created / spawned
-///
-///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::BeginPlay(void)
 {
     Super::BeginPlay();
@@ -54,10 +46,6 @@ void BP_Monster::BeginPlay(void)
     PickNewTarget();
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Per-frame tick
-/// \param deltaTime Time since last tick
-///
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::Tick(Float32 deltaTime)
 {
@@ -103,14 +91,12 @@ void BP_Monster::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Pick a new random target within roam radius
-///
-///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::PickNewTarget(void)
 {
-    // Choose a random point within roamRadius circle around spawn
-    // Float32 r = Math<Float32>::Random() * roamRadius();
-    // Float32 angle = Math<Float32>::Random() * Math<Float32>::PI * 2.0f;
+    // TODO: add random or fix this
+    //  Choose a random point within roamRadius circle around spawn
+    //  Float32 r = Math<Float32>::Random() * roamRadius();
+    //  Float32 angle = Math<Float32>::Random() * Math<Float32>::PI * 2.0f;
     /*FVector3 offset(
         r * Math<Float32>::Cos(angle), r *
      * Math<Float32>::Sin(angle), 0.0f
@@ -119,9 +105,6 @@ void BP_Monster::PickNewTarget(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Setup simple Idle/Walk animations using the shared sprite sheet
-///
-///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::SetupAnimations(void)
 {
     auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
@@ -129,25 +112,45 @@ void BP_Monster::SetupAnimations(void)
 
     Abp->ClearAnimations();
 
-    // The provided sprite sheet re-uses the player sizing: 33x17 per frame
+    // The provided sprite sheet re-uses the player sizing: 33x33 per frame
     const Int32 frameW = 33;
-    const Int32 frameH = 17;
-    const Int32 row = static_cast<Int32>(spriteRow());
+    const Int32 frameH = 33;
 
     FAnimation2D idle("Idle", true);
-    idle.AddFrame(FRectanglei(frameW * 0, frameH * row, frameW, frameH), 1.0f);
+    idle.AddFrame(FRectanglei(frameW * 2, frameH, frameW, frameH), 1.0f);
     Abp->AddAnimation(idle);
 
     FAnimation2D walk("Walk", true);
-    walk.AddFrame(
-        FRectanglei(frameW * 1, frameH * row, frameW, frameH), 0.15f
-    );
-    walk.AddFrame(
-        FRectanglei(frameW * 2, frameH * row, frameW, frameH), 0.15f
-    );
+    walk.AddFrame(FRectanglei(frameW * 0, frameH, frameW, frameH), 0.15f);
+    walk.AddFrame(FRectanglei(frameW * 1, frameH, frameW, frameH), 0.15f);
     Abp->AddAnimation(walk);
 
+    FAnimation2D jump("Jump", false);
+    jump.AddFrame(FRectanglei(frameW * 0, frameH * 2, frameW, frameH), 0.2f);
+    jump.AddFrame(FRectanglei(frameW * 1, frameH * 2, frameW, frameH), 0.2f);
+    jump.AddFrame(FRectanglei(frameW * 2, frameH * 2, frameW, frameH), 0.2f);
+    Abp->AddAnimation(jump);
+
     Abp->Play("Idle");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Monster::UpdateAnimationState(void)
+{
+    // Update the animation state based on movement
+    FVector3 velocity = GetTransform().GetPosition() - m_spawnPosition;
+    if (velocity.Length() > 0.01f)
+    {
+        // If moving, play walk animation
+        auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
+        if (Abp) { Abp->Play("Walk", true); }
+    }
+    else
+    {
+        // If not moving, play idle animation
+        auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
+        if (Abp) { Abp->Play("Idle", true); }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
