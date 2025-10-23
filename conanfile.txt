@@ -7,6 +7,8 @@ asio/1.36.0
 catch2/3.10.0
 opengl/system
 mesa-glu/9.0.3
+glew/2.2.0
+openvr/1.16.8
 
 [generators]
 CMakeToolchain
