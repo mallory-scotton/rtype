@@ -349,6 +349,12 @@ public:
     virtual void Bind(
         ETextureCoordinateType type = ETextureCoordinateType::Normalized
     ) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Unbind the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Unbind(void) const = 0;
 };
 
 }   // namespace tkd
