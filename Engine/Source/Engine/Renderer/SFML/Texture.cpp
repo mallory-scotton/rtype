@@ -4,6 +4,10 @@
 #include <Engine/Renderer/SFML/Texture.hpp>
 #include <Engine/Renderer/SFML/Utils.hpp>
 #include <stdexcept>
+#if TKD_ENGINE_CLIENT
+    #include <GL/glu.h>
+    #include <SFML/OpenGL.hpp>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::SFML
@@ -320,8 +324,16 @@ void Texture::Bind(ETextureCoordinateType type) const
 {
     if (m_texture)
     {
-        sf::Texture::bind(m_texture.get(), Utils::Convert(type));
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, m_texture->getNativeHandle());
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Texture::Unbind(void) const
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
 }
 
 #endif
