@@ -494,12 +494,7 @@ void Renderer::BeginFrame(void)
     sphere.Draw(*this);
 
     FilePath texturePath("Assets/Images/T_PlayerShips.png");
-    auto handler = URessource::GetInstance().GetTexture(texturePath.string());
-
-    if (!handler.IsValid())
-    {
-        handler = URessource::GetInstance().LoadTexture(texturePath);
-    }
+    auto handler = URessource::GetTextureHandle(texturePath);
 
     UBillboardPrimitive billboard(handler.Get(), FRectanglei(66, 0, 33, 17));
     billboard.SetPosition(0.f, 5.f, std::sin(elapsedTime) * 5.f);
