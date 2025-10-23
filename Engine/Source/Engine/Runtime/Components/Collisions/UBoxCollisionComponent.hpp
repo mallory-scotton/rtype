@@ -7,8 +7,10 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config.hpp>
+#include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -26,8 +28,9 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FVector3f m_boxExtent;         //<! The extent of the box collision
-    FTransform m_localTransform;   //<! The local transform
+    FVector3f m_boxExtent;             //<! The extent of the box collision
+    FTransform m_localTransform;       //<! The local transform
+    std::vector<FVertex> m_vertices;   //<! The vertices of the box
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -68,6 +71,15 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetLocalTransform(const FTransform& transform);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Draw the box using the provided renderer if hidden in game is
+    /// false
+    ///
+    /// \param renderer The renderer to use for drawing
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Render(IRenderer& renderer) const override;
 };
 
 }   // namespace tkd
