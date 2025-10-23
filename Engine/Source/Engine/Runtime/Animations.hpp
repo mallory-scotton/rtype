@@ -10,3 +10,4 @@
 #include <Engine/Runtime/Animations/FAnimation2DFrame.hpp>
 #include <Engine/Runtime/Animations/FAnimationState.hpp>
 #include <Engine/Runtime/Animations/FAnimationTransition.hpp>
+#include <Engine/Runtime/Animations/UFlipBook.hpp>

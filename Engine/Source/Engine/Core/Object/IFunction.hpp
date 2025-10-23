@@ -98,7 +98,7 @@ public:
     /// \param parameters Parameters to pass to the function
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void Execute(const std::vector<Byte>& parameters) = 0;
+    virtual void ExecuteSerialized(const std::vector<Byte>& parameters) = 0;
 };
 
 }   // namespace tkd

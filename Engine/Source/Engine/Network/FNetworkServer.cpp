@@ -2,7 +2,10 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkServer.hpp>
+#include <Engine/Core.hpp>
 #include <Engine/Core/Utils/FLogger.hpp>
+#include <Engine/Network/FBinaryWriter.hpp>
+#include <Engine/Network/Packets.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -358,7 +361,7 @@ void FNetworkServer::HandleConnectPacket(
     connection->lastActivity = SteadyClock::now();
     connection->connected = true;
 
-    uint32_t assignedClientId = connection->clientID;
+    UInt32 assignedClientId = connection->clientID;
 
     // Store connection
     m_connections[endpoint] = std::move(connection);
@@ -373,6 +376,17 @@ void FNetworkServer::HandleConnectPacket(
     EmitEvent(Events::ClientConnected{ assignedClientId, endpoint });
 
     SendReliablePacket(response, endpoint);
+
+    {
+        // Add a new RPC deferred call to spawn the client entity
+        Packets::RemoteProcedureCall rpc(
+            "SpawnClient", ERPCType::Server, UUID::World, assignedClientId
+        );
+
+        // Add parameters to the RPC
+        std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+        m_deferredRPCs.push({ rpc, endpoint });
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

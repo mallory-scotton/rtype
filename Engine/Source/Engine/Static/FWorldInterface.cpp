@@ -113,4 +113,34 @@ void FWorldInterface::SetTargetTickRate(float tickRate)
     worldSubsystem->SetTargetTickRate(tickRate);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+const AGameMode& FWorldInterface::GetGameMode(void) const
+{
+    static AGameMode defaultGameMode;
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return defaultGameMode; }
+
+    return worldSubsystem->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::vector<ULevel>& FWorldInterface::GetLoadedLevels(void) const
+{
+    static std::vector<ULevel> defaultLevels;
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return defaultLevels; }
+
+    return worldSubsystem->GetLoadedLevels();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ULevel* FWorldInterface::GetCurrentLevel(void) const
+{
+    static ULevel defaultLevel;
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return &defaultLevel; }
+
+    return worldSubsystem->GetCurrentLevel();
+}
+
 }   // namespace tkd

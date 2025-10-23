@@ -73,6 +73,7 @@ void FNetworkBase::InitializePacketManager(void)
     m_packetManager.RegisterPacket<Packets::Replication>();
     m_packetManager.RegisterPacket<Packets::RemoteProcedureCall>();
     m_packetManager.RegisterPacket<Packets::Acknowledgment>();
+    m_packetManager.RegisterPacket<Packets::Snapshot>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,6 +121,14 @@ void FNetworkBase::HandleRPCPacket(
     // The world thread will process them via ProcessDeferredRPCs()
     std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
     m_deferredRPCs.push({ packet, endpoint });
+
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Queued RPC '{}' from {} for deferred execution on Actor ID {}",
+        packet.functionName.CStr(),
+        endpoint.address().to_string().c_str(),
+        UUID(packet.actorID).ToString().c_str()
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -193,8 +202,9 @@ bool FNetworkBase::SendReliablePacket(
     if (!m_socket || !m_running) { return false; }
 
     // Serialize packet with Reliable flag
-    auto data =
-        m_packetManager.SerializePacket(packet, EPacketFlags::Reliable);
+    auto data = m_packetManager.SerializePacket(
+        packet, static_cast<UInt8>(EPacketFlags::Reliable)
+    );
     if (data.empty()) { return false; }
 
     // Deserialize header to get sequence number
@@ -313,7 +323,7 @@ void FNetworkBase::ProcessReceivedData(
     }
 
     // Handle reliable packet acknowledgment
-    if (header.flags == static_cast<UInt16>(EPacketFlags::Reliable))
+    if (header.HasFlag(EPacketFlags::Reliable))
     {
         // Send acknowledgment for reliable packets
         Packets::Acknowledgment ackPacket;
@@ -378,6 +388,8 @@ void FNetworkBase::FlushPackets(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
 {
+    TKD_UNUSED(world);
+
     // Process all queued RPCs
     // IMPORTANT: This is called from UWorld::Tick(), which already holds
     // m_worldMutex The world is passed as a parameter to avoid re-locking
@@ -396,14 +408,11 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
         const auto& packet = deferredRPC.packet;
 
         // Execute the RPC directly on the world (already locked by caller)
-        auto actors = world.GetActors();
-        for (auto& actor: actors)
+        auto object = UObject::FindByUUID(UUID(packet.actorID));
+        if (object)
         {
-            if (actor && actor->GetClass()->GetName() == "BP_Player")
-            {
-                auto rpc = actor->GetFunction(packet.functionName);
-                if (rpc) { rpc->Execute(packet.parameters); }
-            }
+            auto rpc = object->GetFunction(packet.functionName);
+            if (rpc) { rpc->ExecuteSerialized(packet.parameters); }
         }
 
         localQueue.pop();

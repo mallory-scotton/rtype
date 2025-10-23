@@ -1,0 +1,6 @@
+.bue-render .canvas {
+    height: 100%;
+    position: absolute;
+    transform-origin: 0 0 0;
+    width: 100%
+}

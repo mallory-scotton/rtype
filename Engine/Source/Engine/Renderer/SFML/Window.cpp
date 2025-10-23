@@ -2,10 +2,13 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Window.hpp>
+#include <Engine/Renderer/FCamera.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
 #if TKD_ENGINE_CLIENT
+    #include <GL/glu.h>
     #include <imgui-SFML.h>
     #include <imgui.h>
+    #include <SFML/OpenGL.hpp>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,18 +72,82 @@ sf::Uint32 Window::ToSFMLStyle(const EWindowState& state)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void Window::InitializeOpenGL(void)
+{
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    // Enable back-face culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    // Enable lighting
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_NORMALIZE);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+    // Set up light
+    GLfloat lightPos[] = { 10.0f, 10.0f, 10.0f, 1.0f };
+    GLfloat lightAmbient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+    GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+
+    // Create a default camera
+    FCamera defaultCamera;
+
+    // Set up viewport and projection
+    glViewport(0, 0, m_dimension.x, m_dimension.y);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(
+        defaultCamera.fov,
+        defaultCamera.aspectRatio,
+        defaultCamera.nearPlane,
+        defaultCamera.farPlane
+    );
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    // Clear color (background)
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    // Enable smooth shading
+    glShadeModel(GL_SMOOTH);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool Window::Open(void)
 {
     // Check if the window is already open
     if (IsOpen()) { return false; }
 
+    // Create the SFML Context Settings
+    sf::ContextSettings settings;
+    settings.depthBits = 24;
+    settings.stencilBits = 8;
+    settings.antialiasingLevel = 4;
+    settings.majorVersion = 2;
+    settings.minorVersion = 1;
+
     // Create the SFML window
     m_window = std::make_unique<sf::RenderWindow>(
-        ToSFMLVideoMode(m_dimension), m_title.CStr(), ToSFMLStyle(m_state)
+        ToSFMLVideoMode(m_dimension),
+        m_title.CStr(),
+        ToSFMLStyle(m_state),
+        settings
     );
 
     // Check if the window was created successfully
     if (!m_window || !m_window->isOpen()) { return false; }
+
+    // Initialize OpenGL settings
+    InitializeOpenGL();
 
     // Set initial position and VSync
     m_window->setPosition(Utils::Convert(m_position));
@@ -334,6 +401,28 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
             FVector2u oldSize = m_dimension;
             m_dimension = FVector2u(event.size.width, event.size.height);
             this->Emit(Events::Resized{ oldSize, m_dimension });
+
+            // Update the SFML view to match the new window size
+            m_view.SetSize(
+                static_cast<float>(m_dimension.x),
+                static_cast<float>(m_dimension.y)
+            );
+            m_window->setView(Utils::Convert(m_view));
+
+            // Default camera
+            FCamera defaultCamera;
+
+            glViewport(0, 0, event.size.width, event.size.height);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            gluPerspective(
+                defaultCamera.fov,
+                (float)event.size.width / event.size.height,
+                defaultCamera.nearPlane,
+                defaultCamera.farPlane
+            );
+            glMatrixMode(GL_MODELVIEW);
+
             break;
         }
 
@@ -352,17 +441,22 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
     // Check if the window is open
     if (!IsOpen() || !drawFunction) { return; }
 
-    // Clear the window with a black color (or any other desired color)
-    m_window->clear(sf::Color::Black);
-
     // Call the provided drawing function
     drawFunction();
 
     // Render ImGui if it was initialized
-    if (m_imguiInitialized) { ImGui::SFML::Render(*m_window); }
+    if (m_imguiInitialized)
+    {
+        // Save OpenGL State
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glPushMatrix();
 
-    // Display the contents of the window
-    m_window->display();
+        ImGui::SFML::Render(*m_window);
+
+        // Restore OpenGL State
+        glPopMatrix();
+        glPopAttrib();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

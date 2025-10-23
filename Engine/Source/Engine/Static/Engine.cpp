@@ -115,6 +115,7 @@ bool Engine::Initialize(int argc, char* argv[])
 #endif
             networkConfig.maxClients = m_settings.network.maxClients;
             networkConfig.port = m_settings.network.port;
+            networkConfig.host = "127.0.0.1";
 
             // Initialize network subsystem (server only)
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);

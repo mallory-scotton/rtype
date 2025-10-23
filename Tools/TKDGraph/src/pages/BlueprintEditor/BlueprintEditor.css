@@ -1,0 +1,34 @@
+.bue-render {
+    -webkit-touch-callout: none;
+    border: 0;
+    color: #fff;
+    font-family: Roboto,sans-serif;
+    font-size: 13px;
+    line-height: normal;
+    margin: 0;
+    padding: 0;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    vertical-align: baseline;
+    width: 100%;
+    height: 100%;
+}
+
+.bue-render .frame {
+    background-color: #a6a6a6;
+    height: 100%;
+    overflow: hidden;
+    position: relative;
+    transition: left 0.3s ease, right 0.3s ease;
+}
+
+.bue-render .layer {
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 0;
+}

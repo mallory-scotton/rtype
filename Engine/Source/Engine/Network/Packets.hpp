@@ -12,3 +12,4 @@
 #include <Engine/Network/Packets/HeartBeat.hpp>
 #include <Engine/Network/Packets/RemoteProcedureCall.hpp>
 #include <Engine/Network/Packets/Replication.hpp>
+#include <Engine/Network/Packets/Snapshot.hpp>

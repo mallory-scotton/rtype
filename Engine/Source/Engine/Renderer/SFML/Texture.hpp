@@ -404,6 +404,12 @@ public:
     virtual void Bind(
         ETextureCoordinateType type = ETextureCoordinateType::Normalized
     ) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Unbind the texture
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Unbind(void) const override;
 };
 
 }   // namespace tkd::SFML

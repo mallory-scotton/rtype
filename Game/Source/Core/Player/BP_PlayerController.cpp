@@ -57,6 +57,11 @@ void BP_PlayerController::Tick(Float32 deltaTime)
     {
         inputVelocity.x = inputManager->GetAxisValue("HorizontalMoves");
         inputVelocity.y = inputManager->GetAxisValue("VerticalMoves");
+
+        if (inputVelocity.Length() > 0.0f)
+        {
+            player->velocity = inputVelocity;
+        }
     }
 
     // Use client-side prediction

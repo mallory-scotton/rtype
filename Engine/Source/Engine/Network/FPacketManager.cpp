@@ -32,7 +32,7 @@ UInt32 FPacketManager::CalculateChecksum(const UInt8* data, SizeT size) const
 
 ///////////////////////////////////////////////////////////////////////////////
 std::vector<UInt8>
-    FPacketManager::SerializePacket(const IPacket& packet, EPacketFlags flags)
+    FPacketManager::SerializePacket(const IPacket& packet, UInt8 flags)
 {
     std::vector<UInt8> buffer;
     FBinaryWriter writer(buffer);
@@ -44,7 +44,7 @@ std::vector<UInt8>
         static_cast<UInt16>(FPacketHeader::SIZE + packet.GetSize());
     header.sequenceNumber = ++m_sequenceNumber;
     header.timestamp = GetCurrentTimestamp();
-    header.flags = static_cast<UInt16>(flags);
+    header.flags = flags;
     header.checksum = 0;   // Placeholder, will be calculated later
 
     // Write header fields
@@ -80,7 +80,8 @@ std::vector<UInt8>
     header.checksum =
         CalculateChecksum(checksumBuffer.data(), checksumBuffer.size());
 
-    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+    SizeT checksumOffset =
+        sizeof(UInt32) * 4 + sizeof(UInt16) * 2 + sizeof(UInt8);
     std::memcpy(
         buffer.data() + checksumOffset, &header.checksum, sizeof(UInt32)
     );
@@ -95,7 +96,8 @@ bool FPacketManager::ValidateChecksum(
 {
     std::vector<UInt8> checksumBuffer;
 
-    SizeT checksumOffset = sizeof(UInt32) * 4 + sizeof(UInt16) * 3;
+    SizeT checksumOffset =
+        sizeof(UInt32) * 4 + sizeof(UInt16) * 2 + sizeof(UInt8);
 
     checksumBuffer.insert(checksumBuffer.end(), data, data + checksumOffset);
 

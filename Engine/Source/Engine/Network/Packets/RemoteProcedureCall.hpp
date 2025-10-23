@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Object/IFunction.hpp>
 #include <Engine/Network/Enumerations.hpp>
+#include <Engine/Network/FBinaryWriter.hpp>
 #include <Engine/Network/TPacket.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,6 +36,50 @@ public:
     ERPCType rpcType = ERPCType::Server;   //<! The type of RPC (ERPCType)
     FString functionName;                  //<! The name of the function
     std::vector<Byte> parameters;          //<! Serialized parameters
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Default constructor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RemoteProcedureCall(void) = default;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Constructor with parameters
+    ///
+    /// \param name Name of the function to call
+    /// \param type Type of RPC (Client or Server)
+    /// \param uuid UUID of the target actor (default is nil UUID)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    RemoteProcedureCall(
+        const FString& name, ERPCType type, const UUID& uuid = UUID::Nil
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param name
+    /// \param type
+    /// \param uuid
+    /// \param params
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename... Args>
+    RemoteProcedureCall(
+        const FString& name, ERPCType type, const UUID& uuid, Args&&... params
+    )
+        : actorID(uuid.Data())
+        , rpcType(type)
+        , functionName(name)
+        , parameters()
+    {
+        // Serialize parameters
+        std::vector<Byte> parameters;
+        FBinaryWriter writer(parameters);
+        (writer.Write(params), ...);
+        this->parameters = std::move(parameters);
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////

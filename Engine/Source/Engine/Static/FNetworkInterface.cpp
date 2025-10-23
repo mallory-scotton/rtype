@@ -96,6 +96,36 @@ Bool FNetworkInterface::SendPacket(const IPacket& packet)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkInterface::SendPacket(const IPacket& packet, UInt32 clientID)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_networkSubsystem == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not initialized.");
+        return false;
+    }
+
+    auto server = s_networkSubsystem->GetServer();
+    if (server == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not in server mode.");
+        return false;
+    }
+
+    auto info = server->GetClientInformation(clientID);
+    if (info == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Client not found.");
+        return false;
+    }
+
+    return s_networkSubsystem->SendPacket(packet, info->endpoint);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 Bool FNetworkInterface::SendPacket(
     const IPacket& packet, const FEndpoint& endpoint
 )
@@ -136,6 +166,38 @@ Bool FNetworkInterface::SendReliablePacket(const IPacket& packet)
         return false;
     }
     return s_networkSubsystem->SendReliablePacket(packet);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool FNetworkInterface::SendReliablePacket(
+    const IPacket& packet, UInt32 clientID
+)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_networkSubsystem == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not initialized.");
+        return false;
+    }
+
+    auto server = s_networkSubsystem->GetServer();
+    if (server == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Network subsystem is not in server mode.");
+        return false;
+    }
+
+    auto info = server->GetClientInformation(clientID);
+    if (info == nullptr)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Warn("Client not found.");
+        return false;
+    }
+
+    return s_networkSubsystem->SendReliablePacket(packet, info->endpoint);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -360,6 +422,18 @@ void FNetworkInterface::ProcessDeferredRPCs(UWorld& world)
     // The subsystem pointer is stable after initialization, so no lock needed
     if (s_networkSubsystem == nullptr) { return; }
     s_networkSubsystem->ProcessDeferredRPCs(world);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UInt32 FNetworkInterface::GetClientID(void)
+{
+    std::lock_guard<std::mutex> lock(s_mutex);
+    if (s_networkSubsystem == nullptr) { return 0; }
+
+    FNetworkClient* client = s_networkSubsystem->GetClient();
+    if (client == nullptr) { return 0; }
+
+    return client->GetClientID().value_or(0);
 }
 
 }   // namespace tkd

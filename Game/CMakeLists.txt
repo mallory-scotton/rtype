@@ -85,6 +85,8 @@ target_link_libraries(RTypeGameClient
         sfml-graphics
         sfml-audio
         sfml-network
+        GLU
+        GL
 )
 
 # Create server game library

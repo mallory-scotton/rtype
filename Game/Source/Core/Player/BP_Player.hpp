@@ -37,6 +37,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     FVector2f m_lastVelocity;   //<! Last movement direction
     Float32 m_lastFiredTime;    //<! Time since last fired shot
+    FVector3 m_lastPosition;    //<! Last position for velocity calculation
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,23 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void MoveVertical(Float32 value);
+
+protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Simulate movement with player-specific logic
+    ///
+    /// \param inputVector The input vector for this move
+    /// \param deltaTime The time elapsed for this move
+    /// \param startTransform The starting transform
+    ///
+    /// \return The new transform after applying movement
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FTransform SimulateMovement(
+        const FVector3& inputVector,
+        Float32 deltaTime,
+        const FTransform& startTransform
+    ) override;
 
 private:
     ///////////////////////////////////////////////////////////////////////////

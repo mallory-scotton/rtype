@@ -206,7 +206,10 @@ const FString& UAnimatedSpriteComponent::GetCurrentAnimation(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void UAnimatedSpriteComponent::Tick(Float32 deltaTime)
 {
-    if (!IsPlaying() || m_currentAnimation.IsEmpty()) { return; }
+    if (!IsPlaying() || m_currentAnimation.IsEmpty() || IsHiddenInGame())
+    {
+        return;
+    }
 
     if (!m_animations.contains(m_currentAnimation)) { return; }
 
