@@ -202,6 +202,12 @@ void Renderer::Draw(
             vertices[0].color.b,
             vertices[0].color.a
         );
+
+        if (vertices[0].color.a < 1.0f)
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 
     switch (type)
@@ -375,6 +381,8 @@ void Renderer::Draw(
 
     glEnd();
     glPopMatrix();
+
+    if (count > 0 && vertices[0].color.a < 1.0f) { glDisable(GL_BLEND); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -493,7 +501,7 @@ void Renderer::BeginFrame(void)
         handler = URessource::GetInstance().LoadTexture(texturePath);
     }
 
-    UBillboardPrimitive billboard(handler.Get());
+    UBillboardPrimitive billboard(handler.Get(), FRectanglei(66, 0, 33, 17));
     billboard.SetPosition(0.f, 5.f, std::sin(elapsedTime) * 5.f);
     billboard.Draw(*this);
     //?TEMP
