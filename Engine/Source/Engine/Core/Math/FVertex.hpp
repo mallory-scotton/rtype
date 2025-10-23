@@ -28,12 +28,12 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     FVector3 position;   //<! Position of the vertex
     FColor color;        //<! The color of the vertex
-    FVector3 uv;         //<! Texture coordinates of the vertex
+    FVector2 uv;         //<! Texture coordinates of the vertex
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor, initializes position to (0,0,0), color to
-    /// white, and uv to (0,0,0)
+    /// white, and uv to (0,0)
     ///
     ///////////////////////////////////////////////////////////////////////////
     FVertex(void);
@@ -49,7 +49,7 @@ public:
     FVertex(
         const FVector3& position,
         const FColor& color = FColor::White,
-        const FVector3& uv = FVector3::Zero
+        const FVector2& uv = FVector2::Zero
     );
 };
 

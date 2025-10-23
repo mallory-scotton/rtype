@@ -13,12 +13,12 @@ namespace tkd
 FVertex::FVertex(void)
     : position(FVector3::Zero)
     , color(FColor::White)
-    , uv(FVector3::Zero)
+    , uv(FVector2::Zero)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
 FVertex::FVertex(
-    const FVector3& position, const FColor& color, const FVector3& uv
+    const FVector3& position, const FColor& color, const FVector2& uv
 )
     : position(position)
     , color(color)

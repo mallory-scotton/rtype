@@ -11,6 +11,7 @@
 #endif
 
 //?TEMP
+#include <Engine/Assets/URessource.hpp>
 #include <Engine/Renderer/Primitives.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -229,13 +230,13 @@ void Renderer::Draw(
             CalculateAndSetNormal(v0, v1, v2);
 
             // Render all three vertices with the same normal
-            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glTexCoord2f(v0.uv.x, v0.uv.y);
             glVertex3f(v0.position.x, v0.position.y, v0.position.z);
 
-            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glTexCoord2f(v1.uv.x, v1.uv.y);
             glVertex3f(v1.position.x, v1.position.y, v1.position.z);
 
-            glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+            glTexCoord2f(v2.uv.x, v2.uv.y);
             glVertex3f(v2.position.x, v2.position.y, v2.position.z);
         }
         break;
@@ -256,7 +257,7 @@ void Renderer::Draw(
             // Only render the current vertex (strip already has previous
             // vertices)
             const FVertex& vertex = vertices[i];
-            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glTexCoord2f(vertex.uv.x, vertex.uv.y);
             glVertex3f(
                 vertex.position.x, vertex.position.y, vertex.position.z
             );
@@ -265,7 +266,7 @@ void Renderer::Draw(
         for (SizeT i = (count >= 2 ? count - 2 : 0); i < count; i++)
         {
             const FVertex& vertex = vertices[i];
-            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glTexCoord2f(vertex.uv.x, vertex.uv.y);
             glVertex3f(
                 vertex.position.x, vertex.position.y, vertex.position.z
             );
@@ -287,15 +288,15 @@ void Renderer::Draw(
                 CalculateAndSetNormal(center, v1, v2);
 
                 // Render center vertex for each triangle
-                glTexCoord3f(center.uv.x, center.uv.y, center.uv.z);
+                glTexCoord2f(center.uv.x, center.uv.y);
                 glVertex3f(
                     center.position.x, center.position.y, center.position.z
                 );
 
-                glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+                glTexCoord2f(v1.uv.x, v1.uv.y);
                 glVertex3f(v1.position.x, v1.position.y, v1.position.z);
 
-                glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+                glTexCoord2f(v2.uv.x, v2.uv.y);
                 glVertex3f(v2.position.x, v2.position.y, v2.position.z);
             }
         }
@@ -314,16 +315,16 @@ void Renderer::Draw(
             CalculateAndSetNormal(v0, v1, v2);
 
             // Render all four vertices with the same normal
-            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glTexCoord2f(v0.uv.x, v0.uv.y);
             glVertex3f(v0.position.x, v0.position.y, v0.position.z);
 
-            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glTexCoord2f(v1.uv.x, v1.uv.y);
             glVertex3f(v1.position.x, v1.position.y, v1.position.z);
 
-            glTexCoord3f(v2.uv.x, v2.uv.y, v2.uv.z);
+            glTexCoord2f(v2.uv.x, v2.uv.y);
             glVertex3f(v2.position.x, v2.position.y, v2.position.z);
 
-            glTexCoord3f(v3.uv.x, v3.uv.y, v3.uv.z);
+            glTexCoord2f(v3.uv.x, v3.uv.y);
             glVertex3f(v3.position.x, v3.position.y, v3.position.z);
         }
         break;
@@ -341,17 +342,17 @@ void Renderer::Draw(
             CalculateAndSetNormal(v0, v2, v1);
 
             // Render current pair
-            glTexCoord3f(v0.uv.x, v0.uv.y, v0.uv.z);
+            glTexCoord2f(v0.uv.x, v0.uv.y);
             glVertex3f(v0.position.x, v0.position.y, v0.position.z);
 
-            glTexCoord3f(v1.uv.x, v1.uv.y, v1.uv.z);
+            glTexCoord2f(v1.uv.x, v1.uv.y);
             glVertex3f(v1.position.x, v1.position.y, v1.position.z);
         }
         // Render last pair if exists
         for (SizeT i = (count >= 2 ? count - 2 : 0); i < count; i++)
         {
             const FVertex& vertex = vertices[i];
-            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glTexCoord2f(vertex.uv.x, vertex.uv.y);
             glVertex3f(
                 vertex.position.x, vertex.position.y, vertex.position.z
             );
@@ -364,7 +365,7 @@ void Renderer::Draw(
         {
             const FVertex& vertex = vertices[i];
 
-            glTexCoord3f(vertex.uv.x, vertex.uv.y, vertex.uv.z);
+            glTexCoord2f(vertex.uv.x, vertex.uv.y);
             glVertex3f(
                 vertex.position.x, vertex.position.y, vertex.position.z
             );
@@ -483,6 +484,18 @@ void Renderer::BeginFrame(void)
     sphere.SetPosition(0.f, std::sin(elapsedTime) * 5.f, 0.f);
     sphere.SetColor(FColor(r, g, b, 1.f));
     sphere.Draw(*this);
+
+    FilePath texturePath("Assets/Images/T_PlayerShips.png");
+    auto handler = URessource::GetInstance().GetTexture(texturePath.string());
+
+    if (!handler.IsValid())
+    {
+        handler = URessource::GetInstance().LoadTexture(texturePath);
+    }
+
+    UBillboardPrimitive billboard(handler.Get());
+    billboard.SetPosition(0.f, 5.f, std::sin(elapsedTime) * 5.f);
+    billboard.Draw(*this);
     //?TEMP
 }
 
