@@ -20,3 +20,4 @@
 #include <Engine/Renderer/UPrimitive.hpp>
 #include <Engine/Renderer/UShape.hpp>
 #include <Engine/Renderer/USprite.hpp>
+#include <Engine/Renderer/VR.hpp>
