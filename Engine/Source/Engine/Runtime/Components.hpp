@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Runtime/Components/Collisions.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
 #include <Engine/Runtime/Components/UAnimatedSpriteComponent.hpp>
 #include <Engine/Runtime/Components/USpriteComponent.hpp>
