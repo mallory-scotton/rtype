@@ -101,17 +101,14 @@ void UBillboardPrimitive::Draw(IRenderer& renderer, FRenderStates states) const
     // Bind the texture
     if (m_texture)
     {
-#if TKD_ENGINE_CLIENT
-        // Enable alpha blending for transparent backgrounds
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-#endif
+        renderer.SetBlend(true);
+        renderer.SetBlendFunc(
+            EBlendFactor::SrcAlpha, EBlendFactor::OneMinusSrcAlpha
+        );
         m_texture->Bind();
         renderer.Draw(m_vertices, m_primitiveType, GetTransform());
         m_texture->Unbind();
-#if TKD_ENGINE_CLIENT
-        glDisable(GL_BLEND);
-#endif
+        renderer.SetBlend(false);
     }
     else { renderer.Draw(m_vertices, m_primitiveType, GetTransform()); }
 }
