@@ -458,48 +458,6 @@ void Renderer::BeginFrame(void)
 
     // Apply camera view
     ApplyCameraView();
-
-    //?TEMP
-    static TimePoint last = SteadyClock::now();
-    static Float32 elapsedTime = 0.0f;
-    TimePoint now = SteadyClock::now();
-    Float32 deltaTime = std::chrono::duration<Float32>(now - last).count();
-    elapsedTime += deltaTime;
-    last = now;
-
-    Float32 speed = 1.0f;   // Adjust to make the color change faster/slower
-    Float32 r = 0.5f + 0.5f * std::sin(elapsedTime * speed + 0.0f);
-    Float32 g =
-        0.5f + 0.5f * std::sin(elapsedTime * speed + 2.0f * M_PI / 3.0f);
-    Float32 b =
-        0.5f + 0.5f * std::sin(elapsedTime * speed + 4.0f * M_PI / 3.0f);
-
-    UCubePrimitive cube;
-    cube.SetColor(FColor(r, g, b, 1.f));
-    cube.SetPosition(std::sin(elapsedTime) * 5.f, 0.f, 0.f);
-    cube.SetRotation(
-        elapsedTime * 90.f, elapsedTime * 45.f, elapsedTime * 30.f
-    );
-    cube.Draw(*this);
-
-    UPlanePrimitive plane;
-    plane.SetScale(FVector3(5.f));
-    plane.SetRotation(-90 * elapsedTime, 0.0f, 0.0f);
-    plane.SetBottomFaceCulled(false);
-    plane.Draw(*this);
-
-    USpherePrimitive sphere;
-    sphere.SetPosition(0.f, std::sin(elapsedTime) * 5.f, 0.f);
-    sphere.SetColor(FColor(r, g, b, 1.f));
-    sphere.Draw(*this);
-
-    FilePath texturePath("Assets/Images/T_PlayerShips.png");
-    auto handler = URessource::GetTextureHandle(texturePath);
-
-    UBillboardPrimitive billboard(handler.Get(), FRectanglei(66, 0, 33, 17));
-    billboard.SetPosition(0.f, 5.f, std::sin(elapsedTime) * 5.f);
-    billboard.Draw(*this);
-    //?TEMP
 }
 
 ///////////////////////////////////////////////////////////////////////////////
