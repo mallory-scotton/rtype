@@ -41,6 +41,10 @@ BP_Player::BP_Player(UInt32 playerColor)
     auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
     Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
 
+    auto Box = AddComponent<UBoxCollisionComponent>("BoxCollision");
+    Box->SetHiddenInGame(false);
+    Box->SetBoxExtent(FVector3f(16.0f, 8.0f, 16.0f));
+
     // Set up animations
     SetupAnimations();
 
