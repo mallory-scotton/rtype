@@ -100,9 +100,6 @@ IFunction* UObject::GetFunction(const FString& name) const
 std::string UObject::GetObjectID(void) const { return m_objectID.ToString(); }
 
 ///////////////////////////////////////////////////////////////////////////////
-UUID UObject::GetUUID(void) const { return m_objectID; }
-
-///////////////////////////////////////////////////////////////////////////////
 
 const FString& UObject::GetName(void) const { return m_name; }
 
