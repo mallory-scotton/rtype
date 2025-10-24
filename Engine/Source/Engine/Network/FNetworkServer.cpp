@@ -554,12 +554,12 @@ void FNetworkServer::ReplicateDirtyProperties(void)
         // Create replication packet
         Packets::Replication replicationPacket;
 
-        // Set actor ID
-        std::string actorID = owner.GetObjectID();
+        // Set actor ID from UUID
+        UUID actorUUID = owner.GetUUID();
         std::memcpy(
             replicationPacket.actorID.data(),
-            actorID.data(),
-            std::min(actorID.size(), replicationPacket.actorID.size())
+            actorUUID.Data().data(),
+            replicationPacket.actorID.size()
         );
 
         replicationPacket.propertyName = property->GetName();
@@ -581,7 +581,7 @@ void FNetworkServer::ReplicateDirtyProperties(void)
             FLogger::Info(
                 "Server replicated property '{}' of actor '{}' to client {}",
                 property->GetName().CStr(),
-                actorID,
+                actorUUID,
                 owningClientID
             );
         }
@@ -591,7 +591,7 @@ void FNetworkServer::ReplicateDirtyProperties(void)
             FLogger::Warn(
                 "Failed to replicate property '{}' of actor '{}' to client {}",
                 property->GetName().CStr(),
-                actorID,
+                actorUUID,
                 owningClientID
             );
         }
