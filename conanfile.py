@@ -2,8 +2,8 @@ from conan import ConanFile
 from conan.tools.cmake import cmake_layout
 
 class RTypeProjectConan(ConanFile):
-    name = "myproject"
-    version = "1.0"
+    name = "rtype"
+    version = "1.0.0"
     settings = "os", "compiler", "build_type", "arch"
 
     generators = ("CMakeDeps", "CMakeToolchain")
