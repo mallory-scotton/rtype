@@ -11,6 +11,7 @@
 #include <Engine/Renderer/VR/Enumerations.hpp>
 #include <Engine/Renderer/VR/FControllerState.hpp>
 #include <Engine/Renderer/VR/FPose.hpp>
+#include <Engine/Renderer/VR/FRenderTarget.hpp>
 #include <Engine/Renderer/VR/FVRSpecs.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
