@@ -351,6 +351,14 @@ FVector3 FOpenVRBackend::GetPlayAreaSize() const
     return FVector3::Zero;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void FOpenVRBackend::RecenterSeatedPosition(void)
+{
+    if (!m_system) { return; }
+
+    vr::VRChaperone()->ResetZeroPose(vr::TrackingUniverseSeated);
+}
+
 #endif
 
 }   // namespace tkd::VR
