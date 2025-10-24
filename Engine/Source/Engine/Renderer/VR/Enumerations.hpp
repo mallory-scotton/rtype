@@ -46,7 +46,8 @@ enum class EButton
     Touchpad,   //<! Touchpad button
     Joystick,   //<! Joystick button
     ButtonA,    //<! ButtonA
-    ButtonB     //<! ButtonB
+    ButtonB,    //<! ButtonB
+    COUNT       //<! Total number of buttons
 };
 
 }   // namespace tkd::VR
