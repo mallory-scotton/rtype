@@ -12,7 +12,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Player::BP_Player(UInt32 playerColor)
     : APawn()
-    , speed(*this, "Speed", 200.0f)
+    , speed(*this, "Speed", 200.0f, EPropertyFlags::Replicated)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , playerColor(*this, "PlayerColor", playerColor % 5)
     , ServerFire(
@@ -173,6 +173,22 @@ void BP_Player::Fire(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void BP_Player::TestSpeedReplication(void)
+{
+    if (IsLocallyControlled())
+    {
+        // Increase speed by 50 each time Z is pressed
+        Float32 newSpeed = speed.Get() + 50.0f;
+        speed = newSpeed;
+
+        FLogger::SetNamespace("BP_Player");
+        FLogger::Info(
+            "Speed modified to: {} (will replicate to server)", newSpeed
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void BP_Player::RPC_ServerFire(void)
 {
     if (IsAuthority() && m_lastFiredTime >= 0.25f)
@@ -190,6 +206,8 @@ void BP_Player::RPC_ServerFire(void)
 
         // Spawn a projectile
         World::SpawnActor("BP_Projectile", transform);
+
+        std::cout << "current speed: " << speed << std::endl;
     }
 }
 
