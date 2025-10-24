@@ -1,0 +1,26 @@
+/** Dependencies */
+import React from 'react';
+import type { IconProps } from './shared';
+
+/**
+ * @brief Icon Component
+ * @description A React component that renders the "Credits" icon.
+ */
+export const Credits: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
+  return (
+    <svg width={width} height={height} viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'>
+      <path opacity='0.5' d='M15 0H1V1H15V0Z' fill={color} />
+      <path
+        d='M8 15C10.2091 15 12 13.2091 12 11C12 8.79086 10.2091 7 8 7C5.79086 7 4 8.79086 4 11C4 13.2091 5.79086 15 8 15Z'
+        fill={color}
+      />
+      <path
+        opacity='0.5'
+        fillRule='evenodd'
+        clipRule='evenodd'
+        d='M8 5.5C9.08534 5.49787 10.1469 5.81807 11.05 6.42L14 2H2L5 6.42C5.88894 5.82746 6.9317 5.50769 8 5.5Z'
+        fill={color}
+      />
+    </svg>
+  );
+};

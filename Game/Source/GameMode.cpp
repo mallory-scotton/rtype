@@ -12,7 +12,15 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 RTypeGameMode::RTypeGameMode(void)
     : AGameMode("RTypeGameMode")
-{}
+{
+    m_playerControllerClassName = "BP_PlayerController";
+    m_actorClassName = "BP_Player";
+    m_gameStateClassName = "BP_GameState";
+    m_hudClassName = "BP_HUD";
+    m_spectatorClassName = "BP_Spectator";
+    m_defaultPlayerName = "Player";
+    m_numPlayers = 4;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void RTypeGameMode::BeginPlay(void) { Super::BeginPlay(); }

@@ -1,0 +1,8 @@
+.bue-render .multi-select {
+    border: 1px solid transparent;
+    border-image-repeat: round;
+    border-image-slice: 6;
+    border-image-source: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAADZc7J/AAAAW0lEQVR42u2VQQoAMQgD56e+LS91L7LYQw+rhYViPBkwiAYChqIMUrfjVsZAHkCkbsetDAK5VzfIAhWcErBY6zvqk6d07H3jz0ccgXHiOHGMdJ2RetHWC9dmvD+e8yPwCj5gxgAAAABJRU5ErkJggg==);
+    border-image-width: 6px;
+    position: absolute
+}

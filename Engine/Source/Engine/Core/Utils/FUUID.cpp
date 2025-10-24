@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Utils/FUUID.hpp>
+#include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -11,6 +12,11 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 std::mt19937_64 UUID::s_rng{ std::random_device{}() };
+
+///////////////////////////////////////////////////////////////////////////////
+const UUID UUID::Nil = UUID::Fill(0x00);
+const UUID UUID::World = UUID::Fill(0x00);
+const UUID UUID::Local = UUID::Fill(0x01);
 
 ///////////////////////////////////////////////////////////////////////////////
 std::optional<UUID> UUID::Parse(std::string_view str) noexcept
@@ -308,6 +314,14 @@ UUID UUID::DNSV5(std::string_view name)
 UUID UUID::URLV5(std::string_view name)
 {
     return V5(std::span{ __internal::uuid::URL }, name);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UUID UUID::Fill(UInt8 byte) noexcept
+{
+    UUID::DataType bytes;
+    bytes.fill(byte);
+    return UUID{ bytes };
 }
 
 }   // namespace tkd

@@ -148,6 +148,13 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
                 m_showActorDebug = !m_showActorDebug;
             }
 
+            if (ImGui::MenuItem(
+                    "World Debugger", "Ctrl+Shift+W", m_showWorldDebug
+                ))
+            {
+                m_showWorldDebug = !m_showWorldDebug;
+            }
+
             ImGui::Unindent(10.0f);
             ImGui::PopStyleColor();
             ImGui::EndMenu();
@@ -260,6 +267,10 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     {
         m_showPacketInspector = !m_showPacketInspector;
     }
+    else if (ImGui::IsKeyPressed(ImGuiKey_W) && KeyCtrl && KeyShift)
+    {
+        m_showWorldDebug = !m_showWorldDebug;
+    }
 
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
@@ -270,6 +281,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     {
         m_performanceMonitor.Show(settings, world);
     }
+    if (m_showWorldDebug) { m_worldDebug.Show(settings, world); }
 }
 
 #endif

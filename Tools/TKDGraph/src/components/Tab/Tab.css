@@ -1,0 +1,77 @@
+.ue-tab {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: 8px 8px 0 0;
+    max-width: 300px;
+    min-width: 250px;
+    width: fit-content;
+    cursor: pointer;
+    transition: background-color 0.1s ease-in-out;
+    background-color: rgb(36, 36, 36, 0.0);
+}
+
+.ue-tab.selected {
+    background-color: #242424;
+}
+
+.ue-tab:not(.selected):hover {
+    transition: background-color 0.1s ease-in-out;
+    background-color: rgb(36, 36, 36, 0.5);
+}
+
+.ue-tab .ue-tab-icon {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    width: 18px;
+    height: 18px;
+}
+
+.ue-tab .ue-tab-icon.blueprint {
+    filter: invert(39%) sepia(75%) saturate(5350%) hue-rotate(197deg) brightness(91%) contrast(101%);
+}
+
+.ue-tab .ue-tab-icon.material {
+    filter: invert(50%) sepia(91%) saturate(362%) hue-rotate(71deg) brightness(103%) contrast(93%);
+}
+
+.ue-tab .ue-tab-icon.level {
+    filter: invert(52%) sepia(84%) saturate(609%) hue-rotate(2deg) brightness(102%) contrast(97%);
+}
+
+.ue-tab .ue-tab-icon.mesh {
+    filter: invert(52%) sepia(77%) saturate(890%) hue-rotate(153deg) brightness(102%) contrast(105%);
+}
+
+.ue-tab .ue-tab-title {
+    display: flex;
+    gap: 10px;
+    flex-direction: row;
+    font-family: 'Roboto', sans-serif;
+    color: #FFFFFF;
+    flex-grow: 1;
+    font-size: 16px;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ue-tab.dirty .ue-tab-title {
+    font-style: italic;
+}
+
+.ue-tab-close {
+    opacity: 0.6;
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.ue-tab-close:hover {
+    transition: opacity 0.2s ease-in-out;
+    opacity: 1;
+}

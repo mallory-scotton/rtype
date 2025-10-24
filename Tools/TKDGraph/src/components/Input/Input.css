@@ -1,0 +1,51 @@
+.ue-input {
+    height: 23px;
+    display: flex;
+    align-items: center;
+    padding-left: 10px;
+    background-color: #0F0F0F;
+    border: 1px solid #353535;
+    border-radius: 4px;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    letter-spacing: -2%;
+    color: #FFFFFF;
+    cursor: text;
+    max-width: 75%;
+}
+
+.ue-input::placeholder {
+    color: #7A7A7A;
+}
+
+.ue-input:focus {
+    outline: none;
+    border-color: #0070E0;
+}
+
+.ue-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.ue-input:hover:not(:disabled):not(:focus) {
+    border-color: #4A4A4A;
+}
+
+.ue-input[type="number"]::-webkit-outer-spin-button,
+.ue-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.ue-input[type="number"] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.ue-input::selection {
+    background-color: #0070E0;
+    color: #FFFFFF;
+}

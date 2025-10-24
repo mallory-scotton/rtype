@@ -244,6 +244,7 @@ FTextureHandle URessource::GetTexture(const FString& id) const
             return FTextureHandle(texture, id);
         }
     }
+
     return FTextureHandle();
 }
 
@@ -456,6 +457,17 @@ std::vector<FilePath> URessource::GetLoadedPaks(void) const
     }
 
     return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FTextureHandle
+    URessource::GetTextureHandle(const FilePath& path, const FRectanglei& area)
+{
+    URessource& instance = URessource::GetInstance();
+    FTextureHandle handle = instance.GetTexture(path.string());
+
+    if (handle.IsValid()) { return handle; }
+    return instance.LoadTexture(path, area);
 }
 
 }   // namespace tkd

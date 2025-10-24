@@ -25,12 +25,19 @@ constexpr UInt32 MAGIC_NUMBER = 0xDEADBEEF;
 /// \brief Packet flags enumeration
 ///
 ///////////////////////////////////////////////////////////////////////////////
-enum class EPacketFlags : UInt16
+enum class EPacketFlags : UInt8
 {
-    None = 0x0000,        //<! No flags
-    Reliable = 0x0001,    //<! Reliable delivery
-    Fragmented = 0x0002   //<! Fragmented packet
+    None = 0,              //<! No flags
+    Reliable = 1 << 0,     //<! Reliable delivery
+    Fragmented = 1 << 1,   //<! Fragmented packet
+    Compressed = 1 << 2,   //<! Compressed packet
+    Encrypted = 1 << 3     //<! Encrypted packet
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// Enable bitwise operations for EPacketFlags
+///////////////////////////////////////////////////////////////////////////////
+ENABLE_BITWISE_ENUM_OPERATORS(EPacketFlags)
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Packet header structure
@@ -40,17 +47,59 @@ enum class EPacketFlags : UInt16
 ///////////////////////////////////////////////////////////////////////////////
 struct FPacketHeader
 {
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Struct Member
+    ///////////////////////////////////////////////////////////////////////////
     UInt32 magic = MAGIC_NUMBER;                 //<! Magic number
     UInt32 protocolVersion = PROTOCOL_VERSION;   //<! Protocol version
-    UInt16 flags = 0;                            //<! Flags for additional info
+    UInt8 flags = 0;                             //<! Flags for additional info
     UInt16 packetType = 0;                       //<! Packet type
     UInt16 packetSize = 0;                       //<! Packet size
     UInt32 sequenceNumber = 0;                   //<! Sequence number
     UInt32 timestamp = 0;                        //<! Timestamp
     UInt32 checksum = 0;                         //<! Checksum for integrity
 
+public:
     // Total size of the packet header in bytes
-    static constexpr SizeT SIZE = sizeof(UInt32) * 5 + sizeof(UInt16) * 3;
+    static constexpr SizeT SIZE =
+        sizeof(UInt32) * 5 + sizeof(UInt16) * 2 + sizeof(UInt8);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the flags for the packet
+    ///
+    /// \param flags The flags to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetFlags(UInt8 flags) { this->flags = flags; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Add a flag to the packet
+    ///
+    /// \param flag The flag to add
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void AddFlag(EPacketFlags flag) { flags |= static_cast<UInt8>(flag); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Remove a flag from the packet
+    ///
+    /// \param flag The flag to remove
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RemoveFlag(EPacketFlags flag) { flags &= ~static_cast<UInt8>(flag); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a flag is set
+    ///
+    /// \param flag The flag to check
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool HasFlag(EPacketFlags flag) const
+    {
+        return (flags & static_cast<UInt8>(flag)) != 0;
+    }
 };
 
 }   // namespace tkd

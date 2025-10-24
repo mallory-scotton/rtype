@@ -39,6 +39,8 @@ void USpriteComponent::SetLocalTransform(const FTransform2D& transform)
 ///////////////////////////////////////////////////////////////////////////////
 void USpriteComponent::Render(IRenderer& renderer) const
 {
+    if (IsHiddenInGame()) { return; }
+
     FRenderStates states;
     FTransform2D ownerTransform = GetOwner()->GetTransform().To2D();
     states.transform = ownerTransform * m_localTransform;

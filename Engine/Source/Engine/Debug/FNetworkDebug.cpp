@@ -621,6 +621,10 @@ FString FNetworkDebug::GetPacketTypeName(UInt16 packetType) const
     {
         return "Replication";
     }
+    else if (packetType == Packets::Snapshot::GetStaticType())
+    {
+        return "Snapshot";
+    }
     return FString::Format("Unknown ({0})", packetType);
 }
 
@@ -1058,12 +1062,24 @@ void FNetworkDebug::PreviewDisconnectPacket(
     const char* reasonStr = "Unknown";
     switch (reason)
     {
-    case 0: reasonStr = "Unknown"; break;
-    case 1: reasonStr = "Client Requested"; break;
-    case 2: reasonStr = "Timeout"; break;
-    case 3: reasonStr = "Kicked"; break;
-    case 4: reasonStr = "Server Shutdown"; break;
-    case 5: reasonStr = "Connection Lost"; break;
+    case static_cast<UInt32>(EDisconnectionReason::Unknown):
+        reasonStr = "Unknown";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::ClientRequested):
+        reasonStr = "Client Requested";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Timeout):
+        reasonStr = "Timeout";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Kicked):
+        reasonStr = "Kicked";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Shutdown):
+        reasonStr = "Server Shutdown";
+        break;
+    case static_cast<UInt32>(EDisconnectionReason::Error):
+        reasonStr = "Connection Lost";
+        break;
     }
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.4f, 1.0f), "%s", reasonStr);
 
@@ -1152,14 +1168,16 @@ void FNetworkDebug::PreviewRemoteProcedureCallPacket(
     std::vector<Byte> parameters;
 
     if (!reader.ReadBytes(actorID.data(), actorID.size()) ||
-        !reader.Read(rpcType) || !reader.Read(functionName) ||
-        !reader.Read(parameters))
+        !reader.Read(rpcType) || !reader.Read(functionName))
     {
         ImGui::TextColored(
             ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Failed to deserialize packet"
         );
         return;
     }
+
+    // Remaining bytes are parameters
+    reader.Read(parameters);
 
     ImGui::Text("Remote Procedure Call Packet");
     ImGui::Separator();
@@ -1198,17 +1216,21 @@ void FNetworkDebug::PreviewRemoteProcedureCallPacket(
     ImVec4 rpcTypeColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
     switch (rpcType)
     {
-    case 0:
+    case static_cast<UInt8>(ERPCType::Server):
         rpcTypeStr = "Server";
         rpcTypeColor = ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
         break;
-    case 1:
+    case static_cast<UInt8>(ERPCType::Client):
         rpcTypeStr = "Client";
         rpcTypeColor = ImVec4(0.4f, 0.4f, 1.0f, 1.0f);
         break;
-    case 2:
+    case static_cast<UInt8>(ERPCType::Multicast):
         rpcTypeStr = "Multicast";
         rpcTypeColor = ImVec4(0.4f, 1.0f, 0.4f, 1.0f);
+        break;
+    default:
+        rpcTypeStr = "Unknown";
+        rpcTypeColor = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
         break;
     }
     ImGui::TextColored(rpcTypeColor, "%s (%u)", rpcTypeStr, rpcType);

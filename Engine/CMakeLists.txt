@@ -106,6 +106,8 @@ target_link_libraries(TKDEngineClient
         asio::asio
         imgui::imgui
         ImGui-SFML::ImGui-SFML
+        GLU
+        GL
 )
 
 # Link libraries for server (minimal SFML components)
@@ -270,12 +272,6 @@ if(BUILD_TESTS)
 
     # Register test with CTest
     include(CTest)
-    if(TARGET Catch2::Catch2WithMain)
-        # Catch2 v3 style
-        include(Catch)
-        catch_discover_tests(TKDEngineTests)
-    else()
-        # Fallback to simple test registration
-        add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
-    endif()
+    # Use simple test registration to avoid test discovery issues during build
+    add_test(NAME TKDEngineTests COMMAND TKDEngineTests)
 endif()

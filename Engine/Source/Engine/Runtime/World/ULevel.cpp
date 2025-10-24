@@ -15,22 +15,51 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
-///////////////////////////////////////////////////////////////////////////////
-// const AgameMode& ULevel::GetGameMode(void) const
-// {
-//     return m_gameMode;
-// }
 
 ///////////////////////////////////////////////////////////////////////////////
-// void ULevel::SetGameMode(const AgameMode& gameMode)
-// {
-//     m_gameMode = gameMode;
-// }
+ULevel::ULevel(const FString& name)
+    : UObject(name)
+    , m_gameMode()
+    , m_actorEntries()
+    , m_levelName("")
+{}
+
+///////////////////////////////////////////////////////////////////////////////
+const AGameMode& ULevel::GetGameMode(void) const { return m_gameMode; }
+
+///////////////////////////////////////////////////////////////////////////////
+AGameMode& ULevel::GetGameMode(void) { return m_gameMode; }
+
+///////////////////////////////////////////////////////////////////////////////
+void ULevel::SetGameMode(const AGameMode& gameMode) { m_gameMode = gameMode; }
 
 ///////////////////////////////////////////////////////////////////////////////
 const TVector<ULevel::ActorEntry>& ULevel::GetActorEntries(void) const
 {
     return m_actorEntries;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void ULevel::AddActorEntry(const ActorEntry& actor)
+{
+    m_actorEntries.PushBack(actor);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void ULevel::AddActorEntry(
+    const FString& className,
+    const FString& actorName,
+    const FTransform& transform
+)
+{
+    ActorEntry actor;
+    actor.class_name = className;
+    actor.name = actorName;
+    actor.isActive = true;   // Default to active
+    actor.position = transform.GetPosition();
+    actor.rotation = transform.GetRotation();
+    actor.scale = transform.GetScale();
+    m_actorEntries.PushBack(actor);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -484,5 +513,8 @@ bool ULevel::SaveWorldToFile(UWorld& world, const FilePath& levelPath)
     ULevel level = LoadLevelFromWorld(world);
     return level.SaveToFile(levelPath);
 }
+
+///////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_CLASS_WITH_SUPER(ULevel, UObject)
 
 }   // namespace tkd

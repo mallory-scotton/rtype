@@ -34,9 +34,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FString m_name;    //<! Name of the component
-    Bool m_isActive;   //<! Whether the component is active
-    AActor* m_owner;   //<! Reference to the owning actor
+    FString m_name;        //<! Name of the component
+    Bool m_isActive;       //<! Whether the component is active
+    AActor* m_owner;       //<! Reference to the owning actor
+    Bool m_hiddenInGame;   //<! Whether the component is hidden in-game
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -115,6 +116,22 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Render(IRenderer& renderer) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sets whether the component is hidden in-game
+    ///
+    /// \return True to hide the component, false to show it
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool IsHiddenInGame(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sets whether the component is hidden in-game
+    ///
+    /// \param hidden True to hide the component, false to show it
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetHiddenInGame(Bool hidden);
 };
 
 }   // namespace tkd
