@@ -36,6 +36,18 @@ void BP_PlayerController::SetupInputBindings(void)
             }
         );
 
+        // Test speed replication button (Z key)
+        BindActionPressed(
+            "TestSpeed",
+            [player](EInput input)
+            {
+                if (player->IsLocallyControlled())
+                {
+                    player->TestSpeedReplication();
+                }
+            }
+        );
+
         // Movement axes - handle in Tick for smooth prediction
         // (See below)
     }
