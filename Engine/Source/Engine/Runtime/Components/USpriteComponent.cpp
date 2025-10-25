@@ -56,20 +56,11 @@ const FilePath& USpriteComponent::GetTexturePath(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void USpriteComponent::SetTexturePath(const FilePath& texturePath)
 {
+    // Update the texture path
     m_texturePath = texturePath;
 
     // Try to get cached texture first
-    auto textureHandle =
-        URessource::GetInstance().GetTexture(m_texturePath.string());
-
-    // If not cached, load it
-    if (!textureHandle.IsValid())
-    {
-        textureHandle = URessource::GetInstance().LoadTexture(m_texturePath);
-    }
-
-    // Store the handle
-    m_textureHandle = textureHandle;
+    m_textureHandle = URessource::GetTextureHandle(m_texturePath);
 
     // Set the texture on the sprite if valid
     if (m_textureHandle.IsValid())
