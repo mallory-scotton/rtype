@@ -17,7 +17,13 @@ namespace tkd::VR
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief
+/// \brief VR Framebuffer wrapper for managing render targets
+///
+/// This class manages OpenGL framebuffers used for VR rendering, including
+/// support for MSAA (multi-sample anti-aliasing) and resolve operations.
+///
+/// \warning This class is not thread-safe. All OpenGL operations must be
+/// performed on the same thread that created the OpenGL context.
 ///
 ///////////////////////////////////////////////////////////////////////////////
 class FVRFrameBuffer
