@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/VR/FOpenVRBackend.hpp>
+#include <Engine/Renderer/VR/FVREvent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::VR
@@ -186,15 +187,80 @@ void FOpenVRBackend::UpdatePoses(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FOpenVRBackend::ProcessEvents(void)
+std::vector<FVREvent> FOpenVRBackend::ProcessEvents(void)
 {
-    if (!m_system) { return; }
+    std::vector<FVREvent> events;
+    if (!m_system) { return events; }
 
     vr::VREvent_t event;
     while (m_system->PollNextEvent(&event, sizeof(event)))
     {
-        // Handle events if needed
+        EVREventType eventType = EVREventType::None;
+
+        // Map OpenVR events to our event types
+        switch (event.eventType)
+        {
+        case vr::VREvent_TrackedDeviceActivated:
+            eventType = EVREventType::TrackedDeviceActivated;
+            break;
+        case vr::VREvent_TrackedDeviceDeactivated:
+            eventType = EVREventType::TrackedDeviceDeactivated;
+            break;
+        case vr::VREvent_TrackedDeviceUpdated:
+            eventType = EVREventType::TrackedDeviceUpdated;
+            break;
+        case vr::VREvent_TrackedDeviceUserInteractionStarted:
+            eventType = EVREventType::TrackedDeviceUserInteractionStarted;
+            break;
+        case vr::VREvent_TrackedDeviceUserInteractionEnded:
+            eventType = EVREventType::TrackedDeviceUserInteractionEnded;
+            break;
+        case vr::VREvent_ButtonPress:
+            eventType = EVREventType::ButtonPress;
+            break;
+        case vr::VREvent_ButtonUnpress:
+            eventType = EVREventType::ButtonUnpress;
+            break;
+        case vr::VREvent_ButtonTouch:
+            eventType = EVREventType::ButtonTouch;
+            break;
+        case vr::VREvent_ButtonUntouch:
+            eventType = EVREventType::ButtonUntouch;
+            break;
+        case vr::VREvent_ChaperoneDataHasChanged:
+            eventType = EVREventType::ChaperoneDataHasChanged;
+            break;
+        case vr::VREvent_ChaperoneUniverseHasChanged:
+            eventType = EVREventType::ChaperoneUniverseHasChanged;
+            break;
+        case vr::VREvent_ChaperoneSettingsHaveChanged:
+            eventType = EVREventType::ChaperoneSettingsHaveChanged;
+            break;
+        case vr::VREvent_Quit: eventType = EVREventType::Quit; break;
+        case vr::VREvent_ProcessQuit:
+            eventType = EVREventType::ProcessQuit;
+            break;
+        case vr::VREvent_QuitAcknowledged:
+            eventType = EVREventType::QuitAcknowledged;
+            break;
+        case vr::VREvent_DriverRequestedQuit:
+            eventType = EVREventType::DriverRequestedQuit;
+            break;
+        case vr::VREvent_RestartRequested:
+            eventType = EVREventType::RestartRequested;
+            break;
+        default: eventType = EVREventType::None; break;
+        }
+
+        if (eventType != EVREventType::None)
+        {
+            events.push_back(FVREvent(
+                eventType, event.trackedDeviceIndex, event.eventAgeSeconds
+            ));
+        }
     }
+
+    return events;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -302,8 +368,14 @@ bool FOpenVRBackend::IsButtonPressed(EHand hand, EButton button) const
     case EButton::Grip    : vrButton = vr::k_EButton_Grip; break;
     case EButton::Menu    : vrButton = vr::k_EButton_ApplicationMenu; break;
     case EButton::Touchpad: vrButton = vr::k_EButton_SteamVR_Touchpad; break;
-    case EButton::ButtonA : vrButton = vr::k_EButton_A; break;
-    default               : return false;
+    case EButton::Joystick:
+        vrButton = vr::k_EButton_SteamVR_Touchpad;
+        break;   // Many controllers use touchpad as joystick
+    case EButton::ButtonA: vrButton = vr::k_EButton_A; break;
+    case EButton::ButtonB:
+        vrButton = vr::k_EButton_ApplicationMenu;
+        break;   // Fallback to menu
+    default: return false;
     }
 
     return (state.ulButtonPressed & vr::ButtonMaskFromId(vrButton)) != 0;
@@ -357,6 +429,86 @@ void FOpenVRBackend::RecenterSeatedPosition(void)
     if (!m_system) { return; }
 
     vr::VRChaperone()->ResetZeroPose(vr::TrackingUniverseSeated);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FOpenVRBackend::SetTrackingUniverse(ETrackingUniverse universe)
+{
+    if (!m_system) { return; }
+
+    vr::ETrackingUniverseOrigin origin;
+    switch (universe)
+    {
+    case ETrackingUniverse::Seated: origin = vr::TrackingUniverseSeated; break;
+    case ETrackingUniverse::Standing:
+        origin = vr::TrackingUniverseStanding;
+        break;
+    case ETrackingUniverse::RawAndUncalibrated:
+        origin = vr::TrackingUniverseRawAndUncalibrated;
+        break;
+    default: origin = vr::TrackingUniverseStanding; break;
+    }
+
+    vr::VRCompositor()->SetTrackingSpace(origin);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ETrackingUniverse FOpenVRBackend::GetTrackingUniverse(void) const
+{
+    if (!m_system) { return ETrackingUniverse::Standing; }
+
+    vr::ETrackingUniverseOrigin origin =
+        vr::VRCompositor()->GetTrackingSpace();
+
+    switch (origin)
+    {
+    case vr::TrackingUniverseSeated  : return ETrackingUniverse::Seated;
+    case vr::TrackingUniverseStanding: return ETrackingUniverse::Standing;
+    case vr::TrackingUniverseRawAndUncalibrated:
+        return ETrackingUniverse::RawAndUncalibrated;
+    default: return ETrackingUniverse::Standing;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Float32 FOpenVRBackend::GetControllerBattery(EHand hand) const
+{
+    if (!m_system) { return -1.0f; }
+
+    int idx = m_controllerIndices[static_cast<SizeT>(hand)];
+    if (idx == -1) { return -1.0f; }
+
+    vr::ETrackedPropertyError error;
+    Float32 battery = m_system->GetFloatTrackedDeviceProperty(
+        idx, vr::Prop_DeviceBatteryPercentage_Float, &error
+    );
+
+    if (error != vr::TrackedProp_Success) { return -1.0f; }
+
+    return battery;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+std::vector<FVector3> FOpenVRBackend::GetPlayAreaBounds(void) const
+{
+    std::vector<FVector3> bounds;
+    if (!m_system) { return bounds; }
+
+    vr::HmdQuad_t rect;
+    if (vr::VRChaperone()->GetPlayAreaRect(&rect))
+    {
+        // Add all 4 corners
+        for (int i = 0; i < 4; ++i)
+        {
+            bounds.push_back(FVector3(
+                rect.vCorners[i].v[0],
+                rect.vCorners[i].v[1],
+                rect.vCorners[i].v[2]
+            ));
+        }
+    }
+
+    return bounds;
 }
 
 #endif
