@@ -24,7 +24,7 @@ FPose::FPose(
     const FQuaternion& rot,
     const FVector3& vel,
     const FVector3& angVel,
-    bool valid
+    Bool valid
 )
     : position(pos)
     , rotation(rot)
@@ -79,7 +79,51 @@ FMatrix4x4 FPose::GetMatrix(void) const
 FMatrix4x4 FPose::GetViewMatrix(void) const
 {
     // View matrix is the inverse of the transformation matrix
-    return GetMatrix().Inverse();
+    // Calculate it directly without expensive matrix inversion
+
+    // Get the inverse rotation (conjugate for unit quaternion)
+    FQuaternion invRotation = rotation.Conjugate();
+
+    // Convert inverse quaternion to rotation matrix
+    float x = invRotation.GetX();
+    float y = invRotation.GetY();
+    float z = invRotation.GetZ();
+    float w = invRotation.GetW();
+
+    float x2 = x * x;
+    float y2 = y * y;
+    float z2 = z * z;
+    float xy = x * y;
+    float xz = x * z;
+    float yz = y * z;
+    float wx = w * x;
+    float wy = w * y;
+    float wz = w * z;
+
+    // Inverse translation
+    FVector3 invPos = -(invRotation.RotateVector(position));
+
+    // Create view matrix (inverse transform)
+    FMatrix4x4 viewMat(
+        1.0f - 2.0f * (y2 + z2),
+        2.0f * (xy + wz),
+        2.0f * (xz - wy),
+        0.0f,
+        2.0f * (xy - wz),
+        1.0f - 2.0f * (x2 + z2),
+        2.0f * (yz + wx),
+        0.0f,
+        2.0f * (xz + wy),
+        2.0f * (yz - wx),
+        1.0f - 2.0f * (x2 + y2),
+        0.0f,
+        invPos.x,
+        invPos.y,
+        invPos.z,
+        1.0f
+    );
+
+    return viewMat;
 }
 
 }   // namespace tkd::VR

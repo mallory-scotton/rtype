@@ -29,7 +29,7 @@ public:
     FQuaternion rotation;       //<! Rotation quaternion
     FVector3 velocity;          //<! Linear velocity vector
     FVector3 angularVelocity;   //<! Angular velocity vector
-    bool isValid;               //<! Validity flag
+    Bool isValid;               //<! Validity flag
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ public:
         const FQuaternion& rot,
         const FVector3& vel,
         const FVector3& angVel,
-        bool valid
+        Bool valid
     );
 
 public:
