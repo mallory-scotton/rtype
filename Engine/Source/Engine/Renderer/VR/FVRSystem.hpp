@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <array>
 #include <Engine/Config.hpp>
+#include <Engine/Renderer/VR/FVREvent.hpp>
 #include <Engine/Renderer/VR/IVRBackend.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -19,6 +20,13 @@ namespace tkd::VR
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief VR System class to manage VR functionalities
 ///
+/// This is the main interface for interacting with VR hardware and systems.
+/// It provides a high-level abstraction over the VR backend (OpenVR, etc.)
+/// and manages HMD tracking, controller input, haptic feedback, and events.
+///
+/// \warning This class is not thread-safe. All VR operations should be
+/// performed on the main rendering thread.
+///
 ///////////////////////////////////////////////////////////////////////////////
 class FVRSystem
 {
@@ -28,6 +36,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     using ButtonCallback = TFunction<void(EHand, EButton, Bool)>;
     using HapticCallback = TFunction<void(EHand, Float32, Float32)>;
+    using EventCallback = TFunction<void(const FVREvent&)>;
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -38,12 +47,13 @@ private:
     FPose m_hmdPose;                    //<! Current HMD pose
     std::array<FControllerState, 2>
         m_controllerStates;   //<! States of left and right controllers
-    std::array<std::array<Bool, 7>, 2>
+    std::array<std::array<Bool, static_cast<SizeT>(EButton::COUNT)>, 2>
         m_buttonStates;       //<! Current button states
-    std::array<std::array<Bool, 7>, 2>
+    std::array<std::array<Bool, static_cast<SizeT>(EButton::COUNT)>, 2>
         m_prevButtonStates;   //<! Previous button states
     ButtonCallback m_buttonCallback;   //<! Button event callback
     HapticCallback m_hapticCallback;   //<! Haptic feedback callback
+    EventCallback m_eventCallback;     //<! VR system event callback
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -108,7 +118,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FMatrix4x4
-        GetProjectionMatrix(EEye eye, float nearClip, float farClip) const;
+        GetProjectionMatrix(EEye eye, Float32 nearClip, Float32 farClip) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the eye-to-head transformation matrix for a given eye
@@ -217,7 +227,7 @@ public:
     /// \return Trigger value
     ///
     ///////////////////////////////////////////////////////////////////////////
-    float GetTriggerValue(EHand hand) const;
+    Float32 GetTriggerValue(EHand hand) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the grip value
@@ -227,7 +237,7 @@ public:
     /// \return Grip value
     ///
     ///////////////////////////////////////////////////////////////////////////
-    float GetGripValue(EHand hand) const;
+    Float32 GetGripValue(EHand hand) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Trigger a haptic pulse on a controller
@@ -237,7 +247,7 @@ public:
     /// \param duration The duration of the haptic pulse in seconds
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void TriggerHapticPulse(EHand hand, float intensity, float duration);
+    void TriggerHapticPulse(EHand hand, Float32 intensity, Float32 duration);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Submit a rendered frame for a given eye
@@ -265,6 +275,14 @@ public:
     void SetHapticCallback(HapticCallback callback);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the VR event callback
+    ///
+    /// \param callback The event callback function
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetEventCallback(EventCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the size of the play area
     ///
     /// \return Play area size as a 3D vector
@@ -277,6 +295,41 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void RecenterSeatedPosition(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the tracking universe/space
+    ///
+    /// \param universe The tracking universe to use
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetTrackingUniverse(ETrackingUniverse universe);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current tracking universe/space
+    ///
+    /// \return The current tracking universe
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ETrackingUniverse GetTrackingUniverse(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get controller battery level
+    ///
+    /// \param hand The hand identifier (left or right)
+    ///
+    /// \return Battery level as a percentage (0.0 to 1.0), or -1.0 if not
+    /// available
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Float32 GetControllerBattery(EHand hand) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the corners of the play area bounds
+    ///
+    /// \return Vector of corner points (typically 4 corners for a rectangle)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    std::vector<FVector3> GetPlayAreaBounds(void) const;
 
 private:
     ///////////////////////////////////////////////////////////////////////////

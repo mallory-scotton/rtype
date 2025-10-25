@@ -17,7 +17,12 @@ FVRSystem::FVRSystem(void)
     , m_hmdPose()
     , m_buttonCallback(nullptr)
     , m_hapticCallback(nullptr)
-{}
+    , m_eventCallback(nullptr)
+{
+    // Initialize all button states to false
+    for (auto& handStates: m_buttonStates) { handStates.fill(false); }
+    for (auto& handStates: m_prevButtonStates) { handStates.fill(false); }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 FVRSystem::~FVRSystem() { Shutdown(); }
@@ -99,7 +104,7 @@ void FVRSystem::EndFrame(void)
 {
     if (!m_backend) { return; }
 
-    // Store previous button states
+    // Store current button states as previous for next frame
     m_prevButtonStates = m_buttonStates;
 }
 
@@ -124,8 +129,19 @@ void FVRSystem::UpdatePoses(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FVRSystem::ProcessEvents(void)
 {
-    if (m_backend) { m_backend->ProcessEvents(); }
+    if (!m_backend) { return; }
+
+    TVector<FVREvent> events = m_backend->ProcessEvents();
+
+    // Dispatch events to callback if set
+    if (m_eventCallback)
+    {
+        for (const auto& event: events) { m_eventCallback(event); }
+    }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+FPose FVRSystem::GetHMDPose(void) const { return m_hmdPose; }
 
 ///////////////////////////////////////////////////////////////////////////////
 FControllerState FVRSystem::GetControllerState(EHand hand) const
@@ -145,6 +161,7 @@ bool FVRSystem::IsButtonJustPressed(EHand hand, EButton button) const
 {
     SizeT handIdx = static_cast<SizeT>(hand);
     SizeT btnIdx = static_cast<SizeT>(button);
+    // Current frame is pressed AND previous frame was not pressed
     return m_buttonStates[handIdx][btnIdx] &&
            !m_prevButtonStates[handIdx][btnIdx];
 }
@@ -154,6 +171,7 @@ bool FVRSystem::IsButtonJustReleased(EHand hand, EButton button) const
 {
     SizeT handIdx = static_cast<SizeT>(hand);
     SizeT btnIdx = static_cast<SizeT>(button);
+    // Current frame is not pressed AND previous frame was pressed
     return !m_buttonStates[handIdx][btnIdx] &&
            m_prevButtonStates[handIdx][btnIdx];
 }
@@ -213,6 +231,12 @@ void FVRSystem::SetHapticCallback(HapticCallback callback)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FVRSystem::SetEventCallback(EventCallback callback)
+{
+    m_eventCallback = callback;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FVector3 FVRSystem::GetPlayAreaSize(void) const
 {
     return m_backend ? m_backend->GetPlayAreaSize() : FVector3::Zero;
@@ -222,6 +246,32 @@ FVector3 FVRSystem::GetPlayAreaSize(void) const
 void FVRSystem::RecenterSeatedPosition(void)
 {
     if (m_backend) { m_backend->RecenterSeatedPosition(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FVRSystem::SetTrackingUniverse(ETrackingUniverse universe)
+{
+    if (m_backend) { m_backend->SetTrackingUniverse(universe); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ETrackingUniverse FVRSystem::GetTrackingUniverse(void) const
+{
+    return m_backend ? m_backend->GetTrackingUniverse()
+                     : ETrackingUniverse::Standing;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Float32 FVRSystem::GetControllerBattery(EHand hand) const
+{
+    return m_backend ? m_backend->GetControllerBattery(hand) : -1.0f;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+std::vector<FVector3> FVRSystem::GetPlayAreaBounds(void) const
+{
+    return m_backend ? m_backend->GetPlayAreaBounds()
+                     : std::vector<FVector3>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -236,17 +286,22 @@ void FVRSystem::UpdateInputStates(void)
              ++btnIdx)
         {
             EButton button = static_cast<EButton>(btnIdx);
-            m_buttonStates[handIdx][btnIdx] =
-                m_backend->IsButtonPressed(hand, button);
+            Bool currentState = m_backend->IsButtonPressed(hand, button);
+            Bool previousState = m_buttonStates[handIdx][btnIdx];
+
+            // Update current state
+            m_buttonStates[handIdx][btnIdx] = currentState;
 
             // Check for button state changes and invoke callback
             if (m_buttonCallback)
             {
-                if (IsButtonJustPressed(hand, button))
+                // Button just pressed (was false, now true)
+                if (currentState && !previousState)
                 {
                     m_buttonCallback(hand, button, true);
                 }
-                else if (IsButtonJustReleased(hand, button))
+                // Button just released (was true, now false)
+                else if (!currentState && previousState)
                 {
                     m_buttonCallback(hand, button, false);
                 }
