@@ -29,9 +29,9 @@ public:
     FPose pose;          //<! Current pose of the controller
     FVector2 touchpad;   //<! Touchpad position (x, y)
     FVector2 joystick;   //<! Joystick position (x, y)
-    float trigger;       //<! Trigger pressure (0.0 to 1.0)
-    float grip;          //<! Grip pressure (0.0 to 1.0)
-    bool isConnected;    //<! Connection status
+    Float32 trigger;     //<! Trigger pressure (0.0 to 1.0)
+    Float32 grip;        //<! Grip pressure (0.0 to 1.0)
+    Bool isConnected;    //<! Connection status
 
 public:
     ///////////////////////////////////////////////////////////////////////////
