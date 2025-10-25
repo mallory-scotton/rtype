@@ -12,6 +12,7 @@
 #include <Engine/Renderer/VR/FControllerState.hpp>
 #include <Engine/Renderer/VR/FPose.hpp>
 #include <Engine/Renderer/VR/FRenderTarget.hpp>
+#include <Engine/Renderer/VR/FVREvent.hpp>
 #include <Engine/Renderer/VR/FVRSpecs.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,8 +104,10 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Processes VR system events
     ///
+    /// \return Vector of VR events that occurred since last poll
+    ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void ProcessEvents(void) = 0;
+    virtual std::vector<FVREvent> ProcessEvents(void) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Retrieves the current pose of the HMD
@@ -169,6 +172,41 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void RecenterSeatedPosition(void) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the tracking universe/space
+    ///
+    /// \param universe The tracking universe to use
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetTrackingUniverse(ETrackingUniverse universe) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current tracking universe/space
+    ///
+    /// \return The current tracking universe
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual ETrackingUniverse GetTrackingUniverse(void) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get controller battery level
+    ///
+    /// \param hand The hand identifier (left or right)
+    ///
+    /// \return Battery level as a percentage (0.0 to 1.0), or -1.0 if not
+    /// available
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual Float32 GetControllerBattery(EHand hand) const = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the corners of the play area bounds
+    ///
+    /// \return Vector of corner points (typically 4 corners for a rectangle)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual std::vector<FVector3> GetPlayAreaBounds(void) const = 0;
 };
 
 }   // namespace tkd::VR
