@@ -50,4 +50,15 @@ enum class EButton
     COUNT       //<! Total number of buttons
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enum for VR tracking universe/space
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class ETrackingUniverse
+{
+    Seated,     //<! Seated tracking (limited movement, recenterable)
+    Standing,   //<! Standing tracking (room-scale within chaperone bounds)
+    RawAndUncalibrated   //<! Raw tracking data without calibration
+};
+
 }   // namespace tkd::VR
