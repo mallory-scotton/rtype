@@ -7,11 +7,11 @@ import type { NodeTemplate } from '../utils';
  * @param key The key for which to generate the event node.
  * @returns A NodeTemplate representing the key event.
  */
-function generateKeyEvents(key: string, icon: NodeIconType): NodeTemplate {
+function generateKeyEvents(key: string, icon: NodeIconType, category: string): NodeTemplate {
   return {
     id: `event_key_${key}`,
     name: `Event Key (${key})`,
-    category: 'Events',
+    category: `Events>${category}`,
     description: `Called when a key of type ${key} is actioned.`,
     tags: ['event', 'key', 'released', 'pressed', key],
     data: {
@@ -192,6 +192,8 @@ export const Events: NodeTemplate[] = [
     'Numpad7',
     'Numpad8',
     'Numpad9'
-  ].map((key) => generateKeyEvents(key, 'input-key')),
-  ...['LeftMouseButton', 'RightMouseButton', 'MiddleMouseButton'].map((key) => generateKeyEvents(key, 'input-mouse'))
+  ].map((key) => generateKeyEvents(key, 'input-key', 'Keyboard')),
+  ...['LeftMouseButton', 'RightMouseButton', 'MiddleMouseButton'].map((key) =>
+    generateKeyEvents(key, 'input-mouse', 'Mouse')
+  )
 ];

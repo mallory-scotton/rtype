@@ -10,6 +10,7 @@ export const NetworkFunctions: NodeTemplate[] = [
   generateFunctionNode({
     name: 'Is Locally Controlled',
     description: 'Checks if the actor is locally controlled',
+    category: 'Network',
     icon: 'pure-function-call',
     inputs: ['object'],
     outputs: [{ type: 'bool', label: 'Return Value' }],
@@ -20,6 +21,7 @@ export const NetworkFunctions: NodeTemplate[] = [
   generateFunctionNode({
     name: 'Is Authority',
     description: 'Checks if the actor has authority',
+    category: 'Network',
     icon: 'pure-function-call',
     inputs: ['object'],
     outputs: [{ type: 'bool', label: 'Return Value' }],
@@ -30,6 +32,7 @@ export const NetworkFunctions: NodeTemplate[] = [
   generateFunctionNode({
     name: 'Is Simulated',
     description: 'Checks if the actor is simulated',
+    category: 'Network',
     icon: 'pure-function-call',
     inputs: ['object'],
     outputs: [{ type: 'bool', label: 'Return Value' }],
@@ -40,6 +43,7 @@ export const NetworkFunctions: NodeTemplate[] = [
   generateFunctionNode({
     name: 'Switch Net Role',
     description: 'Switches based on the network role of the actor',
+    category: 'Network',
     icon: 'select',
     inputs: ['exec', 'object'],
     outputs: [
