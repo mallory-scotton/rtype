@@ -38,20 +38,9 @@ BP_Player::BP_Player(UInt32 playerColor)
     // Enable transform replication for networked movement
     SetTransformReplicated(true);
 
-    auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
-    Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
-
-    auto Box = AddComponent<UBoxCollisionComponent>("BoxCollision");
-    Box->SetHiddenInGame(false);
-    Box->SetBoxExtent(FVector3f(16.0f, 8.0f, 16.0f));
-
-    // Set up animations
-    SetupAnimations();
-
-    // Local transform to scale up the sprite
-    Abp->SetLocalTransform(
-        FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
-    );
+    AddComponent<UBillboardComponent>("BC_PlayerSprite");
+    AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+    AddComponent<UBoxCollisionComponent>("BoxCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,6 +86,40 @@ void BP_Player::SetupAnimations(void)
 
     // Set the default animation to IDLE
     Abp->Play("Idle");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::BeginPlay(void)
+{
+    // Call parent BeginPlay first
+    Super::BeginPlay();
+
+    // Ensure textures are properly loaded after initialization
+    auto Billboard = GetComponent<UBillboardComponent>("BC_PlayerSprite");
+    if (Billboard)
+    {
+        Billboard->SetTexturePath("Assets/Images/T_PlayerShips.png");
+    }
+
+    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+    if (Abp)
+    {
+        Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
+        // Re-setup animations to ensure they use the loaded texture
+        SetupAnimations();
+
+        // Local transform to scale up the sprite
+        Abp->SetLocalTransform(
+            FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
+        );
+    }
+
+    auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
+    if (Box)
+    {
+        Box->SetHiddenInGame(false);
+        Box->SetBoxExtent(FVector3f(1.0f, 1.0f, 1.0f));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
