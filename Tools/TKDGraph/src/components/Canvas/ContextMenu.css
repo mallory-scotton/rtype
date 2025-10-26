@@ -1,0 +1,141 @@
+.ue-context-menu {
+    position: absolute;
+    background-color: #222222;
+    border: 1px solid #000000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    z-index: 1000;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-family: Roboto, sans-serif;
+    height: 500px;
+}
+
+.ue-context-menu .ue-ctx-from {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ue-context-menu .ue-ctx-from > div {
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+    background-color: red;
+}
+
+.ue-context-menu .ue-ctx-from > span {
+    font-family: Roboto, sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.ue-ctx-input {
+    height: 16px;
+    border-radius: 4px;
+    outline: none;
+    border: none;
+    padding: 4px 8px;
+}
+
+.ue-ctx-categories-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ue-ctx-categories-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.ue-ctx-categories-container::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 4px;
+}
+
+.ue-ctx-categories-container::-webkit-scrollbar-thumb {
+    background: #444444;
+    border-radius: 4px;
+}
+
+.ue-ctx-categories-container::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+}
+
+.ue-ctx-category {
+    display: flex;
+    flex-direction: column;
+}
+
+.ue-ctx-category-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+    user-select: none;
+}
+
+.ue-ctx-category-header:hover {
+    background-color: #2a2a2a;
+}
+
+.ue-ctx-arrow {
+    font-size: 10px;
+    transition: transform 0.15s;
+    display: inline-block;
+    color: #888888;
+}
+
+.ue-ctx-arrow.expanded {
+    transform: rotate(90deg);
+}
+
+.ue-ctx-category-name {
+    font-family: Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #cccccc;
+}
+
+.ue-ctx-category-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ue-ctx-node-item {
+    padding: 6px 8px;
+    padding-left: 32px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.15s;
+    font-family: Roboto, sans-serif;
+    font-size: 13px;
+    color: #aaaaaa;
+}
+
+.ue-ctx-node-item:hover {
+    background-color: #2a2a2a;
+    color: #ffffff;
+}
+
+.ue-ctx-highlight {
+    background-color: #2d5016;
+    color: #7ed321;
+    font-weight: 600;
+    padding: 2px 0;
+    border-radius: 2px;
+}
+
+
