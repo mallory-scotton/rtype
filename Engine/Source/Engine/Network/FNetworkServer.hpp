@@ -169,13 +169,12 @@ public:
     virtual void Update(float deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Replicate dirty properties to clients
+    /// \brief Broadcast a packet to all connected clients
     ///
-    /// Iterates through all actors in the world and sends modified properties
-    /// to connected clients for replication.
+    /// \param packet The packet to broadcast
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void ReplicateDirtyProperties(void);
+    Bool BroadcastPacket(const IPacket& packet);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Broadcast a packet to all connected clients
@@ -183,7 +182,15 @@ public:
     /// \param packet The packet to broadcast
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void BroadcastPacket(const IPacket& packet);
+    Bool BroadcastReliablePacket(const IPacket& packet);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Broadcast a data to all connected clients
+    ///
+    /// \param data The data to broadcast
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool BroadcastData(const std::vector<Byte>& data);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Send a packet to a specific client
@@ -211,6 +218,22 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::vector<UInt32> GetConnectedClients(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get connection information for a specific client
+    ///
+    /// \param clientID ID of the client to get information for
+    ///
+    /// \return Pointer to connection information, or nullptr if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FConnectionInformation* GetClientInformation(UInt32 clientID) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Replciates the dirtyp uproperties in the world
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ReplicateDirtyProperties(void);
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -278,7 +301,6 @@ private:
     void HandleHeartbeatPacket(
         const Packets::HeartBeat& packet, const FEndpoint& endpoint
     );
-
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Handle a property replication packet from a client
     ///
