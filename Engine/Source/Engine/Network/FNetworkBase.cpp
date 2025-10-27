@@ -138,18 +138,18 @@ bool FNetworkBase::SendData(
 {
     if (!m_socket || !m_running || data.empty()) { return false; }
 
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = data;
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = false;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        m_statistics.packetsDropped++;
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,18 +179,18 @@ bool FNetworkBase::SendPacket(const IPacket& packet, const FEndpoint& endpoint)
     }
 #endif
 
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = std::move(data);
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = false;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        m_statistics.packetsDropped++;
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -231,30 +231,19 @@ bool FNetworkBase::SendReliablePacket(
     }
 #endif
 
-    // Send the packet
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = std::move(data);
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = true;
+    queuedPacket.header = *header;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        // On failure, remove the sequence number from pending ACKs
-        m_statistics.packetsDropped++;
-        // Remove sequence number from pending ACKs
-        m_pendingAcks.erase(
-            std::remove_if(
-                m_pendingAcks.begin(),
-                m_pendingAcks.end(),
-                [&header](const FAcknowledgment& ack)
-                { return ack.header.sequenceNumber == header->sequenceNumber; }
-            ),
-            m_pendingAcks.end()
-        );
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -376,6 +365,9 @@ UInt32 FNetworkBase::GetCurrentTimestamp(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::FlushPackets(void)
 {
+    // Process any remaining queued packets
+    ProcessSendQueue();
+
     if (m_socket && m_ioContext.stopped()) { m_ioContext.restart(); }
 
     // Process any pending send operations
@@ -420,8 +412,82 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::ProcessSendQueue(void)
+{
+    if (!m_socket || !m_running) { return; }
+
+    std::queue<FQueuedPacket> localQueue;
+
+    // Quickly swap the queue to minimize lock contention
+    {
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        std::swap(localQueue, m_sendQueue);
+    }
+
+    // Process all queued packets outside the lock
+    while (!localQueue.empty())
+    {
+        const auto& queuedPacket = localQueue.front();
+
+        try
+        {
+            SizeT bytesSent = m_socket->send_to(
+                asio::buffer(queuedPacket.data), queuedPacket.endpoint
+            );
+            m_statistics.packetsSent++;
+            m_statistics.bytesOutgoing += bytesSent;
+
+            // If this was a reliable packet and sending failed, remove from
+            // pending ACKs
+            if (queuedPacket.reliable && bytesSent != queuedPacket.data.size())
+            {
+                m_pendingAcks.erase(
+                    std::remove_if(
+                        m_pendingAcks.begin(),
+                        m_pendingAcks.end(),
+                        [&queuedPacket](const FAcknowledgment& ack)
+                        {
+                            return ack.header.sequenceNumber ==
+                                   queuedPacket.header.sequenceNumber;
+                        }
+                    ),
+                    m_pendingAcks.end()
+                );
+            }
+        }
+        catch (const std::exception&)
+        {
+            m_statistics.packetsDropped++;
+
+            // If this was a reliable packet, remove from pending ACKs on
+            // failure
+            if (queuedPacket.reliable)
+            {
+                m_pendingAcks.erase(
+                    std::remove_if(
+                        m_pendingAcks.begin(),
+                        m_pendingAcks.end(),
+                        [&queuedPacket](const FAcknowledgment& ack)
+                        {
+                            return ack.header.sequenceNumber ==
+                                   queuedPacket.header.sequenceNumber;
+                        }
+                    ),
+                    m_pendingAcks.end()
+                );
+            }
+        }
+
+        localQueue.pop();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::Update(Float32)
 {
+    // Process all queued packets first
+    ProcessSendQueue();
+
     UInt32 currentTime = GetCurrentTimestamp();
 
     // Check for pending ACKs to resend
@@ -431,8 +497,18 @@ void FNetworkBase::Update(Float32)
 
         if (currentTime - ack.header.timestamp >= TIMEOUT)
         {
-            // Resend the packet
-            SendData(ack.data, ack.endpoint);
+            // Re-queue the packet for resending
+            FQueuedPacket queuedPacket;
+            queuedPacket.data = ack.data;
+            queuedPacket.endpoint = ack.endpoint;
+            queuedPacket.reliable = true;
+            queuedPacket.header = ack.header;
+
+            {
+                std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+                m_sendQueue.push(std::move(queuedPacket));
+            }
+
             // Update timestamp
             ack.header.timestamp = currentTime;
         }

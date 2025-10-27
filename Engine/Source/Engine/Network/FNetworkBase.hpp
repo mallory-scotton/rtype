@@ -98,6 +98,18 @@ public:
         FEndpoint endpoint;                    //<! Sender endpoint
     };
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Queued packet structure for thread-safe sending
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FQueuedPacket
+    {
+        std::vector<UInt8> data;   //<! Serialized packet data
+        FEndpoint endpoint;        //<! Destination endpoint
+        bool reliable;             //<! Whether this is a reliable packet
+        FPacketHeader header;      //<! Packet header (for reliable packets)
+    };
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -118,6 +130,8 @@ protected:
     std::vector<FAcknowledgment> m_pendingAcks;   //<! List of pending ACKs
     std::queue<FDeferredRPC> m_deferredRPCs;      //<! Queue of deferred RPCs
     std::mutex m_rpcQueueMutex;                   //<! Mutex for RPC queue
+    std::queue<FQueuedPacket> m_sendQueue;        //<! Queue of packets to send
+    std::mutex m_sendQueueMutex;                  //<! Mutex for send queue
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -301,6 +315,14 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void FlushPackets(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process queued packets and send them
+    ///
+    /// This is called from Update() to safely send all queued packets
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessSendQueue(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Start receiving data asynchronously
