@@ -35,8 +35,8 @@ BP_Player::BP_Player(UInt32 playerColor)
     , m_lastFiredTime(0.0f)
     , m_lastPosition(FVector3::Zero)
 {
-    // Enable transform replication for networked movement
-    SetTransformReplicated(true);
+    // Transform is replicated via ServerMoveRPC, not property replication
+    // SetTransformReplicated(true);
 
     auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
     Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
