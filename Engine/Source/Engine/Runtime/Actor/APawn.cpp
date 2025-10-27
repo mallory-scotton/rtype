@@ -14,7 +14,7 @@ APawn::APawn(void)
     : AActor("APawn")
 {
     // Pawns are always replicated
-    // SetTransformReplicated(true);
+    SetTransformReplicated(true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
