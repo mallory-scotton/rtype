@@ -572,10 +572,14 @@ void FNetworkClient::ReplicateDirtyProperties(void)
 
                 for (auto* property: properties)
                 {
-                    // Check if the property is dirty
-                    if (property && property->IsDirty())
+                    // Only replicate properties that have the Replicated flag
+                    // and are dirty
+                    if (property && property->IsDirty() &&
+                        property->HasFlag(EPropertyFlags::Replicated))
                     {
                         // Then push the modified property to the vector
+                        std::cout << "[CLIENT] who is it bum: "
+                                  << property->GetName().CStr() << std::endl;
                         toReplicate.push_back(property);
                     }
                 }
