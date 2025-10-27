@@ -1,7 +1,7 @@
 /** Dependencies */
 import React from 'react';
 import './ContextMenu.css';
-import type { PinType } from '../../types';
+import type { NodeIconType, PinType } from '../../types';
 import { useEditor } from '../../context';
 
 /**
@@ -9,7 +9,6 @@ import { useEditor } from '../../context';
  * @description Defines the properties required to render the ContextMenu component.
  */
 export interface ContextMenuProps {
-  position?: { x: number; y: number };
   from?: PinType;
 }
 
@@ -21,7 +20,9 @@ interface CategoryTree {
   name: string;
   nodes: {
     name: string;
+    templateID: string;
     tags?: string[];
+    icon: NodeIconType;
   }[];
   children?: CategoryTree[];
 }
@@ -156,6 +157,8 @@ const CategoryItem: React.FC<{
   searchValue: string;
 }> = ({ category, level, searchValue }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const { addNodeToBlueprint, currentBlueprintIndex, nodeRegistry, contextMenuPosition, setContextMenuPosition } =
+    useEditor();
 
   // Filter nodes and children based on search (name and tags)
   const filteredNodes = category.nodes.filter((node) => nodeMatchesSearch(node, searchValue));
@@ -178,6 +181,28 @@ const CategoryItem: React.FC<{
   // Auto-expand if searching
   const shouldExpand = searchValue.length > 0 || isExpanded;
 
+  // Handle Click on Node
+  const handleNodeClick = (nodeName: string) => {
+    console.log('Adding node at position:', contextMenuPosition, nodeName);
+
+    if (currentBlueprintIndex !== -1) {
+      const entry = nodeRegistry.getTemplate(nodeName);
+
+      if (entry) {
+        addNodeToBlueprint(
+          {
+            template: entry.name,
+            data: nodeRegistry.generateNodeDataFromTemplate(entry),
+            position: contextMenuPosition || { x: 0, y: 0 }
+          },
+          currentBlueprintIndex
+        );
+      }
+    }
+
+    setContextMenuPosition(null);
+  };
+
   return (
     <div className='ue-ctx-category' style={{ paddingLeft: `${level * 12}px` }}>
       <div className='ue-ctx-category-header' onClick={() => setIsExpanded(!isExpanded)}>
@@ -188,7 +213,13 @@ const CategoryItem: React.FC<{
       {shouldExpand && (
         <div className='ue-ctx-category-content'>
           {filteredNodes.map((node, index) => (
-            <div key={index} className='ue-ctx-node-item'>
+            <div
+              key={index}
+              data-id={node.templateID}
+              className='ue-ctx-node-item'
+              onClick={() => handleNodeClick(node.templateID)}
+            >
+              <div className={`icon ${node.icon}`}></div>
               {highlightText(node.name, searchValue)}
             </div>
           ))}
@@ -206,9 +237,13 @@ const CategoryItem: React.FC<{
  * @brief ContextMenu component
  * @description Renders a context editor interface.
  */
-export const ContextMenu: React.FC<ContextMenuProps> = ({ position, from }) => {
+export const ContextMenu: React.FC<ContextMenuProps> = ({ from }) => {
   const [searchValue, setSearchValue] = React.useState('');
-  const { nodeRegistry } = useEditor();
+  const { nodeRegistry, contextMenuPosition } = useEditor();
+
+  if (contextMenuPosition === null) {
+    return null;
+  }
 
   const templates = nodeRegistry.getAllTemplates();
   const categories: CategoryTree[] = [];
@@ -231,7 +266,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, from }) => {
       if (index === categoryPath.length - 1) {
         category.nodes.push({
           name: template.name,
-          tags: template.tags
+          templateID: template.id,
+          tags: template.tags,
+          icon: template.icon
         });
       } else {
         if (!category.children) {
@@ -244,10 +281,11 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, from }) => {
 
   return (
     <div
+      data-scrollable
       className='ue-context-menu'
       style={{
-        top: position ? position.y : '50%',
-        left: position ? position.x : '50%'
+        top: contextMenuPosition ? contextMenuPosition.y : '50%',
+        left: contextMenuPosition ? contextMenuPosition.x : '50%'
       }}
     >
       <div className='ue-ctx-from'>
@@ -261,6 +299,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ position, from }) => {
         placeholder='Search'
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
+        autoFocus={true}
       />
 
       <div className='ue-ctx-categories-container'>
