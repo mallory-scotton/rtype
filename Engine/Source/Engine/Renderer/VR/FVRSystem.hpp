@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <array>
 #include <Engine/Config.hpp>
+#include <Engine/Core/Utils/Singleton.hpp>
 #include <Engine/Renderer/VR/FVREvent.hpp>
 #include <Engine/Renderer/VR/IVRBackend.hpp>
 
@@ -28,7 +29,7 @@ namespace tkd::VR
 /// performed on the main rendering thread.
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class FVRSystem
+class FVRSystem : public TSingleton<FVRSystem>
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
