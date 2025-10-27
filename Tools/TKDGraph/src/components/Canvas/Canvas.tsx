@@ -6,7 +6,6 @@ import { Node } from './Node';
 import { Connection } from './Connection';
 import { TempConnection } from './TempConnection';
 import { snapToGrid } from '../../utils';
-import { ContextMenu } from './ContextMenu';
 
 /**
  * @brief Props for Canvas component
@@ -156,8 +155,8 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
         transform: `translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px) scale(${canvasTransform.scale})`
       }}
     >
-      {/** Render Context Menu */}
-      <ContextMenu />
+      {/** Render Childrens */}
+      {children}
 
       {/* Render connections first (below nodes) */}
       {currentBlueprint.connections.map((connection) => (
@@ -169,8 +168,6 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
 
       {/* Render nodes */}
       {...nodesWithFilledPins.map((entry, index) => <Node key={index} entry={entry} />)}
-
-      {children}
     </div>
   );
 };
