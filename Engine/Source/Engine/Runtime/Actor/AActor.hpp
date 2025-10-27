@@ -107,6 +107,7 @@ private:
     // Server reconciliation
     UInt32 m_lastAcknowledgedMove;   //<! Last move processed by server
     FTransform m_serverTransform;    //<! Last known server transform
+    bool m_isTransformReplicated;    //<! Boolian for rpc trasnform replication
 
     // Movement state
     FTransform m_pendingTransform;   //<! Pending transform for replication
