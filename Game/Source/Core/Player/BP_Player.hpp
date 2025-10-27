@@ -35,9 +35,13 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FVector2f m_lastVelocity;   //<! Last movement direction
-    Float32 m_lastFiredTime;    //<! Time since last fired shot
-    FVector3 m_lastPosition;    //<! Last position for velocity calculation
+    FVector2f m_lastVelocity;      //<! Last movement direction
+    Float32 m_lastFiredTime;       //<! Time since last fired shot
+    FVector3 m_lastPosition;       //<! Last position for velocity calculation
+
+    UFlipBook m_idleAnimation;     //<! Idle animation flipbook
+    UFlipBook m_moveUpAnimation;   //<! Move up animation flipbook
+    UFlipBook m_moveDownAnimation;   //<! Move down animation flipbook
 
 public:
     ///////////////////////////////////////////////////////////////////////////
