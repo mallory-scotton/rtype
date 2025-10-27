@@ -12,7 +12,9 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 AActor::AActor(const FString& name)
     : UObject(name)
-    , m_transform(*this, "Transform", FTransform::Identity)
+    , m_transform(
+          *this, "Transform", FTransform::Identity, EPropertyFlags::None
+      )
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
