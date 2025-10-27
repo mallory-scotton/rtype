@@ -28,7 +28,8 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
     currentBlueprintIndex,
     setBlueprints,
     canvasTransform,
-    triggerConnectionUpdate
+    triggerConnectionUpdate,
+    setContextMenuPosition
   } = useEditor();
 
   // Define CSS classes
@@ -210,6 +211,9 @@ export const Node: React.FC<NodeProps> = ({ entry }) => {
     if (event.button !== 0 || target.closest('.pin')) {
       return;
     }
+
+    // Close context menu on node interaction
+    setContextMenuPosition(null);
 
     // Handle selection
     if (event?.ctrlKey || event?.metaKey) {

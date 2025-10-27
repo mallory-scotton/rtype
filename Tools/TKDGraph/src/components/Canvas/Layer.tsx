@@ -25,7 +25,8 @@ export const Layer: React.FC<LayerProps> = ({ children }) => {
     canvasTransform,
     setCanvasTransform,
     isPanning,
-    setIsPanning
+    setIsPanning,
+    setContextMenuPosition
   } = useEditor();
 
   // State for managing the transform
@@ -35,14 +36,15 @@ export const Layer: React.FC<LayerProps> = ({ children }) => {
    * @brief Handle mouse wheel event for zooming
    */
   const handleWheel = (event: React.WheelEvent) => {
-    event.preventDefault();
-
     // Ensure the canvas ref is available
     if (!canvasRef.current) return;
 
     // Ensure the wheel event is on the transformable area
     const target = event.target as HTMLElement;
     if (target.closest('[data-scrollable]')) return;
+
+    // Disable context menu on zoom
+    setContextMenuPosition(null);
 
     // Get the bounding rect of the canvas
     const rect = canvasRef.current.getBoundingClientRect();
@@ -86,6 +88,10 @@ export const Layer: React.FC<LayerProps> = ({ children }) => {
       if (!event.shiftKey && !event.ctrlKey) {
         if (!canvasRef.current) return;
 
+        // Disable context menu on left click
+        setContextMenuPosition(null);
+
+        // Start multi-select box
         const rect = canvasRef.current.getBoundingClientRect();
         const startX = (event.clientX - rect.left - canvasTransform.translateX) / canvasTransform.scale;
         const startY = (event.clientY - rect.top - canvasTransform.translateY) / canvasTransform.scale;
@@ -104,11 +110,36 @@ export const Layer: React.FC<LayerProps> = ({ children }) => {
         return;
       }
     }
+    // Handle Context Menu (right click)
+    else if (event.button == 2) {
+      if (!canvasRef.current) return;
+
+      event.preventDefault();
+
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+
+      const worldX = (clickX - canvasTransform.translateX) / canvasTransform.scale;
+      const worldY = (clickY - canvasTransform.translateY) / canvasTransform.scale;
+
+      setContextMenuPosition({
+        x: worldX,
+        y: worldY
+      });
+
+      return;
+    }
 
     // Only handle middle mouse button or space + left click for panning
     if (event.button !== 1 && !(event.button === 0 && event.shiftKey)) {
       return;
     }
+
+    // Disable context menu on pan
+    setContextMenuPosition(null);
 
     // Start panning
     setIsPanning(true);
