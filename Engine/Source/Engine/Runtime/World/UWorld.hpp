@@ -38,6 +38,7 @@ private:
     ULevel m_currentLevel;                //<! The current level
     std::vector<ULevel> m_loadedLevels;   //<! The loaded levels
     UInt32 m_lastSnapshotID;              //<! The last snapshot ID
+    bool m_hasBegunPlay;                  //<! Whether BeginPlay called
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -133,7 +134,7 @@ public:
         m_actors.push_back(std::make_shared<T>());
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
-        actor->BeginPlay();
+        if (m_hasBegunPlay) { actor->BeginPlay(); }
         return actor;
     }
 
@@ -192,7 +193,7 @@ public:
         // Add to world
         m_actors.push_back(std::shared_ptr<AActor>(actor));
         actor->SetTransform(transform);
-        actor->BeginPlay();
+        if (m_hasBegunPlay) { actor->BeginPlay(); }
 
         return actor;
     }
