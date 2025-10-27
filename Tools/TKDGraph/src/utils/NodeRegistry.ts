@@ -1,5 +1,5 @@
 /** Dependencies */
-import type { NodeData } from '../types';
+import type { NodeData, NodeIconType } from '../types';
 import * as Constants from '../constants';
 
 /**
@@ -9,6 +9,7 @@ export interface NodeTemplate {
   id: string;
   name: string;
   category: string;
+  icon: NodeIconType;
   description?: string;
   tags?: string[];
   data: NodeData;
