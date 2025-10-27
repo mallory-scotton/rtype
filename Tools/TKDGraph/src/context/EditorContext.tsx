@@ -41,6 +41,7 @@ interface EditorContextType {
   isAltPressed: boolean;
   connectionCompletedRef: React.RefObject<boolean>;
   connectionUpdateTrigger: number;
+  contextMenuPosition: { x: number; y: number } | null;
   triggerConnectionUpdate: () => void;
   setBlueprints: (blueprints: BlueprintData[]) => void;
   setCurrentBlueprintIndex: (index: number) => void;
@@ -62,6 +63,7 @@ interface EditorContextType {
   createConnection: (sourcePinId: string, targetPinId: string, sourceNodeId: string, targetNodeId: string) => void;
   deleteConnection: (connectionId: string) => void;
   updatePinValue: (pinId: string, value: any) => void;
+  setContextMenuPosition: (position: { x: number; y: number } | null) => void;
 }
 
 /**
@@ -92,6 +94,7 @@ export function EditorProvider({ children }: EditorProviderProps) {
   const multiSelectStartNodeIds = useRef<string[]>([]);
   const [isPanning, setIsPanning] = useState(false);
   const connectionCompletedRef = useRef(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
 
   // Connection-related state
   const [connectingFrom, setConnectingFrom] = useState<ConnectingFromState | null>(null);
@@ -379,6 +382,7 @@ export function EditorProvider({ children }: EditorProviderProps) {
     isAltPressed,
     connectionCompletedRef,
     connectionUpdateTrigger,
+    contextMenuPosition,
     triggerConnectionUpdate,
     setBlueprints,
     setCurrentBlueprintIndex,
@@ -399,7 +403,8 @@ export function EditorProvider({ children }: EditorProviderProps) {
     removeSelectedNodesFromCurrentBlueprint,
     createConnection,
     deleteConnection,
-    updatePinValue
+    updatePinValue,
+    setContextMenuPosition
   };
 
   return <EditorContext.Provider value={contextValue}>{children}</EditorContext.Provider>;
