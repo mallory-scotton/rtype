@@ -542,8 +542,13 @@ void FNetworkServer::ReplicateDirtyProperties(void)
 
                 for (auto* property: properties)
                 {
-                    if (property && property->IsDirty())
+                    // Only replicate properties that have the Replicated flag
+                    // and are dirty
+                    if (property && property->IsDirty() &&
+                        property->HasFlag(EPropertyFlags::Replicated))
                     {
+                        std::cout << "[SERVER] who is it bum: "
+                                  << property->GetName().CStr() << std::endl;
                         toReplicate.push_back(property);
                     }
                 }
