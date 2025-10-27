@@ -34,9 +34,6 @@ BP_Player::BP_Player(UInt32 playerColor)
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
     , m_lastPosition(FVector3::Zero)
-    , m_idleAnimation("FB_IdleAnimation")
-    , m_moveUpAnimation("FB_MoveUpAnimation")
-    , m_moveDownAnimation("FB_MoveDownAnimation")
 {
     // Enable transform replication for networked movement
     SetTransformReplicated(true);
@@ -47,49 +44,10 @@ BP_Player::BP_Player(UInt32 playerColor)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Player::SetupAnimations(void)
-{
-    // Define frames for Idle Animation
-    m_idleAnimation.ClearFrames();
-    m_idleAnimation.SetSourceMode(UFlipBook::ESourceMode::FromSprite);
-    m_idleAnimation.SetSpriteSheetPath("Assets/Images/T_PlayerShips.png");
-    m_idleAnimation.SetPlayMode(UFlipBook::EPlayMode::Loop);
-    m_idleAnimation.AddFrame(FRectangle(66, playerColor * 17, 33, 17));
-    m_idleAnimation.SetDuration(1.0f);
-    m_idleAnimation.SetPlaybackSpeed(1.f);
-    m_idleAnimation.LoadFrames();
-
-    // Define frames for Move Up Animation
-    m_moveUpAnimation.ClearFrames();
-    m_moveUpAnimation.SetSourceMode(UFlipBook::ESourceMode::FromSprite);
-    m_moveUpAnimation.SetSpriteSheetPath("Assets/Images/T_PlayerShips.png");
-    m_moveUpAnimation.SetPlayMode(UFlipBook::EPlayMode::Once);
-    m_moveUpAnimation.AddFrame(FRectangle(33, playerColor * 17, 33, 17));
-    m_moveUpAnimation.AddFrame(FRectangle(0, playerColor * 17, 33, 17));
-    m_moveUpAnimation.SetDuration(0.2f);
-    m_moveUpAnimation.SetPlaybackSpeed(1.f);
-    m_moveUpAnimation.LoadFrames();
-
-    // Define frames for Move Down Animation
-    m_moveDownAnimation.ClearFrames();
-    m_moveDownAnimation.SetSourceMode(UFlipBook::ESourceMode::FromSprite);
-    m_moveDownAnimation.SetSpriteSheetPath("Assets/Images/T_PlayerShips.png");
-    m_moveDownAnimation.SetPlayMode(UFlipBook::EPlayMode::Once);
-    m_moveDownAnimation.AddFrame(FRectangle(99, playerColor * 17, 33, 17));
-    m_moveDownAnimation.AddFrame(FRectangle(132, playerColor * 17, 33, 17));
-    m_moveDownAnimation.SetDuration(0.2f);
-    m_moveDownAnimation.SetPlaybackSpeed(1.f);
-    m_moveDownAnimation.LoadFrames();
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void BP_Player::BeginPlay(void)
 {
     // Call parent BeginPlay first
     Super::BeginPlay();
-
-    // Setup animations
-    SetupAnimations();
 
     // Ensure textures are properly loaded after initialization
     auto Billboard = GetComponent<UBillboardComponent>("BC_PlayerSprite");

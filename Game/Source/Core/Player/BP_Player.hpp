@@ -6,6 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Core/Player/FlipBooks/FB_ShipIdle.hpp>
+#include <Core/Player/FlipBooks/FB_ShipMoveDown.hpp>
+#include <Core/Player/FlipBooks/FB_ShipMoveUp.hpp>
 #include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,9 +42,9 @@ private:
     Float32 m_lastFiredTime;       //<! Time since last fired shot
     FVector3 m_lastPosition;       //<! Last position for velocity calculation
 
-    UFlipBook m_idleAnimation;     //<! Idle animation flipbook
-    UFlipBook m_moveUpAnimation;   //<! Move up animation flipbook
-    UFlipBook m_moveDownAnimation;   //<! Move down animation flipbook
+    FB_ShipIdle m_idleAnimation;   //<! Idle flipbook
+    FB_ShipMoveUp m_moveUpAnimation;       //<! Move up flipbook
+    FB_ShipMoveDown m_moveDownAnimation;   //<! Move down flipbook
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -118,12 +121,6 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void UpdateAnimationState(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Setup player animations
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetupAnimations(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Server RPC to handle firing
