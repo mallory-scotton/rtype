@@ -55,4 +55,15 @@ enum class EVRSnapTurnAngle
     Angle90    //<! 90 degree snap turn
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Engine network capability enumeration
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class ENetworkCapability
+{
+    Disabled,   //<! Networking disabled
+    Optional,   //<! Networking optional
+    Required    //<! Networking required
+};
+
 }   // namespace tkd

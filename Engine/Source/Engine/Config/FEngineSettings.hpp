@@ -56,9 +56,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct Network
     {
-        bool enabled = true;        //<! Enable or disable networking
-        int maxClients = -1;        //<! Maximum number of clients
-        int port = 8080;            //<! Default network port
+        bool enabled = true;                //<! Enable or disable networking
+        ENetworkCapability capability =
+            ENetworkCapability::Required;   //<! Network capability mode
+        int maxClients = -1;                //<! Maximum number of clients
+        int port = 8080;                    //<! Default network port
         int timeout = 5000;         //<! Network timeout in milliseconds
         int maxPacketSize = 1452;   //<! Maximum UDP packet size
         int protocolVersion = 1;    //<! Network protocol version
