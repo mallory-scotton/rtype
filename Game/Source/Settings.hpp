@@ -97,6 +97,12 @@ static const FEngineSettings RTYPE_ENGINE_SETTINGS = {
             .subtitles = true,
             .subtitleSize = 24,
         },
+        .vr = {
+            .capability = EVRCapability::Disabled,
+            .device = EVRDevice::OpenVR,
+            .movementMode = EVRMovementMode::SmoothLocomotion,
+            .snapTurnAngle = EVRSnapTurnAngle::Angle45
+        }
     };
 
 }   // namespace tkd

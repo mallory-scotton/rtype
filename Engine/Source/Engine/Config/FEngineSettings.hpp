@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config/Config.hpp>
 #include <Engine/Config/EInputs.hpp>
+#include <Engine/Config/Enumerations.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -129,6 +130,20 @@ public:
         bool subtitles = true;           //<! Enable or disable subtitles
         int subtitleSize = 24;           //<! Subtitle font size
     } accessibility;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief VR settings
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct VR
+    {
+        EVRCapability capability = EVRCapability::Disabled;   //<! VR support
+        EVRDevice device = EVRDevice::OpenVR;    //<! Preferred VR device
+        EVRMovementMode movementMode =
+            EVRMovementMode::SmoothLocomotion;   //<! VR movement mode
+        EVRSnapTurnAngle snapTurnAngle =
+            EVRSnapTurnAngle::Angle45;           //<! VR snap turn angle
+    } vr;
 };
 
 }   // namespace tkd
