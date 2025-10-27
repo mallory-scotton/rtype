@@ -11,6 +11,7 @@ function generateKeyEvents(key: string, icon: NodeIconType, category: string): N
   return {
     id: `event_key_${key}`,
     name: `Event Key (${key})`,
+    icon: icon,
     category: `Events>${category}`,
     description: `Called when a key of type ${key} is actioned.`,
     tags: ['event', 'key', 'released', 'pressed', key],
@@ -41,6 +42,7 @@ export const Events: NodeTemplate[] = [
   {
     id: 'event_begin_play',
     name: 'Event BeginPlay',
+    icon: 'event',
     category: 'Events',
     description: 'Called when the game starts or when spawned.',
     tags: ['event', 'begin play', 'start'],
@@ -62,6 +64,7 @@ export const Events: NodeTemplate[] = [
   {
     id: 'event_end_play',
     name: 'Event EndPlay',
+    icon: 'event',
     category: 'Events',
     description: 'Called when the game ends or when destroyed.',
     tags: ['event', 'end play', 'stop'],
@@ -83,6 +86,7 @@ export const Events: NodeTemplate[] = [
   {
     id: 'event_tick',
     name: 'Event Tick',
+    icon: 'event',
     category: 'Events',
     description: 'Called every frame while the game is running.',
     tags: ['event', 'tick', 'update'],

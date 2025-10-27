@@ -47,6 +47,7 @@ function generateOperator(inputs: PinType[], output: PinType, operator: string):
     id: `operator_${operator}-${inputs.join('_')}-${output}`,
     name: `${inputs.join(` ${operator} `)} -> ${output}`,
     category: `Math>${inputs[0].charAt(0).toUpperCase() + inputs[0].slice(1)}`,
+    icon: 'pure-function-call',
     data: {
       id: '',
       roundedBg: true,
@@ -171,6 +172,7 @@ function generateCastOperator(input: PinType, output: PinType): NodeTemplate {
   return {
     id: `cast_${input}_to_${output}`,
     name: `Cast ${input} to ${output}`,
+    icon: 'pure-function-call',
     category: 'Math>Casting',
     data: {
       id: '',

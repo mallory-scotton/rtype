@@ -9,6 +9,7 @@ export const FlowControl: NodeTemplate[] = [
   {
     id: 'flow_branch',
     name: 'Branch',
+    icon: 'exec-branch',
     category: 'Flow Control',
     description: 'Executes one of the two output execution pins based on the boolean input.',
     tags: ['flow', 'branch', 'if', 'condition'],
@@ -35,6 +36,7 @@ export const FlowControl: NodeTemplate[] = [
   {
     id: 'flow_sequence',
     name: 'Sequence',
+    icon: 'sequence',
     category: 'Flow Control',
     description: 'Executes output execution pins in order.',
     tags: ['flow', 'sequence', 'exec'],
@@ -59,6 +61,7 @@ export const FlowControl: NodeTemplate[] = [
   {
     id: 'flow_do_n',
     name: 'Do N',
+    icon: 'do_n',
     category: 'Flow Control',
     description: 'Executes the output execution pin N times based on the integer input.',
     tags: ['flow', 'do', 'loop', 'exec'],
@@ -85,6 +88,7 @@ export const FlowControl: NodeTemplate[] = [
   {
     id: 'flow_is_valid',
     name: 'Is Valid',
+    icon: 'isvalid',
     category: 'Flow Control',
     description: 'Checks if the input object is valid (not null).',
     tags: ['flow', 'is valid', 'null check'],
@@ -127,6 +131,7 @@ export const FlowControl: NodeTemplate[] = [
     return {
       id: `flow_knot_${type}`,
       name: `Knot (${type})`,
+      icon: 'cast',
       category: 'Flow Control',
       description: `A simple knot node for ${type} type.`,
       tags: ['flow', 'knot', type],

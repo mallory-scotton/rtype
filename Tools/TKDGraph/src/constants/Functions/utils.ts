@@ -37,6 +37,7 @@ export function generateFunctionNode(props: FunctionProps): NodeTemplate {
     name: name,
     category: category,
     description: description,
+    icon: icon ? icon : pure ? 'pure-function-call' : 'function-call',
     tags: tags,
     data: {
       id: '',
