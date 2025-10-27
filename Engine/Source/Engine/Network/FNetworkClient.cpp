@@ -599,22 +599,13 @@ void FNetworkClient::SendReplication(std::vector<IProperty*> toReplicate)
         Packets::Replication replicationPacket;
 
         // Set actor ID from UUID
-        UUID actorUUID = owner.GetUUID();
-        std::memcpy(
-            replicationPacket.actorID.data(),
-            actorUUID.Data().data(),
-            replicationPacket.actorID.size()
-        );
+        replicationPacket.actorID = owner.GetUUID().Data();
 
         replicationPacket.propertyName = property->GetName();
         replicationPacket.timestamp = GetCurrentTimestamp();
-        FString propertyValue = property->ToString();
 
-        const char* cstr = propertyValue.CStr();
-        replicationPacket.data.assign(
-            reinterpret_cast<const Byte*>(cstr),
-            reinterpret_cast<const Byte*>(cstr + propertyValue.Size())
-        );
+        // Serialize the property to binary data
+        replicationPacket.data = property->Serialize();
 
         // Send the replication packet to the server
         if (SendPacketToServer(replicationPacket)) { property->ClearDirty(); }
@@ -624,7 +615,7 @@ void FNetworkClient::SendReplication(std::vector<IProperty*> toReplicate)
             FLogger::Warn(
                 "Failed to replicate property '{}' of actor '{}'",
                 property->GetName().CStr(),
-                actorUUID
+                owner.GetUUID()
             );
         }
     }

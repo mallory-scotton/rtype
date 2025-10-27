@@ -309,7 +309,6 @@ private:
     );
 
     ///////////////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
     /// \brief Handle a property replication packet
     ///
     /// \param packet The received property replication packet
@@ -318,7 +317,9 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     void HandlePropertyReplicationPacket(
         const Packets::Replication& packet, const FEndpoint& endpoint
-=======
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Handle a Snapshot packet from server
     ///
     /// \param packet The received packet
@@ -327,7 +328,6 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     void HandleSnapshotPacket(
         const Packets::Snapshot& packet, const FEndpoint& endpoint
->>>>>>> develop
     );
 
     ///////////////////////////////////////////////////////////////////////////
