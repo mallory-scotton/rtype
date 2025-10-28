@@ -1,7 +1,8 @@
 /** Dependencies */
 import React from 'react';
-import { Reference, Canvas, MutliSelect, Layer } from '../../components';
+import { Reference, Canvas, MutliSelect, Layer, ContextMenu } from '../../components';
 import './BlueprintEditor.css';
+import { useEditor } from '../../context';
 
 /**
  * @brief Interface for Blueprint Editor props
@@ -16,6 +17,8 @@ interface BlueprintEditorProps {
  * @description This page hosts the main blueprint editor interface.
  */
 export const BlueprintEditor: React.FC<BlueprintEditorProps> = ({ type }) => {
+  const { contextMenuPosition } = useEditor();
+
   return (
     <div className='bue-render'>
       <div className='frame-header'></div>
@@ -23,6 +26,7 @@ export const BlueprintEditor: React.FC<BlueprintEditorProps> = ({ type }) => {
         <Layer>
           <Reference />
           <Canvas>
+            {contextMenuPosition && <ContextMenu />}
             <MutliSelect />
           </Canvas>
         </Layer>

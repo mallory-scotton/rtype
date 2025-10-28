@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Config/Config.hpp>
 #include <Engine/Config/EInputs.hpp>
+#include <Engine/Config/Enumerations.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -55,9 +56,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     struct Network
     {
-        bool enabled = true;        //<! Enable or disable networking
-        int maxClients = -1;        //<! Maximum number of clients
-        int port = 8080;            //<! Default network port
+        bool enabled = true;                //<! Enable or disable networking
+        ENetworkCapability capability =
+            ENetworkCapability::Required;   //<! Network capability mode
+        int maxClients = -1;                //<! Maximum number of clients
+        int port = 8080;                    //<! Default network port
         int timeout = 5000;         //<! Network timeout in milliseconds
         int maxPacketSize = 1452;   //<! Maximum UDP packet size
         int protocolVersion = 1;    //<! Network protocol version
@@ -129,6 +132,20 @@ public:
         bool subtitles = true;           //<! Enable or disable subtitles
         int subtitleSize = 24;           //<! Subtitle font size
     } accessibility;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief VR settings
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct VR
+    {
+        EVRCapability capability = EVRCapability::Disabled;   //<! VR support
+        EVRDevice device = EVRDevice::OpenVR;    //<! Preferred VR device
+        EVRMovementMode movementMode =
+            EVRMovementMode::SmoothLocomotion;   //<! VR movement mode
+        EVRSnapTurnAngle snapTurnAngle =
+            EVRSnapTurnAngle::Angle45;           //<! VR snap turn angle
+    } vr;
 };
 
 }   // namespace tkd

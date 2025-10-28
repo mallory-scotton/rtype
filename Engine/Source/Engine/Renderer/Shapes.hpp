@@ -7,4 +7,9 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/Shapes/UCircleShape.hpp>
+#include <Engine/Renderer/Shapes/UConvexShape.hpp>
+#include <Engine/Renderer/Shapes/UEllipseShape.hpp>
+#include <Engine/Renderer/Shapes/ULineShape.hpp>
+#include <Engine/Renderer/Shapes/UPolygonShape.hpp>
 #include <Engine/Renderer/Shapes/URectangleShape.hpp>
+#include <Engine/Renderer/Shapes/UTriangleShape.hpp>

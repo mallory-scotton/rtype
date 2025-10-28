@@ -20,6 +20,7 @@ UWorld::UWorld(const FString& name)
     , m_currentLevel()
     , m_loadedLevels()
     , m_lastSnapshotID(0)
+    , m_hasBegunPlay(false)
     , SpawnActorRPC(
           *this,
           "SpawnActor",
@@ -148,6 +149,9 @@ void UWorld::BeginPlay(void)
     // Initialize world time
     m_worldTime = 0.0f;
 
+    // Set begun play flag
+    m_hasBegunPlay = true;
+
     // Begin play for game mode
     m_currentLevel.GetGameMode().BeginPlay();
 
@@ -191,6 +195,9 @@ void UWorld::EndPlay(void)
 {
     // End play for game mode
     m_currentLevel.GetGameMode().EndPlay();
+
+    // Reset begun play flag
+    m_hasBegunPlay = false;
 
     // End play for all actors
     for (const auto& actor: m_actors)
@@ -455,14 +462,7 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
     // Check if the class is valid
     if (plyrClass == nullptr) { return; }
 
-    // ? BEGIN TEMPORARY
     FTransform transform = FTransform::Identity;
-    transform.SetPosition(TVector3<float>(
-        static_cast<float>(std::rand() % 500 - 250),
-        static_cast<float>(std::rand() % 500 - 250),
-        0.0f
-    ));
-    // ? END TEMPORARY
 
     // Create a snapshot of the current world state to send to the new client
     Packets::Snapshot snapshot(*this);

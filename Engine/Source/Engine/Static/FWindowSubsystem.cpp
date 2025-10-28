@@ -131,6 +131,32 @@ void FWindowSubsystem::ThreadLoop(void)
     // This is crucial for multi-threaded rendering with SFML/OpenGL
     if (m_window) { m_window->SetActive(true); }
 
+    // VR Initialization
+    if (m_settings.vr.capability != EVRCapability::Disabled)
+    {
+        // Check for VR initialization
+        VR::FVRSystem& vrSystem = VR::FVRSystem::GetInstance();
+
+        // Try to initialize VR system
+        if (!vrSystem.Initialize())
+        {
+            FLogger::SetNamespace("Virtual Reality");
+            FLogger::Warn("VR System failed to initialize.");
+
+            if (m_settings.vr.capability == EVRCapability::Required)
+            {
+                FLogger::Error("VR is required but failed to initialize.");
+                RequestShutdown();
+            }
+            else
+            {
+                FLogger::Info(
+                    "VR is not required. Continuing without VR support."
+                );
+            }
+        }
+    }
+
     TimePoint lastTime = SteadyClock::now();
     TimePoint fpsUpdateTime = lastTime;
     int frameCount = 0;

@@ -56,7 +56,7 @@ void BP_PlayerController::Tick(Float32 deltaTime)
     if (auto* inputManager = GetInputManager())
     {
         inputVelocity.x = inputManager->GetAxisValue("HorizontalMoves");
-        inputVelocity.y = inputManager->GetAxisValue("VerticalMoves");
+        inputVelocity.y = -inputManager->GetAxisValue("VerticalMoves");
 
         if (inputVelocity.Length() > 0.0f)
         {

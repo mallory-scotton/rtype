@@ -33,6 +33,7 @@ static const FEngineSettings RTYPE_ENGINE_SETTINGS = {
         },
         .network = {
             .enabled = true,
+            .capability = ENetworkCapability::Optional,
             .maxClients = -1,
             .port = 8080,
             .timeout = 5000,
@@ -97,6 +98,12 @@ static const FEngineSettings RTYPE_ENGINE_SETTINGS = {
             .subtitles = true,
             .subtitleSize = 24,
         },
+        .vr = {
+            .capability = EVRCapability::Disabled,
+            .device = EVRDevice::OpenVR,
+            .movementMode = EVRMovementMode::SmoothLocomotion,
+            .snapTurnAngle = EVRSnapTurnAngle::Angle45
+        }
     };
 
 }   // namespace tkd

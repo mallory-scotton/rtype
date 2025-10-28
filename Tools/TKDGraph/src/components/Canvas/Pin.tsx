@@ -1,5 +1,5 @@
 /** Dependencies */
-import type { PinData, PinDirection } from '../../types';
+import type { PinData, PinDirection, PinType } from '../../types';
 import React, { useState, useEffect } from 'react';
 import { canPinTypeHaveInput, convertPinTypeToDefaultValue } from '../../utils/Convert';
 import { useEditor } from '../../context';
@@ -159,16 +159,21 @@ export const Pin: React.FC<PinProps> = ({ data, direction, nodeId: _nodeId }) =>
     );
 
     if (connectionToRemove) {
+      // Save the other pin's ID before deletion
+      const otherPinId =
+        connectionToRemove.sourcePinId === data.id ? connectionToRemove.targetPinId : connectionToRemove.sourcePinId;
+
       deleteConnection(connectionToRemove.id);
 
-      // Start a new connection from the CLICKED pin (keep the other end)
+      // Start a new connection from the not CLICKED pin (keep the other end)
       // User wants to reconnect this pin to something else, keeping the other pin in place
-      const pinElement = canvasRef.current.querySelector(`.pin[data-id="${data.id}"] .clink`) as HTMLElement;
+      const pinElement = canvasRef.current.querySelector(`.pin[data-id="${otherPinId}"] .clink`) as HTMLElement;
+      const pinType = canvasRef.current.querySelector(`.pin[data-id="${otherPinId}"]`)?.getAttribute('data-type');
       if (pinElement) {
         setConnectingFrom({
-          pinId: data.id,
-          direction: direction,
-          pinType: data.type,
+          pinId: otherPinId,
+          direction: direction === 'input' ? 'output' : 'input',
+          pinType: pinType as PinType,
           element: pinElement
         });
 

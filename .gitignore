@@ -6,6 +6,12 @@
 *.d
 *.out
 
+# C/C++ file at the project root
+/*.c
+/*.cpp
+/*.h
+/*.hpp
+
 # Packaged assets
 *.pak
 *.uasset

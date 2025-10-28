@@ -11,7 +11,8 @@ export function generatePropertySetter(entry: PropertyEntry): NodeTemplate {
   return {
     id: `set_${entry.name}_${entry.type}`,
     name: `Set ${entry.name}`,
-    category: 'Properties',
+    category: 'Variables',
+    icon: 'pill',
     description: `Sets the value of the property "${entry.name}"`,
     data: {
       id: '',
@@ -41,7 +42,8 @@ export function generatePropertyGetter(entry: PropertyEntry): NodeTemplate {
   return {
     id: `get_${entry.name}_${entry.type}`,
     name: `Get ${entry.name}`,
-    category: 'Properties',
+    icon: 'pill',
+    category: 'Variables',
     description: `Gets the value of the property "${entry.name}"`,
     data: {
       id: '',

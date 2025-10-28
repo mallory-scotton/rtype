@@ -155,6 +155,9 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
         transform: `translate(${canvasTransform.translateX}px, ${canvasTransform.translateY}px) scale(${canvasTransform.scale})`
       }}
     >
+      {/** Render Childrens */}
+      {children}
+
       {/* Render connections first (below nodes) */}
       {currentBlueprint.connections.map((connection) => (
         <Connection key={connection.id} connection={connection} />
@@ -165,8 +168,6 @@ export const Canvas: React.FC<CanvasProps> = ({ children }) => {
 
       {/* Render nodes */}
       {...nodesWithFilledPins.map((entry, index) => <Node key={index} entry={entry} />)}
-
-      {children}
     </div>
   );
 };
