@@ -118,7 +118,7 @@ void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
     CheckConnectionTimeouts(now);
     SendHeartbeats(now);
 
-    ReplicateDirtyProperties();
+    // ReplicateDirtyProperties();
 
     m_lastUpdate = now;
 }
