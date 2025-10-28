@@ -30,6 +30,9 @@ endif()
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
 find_package(imgui REQUIRED)
 find_package(ImGui-SFML REQUIRED)
+find_package(asio REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenVR REQUIRED)
 
 # Find test dependencies if building tests
 if(BUILD_TESTS)
@@ -106,6 +109,8 @@ target_link_libraries(TKDEngineClient
         asio::asio
         imgui::imgui
         ImGui-SFML::ImGui-SFML
+        GLEW::GLEW
+        openvr::openvr
         GLU
         GL
 )

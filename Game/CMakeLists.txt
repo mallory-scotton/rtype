@@ -87,6 +87,8 @@ target_link_libraries(RTypeGameClient
         sfml-network
         GLU
         GL
+        GLEW::GLEW
+        openvr::openvr
 )
 
 # Create server game library

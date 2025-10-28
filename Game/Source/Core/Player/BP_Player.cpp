@@ -12,7 +12,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Player::BP_Player(UInt32 playerColor)
     : APawn()
-    , speed(*this, "Speed", 200.0f)
+    , speed(*this, "Speed", 2.0f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , playerColor(*this, "PlayerColor", playerColor % 5)
     , ServerFire(
@@ -38,65 +38,32 @@ BP_Player::BP_Player(UInt32 playerColor)
     // Enable transform replication for networked movement
     SetTransformReplicated(true);
 
-    auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
-    Abp->SetTexturePath("Assets/Images/T_PlayerShips.png");
-
-    auto Box = AddComponent<UBoxCollisionComponent>("BoxCollision");
-    Box->SetHiddenInGame(false);
-    Box->SetBoxExtent(FVector3f(16.0f, 8.0f, 16.0f));
-
-    // Set up animations
-    SetupAnimations();
-
-    // Local transform to scale up the sprite
-    Abp->SetLocalTransform(
-        FTransform2D(FVector2f::Zero, 0.0f, FVector2f(2.0f, 2.0f))
-    );
+    // Add components
+    AddComponent<UBillboardComponent>("BC_PlayerSprite");
+    AddComponent<UBoxCollisionComponent>("BoxCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Player::SetupAnimations(void)
+void BP_Player::BeginPlay(void)
 {
-    // Get the animated sprite component
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+    // Call parent BeginPlay first
+    Super::BeginPlay();
 
-    // Early out if no sprite component
-    if (!Abp) { return; }
+    // Ensure textures are properly loaded after initialization
+    auto Billboard = GetComponent<UBillboardComponent>("BC_PlayerSprite");
+    if (Billboard)
+    {
+        Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
+        Billboard->SetFlipBook(&m_idleAnimation);
+        // Frames will be loaded automatically when setting the FlipBook
+    }
 
-    // Clear the existing animations
-    Abp->ClearAnimations();
-
-    // Define Idle animation
-    FAnimation2D A_Idle("Idle", true);
-    A_Idle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.f);
-    Abp->AddAnimation(A_Idle);
-
-    // Define IdleToFlyUp animation
-    FAnimation2D A_IdleToFlyUp("IdleToFlyUp", false);
-    A_IdleToFlyUp.AddFrame(FRectanglei(33, playerColor * 17, 33, 17), 0.1f);
-    A_IdleToFlyUp.AddFrame(FRectanglei(0, playerColor * 17, 33, 17), 1.0f);
-    Abp->AddAnimation(A_IdleToFlyUp);
-
-    // Define FlyUpToIdle animation
-    FAnimation2D A_FlyUpToIdle("FlyUpToIdle", false);
-    A_FlyUpToIdle.AddFrame(FRectanglei(33, playerColor * 17, 33, 17), 0.1f);
-    A_FlyUpToIdle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.0f);
-    Abp->AddAnimation(A_FlyUpToIdle);
-
-    // Define IdleToFlyDown animation
-    FAnimation2D A_IdleToFlyDown("IdleToFlyDown", false);
-    A_IdleToFlyDown.AddFrame(FRectanglei(99, playerColor * 17, 33, 17), 0.1f);
-    A_IdleToFlyDown.AddFrame(FRectanglei(132, playerColor * 17, 33, 17), 1.0f);
-    Abp->AddAnimation(A_IdleToFlyDown);
-
-    // Define FlyDownToIdle animation
-    FAnimation2D A_FlyDownToIdle("FlyDownToIdle", false);
-    A_FlyDownToIdle.AddFrame(FRectanglei(99, playerColor * 17, 33, 17), 0.1f);
-    A_FlyDownToIdle.AddFrame(FRectanglei(66, playerColor * 17, 33, 17), 1.0f);
-    Abp->AddAnimation(A_FlyDownToIdle);
-
-    // Set the default animation to IDLE
-    Abp->Play("Idle");
+    auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
+    if (Box)
+    {
+        Box->SetHiddenInGame(false);
+        Box->SetBoxExtent(FVector3f(0.8f, 0.3f, 0.3f));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,19 +144,42 @@ void BP_Player::Tick(Float32 deltaTime)
 void BP_Player::UpdateAnimationState(void)
 {
     // Get the animated sprite component
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_PlayerSprite");
+    auto Billboard = GetComponent<UBillboardComponent>("BC_PlayerSprite");
 
     // Update animation state
-    if (velocity().y > 0.0f) { Abp->Play("IdleToFlyUp", false); }
-    else if (velocity().y < 0.0f) { Abp->Play("IdleToFlyDown", false); }
+    if (velocity().y < 0.0f)
+    {
+        m_moveUpAnimation.SetPlaybackSpeed(1.f);
+        Billboard->SetFlipBook(&m_moveUpAnimation);
+    }
+    else if (velocity().y > 0.0f)
+    {
+        m_moveDownAnimation.SetPlaybackSpeed(1.f);
+        Billboard->SetFlipBook(&m_moveDownAnimation);
+    }
     else
     {
-        if (m_lastVelocity.y > 0.0f) { Abp->Play("FlyUpToIdle", false); }
-        else if (m_lastVelocity.y < 0.0f)
+        if (m_lastVelocity.y < 0.0f)
         {
-            Abp->Play("FlyDownToIdle", false);
+            m_moveUpAnimation.SetPlaybackSpeed(-1.f);
+            Billboard->SetFlipBook(&m_moveUpAnimation);
+            if (Billboard->GetFlipBook() == &m_moveUpAnimation &&
+                m_moveUpAnimation.HasFinished())
+            {
+                m_lastVelocity.y = 0.0f;
+            }
         }
-        else { Abp->Play("Idle", true); }
+        else if (m_lastVelocity.y > 0.0f)
+        {
+            m_moveDownAnimation.SetPlaybackSpeed(-1.f);
+            Billboard->SetFlipBook(&m_moveDownAnimation);
+            if (Billboard->GetFlipBook() == &m_moveDownAnimation &&
+                m_moveDownAnimation.HasFinished())
+            {
+                m_lastVelocity.y = 0.0f;
+            }
+        }
+        else { Billboard->SetFlipBook(&m_idleAnimation); }
     }
 }
 

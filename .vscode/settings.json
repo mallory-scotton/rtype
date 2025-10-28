@@ -143,5 +143,18 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "files.insertFinalNewline": false,
     "files.trimFinalNewlines": true
+  },
+
+  /* Snippet Suggestion */
+  "editor.snippetSuggestions": "top",
+  "editor.tabCompletion": "onlySnippets",
+
+  /* Search exclude */
+  "search.exclude": {
+    "**/Build": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/.git": true,
+    "**/.vscode": true
   }
 }

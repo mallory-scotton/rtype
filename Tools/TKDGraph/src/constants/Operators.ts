@@ -46,7 +46,8 @@ function generateOperator(inputs: PinType[], output: PinType, operator: string):
   return {
     id: `operator_${operator}-${inputs.join('_')}-${output}`,
     name: `${inputs.join(` ${operator} `)} -> ${output}`,
-    category: 'Operators',
+    category: `Math>${inputs[0].charAt(0).toUpperCase() + inputs[0].slice(1)}`,
+    icon: 'pure-function-call',
     data: {
       id: '',
       roundedBg: true,
@@ -171,7 +172,8 @@ function generateCastOperator(input: PinType, output: PinType): NodeTemplate {
   return {
     id: `cast_${input}_to_${output}`,
     name: `Cast ${input} to ${output}`,
-    category: 'Operators',
+    icon: 'pure-function-call',
+    category: 'Math>Casting',
     data: {
       id: '',
       roundedBg: true,
@@ -180,7 +182,9 @@ function generateCastOperator(input: PinType, output: PinType): NodeTemplate {
       type: 'cast'
     },
     tags: ['operator', 'cast', `${input}_to_${output}`],
-    snippet: `${convertPinTypeToEngineType(output)} {OUTPUT_1} = static_cast<${convertPinTypeToEngineType(output)}>({INPUT_1});`
+    snippet: `${convertPinTypeToEngineType(output)} {OUTPUT_1} = static_cast<${convertPinTypeToEngineType(
+      output
+    )}>({INPUT_1});`
   };
 }
 

@@ -8,6 +8,7 @@ export const VectorFunctions = [
   generateFunctionNode({
     name: 'Make Vector',
     description: 'Creates a vector from three float values',
+    category: 'Math>Vector',
     icon: 'make-struct',
     inputs: [
       { type: 'float', label: 'X' },
@@ -22,6 +23,7 @@ export const VectorFunctions = [
   generateFunctionNode({
     name: 'Break Vector',
     description: 'Breaks a vector into its three float components',
+    category: 'Math>Vector',
     icon: 'break-struct',
     inputs: [{ type: 'vector', label: 'In Vec' }],
     outputs: [

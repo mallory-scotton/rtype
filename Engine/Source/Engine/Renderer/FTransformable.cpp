@@ -205,4 +205,14 @@ const FVector3& FTransformable::GetScale(void) const { return m_scale; }
 ///////////////////////////////////////////////////////////////////////////////
 const FVector3& FTransformable::GetOrigin(void) const { return m_origin; }
 
+///////////////////////////////////////////////////////////////////////////////
+void FTransformable::SetTransform(const FTransform& transform)
+{
+    m_position = transform.GetPosition();
+    m_rotation = transform.GetRotation();
+    m_scale = transform.GetScale();
+    m_transformNeedUpdate = true;
+    m_inverseTransformNeedUpdate = true;
+}
+
 }   // namespace tkd
