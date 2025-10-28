@@ -468,84 +468,12 @@ void FNetworkClient::HandlePropertyReplicationPacket(
         return;
     }
 
-    // Get the world subsystem from the engine
-    auto* worldSubsystem = Engine::GetInstance().GetWorld();
-    if (!worldSubsystem) { return; }
-
-    // Access the world and find the actor
-    worldSubsystem->WithWorld(
-        [&packet](UWorld& world)
-        {
-            // Convert actorID array to UUID
-            UUID actorID(packet.actorID);
-
-            // Find the actor by UUID
-            const auto& actors = world.GetActors();
-            AActor* targetActor = nullptr;
-
-            for (const auto& actor: actors)
-            {
-                if (!actor) { continue; }
-
-                if (actor->GetUUID() == actorID)
-                {
-                    targetActor = actor.get();
-                    break;
-                }
-            }
-
-            if (!targetActor)
-            {
-                FLogger::SetNamespace("Network");
-                FLogger::Warn(
-                    "Received replication for unknown actor: {}", actorID
-                );
-                return;
-            }
-
-            // Get the property
-            IProperty* property =
-                targetActor->GetProperty(packet.propertyName);
-
-            if (!property)
-            {
-                FLogger::SetNamespace("Network");
-                FLogger::Warn(
-                    "Received replication for unknown property '{}' on actor '{}'",
-                    packet.propertyName.CStr(),
-                    actorID
-                );
-                return;
-            }
-
-            // Deserialize the property value from byte array
-            try
-            {
-                // Update the property value with the received binary data
-                property->SetValue(packet.data.data(), packet.data.size());
-
-                FLogger::SetNamespace("Network");
-                FLogger::Info(
-                    "Updated property '{}' on actor '{}' from server replication",
-                    packet.propertyName.CStr(),
-                    actorID
-                );
-
-                // Clear dirty flag to avoid re-replicating this change
-                property->ClearDirty();
-            }
-            catch (const std::exception& e)
-            {
-                FLogger::SetNamespace("Network");
-                FLogger::Error(
-                    "Failed to update property '{}' on actor '{}': {}",
-                    packet.propertyName.CStr(),
-                    actorID,
-                    e.what()
-                );
-            }
-        }
-    );
+    // Queue the property replication for deferred execution to avoid deadlock
+    // The network thread queues replications here without blocking on
+    // m_worldMutex The world thread will process them via
+    // ProcessDeferredPropertyReplications()
+    std::lock_guard<std::mutex> lock(m_propertyQueueMutex);
+    m_deferredPropertyReplications.push({ packet, endpoint });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -561,7 +489,8 @@ void FNetworkClient::ReplicateDirtyProperties(void)
     worldSubsystem->WithWorld(
         [&toReplicate](UWorld& world)
         {
-            const auto& actors = world.GetActors();
+            // RACE CONDITION FIX: Copy actors to avoid iterator invalidation
+            auto actors = world.GetActors();
 
             for (const auto& actor: actors)
             {
