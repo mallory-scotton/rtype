@@ -106,6 +106,11 @@ void FWorldSubsystem::ThreadLoop(void)
                 // functions that need to acquire the world mutex
                 Network::ProcessDeferredRPCs(*m_world);
 
+                // Process deferred property replications BEFORE locking the
+                // world mutex This follows the same pattern as RPCs for thread
+                // safety
+                Network::ProcessDeferredPropertyReplications(*m_world);
+
                 {
                     std::unique_lock lock(m_worldMutex);
                     m_world->Tick(m_fixedDeltaTime);
@@ -143,6 +148,10 @@ void FWorldSubsystem::ThreadLoop(void)
             // This allows RPCs to call World::SpawnActor and other functions
             // that need to acquire the world mutex
             Network::ProcessDeferredRPCs(*m_world);
+
+            // Process deferred property replications BEFORE locking the world
+            // mutex This follows the same pattern as RPCs for thread safety
+            Network::ProcessDeferredPropertyReplications(*m_world);
 
             {
                 std::unique_lock lock(m_worldMutex);

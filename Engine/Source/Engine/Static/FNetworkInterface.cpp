@@ -425,6 +425,16 @@ void FNetworkInterface::ProcessDeferredRPCs(UWorld& world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FNetworkInterface::ProcessDeferredPropertyReplications(UWorld& world)
+{
+    // DO NOT LOCK s_mutex HERE!
+    // Same reasoning as ProcessDeferredRPCs - avoid deadlock
+    // The subsystem pointer is stable after initialization, so no lock needed
+    if (s_networkSubsystem == nullptr) { return; }
+    s_networkSubsystem->ProcessDeferredPropertyReplications(world);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 UInt32 FNetworkInterface::GetClientID(void)
 {
     std::lock_guard<std::mutex> lock(s_mutex);
