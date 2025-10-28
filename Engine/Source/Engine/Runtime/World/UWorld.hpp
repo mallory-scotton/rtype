@@ -35,10 +35,11 @@ private:
     std::vector<std::shared_ptr<AActor>>
         m_actors;                         //<! The list of actors in the world
     float m_worldTime;                    //<! The current world time
-    ULevel m_currentLevel;                //<! The current level
+    ULevel* m_currentLevel;               //<! The current level
     std::vector<ULevel> m_loadedLevels;   //<! The loaded levels
     UInt32 m_lastSnapshotID;              //<! The last snapshot ID
     bool m_hasBegunPlay;                  //<! Whether BeginPlay called
+    TUniquePtr<AGameMode> m_gameMode;     //<! Pointer to the game mode
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -327,7 +328,7 @@ public:
     /// \return True if the level was loaded successfully, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
-    bool SpawnLevel(const ULevel& level);
+    bool SpawnLevel(ULevel* level);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Change the current level to a loaded level by name

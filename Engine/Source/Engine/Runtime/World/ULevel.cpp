@@ -19,19 +19,19 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 ULevel::ULevel(const FString& name)
     : UObject(name)
-    , m_gameMode()
     , m_actorEntries()
     , m_levelName("")
+    , m_gameModeClass("")
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
-const AGameMode& ULevel::GetGameMode(void) const { return m_gameMode; }
+const FString& ULevel::GetGameMode(void) const { return m_gameModeClass; }
 
 ///////////////////////////////////////////////////////////////////////////////
-AGameMode& ULevel::GetGameMode(void) { return m_gameMode; }
-
-///////////////////////////////////////////////////////////////////////////////
-void ULevel::SetGameMode(const AGameMode& gameMode) { m_gameMode = gameMode; }
+void ULevel::SetGameMode(const FString& gameModeClass)
+{
+    m_gameModeClass = gameModeClass;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 const TVector<ULevel::ActorEntry>& ULevel::GetActorEntries(void) const
