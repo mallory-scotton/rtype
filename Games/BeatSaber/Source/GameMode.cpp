@@ -39,13 +39,13 @@ void BeatSaberGameMode::BeginPlay(void)
 
     auto levels = FileSystem::ListDirectories(levelsPath);
 
-    BSLevel level(levels[0]);
+    // BSLevel level(levels[0]);
 
-    if (level.isValid)
-    {
-        std::cout << level << std::endl;
-        Audio::PlaySound(level.levelPath / level.songFilename);
-    }
+    // if (level.isValid)
+    // {
+    //     std::cout << level << std::endl;
+    //     Audio::PlaySound(level.levelPath / level.songFilename);
+    // }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
