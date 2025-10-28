@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Background/BP_Background.hpp>
+#include <Engine/Assets/URessource.hpp>
 #include <Engine/Runtime/Components/UBillboardComponent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -13,12 +14,15 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Background::BP_Background()
     : AActor("BP_Background")
-    , m_scrollSpeed(30.0f)   // default scroll speed (units per second)
+    // Slow default scroll speed so background isn't too fast
+    , m_scrollSpeed(10.0f)
     , m_parallaxFactor(1.0f)
-    , m_texturePath("Assets/Images/r-typesheet34.png")
+    , m_texturePath("Assets/Images/canard.jpg")
+    , m_textureWidth(259.0f)
 {
-    // Add a billboard component to render the background image
-    AddComponent<UBillboardComponent>("BC_Background");
+    // Add two billboard components so we can alternate them for seamless
+    // horizontal tiling (A then B placed to the right)
+    AddComponent<UBillboardComponent>("BC_Background_A");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,35 +31,24 @@ void BP_Background::BeginPlay(void)
     // Call parent BeginPlay
     Super::BeginPlay();
 
-    // Cache the billboard component and set texture
-    auto m_billboard = GetComponent<UBillboardComponent>("BC_Background");
-    if (m_billboard)
-    {
-        // Use a static texture by default
-        m_billboard->SetDisplayMode(
-            UBillboardComponent::EDisplayMode::StaticTexture
-        );
-        m_billboard->SetTexturePath(m_texturePath);
-
-        // Optionally adjust local transform or size here. By default the
-        // billboard primitive will use the texture size.
-    }
+    // Configure billboards and compute texture width for wrapping
+    SetupBillboards();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Background::Tick(Float32 deltaTime)
 {
-    // Move the actor from right to left by scroll speed, applying parallax
-    if (deltaTime > 0.0f)
-    {
-        const Float32 moveAmount =
-            -m_scrollSpeed * m_parallaxFactor * deltaTime;
-        // Translate along X axis (negative = right-to-left)
-        Translate(moveAmount, 0.0f, 0.0f);
-    }
-
     // Call parent tick for components and interpolation
     Super::Tick(deltaTime);
+
+    // Translate(FVector3(-m_scrollSpeed * deltaTime, 0.0f, 0.0f));
+
+    // if (GetTransform().GetPosition().x <= -m_textureWidth)
+    // {
+    //     FTransform t = GetTransform();
+    //     t.SetPosition(FVector3(250.0f, t.GetPosition().y,
+    //     t.GetPosition().z)); SetTransform(t);
+    // }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,9 +56,26 @@ void BP_Background::ChangeTexture(const FilePath& newTexturePath)
 {
     m_texturePath = newTexturePath;
 
-    // Update the texture on the billboard component if it exists
-    auto m_billboard = GetComponent<UBillboardComponent>("BC_Background");
-    if (m_billboard) { m_billboard->SetTexturePath(m_texturePath); }
+    // Reconfigure billboards with the new texture
+    SetupBillboards();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Background::SetupBillboards(void)
+{
+    auto m_billboardA = GetComponent<UBillboardComponent>("BC_Background_A");
+
+    if (m_billboardA)
+    {
+        m_billboardA->SetDisplayMode(
+            UBillboardComponent::EDisplayMode::StaticTexture
+        );
+        m_billboardA->SetTexturePath(m_texturePath);
+        FTransform t = m_billboardA->GetLocalTransform();
+        t.SetPosition(FVector3(0.0f, 0.0f, 0.0f));
+        m_billboardA->SetLocalTransform(t);
+        Scale(FVector3(2.0f, 2.0f, 1.0f));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

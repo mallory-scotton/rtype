@@ -26,6 +26,9 @@ public:
     Float32 m_scrollSpeed;      //<! The speed at which the background scrolls
     Float32 m_parallaxFactor;   //<! The parallax factor for the background
     FilePath m_texturePath;     //<! Path to the background texture
+    // Two billboards used to tile the background seamlessly
+    // Width of the texture in world units (used to compute wrap position)
+    Float32 m_textureWidth;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -50,6 +53,8 @@ public:
 
 protected:
     // Add protected members here
+    // Helper to update billboards when texture changes
+    void SetupBillboards(void);
 
 private:
     ///////////////////////////////////////////////////////////////////////////
