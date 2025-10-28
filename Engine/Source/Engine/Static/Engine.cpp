@@ -5,6 +5,7 @@
 #include <Engine/Assets/URessource.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
+#include <Engine/Static/FAudioInterface.hpp>
 #include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,6 +101,9 @@ bool Engine::Initialize(int argc, char* argv[])
 
         // Setup render callback
         SetupRenderCallback();
+
+        // Setup Autio
+        Audio::Initialize();
 #endif
 
         if (m_settings.network.enabled)
