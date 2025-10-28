@@ -76,6 +76,13 @@ TKD_NODISCARD bool FEngineInterface::IsInitialized(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+TKD_NODISCARD bool FEngineInterface::IsValid(void)
+{
+    std::lock_guard lock(s_mutex);
+    return s_instance != nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD int FEngineInterface::GetExitCode(void)
 {
     std::lock_guard lock(s_mutex);
