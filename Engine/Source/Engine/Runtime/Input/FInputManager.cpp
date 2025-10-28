@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Input/FInputManager.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -88,6 +89,21 @@ void FInputManager::SetGamepadEnabled(bool enable)
 ///////////////////////////////////////////////////////////////////////////////
 void FInputManager::Update(IWindow* window)
 {
+    if (!Engine::IsValid())
+    {
+        // Clear all action and axis states to prevent stale state
+        for (auto& action: m_actions)
+        {
+            if (action.IsPressed() || action.IsHeld())
+            {
+                action.Release(action.GetCurrentInput());
+            }
+            action.Idle();
+        }
+        for (auto& axis: m_axes) { axis.RemoveAllListeners(); }
+        return;
+    }
+
     // Process input states and emit events as necessary
     for (auto& action: m_actions)
     {
