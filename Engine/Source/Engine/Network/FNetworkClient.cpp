@@ -155,6 +155,13 @@ void FNetworkClient::HandleConnectResponsePacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Disconnect(EDisconnectionReason reason)
 {
+    // SEGFAULT FIX: Only disconnect if not already stopped
+    // This prevents double-disconnect during shutdown
+    if (!m_running.load())
+    {
+        return;   // Already stopped, just perform internal cleanup
+    }
+
     // Perform disconnection
     DisconnectInternal(reason, true);
     // Stop network thread if running
@@ -557,6 +564,15 @@ void FNetworkClient::SendReplication(std::vector<IProperty*> toReplicate)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Cleanup(void)
 {
+    // SEGFAULT FIX: Only perform cleanup if still running
+    // During shutdown, Stop() is already called by subsystem
+    if (!m_running.load())
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Client already stopped, skipping cleanup");
+        return;
+    }
+
     FLogger::SetNamespace("Network");
     FLogger::Info("Cleaning up client resources");
     Disconnect(EDisconnectionReason::Shutdown);
