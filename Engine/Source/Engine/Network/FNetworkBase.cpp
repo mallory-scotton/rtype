@@ -100,6 +100,7 @@ void FNetworkBase::
     HandleAcknowledgmentPacket(const Packets::Acknowledgment& packet, const FEndpoint&)
 {
     // Remove the acknowledged sequence number from pending ACKs
+    std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
     m_pendingAcks.erase(
         std::remove_if(
             m_pendingAcks.begin(),
@@ -215,7 +216,10 @@ bool FNetworkBase::SendReliablePacket(
     FAcknowledgment ack = { .header = *header,
                             .data = data,
                             .endpoint = endpoint };
-    m_pendingAcks.push_back(ack);
+    {
+        std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+        m_pendingAcks.push_back(ack);
+    }
 
 #if TKD_ENGINE_CLIENT
     // Log packet for debugging
@@ -412,6 +416,74 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::ProcessDeferredPropertyReplications(UWorld& world)
+{
+    TKD_UNUSED(world);
+
+    // Process all queued property replications
+    // IMPORTANT: This is called from UWorld::Tick(), which already holds
+    // m_worldMutex The world is passed as a parameter to avoid re-locking
+    std::queue<FDeferredPropertyReplication> localQueue;
+
+    {
+        // Quickly swap the queue to minimize lock contention
+        std::lock_guard<std::mutex> lock(m_propertyQueueMutex);
+        std::swap(localQueue, m_deferredPropertyReplications);
+    }
+
+    // Process property replications outside the lock
+    while (!localQueue.empty())
+    {
+        const auto& deferredReplication = localQueue.front();
+        const auto& packet = deferredReplication.packet;
+
+        // Convert actorID array to UUID
+        UUID actorID(packet.actorID);
+
+        // RACE CONDITION FIX: Copy actors to avoid iterator invalidation
+        auto actors = world.GetActors();
+        std::shared_ptr<AActor> targetActorPtr = nullptr;
+
+        for (const auto& actor: actors)
+        {
+            if (!actor) { continue; }
+
+            if (actor->GetUUID() == actorID)
+            {
+                targetActorPtr = actor;
+                break;
+            }
+        }
+
+        if (targetActorPtr)
+        {
+            // Get the property
+            IProperty* property =
+                targetActorPtr->GetProperty(packet.propertyName);
+
+            if (property)
+            {
+                // Deserialize the property value from byte array
+                try
+                {
+                    // Update the property value with the received binary data
+                    property->SetValue(packet.data.data(), packet.data.size());
+
+                    // Clear dirty flag to avoid re-replicating this change
+                    property->ClearDirty();
+                }
+                catch (const std::exception&)
+                {
+                    // Silently ignore malformed property data
+                }
+            }
+        }
+
+        localQueue.pop();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::ProcessSendQueue(void)
 {
     if (!m_socket || !m_running) { return; }
@@ -441,6 +513,7 @@ void FNetworkBase::ProcessSendQueue(void)
             // pending ACKs
             if (queuedPacket.reliable && bytesSent != queuedPacket.data.size())
             {
+                std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
                 m_pendingAcks.erase(
                     std::remove_if(
                         m_pendingAcks.begin(),
@@ -463,6 +536,7 @@ void FNetworkBase::ProcessSendQueue(void)
             // failure
             if (queuedPacket.reliable)
             {
+                std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
                 m_pendingAcks.erase(
                     std::remove_if(
                         m_pendingAcks.begin(),
@@ -491,26 +565,30 @@ void FNetworkBase::Update(Float32)
     UInt32 currentTime = GetCurrentTimestamp();
 
     // Check for pending ACKs to resend
-    for (auto& ack: m_pendingAcks)
     {
-        static const UInt32 TIMEOUT = static_cast<UInt32>(ACK_TIMEOUT * 1000);
-
-        if (currentTime - ack.header.timestamp >= TIMEOUT)
+        std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+        for (auto& ack: m_pendingAcks)
         {
-            // Re-queue the packet for resending
-            FQueuedPacket queuedPacket;
-            queuedPacket.data = ack.data;
-            queuedPacket.endpoint = ack.endpoint;
-            queuedPacket.reliable = true;
-            queuedPacket.header = ack.header;
+            static const UInt32 TIMEOUT =
+                static_cast<UInt32>(ACK_TIMEOUT * 1000);
 
+            if (currentTime - ack.header.timestamp >= TIMEOUT)
             {
-                std::lock_guard<std::mutex> lock(m_sendQueueMutex);
-                m_sendQueue.push(std::move(queuedPacket));
-            }
+                // Re-queue the packet for resending
+                FQueuedPacket queuedPacket;
+                queuedPacket.data = ack.data;
+                queuedPacket.endpoint = ack.endpoint;
+                queuedPacket.reliable = true;
+                queuedPacket.header = ack.header;
 
-            // Update timestamp
-            ack.header.timestamp = currentTime;
+                {
+                    std::lock_guard<std::mutex> sendLock(m_sendQueueMutex);
+                    m_sendQueue.push(std::move(queuedPacket));
+                }
+
+                // Update timestamp
+                ack.header.timestamp = currentTime;
+            }
         }
     }
 }
