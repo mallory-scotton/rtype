@@ -13,8 +13,8 @@ namespace tkd
 L_BeatSaber_Level1::L_BeatSaber_Level1(void)
     : Super("L_BeatSaber_Level1")
 {
-    this->SetLevelName("L_BeatSaber_Level1");
-    this->SetGameMode(m_myGameMode);
+    SetLevelName("L_BeatSaber_Level1");
+    SetGameMode("BeatSaberGameMode");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
