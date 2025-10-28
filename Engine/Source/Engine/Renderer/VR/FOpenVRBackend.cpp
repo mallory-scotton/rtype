@@ -184,6 +184,7 @@ void FOpenVRBackend::WaitForSync(void)
 void FOpenVRBackend::UpdatePoses(void)
 {
     // Poses are updated in WaitForSync
+    WaitForSync();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
