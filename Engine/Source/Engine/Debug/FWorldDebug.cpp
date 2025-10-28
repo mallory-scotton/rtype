@@ -99,7 +99,7 @@ void FWorldDebug::ShowWorldOverview(UWorld* world)
             "Actor Entries: %lu", currentLevel->GetActorEntries().Size()
         );
 
-        const AGameMode& gameMode = currentLevel->GetGameMode();
+        const AGameMode& gameMode = world->GetGameMode();
         ImGui::Text("Game Mode: %s", gameMode.GetName().CStr());
         ImGui::Text("Game Mode Valid: %s", gameMode.IsValid() ? "Yes" : "No");
 
@@ -173,7 +173,7 @@ void FWorldDebug::ShowWorldOverview(UWorld* world)
                 ImGui::Text("%lu", level.GetActorEntries().Size());
 
                 ImGui::TableSetColumnIndex(2);
-                const AGameMode& gameMode = level.GetGameMode();
+                const AGameMode& gameMode = world->GetGameMode();
                 ImGui::Text("%s", gameMode.GetName().CStr());
 
                 ImGui::TableSetColumnIndex(3);
@@ -207,7 +207,7 @@ void FWorldDebug::ShowCurrentLevelDetails(UWorld* world)
         return;
     }
 
-    DisplayLevelInfo(*currentLevel, true);
+    DisplayLevelInfo(*currentLevel, true, world);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -281,7 +281,7 @@ void FWorldDebug::ShowLevelsList(UWorld* world)
             (currentLevel != nullptr &&
              level.GetLevelName() == currentLevel->GetLevelName());
 
-        DisplayLevelInfo(level, isCurrent);
+        DisplayLevelInfo(level, isCurrent, world);
     }
     else
     {
@@ -294,7 +294,9 @@ void FWorldDebug::ShowLevelsList(UWorld* world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FWorldDebug::DisplayLevelInfo(ULevel& level, bool isCurrentLevel)
+void FWorldDebug::DisplayLevelInfo(
+    ULevel& level, bool isCurrentLevel, UWorld* world
+)
 {
     // Level header
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 1.0f, 0.8f, 1.0f));
@@ -322,7 +324,7 @@ void FWorldDebug::DisplayLevelInfo(ULevel& level, bool isCurrentLevel)
     ImGui::Spacing();
 
     // Game mode information
-    const AGameMode& gameMode = level.GetGameMode();
+    const AGameMode& gameMode = world->GetGameMode();
     DisplayGameModeInfo(gameMode);
 
     ImGui::Spacing();
