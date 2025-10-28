@@ -48,8 +48,8 @@ static const FEngineSettings BEAT_SABER_ENGINE_SETTINGS = {
             .logRetentionDays = 7,
         },
         .game = {
-            .title = "R-Type",
-            .description = "A classic side-scrolling shooter game.",
+            .title = "Beat Saber",
+            .description = "A rhythm-based virtual reality game.",
             .version = "1.0.0",
             .author = "Tekyo Drift",
             .license = "MIT",
@@ -76,7 +76,7 @@ static const FEngineSettings BEAT_SABER_ENGINE_SETTINGS = {
             .subtitleSize = 24,
         },
         .vr = {
-            .capability = EVRCapability::Required,
+            .capability = EVRCapability::Optional,
             .device = EVRDevice::OpenVR,
             .movementMode = EVRMovementMode::SmoothLocomotion,
             .snapTurnAngle = EVRSnapTurnAngle::None,
