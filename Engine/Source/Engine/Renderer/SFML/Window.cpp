@@ -178,6 +178,7 @@ void Window::SetDebugMode(bool debugMode)
 ///////////////////////////////////////////////////////////////////////////////
 bool Window::Close(void)
 {
+    std::cout << "[WINDOW] we closing the window" << std::endl;
     // Check if the window is open
     if (!IsOpen()) { return false; }
 
