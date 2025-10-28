@@ -19,6 +19,9 @@ __internal::FWorldSubsystem* FWorldInterface::GetWorldSubsystem(void)
 {
     std::lock_guard lock(s_mutex);
 
+    // SEGFAULT FIX: Check if engine is valid before accessing it
+    if (!FEngineInterface::IsValid()) { return nullptr; }
+
     try
     {
         auto& engine = FEngineInterface::GetInstance();
