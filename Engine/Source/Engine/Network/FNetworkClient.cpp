@@ -251,7 +251,7 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
     // Replicate dirty properties to server if connected
     if (m_connectionState == EConnectionState::Connected)
     {
-        ReplicateDirtyProperties();
+        // ReplicateDirtyProperties();
     }
 }
 
