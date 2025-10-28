@@ -4,6 +4,7 @@
 #include <Engine/Static/FWorldSubsystem.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd::__internal
@@ -73,17 +74,9 @@ void FWorldSubsystem::ThreadLoop(void)
     {   // BEGIN PLAY
         std::unique_lock lock(m_worldMutex);
 
-        // ?TEMPORARY: Spawn a player controller and a player pawn
-        auto ctrl =
-            m_world->SpawnActor<APlayerController>("BP_PlayerController");
-        auto plyr = m_world->SpawnActor<APawn>("BP_Player");
-#if TKD_ENGINE_CLIENT
-        ctrl->SetInputManager(
-            ::Engine::GetInstance().GetWindow()->GetInputManager()
-        );
-#endif
-        ctrl->Possess(plyr);
-        // ?TEMPORARY
+        //? BEGIN TEMPORARY
+        // TODO: Load default level if specified
+        //? END TEMPORARY
 
         m_world->BeginPlay();
     }
@@ -107,6 +100,11 @@ void FWorldSubsystem::ThreadLoop(void)
             while (accumulator >= m_fixedDeltaTime)
             {
                 TimePoint tickStart = SteadyClock::now();
+
+                // Process deferred RPCs BEFORE locking the world mutex
+                // This allows RPCs to call World::SpawnActor and other
+                // functions that need to acquire the world mutex
+                Network::ProcessDeferredRPCs(*m_world);
 
                 {
                     std::unique_lock lock(m_worldMutex);
@@ -141,6 +139,11 @@ void FWorldSubsystem::ThreadLoop(void)
             // Variable timestep update
             TimePoint tickStart = SteadyClock::now();
 
+            // Process deferred RPCs BEFORE locking the world mutex
+            // This allows RPCs to call World::SpawnActor and other functions
+            // that need to acquire the world mutex
+            Network::ProcessDeferredRPCs(*m_world);
+
             {
                 std::unique_lock lock(m_worldMutex);
                 m_world->Tick(frameTime);
@@ -168,6 +171,27 @@ void FWorldSubsystem::ThreadLoop(void)
         std::unique_lock lock(m_worldMutex);
         m_world->EndPlay();
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const AGameMode& FWorldSubsystem::GetGameMode(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::vector<ULevel>& FWorldSubsystem::GetLoadedLevels(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetLoadedLevels();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ULevel* FWorldSubsystem::GetCurrentLevel(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetCurrentLevel();
 }
 
 }   // namespace tkd::__internal

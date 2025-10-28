@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <variant>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,5 +67,7 @@ template <typename T>
 using TWeakPtr = std::weak_ptr<T>;
 template <typename T>
 using TAtomic = std::atomic<T>;
+template <typename T>
+using TOptional = std::optional<T>;
 
 }   // namespace tkd

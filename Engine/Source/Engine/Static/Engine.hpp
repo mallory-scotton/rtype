@@ -39,6 +39,7 @@ private:
 #endif
     TUniquePtr<FNetworkSubsystem> m_network;   //<! Network subsystem
     TUniquePtr<FWorldSubsystem> m_world;       //<! World subsystem
+    TUniquePtr<UGame> m_game;                  //<! The game instance
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -185,22 +186,17 @@ private:
 // Weak symbols for game creation and destruction
 ///////////////////////////////////////////////////////////////////////////////
 #define TKD_EXPORT_WEAK \
-    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) TKD_WEAK; \
-    extern "C" tkd::FEngineSettings TKD_GetEngineSettings(void) TKD_WEAK;
+    extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) TKD_WEAK;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main entry of the engine
 ///////////////////////////////////////////////////////////////////////////////
-#define TKD_EXPORT_GAME(GameClass, Settings) \
-    extern "C" std::unique_ptr<tkd::IGame> TKD_CreateGame(void) \
+#define TKD_EXPORT_GAME(GameClass) \
+    extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) \
     { \
         static_assert( \
-            std::is_base_of<tkd::IGame, GameClass>::value, \
+            std::is_base_of<tkd::UGame, GameClass>::value, \
             "GameClass must be derived from tkd::IGame" \
         ); \
         return std::make_unique<GameClass>(); \
-    } \
-    extern "C" tkd::FEngineSettings TKD_GetEngineSettings(void) \
-    { \
-        return Settings; \
     }

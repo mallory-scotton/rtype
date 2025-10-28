@@ -28,8 +28,9 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Add subdirectories
 add_subdirectory(Engine)
-add_subdirectory(Game)
 add_subdirectory(Tools/TKDPack)
+add_subdirectory(Tools/TKDEmbed)
+add_subdirectory(Game)
 
 # Clang-Format target
 find_program(CLANG_FORMAT "clang-format")

@@ -12,5 +12,6 @@
 #include <Engine/Runtime/Controllers.hpp>
 #include <Engine/Runtime/Core.hpp>
 #include <Engine/Runtime/Input.hpp>
+#include <Engine/Runtime/Physics.hpp>
 #include <Engine/Runtime/Time.hpp>
 #include <Engine/Runtime/World.hpp>

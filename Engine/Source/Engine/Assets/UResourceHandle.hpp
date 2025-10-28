@@ -129,8 +129,12 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 class ITexture;
 class IShader;
+class IAudioSource;
+class IAudioBuffer;
 
 using FTextureHandle = TResourceHandle<ITexture>;
 using FShaderHandle = TResourceHandle<IShader>;
+using FAudioSourceHandle = TResourceHandle<IAudioSource>;
+using FAudioBufferHandle = TResourceHandle<IAudioBuffer>;
 
 }   // namespace tkd

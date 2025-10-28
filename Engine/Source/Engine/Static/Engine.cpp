@@ -3,7 +3,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/Engine.hpp>
 #include <Engine/Assets/URessource.hpp>
+#include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
+#include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Weak declaration of game functions to be defined in the game
@@ -27,15 +29,50 @@ bool Engine::Initialize(int argc, char* argv[])
 {
     if (m_initialized) { return false; }
 
+    FLogger::SetNamespace("Engine");
+
+    if (TKD_CreateGame)
+    {
+        m_game = std::move(TKD_CreateGame());
+        if (!m_game)
+        {
+            m_exitCode = TKD_EXIT_FAILURE;
+            m_exitMessage = "Failed to create game instance";
+            return false;
+        }
+    }
+
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
 
     // Print startup message
     PrintStartupMessage();
 
+    // Load Packed Ressources if any
+    if (m_game)
+    {
+        FilePath exeDir = FileSystem::GetExecutableDirectory();
+
+        for (const auto& resource: m_game->GetPackedResources())
+        {
+            if (!URessource::GetInstance().LoadPak(exeDir / resource))
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage =
+                    "Failed to load resource pack: " + resource.string();
+                return false;
+            }
+            else
+            {
+                FLogger::Info("Loaded resource pack: " + resource.string());
+            }
+        }
+    }
+
     try
     {
-        std::cout << "[Engine] Configuring subsystems..." << std::endl;
+        FLogger::Info("Initializing engine...");
+        FLogger::Info("Configuring subsystems...");
 
         // Initialize world subsystem (always required)
         m_world = std::make_unique<FWorldSubsystem>(120.0f);
@@ -47,7 +84,7 @@ bool Engine::Initialize(int argc, char* argv[])
         }
 
 #if TKD_ENGINE_CLIENT
-        std::cout << "[Engine] Configuring window subsystem..." << std::endl;
+        FLogger::Info("Configuring window subsystem...");
 
         // Initialize window subsystem (client only)
         m_window = std::make_unique<FWindowSubsystem>(m_settings);
@@ -65,27 +102,37 @@ bool Engine::Initialize(int argc, char* argv[])
         SetupRenderCallback();
 #endif
 
-#if TKD_ENGINE_SERVER
-        std::cout << "[Engine] Configuring network subsystem..." << std::endl;
-
-        FNetworkSubsystem::Config networkConfig;
-
-        networkConfig.mode = FNetworkSubsystem::Mode::Server;
-        networkConfig.maxClients = m_settings.network.maxClients;
-        networkConfig.port = m_settings.network.port;
-
-        // Initialize network subsystem (server only)
-        m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
-        if (!m_network || !m_network->Initialize())
+        if (m_settings.network.enabled)
         {
-            m_exitCode = TKD_EXIT_FAILURE;
-            m_exitMessage = "Failed to initialize network subsystem";
-            return false;
-        }
-#endif
+            FLogger::Info("Configuring network subsystem...");
 
-        std::cout << "[Engine] All subsystems initialized successfully"
-                  << std::endl;
+            FNetworkSubsystem::Config networkConfig;
+
+#if TKD_ENGINE_SERVER
+            networkConfig.mode = FNetworkSubsystem::Mode::Server;
+#elif TKD_ENGINE_CLIENT
+            networkConfig.mode = FNetworkSubsystem::Mode::Client;
+#endif
+            networkConfig.maxClients = m_settings.network.maxClients;
+            networkConfig.port = m_settings.network.port;
+            networkConfig.host = "127.0.0.1";
+
+            // Initialize network subsystem (server only)
+            m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
+
+            // Setup network interface
+            Network::Setup(m_network.get());
+
+            // Initialize network subsystem
+            if (!m_network || !m_network->Initialize())
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage = "Failed to initialize network subsystem";
+                return false;
+            }
+        }
+
+        FLogger::Info("All subsystems initialized successfully");
         m_initialized = true;
         return true;
     }
@@ -111,9 +158,10 @@ void Engine::Run(void)
     // Start all subsystems
     m_world->Start();
     TKD_ENGINE_IF_CLIENT({ m_window->Start(); })
-    TKD_ENGINE_IF_SERVER({ m_network->Start(); })
+    if (m_network) { m_network->Start(); }
 
-    std::cout << "[Engine] All subsystems started" << std::endl;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("All subsystems started");
 
     // Main monitoring loop
     while (m_running.load(std::memory_order_acquire))
@@ -131,38 +179,49 @@ void Engine::Run(void)
         std::this_thread::sleep_for(Milliseconds(100));
     }
 
+    // Set running to false to ensure all subsystems stop
+    m_running.store(false, std::memory_order_release);
+
     // Shutdown subsystems in reverse order
-    std::cout << "[Engine] Shutting down subsystems..." << std::endl;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Shutting down subsystems...");
 
     // Signal resource manager to stop accepting new loads
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Signaling resource manager to shutdown...");
     URessource::GetInstance().BeginShutdown();
 
     // Shutdown world FIRST (before window) so actors can properly clean up
     // their input bindings while the input manager still exists
     if (m_world)
     {
+        FLogger::SetNamespace("Engine");
+        FLogger::Info("Shutting down world subsystem...");
         m_world->Shutdown();
         m_world.reset();
     }
 
-    TKD_ENGINE_IF_SERVER({
-        if (m_network)
-        {
-            m_network->Shutdown();
-            m_network.reset();
-        }
-    })
+    if (m_network)
+    {
+        FLogger::SetNamespace("Engine");
+        FLogger::Info("Shutting down network subsystem...");
+        m_network->Shutdown();
+        m_network.reset();
+    }
 
     TKD_ENGINE_IF_CLIENT({
         if (m_window)
         {
+            FLogger::SetNamespace("Engine");
+            FLogger::Info("Shutting down window subsystem...");
             m_window->Shutdown();
             m_window.reset();
         }
     })
 
-    m_running.store(false, std::memory_order_release);
-    std::cout << "[Engine] Shutdown complete" << std::endl;
+    m_initialized = false;
+    FLogger::SetNamespace("Engine");
+    FLogger::Info("Shutdown complete");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -185,6 +244,9 @@ void Engine::Shutdown(void)
     })
 
     TKD_ENGINE_IF_CLIENT({
+        // Shutdown network interface
+        // if (Network::IsInitialized()) { Network::Shutdown(); }
+
         if (m_window) { m_window->Shutdown(); }
     })
 
@@ -205,7 +267,7 @@ void Engine::PrintExitMessage(void) const
 void Engine::PrintStartupMessage(void) const
 {
     std::string gameName = "NOT_LOADED";
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
         gameName = m_settings.game.title.empty() ? "NOT_SPECIFIED"
                                                  : m_settings.game.title;
@@ -287,16 +349,14 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
 {
     FArgs& args = FArgs::GetInstance();
 
-    // Load engine settings
-    if (TKD_GetEngineSettings) { m_settings = TKD_GetEngineSettings(); }
-
     bool debugMode = false;
     bool verbose = false;
+    std::string gameModule;
 
     // Load game settings if available
-    if (TKD_GetEngineSettings)
+    if (m_game)
     {
-        m_settings = TKD_GetEngineSettings();
+        m_settings = m_game->GetEngineSettings();
 
         if (m_settings.version != TKD_VERSION_STRING)
         {
@@ -307,11 +367,13 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
             return false;
         }
 
+        FLogger::SetFileLogging(m_settings.logging.enableFileLogging);
+        FLogger::SetConsoleLogging(m_settings.logging.enableConsoleLogging);
+
         args.AddFlags("debug", "Enable debug mode", debugMode, false);
     }
     else
     {
-        std::string gameModule;
         args.AddFlags("game", "Path to the game module", gameModule, true);
     }
 
@@ -334,6 +396,67 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
             m_exitMessage = "Failed to process command-line arguments.";
         }
         return false;
+    }
+
+    if (!m_game)
+    {
+        if (!FileSystem::FileExists(gameModule))
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Game module not found: " + gameModule;
+            return false;
+        }
+
+        // Attempt to load the game module
+        auto gameLib = FLibrary::Load(gameModule);
+
+        // Check if library loaded successfully
+        if (!gameLib || !gameLib->IsLoaded() ||
+            !gameLib->HasFunction("TKD_CreateGame"))
+        {
+            m_exitCode = 1;
+            m_exitMessage =
+                "Failed to load game module: " + gameLib->GetLastError();
+            return false;
+        }
+
+        // Get the factory function
+        auto CreateGame = gameLib->GetFunctionWrapper<TUniquePtr<UGame>(void)>(
+            "TKD_CreateGame"
+        );
+
+        // Create the game instance
+        if (!CreateGame)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Failed to find TKD_CreateGame in module: " +
+                            gameLib->GetLastError();
+            return false;
+        }
+
+        // Create the game instance
+        m_game = std::move(CreateGame());
+
+        // Validate the game instance
+        if (!m_game)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Failed to create game instance from module.";
+            return false;
+        }
+
+        // Retrieve engine settings from the game
+        m_settings = m_game->GetEngineSettings();
+
+        // Check for version mismatch
+        if (m_settings.version != TKD_VERSION_STRING)
+        {
+            m_exitCode = 1;
+            m_exitMessage = "Game module version mismatch. Expected " +
+                            std::string(TKD_VERSION_STRING) + ", got " +
+                            m_settings.version + ".";
+            return false;
+        }
     }
 
     // Apply debug and verbose mode if specified

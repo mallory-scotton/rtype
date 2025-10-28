@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Debug/FDebug.hpp>
 #include <Engine/Config.hpp>
+#include <Engine/Network/FNetworkBase.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
     #include <imgui_internal.h>
@@ -34,6 +35,9 @@ void FDebug::PopDebugMenuStyling(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FDebug::Show(const FEngineSettings& settings, UWorld* world)
 {
+    // Set the network debug instance
+    FNetworkBase::SetNetworkDebug(&m_networkDebug);
+
     ApplyDebugMenuStyling();
 
     if (ImGui::BeginMainMenuBar())
@@ -62,8 +66,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
             if (ImGui::MenuItem(
                     "Performance Monitor",
                     "Ctrl+Shift+P",
-                    m_showPerformanceMonitor,
-                    false
+                    m_showPerformanceMonitor
                 ))
             {
                 m_showPerformanceMonitor = !m_showPerformanceMonitor;
@@ -108,10 +111,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
             ImGui::Indent(10.0f);
 
             if (ImGui::MenuItem(
-                    "Network Monitor",
-                    "Ctrl+Shift+N",
-                    m_showNetworkMonitor,
-                    false
+                    "Network Monitor", "Ctrl+Shift+N", m_showNetworkMonitor
                 ))
             {
                 m_showNetworkMonitor = !m_showNetworkMonitor;
@@ -146,6 +146,13 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
                 ))
             {
                 m_showActorDebug = !m_showActorDebug;
+            }
+
+            if (ImGui::MenuItem(
+                    "World Debugger", "Ctrl+Shift+W", m_showWorldDebug
+                ))
+            {
+                m_showWorldDebug = !m_showWorldDebug;
             }
 
             ImGui::Unindent(10.0f);
@@ -236,11 +243,45 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     {
         m_showActorDebug = !m_showActorDebug;
     }
+    else if (ImGui::IsKeyPressed(ImGuiKey_P) && KeyCtrl && KeyShift)
+    {
+        m_showPerformanceMonitor = !m_showPerformanceMonitor;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_M) && KeyCtrl && KeyShift)
+    {
+        m_showMemoryProfiler = !m_showMemoryProfiler;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_R) && KeyCtrl && KeyShift)
+    {
+        m_showRenderDebug = !m_showRenderDebug;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_C) && KeyCtrl && KeyShift)
+    {
+        m_showCameraDebug = !m_showCameraDebug;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_N) && KeyCtrl && KeyShift)
+    {
+        m_showNetworkMonitor = !m_showNetworkMonitor;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_I) && KeyCtrl && KeyShift)
+    {
+        m_showPacketInspector = !m_showPacketInspector;
+    }
+    else if (ImGui::IsKeyPressed(ImGuiKey_W) && KeyCtrl && KeyShift)
+    {
+        m_showWorldDebug = !m_showWorldDebug;
+    }
 
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
     if (m_showInputDebug) { m_inputsDebug.Show(settings, world); }
     if (m_showActorDebug) { m_actorDebug.Show(settings, world); }
+    if (m_showNetworkMonitor) { m_networkDebug.Show(settings, world); }
+    if (m_showPerformanceMonitor)
+    {
+        m_performanceMonitor.Show(settings, world);
+    }
+    if (m_showWorldDebug) { m_worldDebug.Show(settings, world); }
 }
 
 #endif

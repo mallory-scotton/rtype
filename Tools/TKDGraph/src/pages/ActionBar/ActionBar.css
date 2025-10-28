@@ -1,0 +1,89 @@
+.ue-action-bar {
+    display: grid;
+    grid-template-columns: auto auto auto auto auto 1fr;
+    grid-template-rows: 1fr;
+    background-color: #1A1A1A;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    column-gap: 3px;
+}
+
+.ue-action-bar .ue-action-bar-icon-overlay {
+    position: relative;
+    width: 28px;
+    height: 28px;
+}
+
+.ue-action-bar-icon-overlay svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.ue-action-bar .ue-action-bar-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    gap: 10px;
+    background-color: #242424;
+    padding: 0 8px;
+    height: 100%;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+.ue-action-bar-item-button {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    height: 80%;
+    color: #C0C0C0;
+    font-family: 'Roboto', sans-serif;
+    font-size: 18px;
+    padding: 0 12px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.ue-action-bar-item-button.primary {
+    background-color: #0070E0;
+    color: #FFFFFF;
+}
+
+.ue-action-bar-item-button:hover {
+    background-color: #333333;
+    color: #FFFFFF;
+}
+
+.ue-action-bar-item-button.primary:hover {
+    background-color: #005BB5;
+    color: #FFFFFF;
+}
+
+.ue-action-bar-item-button-group {
+    padding: 0 6px;
+    height: 80%;
+    background-color: #383838;
+    border-radius: 5px;
+}
+
+.ue-action-bar-item-button-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ue-action-bar-item-button-group .ue-action-bar-item-button {
+    padding: 4px;
+    width: 28px;
+    height: 28px;
+}
+
+.ue-action-bar-item-button-group .ue-action-bar-item-button:hover {
+    background-color: #4D4D4D;
+}

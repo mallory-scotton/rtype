@@ -23,28 +23,49 @@ void BP_PlayerController::SetupInputBindings(void)
 
     if (BP_Player* player = dynamic_cast<BP_Player*>(pawn))
     {
-        BindActionPressed("Fire", [player](EInput) {});
-
-        BindAxis(
-            "HorizontalMoves",
-            [player](float scale)
+        // Fire button
+        BindActionPressed(
+            "Fire",
+            [player](EInput input)
             {
-                FTransform transform = player->GetTransform();
-                transform.Translate(TVector3<float>(scale, 0.0f, 0.0f));
-                player->SetTransform(transform);
+                if (player->IsLocallyControlled())
+                {
+                    // Send RPC to server
+                    player->Fire();
+                }
             }
         );
 
-        BindAxis(
-            "VerticalMoves",
-            [player](float scale)
-            {
-                FTransform transform = player->GetTransform();
-                transform.Translate(TVector3<float>(0.0f, scale, 0.0f));
-                player->SetTransform(transform);
-            }
-        );
+        // Movement axes - handle in Tick for smooth prediction
+        // (See below)
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_PlayerController::Tick(Float32 deltaTime)
+{
+    Super::Tick(deltaTime);
+
+    BP_Player* player = dynamic_cast<BP_Player*>(GetPawn());
+    if (!player || !player->IsLocallyControlled()) { return; }
+
+    // Get input values
+    FVector2f inputVelocity = FVector2f::Zero;
+
+    // Retrieve input from the input manager
+    if (auto* inputManager = GetInputManager())
+    {
+        inputVelocity.x = inputManager->GetAxisValue("HorizontalMoves");
+        inputVelocity.y = -inputManager->GetAxisValue("VerticalMoves");
+
+        if (inputVelocity.Length() > 0.0f)
+        {
+            player->velocity = inputVelocity;
+        }
+    }
+
+    // Use client-side prediction
+    // player->ClientPredictMove(deltaTime, inputVelocity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -27,6 +27,42 @@
 namespace tkd
 {
 
+#if TKD_ENGINE_CLIENT
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace debug
+///////////////////////////////////////////////////////////////////////////////
+namespace debug
+{
+
+///////////////////////////////////////////////////////////////////////////////
+// Forward declaration
+///////////////////////////////////////////////////////////////////////////////
+class FNetworkDebug;
+
+}   // namespace debug
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Pre-declarations
+///////////////////////////////////////////////////////////////////////////////
+class UWorld;
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Disconnection reason codes
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EDisconnectionReason : UInt32
+{
+    Unknown = 0,           //<! No specific reason
+    Timeout = 1,           //<! Disconnected due to timeout
+    Kicked = 2,            //<! Disconnected by server (kicked)
+    Shutdown = 3,          //<! Disconnected due to server shutdown
+    Error = 4,             //<! Disconnected due to an error
+    ClientRequested = 5,   //<! Disconnected at client's request
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief
 ///
@@ -37,7 +73,30 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_PACKET_SIZE = 1452;
+    static constexpr SizeT MAX_PACKET_SIZE = 1472;   //<! Max UDP packet size
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Acknowledgment packet structure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FAcknowledgment
+    {
+        FPacketHeader header;      //<! Packet header
+        std::vector<UInt8> data;   //<! Raw packet data
+        FEndpoint endpoint;        //<! Sender endpoint
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deferred RPC structure for thread-safe execution
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FDeferredRPC
+    {
+        Packets::RemoteProcedureCall packet;   //<! RPC packet data
+        FEndpoint endpoint;                    //<! Sender endpoint
+    };
 
 protected:
     ///////////////////////////////////////////////////////////////////////////
@@ -55,14 +114,25 @@ protected:
     std::unordered_map<
         UInt16,
         std::function<void(const IPacket&, const FEndpoint&)>>
-        m_packetHandlers;   //<! Map of packet handlers
+        m_packetHandlers;                         //<! Map of packet handlers
+    std::vector<FAcknowledgment> m_pendingAcks;   //<! List of pending ACKs
+    std::queue<FDeferredRPC> m_deferredRPCs;      //<! Queue of deferred RPCs
+    std::mutex m_rpcQueueMutex;                   //<! Mutex for RPC queue
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Static class member
+    ///////////////////////////////////////////////////////////////////////////
+#if TKD_ENGINE_CLIENT
+    static debug::FNetworkDebug* s_networkDebug;   //<! Network debug instance
+#endif
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FNetworkBase(void) = default;
+    FNetworkBase(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Virtual destructor
@@ -115,6 +185,14 @@ public:
     virtual void Stop(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the network service, processing incoming packets and
+    ///
+    /// \param deltaTime Time since last update in seconds
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Update(Float32 deltaTime);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if the network service is running
     ///
     /// \return true if the network service is running
@@ -131,6 +209,16 @@ public:
     const FNetworkStatistics& GetStatistics(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process deferred RPCs from the queue
+    ///
+    /// This should be called from the world thread to safely execute RPCs
+    /// without causing deadlocks. It processes all queued RPCs.
+    ///
+    /// \param world Reference to the world (already locked by caller)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessDeferredRPCs(UWorld& world);
+
     /// \brief Register a packet handler for a specific packet type
     ///
     /// \param handler Function to call when a packet of the specified type is
@@ -155,12 +243,35 @@ public:
         };
     }
 
+public:
+#if TKD_ENGINE_CLIENT
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the network debug instance for logging
+    ///
+    /// \param debugInstance Pointer to network debug instance
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SetNetworkDebug(debug::FNetworkDebug* debugInstance);
+#endif
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Initialize the packet manager with known packet types
     ///
     ///////////////////////////////////////////////////////////////////////////
     void InitializePacketManager(void);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send raw data to a specific endpoint
+    ///
+    /// \param data Vector of raw packet data
+    /// \param endpoint The endpoint of the sender
+    ///
+    /// \return true if the data was sent successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SendData(const std::vector<UInt8>& data, const FEndpoint& endpoint);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Send a packet to a specific endpoint
@@ -172,6 +283,24 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool SendPacket(const IPacket& packet, const FEndpoint& endpoint);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send a packet to a specific endpoint
+    ///
+    /// \param packet The packet to process
+    /// \param endpoint The endpoint of the sender
+    ///
+    /// \return true if the packet was sent successfully
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
+
+protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Flushes remaining packets to not cause udp issues at shutdown
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void FlushPackets(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Start receiving data asynchronously
@@ -224,6 +353,35 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UInt32 GetCurrentTimestamp(void) const;
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Register base packet handlers
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RegisterBasePacketHandlers(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle an acknowledgment packet
+    ///
+    /// \param packet Acknowledgment packet
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleAcknowledgmentPacket(
+        const Packets::Acknowledgment& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a remote procedure call (RPC) packet
+    ///
+    /// \param packet RPC packet
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleRPCPacket(
+        const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
+    );
 };
 
 }   // namespace tkd

@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Controllers/APlayerController.hpp>
 #include <Engine/Runtime/Controllers/AController.hpp>
+#include <Engine/Static/FWindowInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -14,7 +15,12 @@ namespace tkd
 APlayerController::APlayerController(const FString& name)
     : AController(name)
     , m_inputManager(nullptr)
-{}
+{
+    SetUUID(UUID::Fill(1));
+#if TKD_ENGINE_CLIENT
+    SetInputManager(Window::GetInputManager());
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 APlayerController::~APlayerController() { ClearInputBindings(); }
@@ -34,6 +40,10 @@ void APlayerController::Possess(APawn* pawn)
         // Setup input bindings for the new pawn
         SetupInputBindings();
 
+        // Set the net role and owning client ID
+        pawn->SetNetRole(ENetRole::AutonomousProxy);
+        pawn->SetOwningClientID(GetOwningClientID());
+
         // Emit the Possess event
         Emit(Events::Possess{ .pawn = pawn });
     }
@@ -50,6 +60,10 @@ void APlayerController::UnPossess(void)
     // Remove reference to the pawn
     APawn* oldPawn = m_pawn;
     m_pawn = nullptr;
+
+    // Reset the pawn's net role and owning client ID
+    oldPawn->SetNetRole(ENetRole::SimulatedProxy);
+    oldPawn->SetOwningClientID(0);
 
     // Emit the UnPossess event
     Emit(Events::UnPossess{ .pawn = oldPawn });

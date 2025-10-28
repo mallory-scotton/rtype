@@ -119,6 +119,7 @@ sf::PrimitiveType Utils::Convert(EPrimitiveType type)
         return sf::PrimitiveType::TriangleStrip;
     case EPrimitiveType::TriangleFan: return sf::PrimitiveType::TriangleFan;
     case EPrimitiveType::Quads      : return sf::PrimitiveType::Quads;
+    case EPrimitiveType::QuadStrip  : return sf::PrimitiveType::Quads;
     default                         : return sf::PrimitiveType::Triangles;
     }
 }

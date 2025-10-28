@@ -1,0 +1,26 @@
+/** Dependencies */
+import React from 'react';
+import type { IconProps } from './shared';
+
+/**
+ * @brief Icon Component
+ * @description A React component that renders the "Delete" icon.
+ */
+export const Delete: React.FC<IconProps> = ({ width = 16, height = 16, color = '#FFFFFF' }) => {
+  return (
+    <svg xmlns='http://www.w3.org/2000/svg' width={width} height={height} viewBox='0 0 24 24' fill='none' role='img'>
+      <path
+        fillRule='evenodd'
+        clipRule='evenodd'
+        d='M8.58085 1.85608C8.73843 1.4884 9.09997 1.25 9.5 1.25H14.5C14.9 1.25 15.2616 1.4884 15.4191 1.85608L16.6594 4.75H22V6.75H2V4.75H7.3406L8.58085 1.85608ZM9.51654 4.75H14.4835L13.8406 3.25H10.1594L9.51654 4.75Z'
+        fill={color}
+      ></path>
+      <path
+        fillRule='evenodd'
+        clipRule='evenodd'
+        d='M19.2492 22.0454L20.2492 5.54541H3.75195L4.75195 22.0454C4.77595 22.4413 5.10399 22.75 5.50058 22.75H18.5006C18.8972 22.75 19.2252 22.4413 19.2492 22.0454ZM8.50098 13H15.501V11H8.50098V13ZM10.001 17H13.501V15H10.001V17Z'
+        fill={color}
+      ></path>
+    </svg>
+  );
+};

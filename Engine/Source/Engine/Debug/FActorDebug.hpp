@@ -89,9 +89,10 @@ private:
     /// \brief Display actor information
     ///
     /// \param actor The actor to display
+    /// \param index The index of the actor in the world actor list
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void DisplayActorInfo(AActor* actor);
+    void DisplayActorInfo(AActor* actor, SizeT index);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Display component information

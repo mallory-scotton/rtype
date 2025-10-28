@@ -9,6 +9,7 @@
 #include <Engine/Assets/UAsset.hpp>
 #include <Engine/Assets/UPak.hpp>
 #include <Engine/Assets/UResourceHandle.hpp>
+#include <Engine/Audio/Interfaces.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
@@ -71,6 +72,9 @@ private:
 
     TSharedMap<ITexture> m_textures;       //<! Loaded textures (weak refs)
     TSharedMap<IShader> m_shaders;         //<! Loaded shaders (weak refs)
+    TSharedMap<IAudioBuffer> m_buffers;    //<! Loaded audio buffers
+    TSharedMap<IAudioSource> m_sources;    //<! Loaded audio sources
+
     TUniqueMap<UPak> m_pakFiles;           //<! Loaded pak files
     TUniqueMap<UAsset> m_assets;           //<! Loaded assets
 
@@ -204,6 +208,44 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::vector<FilePath> GetLoadedPaks(void) const;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static helper to load a texture directly
+    ///
+    /// \param path Path to the texture file
+    /// \param area Area of the texture to load (optional)
+    ///
+    /// \return Handle to the loaded texture, or invalid handle on failure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FTextureHandle GetTextureHandle(
+        const FilePath& path, const FRectanglei& area = FRectanglei::Zero
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Static template helper to load a resource of type T
+    ///
+    /// \tparam T Resource type (ITexture or IShader)
+    ///
+    /// \param path Path to the resource file
+    ///
+    /// \return Resource handle of type T, or invalid handle on failure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <
+        typename T,
+        typename = std::enable_if_t<std::is_same_v<T, ITexture>>>
+    static TResourceHandle<T> LoadResource(const FilePath& path)
+    {
+        if constexpr (std::is_same_v<T, ITexture>)
+        {
+            auto handle = GetInstance().GetTexture(path.string());
+            if (handle.IsValid()) { return handle; }
+            return GetInstance().LoadTexture(path);
+        }
+        return TResourceHandle<T>();
+    }
 };
 
 }   // namespace tkd

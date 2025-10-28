@@ -17,6 +17,27 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
 
+# Define tool paths
+set(TKDPACK_TOOL "${CMAKE_BINARY_DIR}/bin/Tools/TKDPack")
+set(ASSETS_DIR "Assets")
+set(CONTENT_PAK "${CMAKE_BINARY_DIR}/bin/Data/RTypeGameContent.pak")
+
+# Custom command to generate packed content
+add_custom_command(
+    OUTPUT ${CONTENT_PAK}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/Data
+    COMMAND ${TKDPACK_TOOL} -i ${ASSETS_DIR} -o ${CONTENT_PAK} -m pack
+    DEPENDS ${TKDPACK_TOOL}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating packed content from Assets directory"
+    VERBATIM
+)
+
+# Create a custom target for packed content
+add_custom_target(ContentPak
+    DEPENDS ${CONTENT_PAK}
+)
+
 # Collect source files
 file(GLOB_RECURSE GAME_SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp"
@@ -29,6 +50,9 @@ file(GLOB_RECURSE GAME_HEADERS
 
 # Create client game library
 add_library(RTypeGameClient SHARED ${GAME_SOURCES})
+
+# Add dependency on ContentPak target
+add_dependencies(RTypeGameClient ContentPak)
 
 # Set target properties for client library
 set_target_properties(RTypeGameClient PROPERTIES
@@ -61,6 +85,10 @@ target_link_libraries(RTypeGameClient
         sfml-graphics
         sfml-audio
         sfml-network
+        GLU
+        GL
+        GLEW::GLEW
+        openvr::openvr
 )
 
 # Create server game library

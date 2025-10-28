@@ -128,6 +128,23 @@ FTextureHandle URessource::LoadTexture(
             }
         }
 
+        // Check if file is in a pak
+        for (const auto& [pakID, pakFile]: m_pakFiles)
+        {
+            if (pakFile && pakFile->IsOpen() && pakFile->HasAssetByName(id))
+            {
+                std::vector<Byte> data;
+                pakFile->LoadAssetDataByName(id, data);
+                if (data.empty()) { return FTextureHandle(); }
+                auto uniqueTexture =
+                    m_graphicsFactory->CreateTexture(data, area);
+                if (!uniqueTexture) { return FTextureHandle(); }
+                texture = std::shared_ptr<ITexture>(std::move(uniqueTexture));
+                m_textures[id] = texture;
+                return FTextureHandle(texture, id);
+            }
+        }
+
         // Create new texture
         auto uniqueTexture = m_graphicsFactory->CreateTexture(path, area);
         if (!uniqueTexture) { return FTextureHandle(); }
@@ -148,6 +165,23 @@ FTextureHandle URessource::LoadTexture(
             if (auto existing = it->second.lock())
             {
                 return FTextureHandle(existing, id);
+            }
+        }
+
+        // Check if file is in a pak
+        for (const auto& [pakID, pakFile]: m_pakFiles)
+        {
+            if (pakFile && pakFile->IsOpen() && pakFile->HasAssetByName(id))
+            {
+                std::vector<Byte> data;
+                pakFile->LoadAssetDataByName(id, data);
+                if (data.empty()) { return FTextureHandle(); }
+                auto uniqueTexture =
+                    m_graphicsFactory->CreateTexture(data, area);
+                if (!uniqueTexture) { return FTextureHandle(); }
+                texture = std::shared_ptr<ITexture>(std::move(uniqueTexture));
+                m_textures[id] = texture;
+                return FTextureHandle(texture, id);
             }
         }
 
@@ -210,6 +244,7 @@ FTextureHandle URessource::GetTexture(const FString& id) const
             return FTextureHandle(texture, id);
         }
     }
+
     return FTextureHandle();
 }
 
@@ -422,6 +457,17 @@ std::vector<FilePath> URessource::GetLoadedPaks(void) const
     }
 
     return result;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FTextureHandle
+    URessource::GetTextureHandle(const FilePath& path, const FRectanglei& area)
+{
+    URessource& instance = URessource::GetInstance();
+    FTextureHandle handle = instance.GetTexture(path.string());
+
+    if (handle.IsValid()) { return handle; }
+    return instance.LoadTexture(path, area);
 }
 
 }   // namespace tkd

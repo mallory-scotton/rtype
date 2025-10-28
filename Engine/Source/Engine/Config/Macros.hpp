@@ -28,3 +28,30 @@
 ///
 ///////////////////////////////////////////////////////////////////////////////
 #define SafeDeleteArray(x) if (x) { delete[] x; x = nullptr; }
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enables bitwise operators for a given enum class.
+///
+/// \param EnumName The name of the enum class.
+///
+///////////////////////////////////////////////////////////////////////////////
+#define ENABLE_BITWISE_ENUM_OPERATORS(EnumName) \
+constexpr EnumName operator|(EnumName lhs, EnumName rhs) \
+{ \
+    using T = std::underlying_type_t<EnumName>; \
+    return static_cast<EnumName>( \
+        static_cast<T>(lhs) | static_cast<T>(rhs) \
+    ); \
+} \
+constexpr EnumName operator&(EnumName lhs, EnumName rhs) \
+{ \
+    using T = std::underlying_type_t<EnumName>; \
+    return static_cast<EnumName>( \
+        static_cast<T>(lhs) & static_cast<T>(rhs) \
+    ); \
+} \
+constexpr EnumName operator~(EnumName flag) \
+{ \
+    using T = std::underlying_type_t<EnumName>; \
+    return static_cast<EnumName>(~static_cast<T>(flag)); \
+}

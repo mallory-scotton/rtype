@@ -9,6 +9,7 @@
 #include <Engine/Core/Math/FColor.hpp>
 #include <Engine/Core/Math/FLinearColor.hpp>
 #include <Engine/Core/Math/Forward.hpp>
+#include <Engine/Core/Math/FVertex.hpp>
 #include <Engine/Core/Math/FVertex2D.hpp>
 #include <Engine/Core/Math/Geometry.hpp>
 #include <Engine/Core/Math/TMatrix2x2.hpp>

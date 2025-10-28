@@ -317,6 +317,22 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TVector2<T> Perpendicular(void) const { return TVector2<T>(-y, x); }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Normalizes the vector to unit length.
+    ///
+    /// \return The normalized vector.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TVector2<T> Normalized(void) const
+    {
+        T len = Length();
+        if (len == T(0))
+        {
+            throw std::runtime_error("Cannot normalize zero-length vector");
+        }
+        return TVector2<T>(x / len, y / len);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

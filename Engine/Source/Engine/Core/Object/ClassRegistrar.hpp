@@ -63,6 +63,18 @@ public: virtual tkd::UClass* GetClass(void) const { return StaticClass(); } \
 private: static tkd::TClassRegistrar<ClassName> s_classRegistrar;
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Macro to declare a class as reflectable
+///
+/// Place this in the class header inside the class body
+///
+///////////////////////////////////////////////////////////////////////////////
+#define DECLARE_CLASS_WITH_SUPER(ClassName, SuperClass) \
+public: static tkd::UClass* StaticClass(void); \
+public: virtual tkd::UClass* GetClass(void) const { return StaticClass(); } \
+private: static tkd::TClassRegistrar<ClassName> s_classRegistrar; \
+public: using Super = SuperClass;
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Macro to implement class registration
 ///
 /// Place this in the .cpp file for the class

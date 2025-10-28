@@ -77,10 +77,71 @@ void FEngineSettingsDebug::Show(const FEngineSettings& settings, UWorld* world)
             ImGui::EndTabItem();
         }
 
+        if (ImGui::BeginTabItem("VR"))
+        {
+            ShowVRSettings(settings);
+            ImGui::EndTabItem();
+        }
+
         ImGui::EndTabBar();
     }
 
     ImGui::End();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FEngineSettingsDebug::ShowVRSettings(const FEngineSettings& settings)
+{
+    ImGui::Spacing();
+
+    const auto& vr = settings.vr;
+
+    if (ImGui::BeginTable(
+            "VRSettingsTable",
+            2,
+            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                ImGuiTableFlags_Resizable
+        ))
+    {
+        ImGui::TableSetupColumn(
+            "Property", ImGuiTableColumnFlags_WidthFixed, 200.0f
+        );
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+
+        DisplayStringSetting(
+            "VR Capability",
+            vr.capability == EVRCapability::Disabled   ? "Disabled"
+            : vr.capability == EVRCapability::Optional ? "Optional"
+                                                       : "Required"
+        );
+
+        DisplayStringSetting(
+            "VR Device",
+            vr.device == EVRDevice::None     ? "None"
+            : vr.device == EVRDevice::OpenVR ? "OpenVR"
+            : vr.device == EVRDevice::Oculus ? "Oculus"
+            : vr.device == EVRDevice::Vive   ? "Vive"
+            : vr.device == EVRDevice::Index  ? "Index"
+                                             : "WindowsMR"
+        );
+
+        DisplayStringSetting(
+            "VR Movement Mode",
+            vr.movementMode == EVRMovementMode::Teleportation
+                ? "Teleportation"
+                : "Smooth Locomotion"
+        );
+
+        DisplayStringSetting(
+            "VR Snap Turn Angle",
+            vr.snapTurnAngle == EVRSnapTurnAngle::None      ? "None"
+            : vr.snapTurnAngle == EVRSnapTurnAngle::Angle45 ? "45 Degrees"
+                                                            : "90 Degrees"
+        );
+
+        ImGui::EndTable();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

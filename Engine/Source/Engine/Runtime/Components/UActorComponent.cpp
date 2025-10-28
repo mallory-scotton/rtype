@@ -14,6 +14,8 @@ namespace tkd
 UActorComponent::UActorComponent(const FString& name)
     : m_name(name)
     , m_isActive(true)
+    , m_owner(nullptr)
+    , m_hiddenInGame(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -35,7 +37,7 @@ Bool UActorComponent::IsActive(void) const
 const FString& UActorComponent::GetName(void) const { return m_name; }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UActorComponent::Tick(TKD_MAYBE_UNUSED Float32 deltaTime) {}
+void UActorComponent::Tick(Float32) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 void UActorComponent::BeginPlay(void) {}
@@ -45,5 +47,11 @@ void UActorComponent::EndPlay(void) {}
 
 ///////////////////////////////////////////////////////////////////////////////
 void UActorComponent::Render(TKD_MAYBE_UNUSED IRenderer& renderer) const {}
+
+///////////////////////////////////////////////////////////////////////////////
+Bool UActorComponent::IsHiddenInGame(void) const { return m_hiddenInGame; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UActorComponent::SetHiddenInGame(Bool hidden) { m_hiddenInGame = hidden; }
 
 }   // namespace tkd

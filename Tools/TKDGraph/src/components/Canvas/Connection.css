@@ -1,0 +1,7 @@
+/**
+ * @brief Connection styles
+ */
+
+.connection-path {
+  transition: stroke-width 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}

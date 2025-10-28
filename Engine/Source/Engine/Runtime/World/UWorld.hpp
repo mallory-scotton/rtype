@@ -11,6 +11,7 @@
 #include <Engine/Renderer.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
+#include <Engine/Runtime/World/ULevel.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,22 +24,95 @@ namespace tkd
 /// \brief The world class, representing the game world
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UWorld : public ITickable
+class UWorld
+    : public UObject
+    , public ITickable
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::vector<std::shared_ptr<AActor>>
-        m_actors;        //<! The list of actors in the world
-    float m_worldTime;   //<! The current world time
+        m_actors;                         //<! The list of actors in the world
+    float m_worldTime;                    //<! The current world time
+    ULevel m_currentLevel;                //<! The current level
+    std::vector<ULevel> m_loadedLevels;   //<! The loaded levels
+    UInt32 m_lastSnapshotID;              //<! The last snapshot ID
+    bool m_hasBegunPlay;                  //<! Whether BeginPlay called
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // RPC Functions
+    ///////////////////////////////////////////////////////////////////////////
+    UFunction<FString, FTransform, UUID, UInt32> SpawnActorRPC;
+    UFunction<UUID> DestroyActorRPC;
+    UFunction<UInt32> SpawnClientRPC;
+    UFunction<UInt32, UUID, FTransform> SpawnPlayerRPC;
+    UFunction<std::vector<Byte>> SyncSnapshotRPC;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
+    /// \param name The name overwrite for the UObject
+    ///
     ///////////////////////////////////////////////////////////////////////////
-    UWorld(void);
+    UWorld(const FString& name = "UWorld");
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn actor RPC handler
+    ///
+    /// \param className The class name of the actor to spawn
+    /// \param transform The transform of the actor to spawn
+    /// \param actorID The UUID of the actor to spawn
+    /// \param owningClientID The ID of the client that owns the actor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_SpawnActor(
+        const FString& className,
+        const FTransform& transform,
+        const UUID& actorID,
+        UInt32 owningClientID
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Destroy actor RPC handler
+    ///
+    /// \param actorID The UUID of the actor to destroy
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_DestroyActor(const UUID& actorID);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn client RPC handler
+    ///
+    /// \param owningClientID The ID of the client to spawn
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_SpawnClient(UInt32 owningClientID);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn player RPC handler
+    ///
+    /// \param owningClientID The ID of the player to spawn
+    /// \param playerID The UUID of the player to spawn
+    /// \param transform The transform of the player to spawn
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_SpawnPlayer(
+        UInt32 owningClientID,
+        const UUID& playerID,
+        const FTransform& transform
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sync snapshot RPC handler
+    ///
+    /// \param snapshot The snapshot data
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_SyncSnapshot(const std::vector<Byte>& snapshot);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -60,7 +134,7 @@ public:
         m_actors.push_back(std::make_shared<T>());
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
-        actor->BeginPlay();
+        if (m_hasBegunPlay) { actor->BeginPlay(); }
         return actor;
     }
 
@@ -101,14 +175,25 @@ public:
         T* actor = dynamic_cast<T*>(instance);
         if (actor == nullptr)
         {
-            delete instance;
+            // Use shared_ptr with custom deleter to properly destroy the
+            // object
+            std::shared_ptr<UObject>(
+                instance,
+                [](UObject* obj)
+                {
+                    // If UObject has a proper cleanup method, call it here
+                    // Otherwise, this will call the correct destructor through
+                    // the actual type
+                    delete static_cast<AActor*>(obj);
+                }
+            );
             return nullptr;
         }
 
         // Add to world
         m_actors.push_back(std::shared_ptr<AActor>(actor));
         actor->SetTransform(transform);
-        actor->BeginPlay();
+        if (m_hasBegunPlay) { actor->BeginPlay(); }
 
         return actor;
     }
@@ -192,6 +277,13 @@ public:
     void DestroyActor(AActor* actor);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current level
+    ///
+    /// \return A pointer to the current level
+    ///////////////////////////////////////////////////////////////////////////
+    ULevel* GetCurrentLevel(void);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is first created
     ///
     ///////////////////////////////////////////////////////////////////////////
@@ -226,6 +318,48 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void Render(IRenderer& renderer);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load a level into the world
+    ///
+    /// \param levelPath The file path of the level to load
+    ///
+    /// \return True if the level was loaded successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool SpawnLevel(const ULevel& level);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Change the current level to a loaded level by name
+    ///
+    /// \param levelName The name of the level to switch to
+    ///
+    /// \return True if the level was changed successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool ChangeLevel(const FString& levelName);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the game mode of the current level
+    ///
+    /// \return The game mode of the current level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const AGameMode& GetGameMode(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the loaded levels
+    ///
+    /// \return A constant reference to the vector of loaded levels
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const std::vector<ULevel>& GetLoadedLevels(void) const;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Definition
+    ///////////////////////////////////////////////////////////////////////////
+    DECLARE_CLASS_WITH_SUPER(UWorld, UObject)
 };
 
 }   // namespace tkd

@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Assets.hpp>
+#include <Engine/Audio.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Network.hpp>
