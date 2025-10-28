@@ -109,6 +109,9 @@ void FWorldSubsystem::ThreadLoop(void)
                 {
                     std::unique_lock lock(m_worldMutex);
                     m_world->Tick(m_fixedDeltaTime);
+                    // Process deferred spawns AFTER tick, while still holding
+                    // the lock
+                    m_world->ProcessDeferredSpawns();
                 }
 
                 m_simulationTime.fetch_add(
@@ -147,6 +150,9 @@ void FWorldSubsystem::ThreadLoop(void)
             {
                 std::unique_lock lock(m_worldMutex);
                 m_world->Tick(frameTime);
+                // Process deferred spawns AFTER tick, while still holding the
+                // lock
+                m_world->ProcessDeferredSpawns();
             }
 
             m_simulationTime.fetch_add(frameTime, std::memory_order_release);

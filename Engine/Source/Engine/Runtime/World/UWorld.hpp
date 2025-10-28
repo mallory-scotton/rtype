@@ -30,6 +30,18 @@ class UWorld
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Struct to hold deferred spawn request
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct DeferredSpawnRequest
+    {
+        FString className;      //<! Name of the class to spawn
+        FTransform transform;   //<! Transform for the spawned actor
+        void* resultPtr;        //<! Pointer to store the result (AActor**)
+    };
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     std::vector<std::shared_ptr<AActor>>
@@ -40,6 +52,8 @@ private:
     UInt32 m_lastSnapshotID;              //<! The last snapshot ID
     bool m_hasBegunPlay;                  //<! Whether BeginPlay called
     TUniquePtr<AGameMode> m_gameMode;     //<! Pointer to the game mode
+    std::vector<DeferredSpawnRequest>
+        m_deferredSpawns;                 //<! Queue of deferred spawn requests
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -355,6 +369,56 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     const std::vector<ULevel>& GetLoadedLevels(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred (queued until after tick)
+    ///
+    /// \tparam T The type of actor to spawn
+    ///
+    /// \param transform The transform of the actor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    /// \note Returns nullptr immediately, actual spawn happens later
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor>
+    void SpawnActorDeferred(const FTransform& transform = FTransform())
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        UClass* actorClass = T::StaticClass();
+        if (actorClass)
+        {
+            DeferredSpawnRequest request;
+            request.className = actorClass->GetName();
+            request.transform = transform;
+            request.resultPtr = nullptr;
+            m_deferredSpawns.push_back(request);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred from class name
+    ///
+    /// \param className The name of the class to spawn
+    /// \param transform The transform of the actor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SpawnActorDeferred(
+        const FString& className, const FTransform& transform = FTransform()
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process all deferred spawn requests
+    ///
+    /// \note This should be called after Tick() completes
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessDeferredSpawns(void);
 
 public:
     ///////////////////////////////////////////////////////////////////////////

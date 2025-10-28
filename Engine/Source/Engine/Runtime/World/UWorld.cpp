@@ -536,6 +536,44 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UWorld::SpawnActorDeferred(
+    const FString& className, const FTransform& transform
+)
+{
+    DeferredSpawnRequest request;
+    request.className = className;
+    request.transform = transform;
+    request.resultPtr = nullptr;
+    m_deferredSpawns.push_back(request);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::ProcessDeferredSpawns(void)
+{
+    if (m_deferredSpawns.empty()) { return; }
+
+    // Process all deferred spawns
+    for (const auto& request: m_deferredSpawns)
+    {
+        // Spawn the actor using the existing SpawnActor method
+        UClass* actorClass = UClass::FindClass(request.className);
+        if (actorClass)
+        {
+            AActor* actor = SpawnActor<AActor>(actorClass, request.transform);
+
+            // If a result pointer was provided, store the result
+            if (request.resultPtr != nullptr)
+            {
+                *static_cast<AActor**>(request.resultPtr) = actor;
+            }
+        }
+    }
+
+    // Clear the queue
+    m_deferredSpawns.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS_WITH_SUPER(UWorld, UObject)
 
 }   // namespace tkd
