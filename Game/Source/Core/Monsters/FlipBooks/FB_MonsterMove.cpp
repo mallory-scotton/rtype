@@ -18,7 +18,7 @@ FB_MonsterMove::FB_MonsterMove(void)
     AddFrame(FRectangle(66, 0, 33, 33));
     AddFrame(FRectangle(33, 0, 33, 33));
     AddFrame(FRectangle(66, 0, 33, 33));
-    SetDuration(0.2f);
+    SetDuration(1.f);
     SetPlaybackSpeed(1.f);
 }
 
