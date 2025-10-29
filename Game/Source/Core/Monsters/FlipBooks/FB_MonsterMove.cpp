@@ -11,11 +11,13 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 FB_MonsterMove::FB_MonsterMove(void)
-    : UFlipBook("FB_MonsterMove", ESourceMode::FromSprite, EPlayMode::Once)
+    : UFlipBook("FB_MonsterMove", ESourceMode::FromSprite, EPlayMode::Loop)
 {
     SetSpriteSheetPath("Assets/Images/r-typesheet7.png");
     AddFrame(FRectangle(0, 0, 33, 33));
+    AddFrame(FRectangle(66, 0, 33, 33));
     AddFrame(FRectangle(33, 0, 33, 33));
+    AddFrame(FRectangle(66, 0, 33, 33));
     SetDuration(0.2f);
     SetPlaybackSpeed(1.f);
 }
