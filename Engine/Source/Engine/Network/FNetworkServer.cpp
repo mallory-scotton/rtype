@@ -553,17 +553,12 @@ void FNetworkServer::Cleanup(void)
         }
     }
 
-    // Give packets time to be sent before stopping
-    FLogger::Info("Waiting for disconnect packets to be sent...");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // CRITICAL FIX: Explicitly flush all queued packets before stopping
+    FLogger::Info("Flushing disconnect packets...");
+    FlushPackets();
 
-    // Stop the server
-    if (m_running.load())
-    {
-        FLogger::Info("Stopping server network services...");
-        Stop();
-        EmitEvent(Events::ServerStopped{ m_port });
-    }
+    // Emit shutdown event
+    EmitEvent(Events::ServerStopped{ m_port });
 
     // Clear all connections
     {
