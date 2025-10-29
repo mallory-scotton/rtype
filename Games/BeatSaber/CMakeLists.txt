@@ -16,11 +16,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenVR REQUIRED)
 
 # Define tool paths
-set(TKDPACK_TOOL "${CMAKE_BINARY_DIR}/bin/Tools/TKDPack")
 set(ASSETS_DIR "Assets")
 set(CONTENT_PAK "${CMAKE_BINARY_DIR}/bin/Data/BeatSaberGameContent.pak")
 
@@ -28,8 +28,8 @@ set(CONTENT_PAK "${CMAKE_BINARY_DIR}/bin/Data/BeatSaberGameContent.pak")
 add_custom_command(
     OUTPUT ${CONTENT_PAK}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/Data
-    COMMAND ${TKDPACK_TOOL} -i ${ASSETS_DIR} -o ${CONTENT_PAK} -m pack
-    DEPENDS ${TKDPACK_TOOL}
+    COMMAND $<TARGET_FILE:TKDPack> -i ${ASSETS_DIR} -o ${CONTENT_PAK} -m pack
+    DEPENDS TKDPack
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating packed content from Assets directory"
     VERBATIM
@@ -37,7 +37,7 @@ add_custom_command(
 
 # Create a custom target for packed content (unique per-game to avoid name collisions)
 add_custom_target(ContentPak_BeatSaber
-    DEPENDS ${CONTENT_PAK}
+    DEPENDS ${CONTENT_PAK} TKDPack
 )
 
 # Collect source files
@@ -66,6 +66,8 @@ set_target_properties(BeatSaberGameClient PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
 # Include directories for client
@@ -87,8 +89,8 @@ target_link_libraries(BeatSaberGameClient
         sfml-graphics
         sfml-audio
         sfml-network
-        GLU
-        GL
+        OpenGL::GL
+        OpenGL::GLU
         GLEW::GLEW
         openvr::openvr
 )
@@ -106,6 +108,8 @@ set_target_properties(BeatSaberGameServer PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
 # Include directories for server
