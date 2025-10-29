@@ -31,6 +31,7 @@ find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network
 find_package(imgui REQUIRED)
 find_package(ImGui-SFML REQUIRED)
 find_package(asio REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenVR REQUIRED)
 find_package(nlohmann_json REQUIRED)
@@ -71,6 +72,8 @@ set_target_properties(TKDEngineClient PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
 # Set target properties for server
@@ -83,6 +86,8 @@ set_target_properties(TKDEngineServer PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
 # Include directories for client
@@ -112,8 +117,8 @@ target_link_libraries(TKDEngineClient
         ImGui-SFML::ImGui-SFML
         GLEW::GLEW
         openvr::openvr
-        GLU
-        GL
+        OpenGL::GL
+        OpenGL::GLU
         nlohmann_json::nlohmann_json
 )
 
