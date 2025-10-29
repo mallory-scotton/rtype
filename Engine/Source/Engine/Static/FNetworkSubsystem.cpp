@@ -36,10 +36,26 @@ bool FNetworkSubsystem::Initialize(void)
         }
         else if (m_config.mode == Mode::Client)
         {
+            // CHANGE: Don't auto-connect on initialization
+            // Client must manually call Connect() with desired host/port
+            // This allows for connection UI or command-line override
             m_client = std::make_unique<FNetworkClient>();
-            if (!m_client->Connect(m_config.host, m_config.port))
+
+            // Only auto-connect if explicitly configured to do so
+            if (m_config.autoConnect)
             {
-                return false;
+                FLogger::SetNamespace("Network");
+                FLogger::Info(
+                    "Auto-connecting to {}:{}",
+                    m_config.host.CStr(),
+                    m_config.port
+                );
+                if (!m_client->Connect(m_config.host, m_config.port))
+                {
+                    FLogger::Warn(
+                        "Auto-connect failed, manual connection required"
+                    );
+                }
             }
         }
 

@@ -59,6 +59,7 @@ public:
         UInt16 port = 8080;           //<! Network port
         FString host = "localhost";   //<! Network host
         SizeT maxClients = 32;        //<! Maximum number of clients
+        Bool autoConnect = false;   //<! Auto-connect on client initialization
     };
 
 private:
