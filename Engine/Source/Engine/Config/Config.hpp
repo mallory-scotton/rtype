@@ -88,10 +88,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(__GNUC__) || defined(__clang__)
     #define TKD_WEAK __attribute__((__weak__))
-#elif defined(_MSC_VER)
-    #define TKD_WEAK __declspec(selectany)
+    #define TKD_USE_WEAK_LINKING 1
 #else
     #define TKD_WEAK
+    #define TKD_USE_WEAK_LINKING 0
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
