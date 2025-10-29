@@ -6,8 +6,9 @@
 #include <iostream>
 #include <signal.h>
 #include <stdexcept>
-#include <sys/wait.h>
-#include <unistd.h>
+#ifndef TKD_SYSTEM_WINDOWS
+    #include <sys/wait.h>
+    #include <unistd.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -185,3 +186,5 @@ bool FProcess::IsParent(void) const { return m_pid > 0; }
 bool FProcess::IsChild(void) const { return m_pid == 0; }
 
 }   // namespace tkd
+
+#endif
