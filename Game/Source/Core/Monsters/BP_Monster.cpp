@@ -10,28 +10,19 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Monster::BP_Monster(UInt32 row)
+BP_Monster::BP_Monster(void)
     : AActor("BP_Monster")
-    , speed(*this, "Speed", 60.0f)
+    , speed(*this, "Speed", 3.0f)
+    , velocity(*this, "Velocity", FVector2f::Zero)
     , roamRadius(*this, "RoamRadius", 120.0f)
-    , m_targetPosition(FVector3::Zero)
+    , m_targetPosition(FVector3(100.0f, 100.0f, 0.0f))
     , m_timeSinceTarget(0.0f)
 {
     // Monster is not a pawn and does not need transform replication by default
-    SetTransformReplicated(false);
+    SetTransformReplicated(true);
 
-    // Create animated sprite component and point it to the shared sprite
-    auto Abp = AddComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
-    Abp->SetTexturePath("Assets/Images/r-typesheet7.png");
-    Abp->SetLocalTransform(
-        FTransform2D(FVector2f::Zero, 0.0f, FVector2f(1.5f, 1.5f))
-    );
-
-    // Setup animations using the same frame sizing as player
-    SetupAnimations();
-
-    // Pick an initial target (BeginPlay will re-center on spawn)
-    PickNewTarget();
+    AddComponent<UBillboardComponent>("BC_MonsterSprite");
+    AddComponent<UBoxCollisionComponent>("BoxCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -40,10 +31,19 @@ void BP_Monster::BeginPlay(void)
     Super::BeginPlay();
 
     // Record spawn position as center of roaming
-    m_spawnPosition = GetTransform().GetPosition();
+    auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
+    if (Billboard)
+    {
+        Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
+        Billboard->SetFlipBook(&m_idleAnimation);
+    }
 
-    // Ensure a target exists inside roam radius
-    PickNewTarget();
+    auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
+    if (Box)
+    {
+        Box->SetHiddenInGame(false);
+        Box->SetBoxExtent(FVector3f(0.8f, 0.3f, 0.3f));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,37 +57,47 @@ void BP_Monster::Tick(Float32 deltaTime)
 
     m_timeSinceTarget += deltaTime;
 
-    // Occasionally pick a new target (every ~1-3 seconds) or if close to
-    // current
-    if (/*m_timeSinceTarget > (1.0f + Math<Float32>::Random() * 2.0f) || */
-        (GetTransform().GetPosition() - m_targetPosition).Length() < 4.0f)
+    auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
+
+    if (!Billboard) { return; }
+
+    FVector3 currentPosition = GetTransform().GetPosition();
+    FVector3 toTarget = m_targetPosition - currentPosition;
+
+    const Float32 dist2 = toTarget.x * toTarget.x + toTarget.y * toTarget.y +
+                          toTarget.z * toTarget.z;
+    const Float32 eps = 1e-4f;
+
+    if (dist2 < eps)
     {
+        // Reached target (or extremely close) — stop and pick a new one
+        velocity = FVector2f::Zero;
         PickNewTarget();
         m_timeSinceTarget = 0.0f;
     }
-
-    // Move toward target
-    FVector3 current = GetTransform().GetPosition();
-    FVector3 toTarget = m_targetPosition - current;
-    Float32 dist = toTarget.Length();
-    if (dist > 0.01f)
+    else
     {
-        FVector3 dir = toTarget / dist;
-        FVector3 movement = dir * speed() * deltaTime;
-        if (movement.Length() > dist) { movement = dir * dist; }
+        // Desired velocity (units/sec) towards target
+        FVector3 dir = toTarget.Normalized();
+        FVector3 desiredVel3 = dir * speed();
 
-        FTransform t = GetTransform();
-        t.Translate(movement);
-        SetTransform(t);
+        // If this tick would overshoot the target, clamp velocity so we
+        // exactly reach it
+        const Float32 dist = Math<Float32>::Sqrt(dist2);
+        const Float32 maxTravel = speed() * deltaTime;
+        if (maxTravel >= dist && deltaTime > 0.0f)
+        {
+            // Set velocity so ApplyMovement moves exactly to the target this
+            // frame
+            desiredVel3 = toTarget / deltaTime;
+        }
+
+        // Apply movement and record 2D velocity for animation updates
+        ApplyMovement(desiredVel3, deltaTime);
+        velocity = FVector2f(desiredVel3.x, desiredVel3.y);
     }
 
-    // Play idle/walk animation based on movement distance
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
-    if (Abp)
-    {
-        if (dist > 2.0f) { Abp->Play("Walk", true); }
-        else { Abp->Play("Idle", true); }
-    }
+    UpdateAnimationState();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,51 +115,24 @@ void BP_Monster::PickNewTarget(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Monster::SetupAnimations(void)
-{
-    auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
-    if (!Abp) { return; }
-
-    Abp->ClearAnimations();
-
-    // The provided sprite sheet re-uses the player sizing: 33x33 per frame
-    const Int32 frameW = 33;
-    const Int32 frameH = 33;
-
-    FAnimation2D idle("Idle", true);
-    idle.AddFrame(FRectanglei(frameW * 2, frameH, frameW, frameH), 1.0f);
-    Abp->AddAnimation(idle);
-
-    FAnimation2D walk("Walk", true);
-    walk.AddFrame(FRectanglei(frameW * 0, frameH, frameW, frameH), 0.15f);
-    walk.AddFrame(FRectanglei(frameW * 1, frameH, frameW, frameH), 0.15f);
-    Abp->AddAnimation(walk);
-
-    FAnimation2D jump("Jump", false);
-    jump.AddFrame(FRectanglei(frameW * 0, frameH * 2, frameW, frameH), 0.2f);
-    jump.AddFrame(FRectanglei(frameW * 1, frameH * 2, frameW, frameH), 0.2f);
-    jump.AddFrame(FRectanglei(frameW * 2, frameH * 2, frameW, frameH), 0.2f);
-    Abp->AddAnimation(jump);
-
-    Abp->Play("Idle");
-}
-
-///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::UpdateAnimationState(void)
 {
-    // Update the animation state based on movement
-    FVector3 velocity = GetTransform().GetPosition() - m_spawnPosition;
-    if (velocity.Length() > 0.01f)
+    auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
+
+    if (!Billboard) { return; }
+
+    if (velocity().y < 0.0f)
     {
-        // If moving, play walk animation
-        auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
-        if (Abp) { Abp->Play("Walk", true); }
+        m_moveUpAnimation.SetPlaybackSpeed(1.f);
+        Billboard->SetFlipBook(&m_moveUpAnimation);
     }
     else
     {
-        // If not moving, play idle animation
-        auto Abp = GetComponent<UAnimatedSpriteComponent>("ABP_MonsterSprite");
-        if (Abp) { Abp->Play("Idle", true); }
+        if (velocity().x == 0.0f && velocity().y == 0.0f)
+        {
+            Billboard->SetFlipBook(&m_idleAnimation);
+        }
+        else { Billboard->SetFlipBook(&m_walkAnimation); }
     }
 }
 

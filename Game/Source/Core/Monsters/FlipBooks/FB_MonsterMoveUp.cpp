@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Levels/L_RType_Level1.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterMoveUp.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -10,18 +10,18 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-L_RType_Level1::L_RType_Level1()
-    : Super("L_RType_Level1")
+FB_MonsterMoveUp::FB_MonsterMoveUp(void)
+    : UFlipBook("FB_MonsterMoveUp", ESourceMode::FromSprite, EPlayMode::Once)
 {
-    this->SetLevelName("L_RType_Level1");
-    this->SetGameMode(m_myGameMode);
-    // this->AddActorEntry("BP_Player", "Player1", FTransform::Identity);
-    // this->AddActorEntry("BP_Background", "Background1",
-    // FTransform::Identity);
-    this->AddActorEntry("BP_Monster", "Monster1", FTransform::Identity);
+    SetSpriteSheetPath("Assets/Images/r-typesheet7.png");
+    AddFrame(FRectangle(0, 33, 33, 33));
+    AddFrame(FRectangle(33, 33, 33, 33));
+    AddFrame(FRectangle(66, 33, 33, 33));
+    SetDuration(0.2f);
+    SetPlaybackSpeed(1.f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-IMPLEMENT_CLASS_WITH_SUPER(L_RType_Level1, ULevel)
+IMPLEMENT_CLASS_WITH_SUPER(FB_MonsterMoveUp, UFlipBook)
 
 }   // namespace tkd

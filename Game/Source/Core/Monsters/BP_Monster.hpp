@@ -6,6 +6,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Core/Monsters/FlipBooks/FB_MonsterIdle.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterMove.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterMoveUp.hpp>
 #include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,15 +32,20 @@ public:
     // Configurable properties
     ///////////////////////////////////////////////////////////////////////////
     UProperty<Float32> speed;        //<! movement speed in units/sec
+    UProperty<FVector2f> velocity;   //<! The current velocity of the monster
     UProperty<Float32> roamRadius;   //<! roam radius around spawn
 
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Runtime state
     ///////////////////////////////////////////////////////////////////////////
-    FVector3 m_spawnPosition;    //<! spawn position used as roam center
-    FVector3 m_targetPosition;   //<! current movement target
-    Float32 m_timeSinceTarget;   //<! timer since last target pick
+    FVector3 m_spawnPosition;         //<! spawn position used as roam center
+    FVector3 m_targetPosition;        //<! current movement target
+    Float32 m_timeSinceTarget;        //<! timer since last target pick
+
+    FB_MonsterIdle m_idleAnimation;   //<! Idle animation
+    FB_MonsterMove m_walkAnimation;   //<! Walk animation
+    FB_MonsterMoveUp m_moveUpAnimation;   //<! Move up animation
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -46,7 +54,7 @@ public:
     /// \param row Sprite sheet row to use for this monster
     ///
     ///////////////////////////////////////////////////////////////////////////
-    BP_Monster(UInt32 row = 0);
+    BP_Monster(void);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -69,12 +77,6 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void PickNewTarget(void);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Setup simple Idle/Walk animations using the shared sprite sheet
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void SetupAnimations(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Update the animation state based on movement
