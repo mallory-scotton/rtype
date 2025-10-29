@@ -55,3 +55,13 @@ add_custom_command(TARGET TKDEmbed POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/Tools
     COMMENT "Ensuring TKDEmbed output directory exists"
 )
+
+# Copy required DLLs to the tool directory on Windows
+if(WIN32)
+    add_custom_command(TARGET TKDEmbed POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:TKDEngineClient>
+            $<TARGET_FILE_DIR:TKDEmbed>
+        COMMENT "Copying TKDEngineClient.dll to TKDEmbed directory"
+    )
+endif()
