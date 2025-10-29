@@ -12,7 +12,9 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 AActor::AActor(const FString& name)
     : UObject(name)
-    , m_transform(*this, "Transform", FTransform::Identity)
+    , m_transform(
+          *this, "Transform", FTransform::Identity, EPropertyFlags::None
+      )
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
@@ -230,30 +232,27 @@ void AActor::SetTransformReplicated(Bool replicated)
 {
     if (replicated)
     {
-        m_transform.AddFlag(EPropertyFlags::Replicated);
         if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 20.f; }
     }
     else
     {
-        m_transform.RemoveFlag(EPropertyFlags::Replicated);
         if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 10.f; }
     }
+
+    m_isTransformReplicated = replicated;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(const FVector3& translation)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Translate(translation);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Translate(translation); }
     else { m_transform->Translate(translation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(Float32 x, Float32 y, Float32 z)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (m_isTransformReplicated)
     {
         m_pendingTransform.Translate(FVector3(x, y, z));
     }
@@ -264,20 +263,14 @@ void AActor::Translate(Float32 x, Float32 y, Float32 z)
 void AActor::Rotate(const FVector3& rotation)
 {
     FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotator);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FRotator& rotation)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotation);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotation); }
     else { m_transform->Rotate(rotation); }
 }
 
@@ -285,27 +278,21 @@ void AActor::Rotate(const FRotator& rotation)
 void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
 {
     FRotator rotator = FRotator(pitch, yaw, roll);
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotator);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(const FVector3& scale)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Scale(scale);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Scale(scale); }
     else { m_transform->Scale(scale); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(Float32 x, Float32 y, Float32 z)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (m_isTransformReplicated)
     {
         m_pendingTransform.Scale(FVector3(x, y, z));
     }
@@ -315,7 +302,7 @@ void AActor::Scale(Float32 x, Float32 y, Float32 z)
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::ApplyMovement(const FVector3& inputVector, Float32 deltaTime)
 {
-    if (!m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (!m_isTransformReplicated)
     {
         // No replication, just apply movement directly
         FTransform newTransform =

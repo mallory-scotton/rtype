@@ -98,6 +98,29 @@ public:
         FEndpoint endpoint;                    //<! Sender endpoint
     };
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Deferred property replication structure for thread-safe
+    /// execution
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FDeferredPropertyReplication
+    {
+        Packets::Replication packet;   //<! Replication packet data
+        FEndpoint endpoint;            //<! Sender endpoint
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Queued packet structure for thread-safe sending
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FQueuedPacket
+    {
+        std::vector<UInt8> data;   //<! Serialized packet data
+        FEndpoint endpoint;        //<! Destination endpoint
+        bool reliable;             //<! Whether this is a reliable packet
+        FPacketHeader header;      //<! Packet header (for reliable packets)
+    };
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
@@ -116,8 +139,15 @@ protected:
         std::function<void(const IPacket&, const FEndpoint&)>>
         m_packetHandlers;                         //<! Map of packet handlers
     std::vector<FAcknowledgment> m_pendingAcks;   //<! List of pending ACKs
+    std::mutex m_pendingAcksMutex;                //<! Mutex for pending ACKs
     std::queue<FDeferredRPC> m_deferredRPCs;      //<! Queue of deferred RPCs
     std::mutex m_rpcQueueMutex;                   //<! Mutex for RPC queue
+    std::queue<FDeferredPropertyReplication>
+        m_deferredPropertyReplications;      //<! Queue of deferred property
+                                             // replications
+    std::mutex m_propertyQueueMutex;         //<! Mutex for property queue
+    std::queue<FQueuedPacket> m_sendQueue;   //<! Queue of packets to send
+    std::mutex m_sendQueueMutex;             //<! Mutex for send queue
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -219,6 +249,18 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void ProcessDeferredRPCs(UWorld& world);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process deferred property replications from the queue
+    ///
+    /// This should be called from the world thread to safely apply property
+    /// replications without causing deadlocks. It processes all queued
+    /// replications.
+    ///
+    /// \param world Reference to the world (already locked by caller)
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessDeferredPropertyReplications(UWorld& world);
+
     /// \brief Register a packet handler for a specific packet type
     ///
     /// \param handler Function to call when a packet of the specified type is
@@ -301,6 +343,14 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void FlushPackets(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process queued packets and send them
+    ///
+    /// This is called from Update() to safely send all queued packets
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessSendQueue(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Start receiving data asynchronously

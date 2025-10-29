@@ -428,4 +428,34 @@ void FNetworkSubsystem::ProcessDeferredRPCs(UWorld& world)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::ProcessDeferredPropertyReplications(UWorld& world)
+{
+    // NO LOCK NEEDED HERE!
+    // The server/client pointers are stable after initialization
+    // and ProcessDeferredPropertyReplications has its own internal locking
+    // (m_propertyQueueMutex) Taking m_networkMutex here causes deadlock with
+    // the network thread
+
+    if (m_config.mode == Mode::Server && m_server)
+    {
+        m_server->ProcessDeferredPropertyReplications(world);
+    }
+    else if (m_config.mode == Mode::Client && m_client)
+    {
+        m_client->ProcessDeferredPropertyReplications(world);
+    }
+}
+
 }   // namespace tkd::__internal
+
+/*
+
+in thread loop, uworld cause network::deferal that calls subsytem deferal that
+calls the actual server/client deferal
+
+deferal itself swaps the queue of itself and the current rpc queue
+
+
+
+*/

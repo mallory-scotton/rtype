@@ -307,6 +307,14 @@ public:
     static void ProcessDeferredRPCs(UWorld& world);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process deferred property replications for a world
+    ///
+    /// \param world The world to process property replications for
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void ProcessDeferredPropertyReplications(UWorld& world);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the client ID of the current connection
     ///
     /// \return The client ID, or 0 if not connected
