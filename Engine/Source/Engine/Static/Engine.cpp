@@ -32,6 +32,7 @@ bool Engine::Initialize(int argc, char* argv[])
 
     FLogger::SetNamespace("Engine");
 
+#if TKD_USE_WEAK_LINKING
     if (TKD_CreateGame)
     {
         m_game = std::move(TKD_CreateGame());
@@ -42,6 +43,27 @@ bool Engine::Initialize(int argc, char* argv[])
             return false;
         }
     }
+#else
+    #ifdef TKD_SYSTEM_WINDOWS
+        HMODULE hModule = GetModuleHandle(NULL);
+        typedef std::unique_ptr<tkd::UGame> (*TKD_CreateGameFunc)(void);
+        TKD_CreateGameFunc createGameFunc = 
+            reinterpret_cast<TKD_CreateGameFunc>(
+                GetProcAddress(hModule, "TKD_CreateGame")
+            );
+
+        if (createGameFunc)
+        {
+            m_game = std::move(createGameFunc());
+            if (!m_game)
+            {
+                m_exitCode = TKD_EXIT_FAILURE;
+                m_exitMessage = "Failed to create game instance";
+                return false;
+            }
+        }
+    #endif
+#endif
 
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
