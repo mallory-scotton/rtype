@@ -70,6 +70,16 @@ set_target_properties(BeatSaberGameClient PROPERTIES
     WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(BeatSaberGameClient PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 # Include directories for client
 target_include_directories(BeatSaberGameClient
     PUBLIC
@@ -112,6 +122,16 @@ set_target_properties(BeatSaberGameServer PROPERTIES
     WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(BeatSaberGameServer PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 # Include directories for server
 target_include_directories(BeatSaberGameServer
     PUBLIC
@@ -150,6 +170,14 @@ set_target_properties(BeatSaberGameClientExe PROPERTIES
     OUTPUT_NAME "BeatSaberGameClient"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(BeatSaberGameClientExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(BeatSaberGameClientExe PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
@@ -169,6 +197,14 @@ set_target_properties(BeatSaberGameServerExe PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     OUTPUT_NAME "BeatSaberGameServer"
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(BeatSaberGameServerExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 target_include_directories(BeatSaberGameServerExe PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/Source

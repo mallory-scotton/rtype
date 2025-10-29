@@ -29,6 +29,14 @@ set_target_properties(TKDPack PROPERTIES
     OUTPUT_NAME "TKDPack"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDPack PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin/Tools
+    )
+endforeach()
+
 # Create the output directory if it doesn't exist
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Tools)
 

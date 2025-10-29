@@ -76,6 +76,16 @@ set_target_properties(TKDEngineClient PROPERTIES
     WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineClient PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 # Set target properties for server
 set_target_properties(TKDEngineServer PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -89,6 +99,16 @@ set_target_properties(TKDEngineServer PROPERTIES
     # Export all symbols on Windows for DLL
     WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineServer PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 # Include directories for client
 target_include_directories(TKDEngineClient
@@ -187,6 +207,14 @@ set_target_properties(TKDEngineClientExe PROPERTIES
     OUTPUT_NAME "TKDEngineClient"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineClientExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(TKDEngineClientExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
@@ -202,6 +230,14 @@ set_target_properties(TKDEngineServerExe PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     OUTPUT_NAME "TKDEngineServer"
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineServerExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 target_include_directories(TKDEngineServerExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
@@ -263,6 +299,14 @@ if(BUILD_TESTS)
     set_target_properties(TKDEngineTests PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
+
+    # For multi-config generators, remove the config subdirectory
+    foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${CONFIG} CONFIG_UPPER)
+        set_target_properties(TKDEngineTests PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+        )
+    endforeach()
 
     # Include directories for tests
     target_include_directories(TKDEngineTests PRIVATE
