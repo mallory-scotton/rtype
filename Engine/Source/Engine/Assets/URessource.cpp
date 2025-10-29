@@ -453,7 +453,7 @@ std::vector<FilePath> URessource::GetLoadedPaks(void) const
 
     for (const auto& [path, pak]: m_pakFiles)
     {
-        result.push_back(FilePath(path));
+        result.push_back(FilePath(path.CStr()));
     }
 
     return result;
