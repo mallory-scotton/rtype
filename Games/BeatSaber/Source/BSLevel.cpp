@@ -10,6 +10,13 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+BSBeatMap::BSBeatMap(
+    const FilePath& beatmapPath, const BSLevelDifficulty& difficulty
+)
+    : difficulty(difficulty)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
 BSLevel::BSLevel(const FilePath& levelPath)
     : levelPath(levelPath)
     , version("")
