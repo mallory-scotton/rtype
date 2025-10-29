@@ -34,17 +34,19 @@ public:
     UProperty<Float32> speed;        //<! movement speed in units/sec
     UProperty<FVector2f> velocity;   //<! The current velocity of the monster
     UProperty<Float32> roamRadius;   //<! roam radius around spawn
+    UProperty<Float32> waitTime;     //<! time to wait at each target (seconds)
 
 private:
     ///////////////////////////////////////////////////////////////////////////
     // Runtime state
     ///////////////////////////////////////////////////////////////////////////
-    FVector3 m_spawnPosition;         //<! spawn position used as roam center
-    FVector3 m_targetPosition;        //<! current movement target
-    Float32 m_timeSinceTarget;        //<! timer since last target pick
+    FVector3 m_spawnPosition;    //<! spawn position used as roam center
+    FVector3 m_targetPosition;   //<! current movement target
+    Float32 m_timeSinceTarget;   //<! timer since last target pick
+    Float32 m_waitRemaining;   //<! remaining wait time when arrived at target
 
-    FB_MonsterIdle m_idleAnimation;   //<! Idle animation
-    FB_MonsterMove m_walkAnimation;   //<! Walk animation
+    FB_MonsterIdle m_idleAnimation;       //<! Idle animation
+    FB_MonsterMove m_walkAnimation;       //<! Walk animation
     FB_MonsterMoveUp m_moveUpAnimation;   //<! Move up animation
 
 public:
@@ -76,7 +78,7 @@ private:
     /// \brief Pick a new random target within the roam radius
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void PickNewTarget(void);
+    void PickNewTarget(Float32 deltaTime);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Update the animation state based on movement
