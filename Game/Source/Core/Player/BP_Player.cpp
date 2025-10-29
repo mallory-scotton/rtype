@@ -62,7 +62,7 @@ void BP_Player::BeginPlay(void)
     if (Box)
     {
         Box->SetHiddenInGame(false);
-        Box->SetBoxExtent(FVector3f(0.8f, 0.3f, 0.3f));
+        Box->SetBoxExtent(FVector3f(0.6f, 0.3f, 0.3f));
     }
 }
 
