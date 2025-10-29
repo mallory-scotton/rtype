@@ -16,6 +16,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+find_package(GLEW REQUIRED)
+find_package(OpenVR REQUIRED)
 
 # Define tool paths
 set(TKDPACK_TOOL "${CMAKE_BINARY_DIR}/bin/Tools/TKDPack")
