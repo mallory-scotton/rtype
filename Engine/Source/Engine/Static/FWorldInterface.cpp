@@ -33,8 +33,20 @@ __internal::FWorldSubsystem* FWorldInterface::GetWorldSubsystem(void)
     }
 }
 
-/////////////////////////////////////////////////////////////// /
-//////////////////
+///////////////////////////////////////////////////////////////////////////////
+void FWorldInterface::SpawnActorDeferred(
+    const FString& className, const FTransform& transform
+)
+{
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return; }
+
+    // Access world directly without locking (deferred spawns are queued)
+    UWorld* world = worldSubsystem->GetWorld();
+    if (world) { world->SpawnActorDeferred(className, transform); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::vector<std::shared_ptr<AActor>> FWorldInterface::GetActors(void)
 {
     auto* worldSubsystem = GetWorldSubsystem();

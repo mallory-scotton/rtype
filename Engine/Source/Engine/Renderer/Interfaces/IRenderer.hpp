@@ -189,6 +189,14 @@ public:
     virtual const FCamera& GetCamera(void) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the current 3D camera of the renderer
+    ///
+    /// \return A reference to the camera
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FCamera& GetCamera(void) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Push current OpenGL attributes onto the attribute stack
     ///
     /// \param flags Bitfield specifying which attribute groups to save

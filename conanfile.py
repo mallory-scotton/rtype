@@ -18,6 +18,7 @@ class RTypeProjectConan(ConanFile):
         self.requires("opengl/system")
         self.requires("glew/2.2.0")
         self.requires("openvr/1.16.8")
+        self.requires("nlohmann_json/3.12.0")
 
         # Skip mesa-glu on Windows since it's already provided by the system
         if self.settings.os not in ["Windows"]:

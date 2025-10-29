@@ -232,6 +232,51 @@ void FWindowSubsystem::ThreadLoop(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+IRenderer* FWindowSubsystem::GetRenderer(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        return m_renderer.get();
+    }
+    catch (const std::exception&)
+    {
+        return nullptr;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IGraphicsFactory* FWindowSubsystem::GetGraphicsFactory(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        return m_graphicsFactory.get();
+    }
+    catch (const std::exception&)
+    {
+        return nullptr;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FCamera& FWindowSubsystem::GetCamera(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        if (m_renderer) { return m_renderer->GetCamera(); }
+        static FCamera defaultCamera;
+        return defaultCamera;
+    }
+    catch (const std::exception&)
+    {
+        static FCamera defaultCamera;
+        return defaultCamera;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FWindowSubsystem::Shutdown(void)
 {
     FThreadedSubsystem::Shutdown();

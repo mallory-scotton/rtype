@@ -48,6 +48,10 @@ public:
     ///
     /// \return A pointer to the spawned actor
     ///
+    /// \warning This may cause a deadlock if called from within Tick()
+    /// \note Use SpawnActorDeferred() if calling from Tick() or other
+    ///       callbacks that may already hold the world mutex
+    ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
     static T* SpawnActor(const FTransform& transform = FTransform())
@@ -68,6 +72,32 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred (safe to call from Tick)
+    ///
+    /// \tparam T The type of actor to spawn
+    ///
+    /// \param transform The transform of the actor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    /// \note This is safe to call from within Tick() or other callbacks
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor>
+    static void SpawnActorDeferred(const FTransform& transform = FTransform())
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        auto* worldSubsystem = GetWorldSubsystem();
+        if (!worldSubsystem) { return; }
+
+        // Access world directly without locking (deferred spawns are queued)
+        UWorld* world = worldSubsystem->GetWorld();
+        if (world) { world->SpawnActorDeferred<T>(transform); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Spawn an actor from a UClass
     ///
     /// \tparam T The type to cast the result to (default: AActor)
@@ -76,6 +106,10 @@ public:
     /// \param transform The transform of the actor
     ///
     /// \return A pointer to the spawned actor, or nullptr if spawn failed
+    ///
+    /// \warning This may cause a deadlock if called from within Tick()
+    /// \note Use SpawnActorDeferred() if calling from Tick() or other
+    ///       callbacks that may already hold the world mutex
     ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
@@ -109,6 +143,10 @@ public:
     ///
     /// \return A pointer to the spawned actor, or nullptr if spawn failed
     ///
+    /// \warning This may cause a deadlock if called from within Tick()
+    /// \note Use SpawnActorDeferred() if calling from Tick() or other
+    ///       callbacks that may already hold the world mutex
+    ///
     ///////////////////////////////////////////////////////////////////////////
     template <typename T = AActor>
     static T* SpawnActor(
@@ -130,6 +168,20 @@ public:
 
         return result;
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred from class name (safe to call from Tick)
+    ///
+    /// \param className The name of the class to spawn
+    /// \param transform The transform of the actor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    /// \note This is safe to call from within Tick() or other callbacks
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static void SpawnActorDeferred(
+        const FString& className, const FTransform& transform = FTransform()
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get all actors in the world
