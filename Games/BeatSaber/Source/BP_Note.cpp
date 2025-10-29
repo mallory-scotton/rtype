@@ -50,6 +50,12 @@ void BP_Note::Tick(float deltaTime)
 {
     // Call the Tick of the Super Class
     Super::Tick(deltaTime);
+
+    static float acc = 0.f;
+    acc += deltaTime;
+    FTransform transform;
+    transform.SetPosition(FVector3(std::sin(acc) * 5.f, 0.f, 0.f));
+    SetTransform(transform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
