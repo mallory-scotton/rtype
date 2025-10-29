@@ -32,6 +32,13 @@ void FNetworkBase::Stop(void)
 {
     if (m_running.exchange(false))
     {
+        // CRITICAL FIX: Process any remaining queued packets before stopping
+        // This ensures disconnect packets are sent before the socket closes
+        FLogger::SetNamespace("Network");
+        FLogger::Debug("Processing final packet queue before stopping...");
+        ProcessSendQueue();
+
+        // Stop the io_context and close socket
         m_ioContext.stop();
         if (m_networkThread && m_networkThread->Joinable())
         {
@@ -486,7 +493,10 @@ void FNetworkBase::ProcessDeferredPropertyReplications(UWorld& world)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::ProcessSendQueue(void)
 {
-    if (!m_socket || !m_running) { return; }
+    // CRITICAL FIX: Allow processing send queue even during shutdown
+    // Only check if socket is valid, not m_running status
+    // This ensures disconnect packets can be sent during cleanup
+    if (!m_socket) { return; }
 
     std::queue<FQueuedPacket> localQueue;
 
