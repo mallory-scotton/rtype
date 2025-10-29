@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <BSLevel.hpp>
+#include <algorithm>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -10,10 +11,147 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BSBeatMap::BSBeatMap(
-    const FilePath& beatmapPath, const BSLevelDifficulty& difficulty
-)
-    : difficulty(difficulty)
+BSBeatMap::BSBeatMap(void)
+    : isValid(false)
+{}
+
+///////////////////////////////////////////////////////////////////////////////
+BSBeatMap::BSBeatMap(const BSLevel& level, SizeT difficultyIndex)
+    : difficulty(
+          level.difficulties[difficultyIndex % level.difficulties.size()]
+      )
+    , isValid(false)
+    , m_beatmapPath(level.levelPath / difficulty.beatmapFilename)
+{
+    if (CheckValidity() && level.version.size() > 0)
+    {
+        if (level.version.at(0) == '2') { LoadVersion2(); }
+        else if (level.version.at(0) == '3') { LoadVersion3(); }
+    }
+    m_data.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool BSBeatMap::CheckValidity(void)
+{
+    if (!FileSystem::FileExists(m_beatmapPath)) { return false; }
+
+    try
+    {
+        std::ifstream dataStream(m_beatmapPath);
+        m_data = Json::parse(dataStream);
+    }
+    catch (...)
+    {
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BSBeatMap::LoadVersion2(void)
+{
+    // Parse notes
+    if (m_data.contains("_notes"))
+    {
+        for (const auto& note: m_data["_notes"])
+        {
+            BSLevelNodeEntry entry;
+
+            entry.time = note.value("_time", -1.f);
+            entry.lineIndex = note.value("_lineIndex", -1);
+            entry.lineLayer = note.value("_lineLayer", -1);
+            entry.type = static_cast<ENoteType>(note.value("_type", 0));
+            entry.cutDirection =
+                static_cast<ECutDirection>(note.value("_cutDirection", 0));
+
+            notes.push_back(entry);
+        }
+    }
+    std::sort(
+        notes.begin(),
+        notes.end(),
+        [](const BSLevelNodeEntry& a, const BSLevelNodeEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse events
+    if (m_data.contains("_events"))
+    {
+        for (const auto& event: m_data["_events"])
+        {
+            BSLevelEventEntry entry;
+
+            entry.time = event.value("_time", -1.f);
+            entry.type = event.value("_type", -1);
+            entry.value = event.value("_value", -1);
+
+            events.push_back(entry);
+        }
+    }
+    std::sort(
+        events.begin(),
+        events.end(),
+        [](const BSLevelEventEntry& a, const BSLevelEventEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse obstacles
+    if (m_data.contains("_obstacles"))
+    {
+        for (const auto& obs: m_data["_obstacles"])
+        {
+            BSLevelObstacleEntry entry;
+
+            entry.time = obs.value("_time", -1.f);
+            entry.lineIndex = obs.value("_lineIndex", -1);
+            entry.height = 1;
+            entry.duration = obs.value("_duration", 0.25);
+            entry.type = obs.value("_type", 0);
+
+            obstacles.push_back(entry);
+        }
+    }
+    std::sort(
+        obstacles.begin(),
+        obstacles.end(),
+        [](const BSLevelObstacleEntry& a, const BSLevelObstacleEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse waypoints
+    if (m_data.contains("_waypoints"))
+    {
+        for (const auto& way: m_data["_waypoints"])
+        {
+            BSLevelWaypointEntry entry;
+
+            entry.time = way.value("_time", -1.f);
+
+            waypoints.push_back(entry);
+        }
+    }
+    std::sort(
+        waypoints.begin(),
+        waypoints.end(),
+        [](const BSLevelWaypointEntry& a, const BSLevelWaypointEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Set the map has valid
+    isValid = true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BSBeatMap::LoadVersion3(void)
+{
+    // TODO: Add the loader for version
+}
+
+///////////////////////////////////////////////////////////////////////////////
+BSLevel::BSLevel(void)
+    : isValid(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,6 +179,13 @@ BSLevel::BSLevel(const FilePath& levelPath)
         if (version.at(0) == '2') { LoadVersion2(); }
         else if (version.at(0) == '3') { LoadVersion3(); }
     }
+    m_infoData.clear();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+BSBeatMap BSLevel::LoadMap(SizeT difficultyIndex)
+{
+    return BSBeatMap(*this, difficultyIndex);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
