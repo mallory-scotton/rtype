@@ -419,7 +419,7 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
         {
             m_exitCode = 1;
             m_exitMessage =
-                "Failed to load game module: " + gameLib->GetLastError();
+                "Failed to load game module: " + gameLib->GetLastErrorMessage();
             return false;
         }
 
@@ -433,7 +433,7 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
         {
             m_exitCode = 1;
             m_exitMessage = "Failed to find TKD_CreateGame in module: " +
-                            gameLib->GetLastError();
+                            gameLib->GetLastErrorMessage();
             return false;
         }
 
