@@ -6,13 +6,14 @@
 #include <Engine/Core/Utils/FLogger.hpp>
 #include <Engine/Network/FBinaryWriter.hpp>
 #include <Engine/Network/Packets.hpp>
+#include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 namespace tkd
 {
-
 ///////////////////////////////////////////////////////////////////////////////
 FNetworkServer::FNetworkServer(UInt16 port)
     : FNetworkBase()
@@ -114,9 +115,10 @@ void FNetworkServer::Update(TKD_MAYBE_UNUSED float deltaTime)
     // Get current time
     auto now = SteadyClock::now();
 
-    // std::cout << "[SERVER] updating all by yourself handsome?" << std::endl;
     CheckConnectionTimeouts(now);
     SendHeartbeats(now);
+
+    // ReplicateDirtyProperties();
 
     m_lastUpdate = now;
 }
@@ -241,6 +243,11 @@ void FNetworkServer::SetupDefaultHandlers(void)
     RegisterPacketHandler<Packets::HeartBeat>(
         [this](const Packets::HeartBeat& packet, const FEndpoint& endpoint)
         { HandleHeartbeatPacket(packet, endpoint); }
+    );
+
+    RegisterPacketHandler<Packets::Replication>(
+        [this](const Packets::Replication& packet, const FEndpoint& endpoint)
+        { HandlePropertyReplicationPacket(packet, endpoint); }
     );
 }
 
@@ -401,6 +408,111 @@ void FNetworkServer::HandleHeartbeatPacket(
     if (it != m_connections.end())
     {
         it->second->lastActivity = SteadyClock::now();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::HandlePropertyReplicationPacket(
+    const Packets::Replication& packet, const FEndpoint& endpoint
+)
+{
+    TKD_UNUSED(endpoint);
+
+    // Queue the property replication for deferred execution to avoid deadlock
+    // The network thread queues replications here without blocking on
+    // m_worldMutex The world thread will process them via
+    // ProcessDeferredPropertyReplications()
+    std::lock_guard<std::mutex> lock(m_propertyQueueMutex);
+    m_deferredPropertyReplications.push({ packet, endpoint });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkServer::ReplicateDirtyProperties(void)
+{
+    // Get the world subsystem from the engine
+    auto* worldSubsystem = Engine::GetInstance().GetWorld();
+    if (!worldSubsystem) { return; }
+
+    // Collect properties to replicate
+    std::vector<IProperty*> toReplicate;
+
+    worldSubsystem->WithWorld(
+        [&toReplicate](UWorld& world)
+        {
+            // RACE CONDITION FIX: Copy actors to avoid iterator invalidation
+            auto actors = world.GetActors();
+
+            for (const auto& actor: actors)
+            {
+                if (!actor) { continue; }
+
+                TVector<IProperty*> properties;
+                actor->GetLifetimeReplicatedProperties(properties);
+
+                for (auto* property: properties)
+                {
+                    // Only replicate properties that have the Replicated flag
+                    // and are dirty
+                    if (property && property->IsDirty() &&
+                        property->HasFlag(EPropertyFlags::Replicated))
+                    {
+                        std::cout << "[SERVER] who is it bum: "
+                                  << property->GetName().CStr() << std::endl;
+                        toReplicate.push_back(property);
+                    }
+                }
+            }
+        }
+    );
+
+    // Send all collected properties
+    for (auto* property: toReplicate)
+    {
+        if (!property) { continue; }
+
+        auto& owner = property->GetOwner();
+
+        // Cast to AActor to get the owning client ID
+        auto* actor = dynamic_cast<AActor*>(&owner);
+        if (!actor) { continue; }
+
+        UInt32 owningClientID = actor->GetOwningClientID();
+
+        // Create replication packet
+        Packets::Replication replicationPacket;
+
+        // Set actor ID from UUID
+        replicationPacket.actorID = owner.GetUUID().Data();
+
+        replicationPacket.propertyName = property->GetName();
+        replicationPacket.timestamp = GetCurrentTimestamp();
+
+        // Serialize the property to binary data
+        replicationPacket.data = property->Serialize();
+
+        // Send the replication packet to the owning client
+        if (SendPacketToClient(replicationPacket, owningClientID))
+        {
+            property->ClearDirty();
+
+            FLogger::SetNamespace("Network");
+            FLogger::Info(
+                "Server replicated property '{}' of actor '{}' to client {}",
+                property->GetName().CStr(),
+                owner.GetUUID(),
+                owningClientID
+            );
+        }
+        else
+        {
+            FLogger::SetNamespace("Network");
+            FLogger::Warn(
+                "Failed to replicate property '{}' of actor '{}' to client {}",
+                property->GetName().CStr(),
+                owner.GetUUID(),
+                owningClientID
+            );
+        }
     }
 }
 

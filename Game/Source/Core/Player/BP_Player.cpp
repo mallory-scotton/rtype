@@ -12,7 +12,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Player::BP_Player(UInt32 playerColor)
     : APawn()
-    , speed(*this, "Speed", 2.0f)
+    , speed(*this, "Speed", 2.0f, EPropertyFlags::Replicated)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , playerColor(*this, "PlayerColor", playerColor % 5)
     , ServerFire(
@@ -35,7 +35,7 @@ BP_Player::BP_Player(UInt32 playerColor)
     , m_lastFiredTime(0.0f)
     , m_lastPosition(FVector3::Zero)
 {
-    // Enable transform replication for networked movement
+    // Transform is replicated via ServerMoveRPC, not property replication
     SetTransformReplicated(true);
 
     // Add components

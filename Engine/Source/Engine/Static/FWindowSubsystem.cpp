@@ -231,6 +231,20 @@ void FWindowSubsystem::ThreadLoop(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+void FWindowSubsystem::Shutdown(void)
+{
+    FThreadedSubsystem::Shutdown();
+    {
+        std::unique_lock lock(m_windowMutex);
+        if (m_window && m_window->IsOpen()) { m_window->Close(); }
+        // std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+        m_renderer.reset();
+        m_window.reset();
+    }
+}
+
 #endif
 
 }   // namespace tkd::__internal

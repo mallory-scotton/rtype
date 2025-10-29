@@ -309,18 +309,22 @@ void UWorld::RPC_SyncSnapshot(const std::vector<Byte>& snapshotData)
     // Update last processed snapshot ID
     m_lastSnapshotID = snapshot.snapshotID;
 
+    // RACE CONDITION FIX: Copy actors vector to avoid iterator invalidation
+    // when spawning new actors during snapshot processing
+    auto actorsCopy = m_actors;
+
     // Loop through each actor state in the snapshot
     for (const auto& actorState: snapshot.actors)
     {
-        // Find the actor in the current world by its UUID
+        // Find the actor in the copied vector by its UUID
         auto it = std::find_if(
-            m_actors.begin(),
-            m_actors.end(),
+            actorsCopy.begin(),
+            actorsCopy.end(),
             [&actorState](const std::shared_ptr<AActor>& actor)
             { return actor && actor->GetUUID() == actorState.id; }
         );
 
-        if (it != m_actors.end())
+        if (it != actorsCopy.end())
         {
             // Actor exists, update its state
             auto& actor = *it;
