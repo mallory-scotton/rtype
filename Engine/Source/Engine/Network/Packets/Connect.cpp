@@ -13,23 +13,25 @@ namespace tkd::Packets
 bool Connect::Serialize(FBinaryWriter& writer) const
 {
     writer.Write(clientID);
-    writer.WriteBytes(
-        reinterpret_cast<const UInt8*>(name.data()), name.size()
-    );
+    writer.Write(name);
+    writer.Write(gameName);
+    writer.Write(gameVersion);
     return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool Connect::Deserialize(FBinaryReader& reader)
 {
-    return reader.Read(clientID) &&
-           reader.ReadBytes(
-               reinterpret_cast<UInt8*>(name.data()), name.size()
-           );
+    return reader.Read(clientID) && reader.Read(name) &&
+           reader.Read(gameName) && reader.Read(gameVersion);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-SizeT Connect::GetSize(void) const { return sizeof(clientID) + name.size(); }
+SizeT Connect::GetSize(void) const
+{
+    return sizeof(clientID) + name.size() + gameVersion.size() +
+           gameName.size() + sizeof(SizeT) * 3;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 bool ConnectResponse::Serialize(FBinaryWriter& writer) const
