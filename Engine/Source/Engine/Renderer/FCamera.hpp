@@ -57,7 +57,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FCamera(
-        Float32 fov = 60.0f,
+        Float32 fov,
         Float32 aspect = 4.0f / 3.0f,
         Float32 near = 0.1f,
         Float32 far = 1000.0f
