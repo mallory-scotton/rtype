@@ -48,6 +48,12 @@ UWorld* FWorldSubsystem::GetWorld(void) const noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+UWorld* FWorldSubsystem::GetWorldUnsafe(void) const noexcept
+{
+    return m_world.get();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 TKD_NODISCARD double FWorldSubsystem::GetSimulationTime(void) const noexcept
 {
     return m_simulationTime.load(std::memory_order_acquire);

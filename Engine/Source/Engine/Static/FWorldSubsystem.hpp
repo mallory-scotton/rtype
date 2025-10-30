@@ -61,6 +61,16 @@ public:
     TKD_NODISCARD UWorld* GetWorld(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the world pointer without locking (for internal use)
+    ///
+    /// \return Pointer to the world (unsafe, no lock)
+    ///
+    /// \warning Only use when you know the world won't be destroyed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD UWorld* GetWorldUnsafe(void) const noexcept;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Execute a function with exclusive access to the world
     ///
     /// \tparam Func The type of the function

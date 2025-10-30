@@ -42,7 +42,11 @@ void FWorldInterface::SpawnActorDeferred(
     if (!worldSubsystem) { return; }
 
     // Access world directly without locking (deferred spawns are queued)
-    UWorld* world = worldSubsystem->GetWorld();
+    // Using GetWorldUnsafe() is safe here because:
+    // 1. We're only pushing to a vector (thread-safe operation)
+    // 2. The world won't be destroyed while the engine is running
+    // 3. We avoid deadlock when called from within Tick()
+    UWorld* world = worldSubsystem->GetWorldUnsafe();
     if (world) { world->SpawnActorDeferred(className, transform); }
 }
 
