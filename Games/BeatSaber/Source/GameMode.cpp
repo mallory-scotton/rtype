@@ -32,6 +32,10 @@ void BeatSaberGameMode::BeginPlay(void)
 {
     Super::BeginPlay();
 
+#if TKD_ENGINE_CLIENT
+    Window::GetCamera().position = FVector3::Zero;
+#endif
+
     auto levelsPath = m_gameSaves / "Levels";
 
     if (!FileSystem::FileExists(levelsPath))

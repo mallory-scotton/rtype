@@ -6,6 +6,7 @@
 #include <Engine/Renderer/SFML/Utils.hpp>
 #include <Engine/Renderer/SFML/Window.hpp>
 #if TKD_ENGINE_CLIENT
+    #include <GL/glew.h>
     #include <GL/glu.h>
     #include <SFML/OpenGL.hpp>
 #endif
@@ -29,8 +30,43 @@ Renderer::Renderer(IWindow* window)
     , m_currentView(/*FView::GetDefaultView()*/)
     , m_camera(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f)
 {
-    // Set the camera to set the initial OpenGL states
-    SetCamera(m_camera);
+    // Check if VR is initialized
+    if (VR::FVRSystem::GetInstance().IsInitialized())
+    {
+        m_vr.enabled = true;
+        m_vr.specs = VR::FVRSystem::GetInstance().GetSpecs();
+
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Info("VR initialized with device: {}", m_vr.specs.deviceName);
+        FLogger::Info(
+            "VR Recommended Render Target Size: {}x{}",
+            m_vr.specs.recommendedWidth,
+            m_vr.specs.recommendedHeight
+        );
+
+        // Create framebuffers for each eye
+        if (!m_vr.leftEye.Create(
+                m_vr.specs.recommendedWidth, m_vr.specs.recommendedHeight, 1
+            ) ||
+            !m_vr.rightEye.Create(
+                m_vr.specs.recommendedWidth, m_vr.specs.recommendedHeight, 1
+            ))
+        {
+            m_vr.enabled = false;
+            // Set the camera to set the initial OpenGL states
+            SetCamera(m_camera);
+            FLogger::SetNamespace("OpenGL");
+            FLogger::Warn(
+                "Failed to create VR framebuffers - disabling VR support"
+            );
+        }
+    }
+    else
+    {
+        m_vr.enabled = false;
+        // Set the camera to set the initial OpenGL states
+        SetCamera(m_camera);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,19 +100,22 @@ FView Renderer::GetDefaultView(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::ApplyCameraView(void)
 {
-    // Apply camera view
-    FVector3 center = m_camera.position + m_camera.front;
-    gluLookAt(
-        m_camera.position.x,
-        m_camera.position.y,
-        m_camera.position.z,
-        center.x,
-        center.y,
-        center.z,
-        m_camera.up.x,
-        m_camera.up.y,
-        m_camera.up.z
-    );
+    if (!m_vr.enabled)
+    {
+        // Apply camera view
+        FVector3 center = m_camera.position + m_camera.front;
+        gluLookAt(
+            m_camera.position.x,
+            m_camera.position.y,
+            m_camera.position.z,
+            center.x,
+            center.y,
+            center.z,
+            m_camera.up.x,
+            m_camera.up.y,
+            m_camera.up.z
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -123,23 +162,26 @@ void Renderer::Draw(
     glPopMatrix();
     glPopAttrib();
 
-    // Reapply 3D camera after 2D rendering
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    if (!m_vr.enabled)
+    {
+        // Reapply 3D camera after 2D rendering
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
 
-    // Update aspect ratio based on current size
-    m_camera.aspectRatio =
-        static_cast<float>(size.x) / static_cast<float>(size.y);
+        // Update aspect ratio based on current size
+        m_camera.aspectRatio =
+            static_cast<float>(size.x) / static_cast<float>(size.y);
 
-    gluPerspective(
-        m_camera.fov,
-        m_camera.aspectRatio,
-        m_camera.nearPlane,
-        m_camera.farPlane
-    );
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    ApplyCameraView();
+        gluPerspective(
+            m_camera.fov,
+            m_camera.aspectRatio,
+            m_camera.nearPlane,
+            m_camera.farPlane
+        );
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        ApplyCameraView();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -431,61 +473,453 @@ void Renderer::PopScissorTest(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool Renderer::IsUsingVirtualReality(void) const { return m_vr.enabled; }
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::SetupVirtualRealityRightEye(void)
+{
+    VR::FVRSystem& vrSystem = VR::FVRSystem::GetInstance();
+    VR::FPose hmdPose = vrSystem.GetHMDPose();
+
+    // Bind right eye framebuffer
+    m_vr.rightEye.Bind();
+    glViewport(
+        0, 0, m_vr.specs.recommendedWidth, m_vr.specs.recommendedHeight
+    );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
+
+    // Ensure OpenGL states are set correctly
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDisable(GL_TEXTURE_2D);
+
+    if (hmdPose.isValid)
+    {
+        // Build HMD pose matrix from rotation and position
+        FMatrix4x4 headPose = hmdPose.rotation.ToMatrix4x4();
+        headPose(0, 3) = hmdPose.position.x;
+        headPose(1, 3) = hmdPose.position.y;
+        headPose(2, 3) = hmdPose.position.z;
+
+        // Create player rotation matrix (rotation around Y-axis only, no
+        // translation yet)
+        float yawRad = /*playerYaw*/ 0.f * (M_PI / 180.0f);
+        float cosYaw = std::cos(yawRad);
+        float sinYaw = std::sin(yawRad);
+
+        FMatrix4x4 playerRotation;
+        playerRotation(0, 0) = cosYaw;
+        playerRotation(0, 1) = 0.0f;
+        playerRotation(0, 2) = sinYaw;
+        playerRotation(0, 3) = 0.0f;
+        playerRotation(1, 0) = 0.0f;
+        playerRotation(1, 1) = 1.0f;
+        playerRotation(1, 2) = 0.0f;
+        playerRotation(1, 3) = 0.0f;
+        playerRotation(2, 0) = -sinYaw;
+        playerRotation(2, 1) = 0.0f;
+        playerRotation(2, 2) = cosYaw;
+        playerRotation(2, 3) = 0.0f;
+        playerRotation(3, 0) = 0.0f;
+        playerRotation(3, 1) = 0.0f;
+        playerRotation(3, 2) = 0.0f;
+        playerRotation(3, 3) = 1.0f;
+
+        // Apply player rotation to head pose: playerRotation * headPose
+        FMatrix4x4 rotatedHeadPose;
+        for (SizeT i = 0; i < 4; i++)
+        {
+            for (SizeT j = 0; j < 4; j++)
+            {
+                rotatedHeadPose(i, j) = 0;
+                for (SizeT k = 0; k < 4; k++)
+                {
+                    rotatedHeadPose(i, j) +=
+                        playerRotation(i, k) * headPose(k, j);
+                }
+            }
+        }
+
+        // Now add player position translation
+        rotatedHeadPose(0, 3) += m_camera.position.x;
+        rotatedHeadPose(1, 3) += m_camera.position.y;
+        rotatedHeadPose(2, 3) += m_camera.position.z;
+
+        // Setup projection matrix - DON'T transpose, already done in
+        // GetProjectionMatrix
+        FMatrix4x4 projectionRight =
+            vrSystem.GetProjectionMatrix(VR::EEye::Right, 0.1f, 100.0f);
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf(&projectionRight.data[0][0]);
+
+        // Setup view matrix
+        FMatrix4x4 eyeToHeadRight =
+            vrSystem.GetEyeToHeadTransform(VR::EEye::Right);
+
+        // Matrix multiply: rotatedHeadPose * eyeToHead
+        FMatrix4x4 viewMatrix;
+        for (SizeT i = 0; i < 4; i++)
+        {
+            for (SizeT j = 0; j < 4; j++)
+            {
+                viewMatrix(i, j) = 0;
+                for (SizeT k = 0; k < 4; k++)
+                {
+                    viewMatrix(i, j) +=
+                        rotatedHeadPose(i, k) * eyeToHeadRight(k, j);
+                }
+            }
+        }
+
+        // Simple inverse for viewing (transpose rotation, negate translation)
+        FMatrix4x4 view;
+        for (SizeT i = 0; i < 3; i++)
+        {
+            for (SizeT j = 0; j < 3; j++)
+            {
+                view(i, j) = viewMatrix(j, i);   // Transpose rotation part
+            }
+        }
+        view(0, 3) =
+            -(viewMatrix(0, 3) * view(0, 0) + viewMatrix(1, 3) * view(0, 1) +
+              viewMatrix(2, 3) * view(0, 2));
+        view(1, 3) =
+            -(viewMatrix(0, 3) * view(1, 0) + viewMatrix(1, 3) * view(1, 1) +
+              viewMatrix(2, 3) * view(1, 2));
+        view(2, 3) =
+            -(viewMatrix(0, 3) * view(2, 0) + viewMatrix(1, 3) * view(2, 1) +
+              viewMatrix(2, 3) * view(2, 2));
+        view(3, 0) = 0.0f;
+        view(3, 1) = 0.0f;
+        view(3, 2) = 0.0f;
+        view(3, 3) = 1.0f;
+
+        glMatrixMode(GL_MODELVIEW);
+        FMatrix4x4 viewTransposed = view.Transpose();
+        glLoadMatrixf(&viewTransposed.data[0][0]);
+
+        //? TEMP: Draw simple grid at HMD position for debugging
+        glPushMatrix();
+        // Draw a simple test cube right in front of camera at origin
+        glTranslatef(0, 0, -2);   // 2 meters in front
+
+        // Draw colored axes to verify rendering
+        glBegin(GL_LINES);
+        // X axis - Red
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(1, 0, 0);
+        // Y axis - Green
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 1, 0);
+        // Z axis - Blue
+        glColor3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, 1);
+        glEnd();
+
+        glPopMatrix();
+        //? ENDTEMP
+    }
+    else
+    {
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Warn("HMD pose is not valid - cannot render VR view");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::ResolveVirtualRealityRightEye(void)
+{
+    // Unbind framebuffer
+    m_vr.rightEye.Unbind();
+    // Resolve MSAA if needed
+    m_vr.rightEye.Resolve();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::SetupVirtualRealityLeftEye(void)
+{
+    VR::FVRSystem& vrSystem = VR::FVRSystem::GetInstance();
+    VR::FPose hmdPose = vrSystem.GetHMDPose();
+
+    m_vr.leftEye.Bind();
+    glViewport(
+        0, 0, m_vr.specs.recommendedWidth, m_vr.specs.recommendedHeight
+    );
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.15f, 0.15f, 0.18f, 1.0f);
+
+    // Ensure OpenGL states are set correctly
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDisable(GL_TEXTURE_2D);
+
+    if (hmdPose.isValid)
+    {
+        FMatrix4x4 headPose = hmdPose.rotation.ToMatrix4x4();
+        headPose(0, 3) = hmdPose.position.x;
+        headPose(1, 3) = hmdPose.position.y;
+        headPose(2, 3) = hmdPose.position.z;
+
+        // Create player rotation matrix (rotation around Y-axis only, no
+        // translation yet)
+        float yawRad = /*playerYaw*/ 0.f * (M_PI / 180.0f);
+        float cosYaw = std::cos(yawRad);
+        float sinYaw = std::sin(yawRad);
+
+        FMatrix4x4 playerRotation;
+        playerRotation(0, 0) = cosYaw;
+        playerRotation(0, 1) = 0.0f;
+        playerRotation(0, 2) = sinYaw;
+        playerRotation(0, 3) = 0.0f;
+        playerRotation(1, 0) = 0.0f;
+        playerRotation(1, 1) = 1.0f;
+        playerRotation(1, 2) = 0.0f;
+        playerRotation(1, 3) = 0.0f;
+        playerRotation(2, 0) = -sinYaw;
+        playerRotation(2, 1) = 0.0f;
+        playerRotation(2, 2) = cosYaw;
+        playerRotation(2, 3) = 0.0f;
+        playerRotation(3, 0) = 0.0f;
+        playerRotation(3, 1) = 0.0f;
+        playerRotation(3, 2) = 0.0f;
+        playerRotation(3, 3) = 1.0f;
+
+        // Apply player rotation to head pose: playerRotation * headPose
+        FMatrix4x4 rotatedHeadPose;
+        for (SizeT i = 0; i < 4; i++)
+        {
+            for (SizeT j = 0; j < 4; j++)
+            {
+                rotatedHeadPose(i, j) = 0;
+                for (SizeT k = 0; k < 4; k++)
+                {
+                    rotatedHeadPose(i, j) +=
+                        playerRotation(i, k) * headPose(k, j);
+                }
+            }
+        }
+
+        // Now add player position translation
+        rotatedHeadPose(0, 3) += m_camera.position.x;
+        rotatedHeadPose(1, 3) += m_camera.position.y;
+        rotatedHeadPose(2, 3) += m_camera.position.z;
+
+        // Setup projection matrix - DON'T transpose, already done in
+        // GetProjectionMatrix
+        FMatrix4x4 projectionLeft =
+            vrSystem.GetProjectionMatrix(VR::EEye::Left, 0.1f, 100.0f);
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixf(&projectionLeft.data[0][0]);
+
+        // Setup view matrix
+        FMatrix4x4 eyeToHeadLeft =
+            vrSystem.GetEyeToHeadTransform(VR::EEye::Left);
+
+        // Matrix multiply: rotatedHeadPose * eyeToHead
+        FMatrix4x4 viewMatrix;
+        for (SizeT i = 0; i < 4; i++)
+        {
+            for (SizeT j = 0; j < 4; j++)
+            {
+                viewMatrix(i, j) = 0;
+                for (SizeT k = 0; k < 4; k++)
+                {
+                    viewMatrix(i, j) +=
+                        rotatedHeadPose(i, k) * eyeToHeadLeft(k, j);
+                }
+            }
+        }
+
+        // Simple inverse for viewing (transpose rotation, negate translation)
+        FMatrix4x4 view;
+        for (SizeT i = 0; i < 3; i++)
+        {
+            for (SizeT j = 0; j < 3; j++)
+            {
+                view(i, j) = viewMatrix(j, i);   // Transpose rotation part
+            }
+        }
+        view(0, 3) =
+            -(viewMatrix(0, 3) * view(0, 0) + viewMatrix(1, 3) * view(0, 1) +
+              viewMatrix(2, 3) * view(0, 2));
+        view(1, 3) =
+            -(viewMatrix(0, 3) * view(1, 0) + viewMatrix(1, 3) * view(1, 1) +
+              viewMatrix(2, 3) * view(1, 2));
+        view(2, 3) =
+            -(viewMatrix(0, 3) * view(2, 0) + viewMatrix(1, 3) * view(2, 1) +
+              viewMatrix(2, 3) * view(2, 2));
+        view(3, 0) = 0.0f;
+        view(3, 1) = 0.0f;
+        view(3, 2) = 0.0f;
+        view(3, 3) = 1.0f;
+
+        glMatrixMode(GL_MODELVIEW);
+        FMatrix4x4 viewTransposed = view.Transpose();
+        glLoadMatrixf(&viewTransposed.data[0][0]);
+
+        //? TEMP: Draw simple grid at HMD position for debugging
+        glPushMatrix();
+        // Draw a simple test cube right in front of camera at origin
+        glTranslatef(0, 0, -2);   // 2 meters in front
+
+        // Draw colored axes to verify rendering
+        glBegin(GL_LINES);
+        // X axis - Red
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(1, 0, 0);
+        // Y axis - Green
+        glColor3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 1, 0);
+        // Z axis - Blue
+        glColor3f(0.0f, 0.0f, 1.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, 1);
+        glEnd();
+
+        glPopMatrix();
+        //? ENDTEMP
+    }
+    else
+    {
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Warn("HMD pose is not valid - cannot render VR view");
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void Renderer::ResolveVirtualRealityLeftEye(void)
+{
+    // Unbind framebuffer
+    m_vr.leftEye.Unbind();
+    // Resolve MSAA if needed
+    m_vr.leftEye.Resolve();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void Renderer::BeginFrame(void)
 {
-    // Get current window size and update aspect ratio
-    sf::Vector2u size = m_currentTarget->getSize();
-    m_camera.aspectRatio =
-        static_cast<float>(size.x) / static_cast<float>(size.y);
-
-    // Apply current view
-    m_currentTarget->setView(Utils::Convert(m_currentView));
-
-    // Clear depth and color buffers
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Set up 3D projection with updated aspect ratio
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    // Clamp near and far planes to valid ranges
-    if (m_camera.nearPlane < 0.1f)
+    // Call the VR BeginFrame if VR is enabled
+    if (m_vr.enabled) { VR::FVRSystem::GetInstance().BeginFrame(); }
+    else
     {
-        m_camera.nearPlane = 0.1f;
-    }
-    else if (m_camera.nearPlane >= m_camera.farPlane)
-    {
-        m_camera.nearPlane = m_camera.farPlane - 0.1f;
-    }
-    if (m_camera.farPlane <= m_camera.nearPlane)
-    {
-        m_camera.farPlane = m_camera.nearPlane + 1000.0f;
-    }
+        // Get current window size and update aspect ratio
+        sf::Vector2u size = m_currentTarget->getSize();
+        m_camera.aspectRatio =
+            static_cast<float>(size.x) / static_cast<float>(size.y);
 
-    gluPerspective(
-        m_camera.fov,
-        m_camera.aspectRatio,
-        m_camera.nearPlane,
-        m_camera.farPlane
-    );
+        // Apply current view
+        m_currentTarget->setView(Utils::Convert(m_currentView));
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        // Clear depth and color buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Apply camera view
-    ApplyCameraView();
+        // Set up 3D projection with updated aspect ratio
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+
+        // Clamp near and far planes to valid ranges
+        if (m_camera.nearPlane < 0.1f) { m_camera.nearPlane = 0.1f; }
+        else if (m_camera.nearPlane >= m_camera.farPlane)
+        {
+            m_camera.nearPlane = m_camera.farPlane - 0.1f;
+        }
+        if (m_camera.farPlane <= m_camera.nearPlane)
+        {
+            m_camera.farPlane = m_camera.nearPlane + 1000.0f;
+        }
+
+        gluPerspective(
+            m_camera.fov,
+            m_camera.aspectRatio,
+            m_camera.nearPlane,
+            m_camera.farPlane
+        );
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Apply camera view
+        ApplyCameraView();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::EndFrame(void)
 {
-    if (m_currentTarget == m_window) { m_window->display(); }
+    // Special handling for VR rendering
+    if (m_vr.enabled)
+    {
+        // Get VR system instance
+        auto& vrSystem = VR::FVRSystem::GetInstance();
+
+        // Ensure all rendering is complete before compositor reads textures
+        glFinish();
+
+        // Submit VR frames
+        vrSystem.SubmitFrame(VR::EEye::Left, m_vr.leftEye.GetRenderTarget());
+        vrSystem.SubmitFrame(VR::EEye::Right, m_vr.rightEye.GetRenderTarget());
+
+        // Get the size of the window
+        sf::Vector2u windowSize = m_window->getSize();
+
+        // Display preview in window (show what left eye sees)
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, windowSize.x, windowSize.y);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Setup orthographic projection for displaying texture
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-1, 1, -1, 1, -1, 1);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Bind and display the left eye texture
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, m_vr.leftEye.GetRenderTarget().textureID);
+
+        // Draw a full-screen quad with the texture
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex2f(-1, -1);
+        glTexCoord2f(1, 0);
+        glVertex2f(1, -1);
+        glTexCoord2f(1, 1);
+        glVertex2f(1, 1);
+        glTexCoord2f(0, 1);
+        glVertex2f(-1, 1);
+        glEnd();
+
+        // Cleanup - unbind the texture
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);
+
+        // Display the window contents
+        if (m_currentTarget == m_window) { m_window->display(); }
+
+        //  End VR Frame
+        vrSystem.EndFrame();
+    }
+    else
+    {
+        if (m_currentTarget == m_window) { m_window->display(); }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::SetCamera(const FCamera& camera)
 {
     m_camera = camera;
+
+    if (m_vr.enabled) { return; }
 
     // Apply OpenGL GLU perspective
     glMatrixMode(GL_PROJECTION);

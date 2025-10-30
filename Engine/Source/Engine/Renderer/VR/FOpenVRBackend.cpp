@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/VR/FOpenVRBackend.hpp>
+#include <Engine/Core/Utils/FLogger.hpp>
 #include <Engine/Renderer/VR/FVREvent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -400,15 +401,44 @@ void FOpenVRBackend::SubmitFrame(EEye eye, const FRenderTarget& target)
 {
     if (!m_system) { return; }
 
+    // Validate texture
+    if (target.textureID == 0)
+    {
+        FLogger::SetNamespace("VR");
+        FLogger::Error(
+            "Attempting to submit invalid texture ID for {} eye",
+            (eye == EEye::Left ? "Left" : "Right")
+        );
+        return;
+    }
+
     vr::Texture_t vrTexture = {
         reinterpret_cast<void*>(static_cast<SizeT>(target.textureID)),
         vr::TextureType_OpenGL,
         vr::ColorSpace_Gamma
     };
 
+    // OpenGL textures are bottom-left origin
+    vr::VRTextureBounds_t bounds;
+    bounds.uMin = 0.0f;
+    bounds.uMax = 1.0f;
+    bounds.vMin = 0.0f;   // Bottom
+    bounds.vMax = 1.0f;   // Top
+
     vr::EVREye vrEye = (eye == EEye::Left) ? vr::Eye_Left : vr::Eye_Right;
 
-    vr::VRCompositor()->Submit(vrEye, &vrTexture);
+    vr::EVRCompositorError err =
+        vr::VRCompositor()->Submit(vrEye, &vrTexture, &bounds);
+
+    if (err != vr::VRCompositorError_None)
+    {
+        FLogger::SetNamespace("VR");
+        FLogger::Error(
+            "Compositor submit failed for {} eye: Error code {}",
+            (eye == EEye::Left ? "Left" : "Right"),
+            static_cast<int>(err)
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

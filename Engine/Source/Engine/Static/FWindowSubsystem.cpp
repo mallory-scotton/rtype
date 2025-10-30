@@ -225,38 +225,56 @@ void FWindowSubsystem::ThreadLoop(void)
     {
         std::shared_lock lock(m_windowMutex);
 
-        VR::FVRSystem& vrSystem = VR::FVRSystem::GetInstance();
-
-        if (m_vrInitialized) { vrSystem.BeginFrame(); }
-
         // Begin rendering
         m_renderer->BeginFrame();
 
-        // Execute render callback
-        m_window->Draw(
-            [this]()
-            {
-                std::shared_lock callbackLock(m_dataMutex);
-                if (m_renderCallback && m_renderer)
-                {
-                    m_renderCallback(*m_renderer);
-                }
-            }
-        );
-
-        // Submit VR frames
-        if (m_vrInitialized)
+        if (m_renderer->IsUsingVirtualReality())
         {
-            // TODO: Implement VR frame submission
-            // vrSystem.SubmitFrames(VR::EEye::Left);
-            // vrSystem.SubmitFrames(VR::EEye::Right);
+            // Execute render callback for left eye
+            m_renderer->SetupVirtualRealityLeftEye();
+            m_window->Draw(
+                [this]()
+                {
+                    std::shared_lock callbackLock(m_dataMutex);
+                    if (m_renderCallback && m_renderer)
+                    {
+                        m_renderCallback(*m_renderer);
+                    }
+                }
+            );
+            m_renderer->ResolveVirtualRealityLeftEye();
+
+            // Execute render callback for right eye
+            m_renderer->SetupVirtualRealityRightEye();
+            m_window->Draw(
+                [this]()
+                {
+                    std::shared_lock callbackLock(m_dataMutex);
+                    if (m_renderCallback && m_renderer)
+                    {
+                        m_renderCallback(*m_renderer);
+                    }
+                }
+            );
+            m_renderer->ResolveVirtualRealityRightEye();
+        }
+        else
+        {
+            // Execute render callback
+            m_window->Draw(
+                [this]()
+                {
+                    std::shared_lock callbackLock(m_dataMutex);
+                    if (m_renderCallback && m_renderer)
+                    {
+                        m_renderCallback(*m_renderer);
+                    }
+                }
+            );
         }
 
         // End rendering
         m_renderer->EndFrame();
-
-        // End VR Frame
-        if (m_vrInitialized) { vrSystem.EndFrame(); }
     }
 
     // Update performance metrics
