@@ -82,6 +82,8 @@ void FNetworkBase::InitializePacketManager(void)
     m_packetManager.RegisterPacket<Packets::RemoteProcedureCall>();
     m_packetManager.RegisterPacket<Packets::Acknowledgment>();
     m_packetManager.RegisterPacket<Packets::Snapshot>();
+    m_packetManager.RegisterPacket<Packets::Fragment>();
+    m_packetManager.RegisterPacket<Packets::FragmentAcknowledgment>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -91,7 +93,7 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
     RegisterPacketHandler<Packets::Acknowledgment>(
         [this](
             const Packets::Acknowledgment& packet, const FEndpoint& endpoint
-        ) { HandleAcknowledgmentPacket(packet, endpoint); }
+        ) { (packet, endpoint); }
     );
 
     // Register handler for RPC packets
