@@ -447,6 +447,21 @@ void Renderer::BeginFrame(void)
     // Set up 3D projection with updated aspect ratio
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    // Clamp near and far planes to valid ranges
+    if (m_camera.nearPlane < 0.1f)
+    {
+        m_camera.nearPlane = 0.1f;
+    }
+    else if (m_camera.nearPlane >= m_camera.farPlane)
+    {
+        m_camera.nearPlane = m_camera.farPlane - 0.1f;
+    }
+    if (m_camera.farPlane <= m_camera.nearPlane)
+    {
+        m_camera.farPlane = m_camera.nearPlane + 1000.0f;
+    }
+
     gluPerspective(
         m_camera.fov,
         m_camera.aspectRatio,
