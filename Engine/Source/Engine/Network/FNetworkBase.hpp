@@ -131,6 +131,7 @@ protected:
     std::atomic<bool> m_running;       //<! true if the network is running
     FNetworkStatistics m_statistics;   //<! Network statistics
     FPacketManager m_packetManager;    //<! Packet manager
+    std::unique_ptr<FEngineSettings> m_settings;   //<! Engine settings
     std::array<UInt8, MAX_PACKET_SIZE>
         m_receiveBuffer;               //<! Buffer for receiving data
     tkd::FEndpoint m_senderEndpoint;   //<! Endpoint of the sender
@@ -237,6 +238,14 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     const FNetworkStatistics& GetStatistics(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set engine settings for network validation
+    ///
+    /// \param settings The engine settings to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetEngineSettings(const FEngineSettings& settings);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Process deferred RPCs from the queue
