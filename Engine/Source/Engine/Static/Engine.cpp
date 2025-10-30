@@ -191,7 +191,7 @@ void Engine::Run(void)
         if (m_network) { m_network->ThreadLoop(); }
 
         // Sleep to reduce CPU usage
-        std::this_thread::sleep_for(Milliseconds(10));
+        std::this_thread::yield();
     }
 
     TKD_ENGINE_IF_CLIENT({ m_window->ThreadTeardown(); })

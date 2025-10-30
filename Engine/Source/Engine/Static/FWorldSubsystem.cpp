@@ -184,8 +184,10 @@ void FWorldSubsystem::ThreadLoop(void)
             std::memory_order_release
         );
 
+#ifndef TKD_SYSTEM_WINDOWS
         // Little sleep to prevent 100% CPU usage
         WaitFor(Milliseconds(1));
+#endif
     }
 }
 
