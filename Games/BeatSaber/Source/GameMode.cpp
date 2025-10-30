@@ -83,7 +83,44 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
     {
         if (note.time <= m_beatTime)
         {
-            std::cout << "Spawning Note at: " << note.time << std::endl;
+            // Beat Saber uses 0.6 units spacing between lanes
+            // LineIndex: horizontal position (0-3, left to right)
+            // Lanes are at: -0.9, -0.3, 0.3, 0.9 (centered at 0)
+            // LineLayer: vertical position (0-2, bottom to top)
+            // Layers are at: 0, 0.6, 1.2
+            float horizontalPos =
+                (static_cast<float>(note.lineIndex) - 1.5f) * 1.6f;
+            float verticalPos = static_cast<float>(note.lineLayer) * 1.6f;
+
+            // Calculate spawn distance based on noteJumpMovementSpeed and BPM
+            // In Beat Saber, notes spawn at a distance that gives time to
+            // react
+            float halfJumpDuration =
+                4.0f;   // Half jump duration in beats (standard)
+            float jumpDistance =
+                m_map.difficulty.noteJumpMovementSpeed *
+                (halfJumpDuration / (m_level.beatsPerMinute / 60.0f));
+
+            FVector3 position(horizontalPos, verticalPos, -jumpDistance);
+            FTransform noteTransform(
+                position, Rotator::Identity, FVector3::One
+            );
+
+            // Spawn the note with specific type, cut direction, and speed
+            World::SpawnActorDeferredWithParams<BP_Note>(
+                noteTransform,
+                note.type,
+                note.cutDirection,
+                m_map.difficulty.noteJumpMovementSpeed
+            );
+
+            std::cout << "Spawning "
+                      << (note.type == ENoteType::LeftHand ? "Left" : "Right")
+                      << " Hand note with "
+                      << static_cast<int>(note.cutDirection)
+                      << " cut direction at time: " << note.time
+                      << " (speed: " << m_map.difficulty.noteJumpMovementSpeed
+                      << ")" << std::endl;
         }
         else { break; }
     }

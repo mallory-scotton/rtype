@@ -11,10 +11,11 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Note::BP_Note(ENoteType type, ECutDirection cutDirection)
+BP_Note::BP_Note(ENoteType type, ECutDirection cutDirection, float speed)
     : AActor("BP_Note")
     , m_type(type)
     , m_cutDirection(cutDirection)
+    , m_speed(speed)
 {
     AddComponent<UCubeComponent>("SM_Cube");
 }
@@ -50,11 +51,13 @@ void BP_Note::Tick(float deltaTime)
     // Call the Tick of the Super Class
     Super::Tick(deltaTime);
 
-    static float acc = 0.f;
-    acc += deltaTime;
-    FTransform transform;
-    transform.SetPosition(FVector3(std::sin(acc) * 5.f, 0.f, 0.f));
+    // Move the note toward the player using the configured speed
+    FTransform transform = GetTransform();
+    transform.Translate(FVector3(0.f, 0.f, deltaTime * m_speed));
     SetTransform(transform);
+
+    // Delete note when it passes the player position
+    if (transform.GetPosition().z > 2.0f) { MarkForDeletion(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

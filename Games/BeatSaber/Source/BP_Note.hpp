@@ -55,6 +55,7 @@ private:
     ENoteType m_type;               //<!
     ECutDirection m_cutDirection;   //<!
     FTextureHandle m_handle;        //<!
+    float m_speed;                  //<!
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -62,11 +63,13 @@ public:
     ///
     /// \param type The type of the note
     /// \param cutDirection The cut direction of the note
+    /// \param speed The movement speed of the note
     ///
     ///////////////////////////////////////////////////////////////////////////
     BP_Note(
         ENoteType type = ENoteType::LeftHand,
-        ECutDirection cutDirection = ECutDirection::Up
+        ECutDirection cutDirection = ECutDirection::Up,
+        float speed = 10.0f
     );
 
 public:
