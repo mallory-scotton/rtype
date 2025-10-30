@@ -30,14 +30,13 @@ void BP_Note::BeginPlay(void)
     if (cubeComp)
     {
         auto& cube = cubeComp->GetCube();
-        // switch (m_type)
-        // {
-        // case ENoteType::LeftHand : cube = UCubePrimitive(FColor::Red);
-        // break; case ENoteType::RightHand: cube =
-        // UCubePrimitive(FColor::Blue); break; case ENoteType::Bomb     : cube
-        // = UCubePrimitive(FColor::Black); break; default                  :
-        // cube = UCubePrimitive(FColor::White); break;
-        // }
+        switch (m_type)
+        {
+        case ENoteType::LeftHand : cube = UCubePrimitive(FColor::Red); break;
+        case ENoteType::RightHand: cube = UCubePrimitive(FColor::Blue); break;
+        case ENoteType::Bomb     : cube = UCubePrimitive(FColor::Black); break;
+        default                  : cube = UCubePrimitive(FColor::White); break;
+        }
         m_handle =
             URessource::GetTextureHandle("Assets/Textures/GridBox_Default.png"
             );
