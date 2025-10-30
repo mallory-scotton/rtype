@@ -219,6 +219,10 @@ target_include_directories(TKDEngineClientExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
 )
 
+target_compile_definitions(TKDEngineClientExe PRIVATE
+    TKD_ENGINE_STANDALONE=1
+)
+
 target_link_libraries(TKDEngineClientExe PRIVATE
     TKDEngineClient
 )
@@ -241,6 +245,10 @@ endforeach()
 
 target_include_directories(TKDEngineServerExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+target_compile_definitions(TKDEngineServerExe PRIVATE
+    TKD_ENGINE_STANDALONE=1
 )
 
 target_link_libraries(TKDEngineServerExe PRIVATE
