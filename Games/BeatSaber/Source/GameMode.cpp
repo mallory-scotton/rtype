@@ -43,7 +43,7 @@ void BeatSaberGameMode::BeginPlay(void)
 
     if (!levels.empty())
     {
-        m_level = BSLevel(levels[0]);
+        m_level = BSLevel(levels[std::rand() % levels.size()]);
 
         if (m_level.isValid)
         {
@@ -53,10 +53,11 @@ void BeatSaberGameMode::BeginPlay(void)
 
         if (!m_level.difficulties.empty())
         {
-            m_map = m_level.LoadMap(0);
+            m_map = m_level.LoadMap(std::rand() % m_level.difficulties.size());
 
             std::cout << "\nLoaded level: " << m_map.difficulty.beatmapFilename
                       << std::endl;
+            std::cout << "Version: " << m_map.version << std::endl;
             std::cout << "Notes Count: " << m_map.notes.size() << std::endl;
             std::cout << "Obstacles Count: " << m_map.obstacles.size()
                       << std::endl;
@@ -78,6 +79,85 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
     m_playTime += deltaTime;
     m_beatTime = m_playTime * m_level.beatsPerMinute / 60.f;
 
+    /*
+        🚀 Note Jump Movement Speed (NJS)
+
+        What it does
+
+        Controls the speed at which notes travel from spawn to hit point.
+        A higher NJS = notes fly toward you faster and spawn closer.
+        A lower NJS = notes move slower and spawn farther away.
+
+        How it works technically
+
+        Beat Saber calculates spawn distance based on NJS and beat timing,
+        so that notes always reach the player exactly on beat, but the travel
+        time changes with NJS.
+
+        🚀 Note Jump Start Beat Offset (NJO)
+
+        What it does
+
+        Adjusts how many beats before the hit time a note spawns.
+
+        Positive offset → notes appear earlier (further away).
+
+        Negative offset → notes appear later (closer to player).
+
+        Example
+
+        If your NJS = 20 and NJO = 0, notes spawn at the default distance
+       (based on a 0.5s travel time at your BPM). If NJO = +1, they spawn one
+       beat earlier → appear further away. If NJO = –1, they spawn one beat
+       later → appear closer.
+
+        spawnDistance = (jumpDistanceBase + noteJumpOffset) * (NJS / 10)
+
+        🚀 Grid Spacing - Horizontal & Vertical
+
+        y=2  [ ] [ ] [ ] [ ]
+        y=1  [ ] [ ] [ ] [ ]
+        y=0  [ ] [ ] [ ] [ ]
+             x=0 x=1 x=2 x=3
+
+        Each column/row is separated by 1 unit.
+
+        So the centers of the cubes are 1 unit apart in both x and y
+        directions.
+
+        Coordinates for note centers:
+        Grid (x,y)      Position (units)
+        (0,0)           far left, bottom
+        (1,0)           slightly left, bottom
+        (2,0)           slightly right, bottom
+        (3,0)           far right, bottom
+
+        So the entire play area width = 4 units.
+        The player’s saber reach roughly spans ±2 units horizontally and ±1.5
+        units vertically.
+
+        🚀 Player & Note Hit Plane
+
+        The player’s saber plane (where cubes are hit) is at Z = 0.
+
+        Notes move along the +Z axis toward 0, starting from a spawn point
+        further away (positive Z).
+
+        🚀 Base Spawn Distance (Default)
+
+        This depends on Note Jump Speed (NJS) and Note Jump Offset (NJO), but
+        the baseline constant is roughly 17–18 units (meters) from the player.
+
+        At default NJS = 10 and NJO = 0, the first visible spawn point ≈ 17 m
+       away.
+
+        The formula used internally (simplified from Beat Saber’s C# code):
+
+        jumpDistance = noteJumpMovementSpeed * jumpDuration
+        spawnOffset = (jumpDistance * 0.5)
+        spawnZ = playerZ + spawnOffset
+    */
+
     // Spawn the notes
     for (const auto& note: m_map.notes)
     {
@@ -89,8 +169,8 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
             // LineLayer: vertical position (0-2, bottom to top)
             // Layers are at: 0, 0.6, 1.2
             float horizontalPos =
-                (static_cast<float>(note.lineIndex) - 1.5f) * 1.6f;
-            float verticalPos = static_cast<float>(note.lineLayer) * 1.6f;
+                (static_cast<float>(note.lineIndex) - 1.5f) * 1.f;
+            float verticalPos = static_cast<float>(note.lineLayer) * 1.f;
 
             // Calculate spawn distance based on noteJumpMovementSpeed and BPM
             // In Beat Saber, notes spawn at a distance that gives time to
@@ -113,14 +193,6 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
                 note.cutDirection,
                 m_map.difficulty.noteJumpMovementSpeed
             );
-
-            std::cout << "Spawning "
-                      << (note.type == ENoteType::LeftHand ? "Left" : "Right")
-                      << " Hand note with "
-                      << static_cast<int>(note.cutDirection)
-                      << " cut direction at time: " << note.time
-                      << " (speed: " << m_map.difficulty.noteJumpMovementSpeed
-                      << ")" << std::endl;
         }
         else { break; }
     }

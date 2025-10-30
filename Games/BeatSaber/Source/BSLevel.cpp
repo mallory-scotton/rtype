@@ -23,10 +23,10 @@ BSBeatMap::BSBeatMap(const BSLevel& level, SizeT difficultyIndex)
     , isValid(false)
     , m_beatmapPath(level.levelPath / difficulty.beatmapFilename)
 {
-    if (CheckValidity() && level.version.size() > 0)
+    if (CheckValidity() && version.size() > 0)
     {
-        if (level.version.at(0) == '2') { LoadVersion2(); }
-        else if (level.version.at(0) == '3') { LoadVersion3(); }
+        if (version.at(0) == '2') { LoadVersion2(); }
+        else if (version.at(0) == '3') { LoadVersion3(); }
     }
     m_data.clear();
 }
@@ -40,6 +40,8 @@ bool BSBeatMap::CheckValidity(void)
     {
         std::ifstream dataStream(m_beatmapPath);
         m_data = Json::parse(dataStream);
+        version = m_data.value("_version", "");
+        if (version.empty()) { version = m_data.value("version", ""); }
     }
     catch (...)
     {
@@ -105,7 +107,8 @@ void BSBeatMap::LoadVersion2(void)
             BSLevelObstacleEntry entry;
 
             entry.time = obs.value("_time", -1.f);
-            entry.lineIndex = obs.value("_lineIndex", -1);
+            entry.lineIndex = obs.value("_lineIndex", 0);
+            entry.lineLayer = 0;
             entry.height = 1;
             entry.duration = obs.value("_duration", 0.25f);
             entry.type = obs.value("_type", 0);
@@ -146,7 +149,114 @@ void BSBeatMap::LoadVersion2(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BSBeatMap::LoadVersion3(void)
 {
-    // TODO: Add the loader for version
+    // Parse notes
+    if (m_data.contains("colorNotes"))
+    {
+        for (const auto& note: m_data["colorNotes"])
+        {
+            BSLevelNodeEntry entry;
+
+            entry.time = note.value("b", -1.f);
+            entry.lineIndex = note.value("x", 0);
+            entry.lineLayer = note.value("y", 0);
+            entry.type = static_cast<ENoteType>(note.value("c", 0));
+            entry.cutDirection =
+                static_cast<ECutDirection>(note.value("d", 0));
+
+            notes.push_back(entry);
+        }
+    }
+
+    // Parse bombs
+    if (m_data.contains("bombNotes"))
+    {
+        for (const auto& bomb: m_data["bombNotes"])
+        {
+            BSLevelNodeEntry entry;
+
+            entry.time = bomb.value("b", -1.f);
+            entry.lineIndex = bomb.value("x", 0);
+            entry.lineLayer = bomb.value("y", 0);
+            entry.type = ENoteType::Bomb;
+            entry.cutDirection = ECutDirection::None;
+
+            notes.push_back(entry);
+        }
+    }
+
+    // Sort notes by time
+    std::sort(
+        notes.begin(),
+        notes.end(),
+        [](const BSLevelNodeEntry& a, const BSLevelNodeEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse obstacles
+    if (m_data.contains("obstacles"))
+    {
+        for (const auto& obs: m_data["obstacles"])
+        {
+            BSLevelObstacleEntry entry;
+
+            entry.time = obs.value("b", -1.f);
+            entry.lineIndex = obs.value("x", 0);
+            entry.lineLayer = obs.value("y", 0);
+            entry.type = obs.value("t", 0);
+            entry.duration = obs.value("d", 0.25f);
+            entry.width = obs.value("w", 1);
+            entry.height = obs.value("h", 1);
+
+            obstacles.push_back(entry);
+        }
+    }
+    std::sort(
+        obstacles.begin(),
+        obstacles.end(),
+        [](const BSLevelObstacleEntry& a, const BSLevelObstacleEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse events
+    if (m_data.contains("basicBeatmapEvents"))
+    {
+        for (const auto& event: m_data["basicBeatmapEvents"])
+        {
+            BSLevelEventEntry entry;
+
+            entry.time = event.value("b", -1.f);
+            entry.type = event.value("et", -1);
+            entry.value = event.value("i", -1);
+
+            events.push_back(entry);
+        }
+    }
+    std::sort(
+        events.begin(),
+        events.end(),
+        [](const BSLevelEventEntry& a, const BSLevelEventEntry& b)
+        { return a.time < b.time; }
+    );
+
+    // Parse BPM changes
+    if (m_data.contains("bpmEvents"))
+    {
+        for (const auto& bpmChange: m_data["bpmEvents"])
+        {
+            BSLevelBPMChangeEntry entry;
+
+            entry.time = bpmChange.value("b", -1.f);
+            entry.bpm = bpmChange.value("m", 120.f);
+
+            bpmChanges.push_back(entry);
+        }
+    }
+    std::sort(
+        bpmChanges.begin(),
+        bpmChanges.end(),
+        [](const BSLevelBPMChangeEntry& a, const BSLevelBPMChangeEntry& b)
+        { return a.time < b.time; }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

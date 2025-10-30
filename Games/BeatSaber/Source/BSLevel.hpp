@@ -34,6 +34,20 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief A struct representing a Beat Saber level BPM change entry
+///
+///////////////////////////////////////////////////////////////////////////////
+class BSLevelBPMChangeEntry
+{
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    float time;   //<!
+    float bpm;    //<!
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief A struct representing a Beat Saber level node entry
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -77,6 +91,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     float time;       //<!
     int lineIndex;    //<!
+    int lineLayer;    //<!
     int type;         //<!
     float duration;   //<!
     int width;        //<!
@@ -112,12 +127,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    BSLevelDifficulty difficulty;                  //<!
-    std::vector<BSLevelNodeEntry> notes;           //<!
-    std::vector<BSLevelEventEntry> events;         //<!
-    std::vector<BSLevelObstacleEntry> obstacles;   //<!
-    std::vector<BSLevelWaypointEntry> waypoints;   //<!
-    bool isValid;                                  //<!
+    std::string version;                             //<!
+    BSLevelDifficulty difficulty;                    //<!
+    std::vector<BSLevelNodeEntry> notes;             //<!
+    std::vector<BSLevelEventEntry> events;           //<!
+    std::vector<BSLevelObstacleEntry> obstacles;     //<!
+    std::vector<BSLevelWaypointEntry> waypoints;     //<!
+    std::vector<BSLevelBPMChangeEntry> bpmChanges;   //<!
+    bool isValid;                                    //<!
 
 private:
     ///////////////////////////////////////////////////////////////////////////
