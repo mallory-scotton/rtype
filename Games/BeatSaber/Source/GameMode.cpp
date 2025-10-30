@@ -65,6 +65,7 @@ void BeatSaberGameMode::BeginPlay(void)
                       << std::endl;
         }
     }
+    else { std::cout << "No levels found in: " << levelsPath << std::endl; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
