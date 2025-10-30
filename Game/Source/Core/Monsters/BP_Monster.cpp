@@ -20,8 +20,13 @@ BP_Monster::BP_Monster(void)
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
 {
+#if TKD_ENGINE_CLIENT
+    SetNetRole(ENetRole::SimulatedProxy);
+#else
+    SetNetRole(ENetRole::Authority);
+#endif
     // Monster is not a pawn and does not need transform replication by default
-    SetTransformReplicated(false);
+    SetTransformReplicated(true);
 
     AddComponent<UBillboardComponent>("BC_MonsterSprite");
     AddComponent<UBoxCollisionComponent>("BoxCollision");
@@ -51,13 +56,9 @@ void BP_Monster::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::Tick(Float32 deltaTime)
 {
-    // Parent tick (handles components)
-    Super::Tick(deltaTime);
-
     // Only the server/authority should drive AI movement. If this actor
     // runs on a client and authority-checking is enabled, you'd early-return
     // here. For now we keep movement local for testing.
-    // TODO: re-enable authority check
     if (!IsAuthority()) { return; }
 
     m_timeSinceTarget += deltaTime;
@@ -75,9 +76,6 @@ void BP_Monster::Tick(Float32 deltaTime)
 
     if (dist2 < eps)
     {
-        // Reached target (or extremely close) — stop and wait a bit before
-        // picking a new target. This avoids jitter and makes movement feel
-        // more natural.
         velocity = FVector2f::Zero;
 
         // If we haven't started waiting yet, initialize the wait timer
@@ -116,6 +114,7 @@ void BP_Monster::Tick(Float32 deltaTime)
         newTransform.SetPosition(newPosition);
         SetTransform(newTransform);
     }
+    Super::Tick(deltaTime);
 
     UpdateAnimationState();
 }
