@@ -145,6 +145,10 @@ bool Engine::Initialize(int argc, char* argv[])
             // Initialize network subsystem
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
 
+            // Set engine settings for network validation BEFORE Initialize
+            // might try to use the settings immediately
+            m_network->SetEngineSettings(m_settings);
+
             // Setup network interface
             Network::Setup(m_network.get());
 
