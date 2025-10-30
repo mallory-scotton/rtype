@@ -36,30 +36,20 @@ bool FNetworkSubsystem::Initialize(void)
         }
         else if (m_config.mode == Mode::Client)
         {
-            // CHANGE: Don't auto-connect on initialization
-            // Client must manually call Connect() with desired host/port
-            // This allows for connection UI or command-line override
+            // Create client first
             m_client = std::make_unique<FNetworkClient>();
 
-            // Only auto-connect if explicitly configured to do so
-            if (m_config.autoConnect)
-            {
-                FLogger::SetNamespace("Network");
-                FLogger::Info(
-                    "Auto-connecting to {}:{}",
-                    m_config.host.CStr(),
-                    m_config.port
-                );
-                if (!m_client->Connect(m_config.host, m_config.port))
-                {
-                    FLogger::Warn(
-                        "Auto-connect failed, manual connection required"
-                    );
-                }
-            }
+            // DON'T auto-connect here yet - wait for SetEngineSettings()
         }
 
         m_initialized.store(true, std::memory_order_release);
+
+        // Set engine settings on client/server if available
+        if (m_settings)
+        {
+            SetEngineSettings(*m_settings);   // Dereference the pointer
+        }
+
         return true;
     }
     catch (const std::exception& e)
@@ -67,6 +57,58 @@ bool FNetworkSubsystem::Initialize(void)
         // Log error
         return false;
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::SetEngineSettings(const FEngineSettings& settings)
+{
+    std::shared_lock lock(m_networkMutex);
+
+    if (!m_server && !m_client)
+    {
+        m_settings = std::make_unique<FEngineSettings>(settings);
+    }
+    if (m_server)
+    {
+        m_server->SetEngineSettings(settings);
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "[SERVER] Engine settings updated - Title: '{}', Version: '{}'",
+            settings.game.title,
+            settings.game.version
+        );
+    }
+
+    if (m_client)
+    {
+        m_client->SetEngineSettings(settings);
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "[CLIENT] Engine settings updated - Title: '{}', Version: '{}'",
+            settings.game.title,
+            settings.game.version
+        );
+
+        // NOW auto-connect if configured, after settings are set
+        if (m_config.autoConnect)
+        {
+            FLogger::Info(
+                "Auto-connecting to {}:{}", m_config.host.CStr(), m_config.port
+            );
+            if (!m_client->Connect(m_config.host, m_config.port))
+            {
+                FLogger::Warn("Auto-connect failed, manual connection required"
+                );
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FEngineSettings* FNetworkSubsystem::GetEngineSettings(void
+) const noexcept
+{
+    return m_settings.get();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
