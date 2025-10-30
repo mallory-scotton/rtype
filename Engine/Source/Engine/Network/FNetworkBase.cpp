@@ -6,6 +6,7 @@
 #include <Engine/Runtime/World/UWorld.hpp>
 #include <Engine/Static/FWorldInterface.hpp>
 #include <sstream>
+
 #if TKD_ENGINE_CLIENT
     #include <Engine/Debug/FNetworkDebug.hpp>
 #endif
@@ -100,6 +101,12 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
             const FEndpoint& endpoint
         ) { HandleRPCPacket(packet, endpoint); }
     );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::SetEngineSettings(const FEngineSettings& settings)
+{
+    m_settings = std::make_unique<FEngineSettings>(settings);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
