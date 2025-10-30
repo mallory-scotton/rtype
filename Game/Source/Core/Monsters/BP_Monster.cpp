@@ -15,7 +15,7 @@ BP_Monster::BP_Monster(void)
     , speed(*this, "Speed", 1.5f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , roamRadius(*this, "RoamRadius", 4.0f)
-    , waitTime(*this, "WaitTime", 0.5f)
+    , waitTime(*this, "WaitTime", 0.7f)
     , m_targetPosition(FVector3(2.f, 2.f, 0.0f))
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
@@ -24,7 +24,10 @@ BP_Monster::BP_Monster(void)
           "RPC_MulticastPos",
           ERPCType::Multicast,
           std::bind(
-              &BP_Monster::RPC_MulticastPos, this, std::placeholders::_1
+              &BP_Monster::RPC_MulticastPos,
+              this,
+              std::placeholders::_1,
+              std::placeholders::_2
           ),
           true
       )
@@ -70,6 +73,8 @@ void BP_Monster::Tick(Float32 deltaTime)
 
         // Move towards the target position
         FVector3 currentPosition = GetTransform().GetPosition();
+        FTransform serverTransform =
+            SimulateMovement(FVector3::Zero, deltaTime, GetTransform());
         FVector3 toTarget = m_targetPosition - currentPosition;
 
         const Float32 dist2 = toTarget.x * toTarget.x +
@@ -90,7 +95,6 @@ void BP_Monster::Tick(Float32 deltaTime)
                 PickNewTarget(deltaTime);
                 m_timeSinceTarget = 0.0f;
                 m_waitRemaining = 0.0f;
-                // MulticastTarget(m_targetPosition);
             }
         }
         else
@@ -117,13 +121,13 @@ void BP_Monster::Tick(Float32 deltaTime)
             // interpolation/extrapolation paths are used on simulated
             // proxies.
             FTransform startTransform = GetTransform();
-            FTransform serverTransform =
+            serverTransform =
                 SimulateMovement(desiredVel3, deltaTime, startTransform);
 
             // Apply authoritative transform on server
             SetTransform(serverTransform);
-            MulticastPos(serverTransform);
         }
+        MulticastPos(serverTransform, velocity);
     }
     Super::Tick(deltaTime);
 
@@ -131,22 +135,19 @@ void BP_Monster::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Monster::RPC_MulticastPos(FTransform pos)
+void BP_Monster::RPC_MulticastPos(FTransform pos, FVector2f vel)
 {
     // Play target update on all clients,
     if (IsAuthority()) { return; }
 
     SetTransform(pos);
-
-    // TODO: Implement RPC logic to notify clients of the new target position
+    velocity = vel;
+    if (vel.x != 0.0f) { m_lastXVelocity = vel.x; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::PickNewTarget(Float32 deltaTime)
 {
-    // Ensure we have a recorded spawn position. If m_spawnPosition hasn't
-    // been set yet (default zero), fall back to current transform and
-    // record it for future picks.
     if (m_spawnPosition == FVector3::Zero)
     {
         m_spawnPosition = GetTransform().GetPosition();
@@ -214,18 +215,37 @@ void BP_Monster::UpdateAnimationState(void)
 
     if (!Billboard) { return; }
 
-    if (velocity().y < 0.0f)
+    if (m_lastXVelocity > 0.0f)
     {
-        m_moveUpAnimation.SetPlaybackSpeed(1.f);
-        Billboard->SetFlipBook(&m_moveUpAnimation);
+        if (velocity().y < 0.0f)
+        {
+            m_moveUpAnimationInverse.SetPlaybackSpeed(1.f);
+            Billboard->SetFlipBook(&m_moveUpAnimationInverse);
+        }
+        else
+        {
+            if (velocity().x == 0.0f && velocity().y == 0.0f)
+            {
+                Billboard->SetFlipBook(&m_idleAnimationInverse);
+            }
+            else { Billboard->SetFlipBook(&m_walkAnimationInverse); }
+        }
     }
     else
     {
-        if (velocity().x == 0.0f && velocity().y == 0.0f)
+        if (velocity().y < 0.0f)
         {
-            Billboard->SetFlipBook(&m_idleAnimation);
+            m_moveUpAnimation.SetPlaybackSpeed(1.f);
+            Billboard->SetFlipBook(&m_moveUpAnimation);
         }
-        else { Billboard->SetFlipBook(&m_walkAnimation); }
+        else
+        {
+            if (velocity().x == 0.0f && velocity().y == 0.0f)
+            {
+                Billboard->SetFlipBook(&m_idleAnimation);
+            }
+            else { Billboard->SetFlipBook(&m_walkAnimation); }
+        }
     }
 }
 

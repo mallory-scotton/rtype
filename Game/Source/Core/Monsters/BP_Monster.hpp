@@ -7,8 +7,11 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Monsters/FlipBooks/FB_MonsterIdle.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterIdleInverse.hpp>
 #include <Core/Monsters/FlipBooks/FB_MonsterMove.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterMoveInverse.hpp>
 #include <Core/Monsters/FlipBooks/FB_MonsterMoveUp.hpp>
+#include <Core/Monsters/FlipBooks/FB_MonsterMoveUpInverse.hpp>
 #include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,12 +47,17 @@ private:
     FVector3 m_targetPosition;   //<! current movement target
     Float32 m_timeSinceTarget;   //<! timer since last target pick
     Float32 m_waitRemaining;   //<! remaining wait time when arrived at target
+    Float32 m_lastXVelocity;   //<! last frame x velocity for animation
 
-    FB_MonsterIdle m_idleAnimation;       //<! Idle animation
-    FB_MonsterMove m_walkAnimation;       //<! Walk animation
-    FB_MonsterMoveUp m_moveUpAnimation;   //<! Move up animation
+    FB_MonsterIdle m_idleAnimation;                     //<! Idle animation
+    FB_MonsterMove m_walkAnimation;                     //<! Walk animation
+    FB_MonsterMoveUp m_moveUpAnimation;                 //<! Move up animation
+    FB_MonsterIdleInverse m_idleAnimationInverse;       //<! Idle animation
+    FB_MonsterMoveInverse m_walkAnimationInverse;       //<! Walk animation
+    FB_MonsterMoveUpInverse m_moveUpAnimationInverse;   //<! Move up animation
 
-    UFunction<FTransform> MulticastPos;   //<! Multicast RPC for target updates
+    UFunction<FTransform, FVector2f>
+        MulticastPos;   //<! Multicast RPC for target updates
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -109,7 +117,7 @@ private:
     /// \brief Multicast RPC to notify clients of new target position
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void RPC_MulticastPos(FTransform pos);
+    void RPC_MulticastPos(FTransform pos, FVector2f vel);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
