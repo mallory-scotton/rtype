@@ -106,7 +106,7 @@ bool Engine::Initialize(int argc, char* argv[])
             networkConfig.mode = FNetworkSubsystem::Mode::Client;
 #endif
             networkConfig.maxClients = m_settings.network.maxClients;
-            networkConfig.port = m_settings.network.port;
+            networkConfig.port = static_cast<UInt16>(m_settings.network.port);
             networkConfig.host = "127.0.0.1";
 
             // Initialize network subsystem (server only)

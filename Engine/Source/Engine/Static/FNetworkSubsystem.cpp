@@ -45,7 +45,7 @@ bool FNetworkSubsystem::Initialize(void)
         m_initialized.store(true, std::memory_order_release);
         return true;
     }
-    catch (const std::exception& e)
+    catch (...)
     {
         // Log error
         return false;

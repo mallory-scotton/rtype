@@ -175,11 +175,9 @@ IWindow* FWindowSubsystem::GetWindow(void) const noexcept
 ///////////////////////////////////////////////////////////////////////////////
 void FWindowSubsystem::ThreadSetup(void)
 {
-    #ifndef TKD_SYSTEM_WINDOWS
     // Activate the OpenGL context for this thread
     // This is crucial for multi-threaded rendering with SFML/OpenGL
     if (m_window) { m_window->SetActive(true); }
-    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
