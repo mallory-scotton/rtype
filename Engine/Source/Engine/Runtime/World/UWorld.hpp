@@ -12,6 +12,9 @@
 #include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
 #include <Engine/Runtime/World/ULevel.hpp>
+#include <functional>
+#include <mutex>
+#include <tuple>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,6 +41,8 @@ private:
         FString className;      //<! Name of the class to spawn
         FTransform transform;   //<! Transform for the spawned actor
         void* resultPtr;        //<! Pointer to store the result (AActor**)
+        std::function<std::shared_ptr<AActor>()>
+            factory;            //<! Factory function to create actor
     };
 
 private:
@@ -54,6 +59,7 @@ private:
     TUniquePtr<AGameMode> m_gameMode;     //<! Pointer to the game mode
     std::vector<DeferredSpawnRequest>
         m_deferredSpawns;                 //<! Queue of deferred spawn requests
+    mutable std::mutex m_deferredSpawnsMutex;   //<! Mutex for deferred spawns
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -147,6 +153,32 @@ public:
             std::is_base_of<AActor, T>::value, "T must be derived from AActor"
         );
         m_actors.push_back(std::make_shared<T>());
+        T* actor = static_cast<T*>(m_actors.back().get());
+        actor->SetTransform(transform);
+        if (m_hasBegunPlay) { actor->BeginPlay(); }
+        return actor;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor of type T in the world with constructor
+    /// parameters
+    ///
+    /// \tparam T The type of actor to spawn
+    /// \tparam Args The types of constructor arguments
+    ///
+    /// \param transform The transform of the actor
+    /// \param args Constructor arguments to forward to T's constructor
+    ///
+    /// \return A pointer to the spawned actor
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor, typename... Args>
+    T* SpawnActorWithParams(const FTransform& transform, Args&&... args)
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+        m_actors.push_back(std::make_shared<T>(std::forward<Args>(args)...));
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
         if (m_hasBegunPlay) { actor->BeginPlay(); }
@@ -388,15 +420,62 @@ public:
             std::is_base_of<AActor, T>::value, "T must be derived from AActor"
         );
 
-        UClass* actorClass = T::StaticClass();
-        if (actorClass)
+        std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
+        DeferredSpawnRequest request;
+        request.className =
+            T::StaticClass() ? T::StaticClass()->GetName() : "";
+        request.transform = transform;
+        request.resultPtr = nullptr;
+        request.factory = []() -> std::shared_ptr<AActor>
+        { return std::make_shared<T>(); };
+        m_deferredSpawns.push_back(request);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred with constructor parameters
+    ///
+    /// \tparam T The type of actor to spawn
+    /// \tparam Args The types of constructor arguments
+    ///
+    /// \param transform The transform of the actor
+    /// \param args Constructor arguments to forward to T's constructor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    /// \note Returns nullptr immediately, actual spawn happens later
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor, typename... Args>
+    void SpawnActorDeferredWithParams(
+        const FTransform& transform, Args&&... args
+    )
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
+        DeferredSpawnRequest request;
+        request.className =
+            T::StaticClass() ? T::StaticClass()->GetName() : "";
+        request.transform = transform;
+        request.resultPtr = nullptr;
+
+        // Capture parameters by value using a tuple
+        auto params = std::make_tuple(std::forward<Args>(args)...);
+        request.factory = [params =
+                               std::move(params)]() -> std::shared_ptr<AActor>
         {
-            DeferredSpawnRequest request;
-            request.className = actorClass->GetName();
-            request.transform = transform;
-            request.resultPtr = nullptr;
-            m_deferredSpawns.push_back(request);
-        }
+            return std::apply(
+                [](auto&&... capturedArgs) -> std::shared_ptr<AActor>
+                {
+                    return std::make_shared<T>(
+                        std::forward<decltype(capturedArgs)>(capturedArgs)...
+                    );
+                },
+                params
+            );
+        };
+        m_deferredSpawns.push_back(request);
     }
 
     ///////////////////////////////////////////////////////////////////////////

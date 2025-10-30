@@ -544,6 +544,7 @@ void UWorld::SpawnActorDeferred(
     const FString& className, const FTransform& transform
 )
 {
+    std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
     DeferredSpawnRequest request;
     request.className = className;
     request.transform = transform;
@@ -554,27 +555,50 @@ void UWorld::SpawnActorDeferred(
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::ProcessDeferredSpawns(void)
 {
-    if (m_deferredSpawns.empty()) { return; }
+    std::vector<DeferredSpawnRequest> spawnsToProcess;
 
-    // Process all deferred spawns
-    for (const auto& request: m_deferredSpawns)
     {
-        // Spawn the actor using the existing SpawnActor method
-        UClass* actorClass = UClass::FindClass(request.className);
-        if (actorClass)
-        {
-            AActor* actor = SpawnActor<AActor>(actorClass, request.transform);
+        std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
+        if (m_deferredSpawns.empty()) { return; }
 
-            // If a result pointer was provided, store the result
-            if (request.resultPtr != nullptr)
-            {
-                *static_cast<AActor**>(request.resultPtr) = actor;
-            }
-        }
+        // Move spawns to local vector to minimize lock time
+        spawnsToProcess = std::move(m_deferredSpawns);
+        m_deferredSpawns.clear();
     }
 
-    // Clear the queue
-    m_deferredSpawns.clear();
+    // Process all deferred spawns without holding the mutex
+    for (const auto& request: spawnsToProcess)
+    {
+        AActor* actor = nullptr;
+
+        // Use factory function if available (for parameterized spawns)
+        if (request.factory)
+        {
+            auto actorPtr = request.factory();
+            if (actorPtr)
+            {
+                m_actors.push_back(actorPtr);
+                actor = actorPtr.get();
+                actor->SetTransform(request.transform);
+                if (m_hasBegunPlay) { actor->BeginPlay(); }
+            }
+        }
+        else
+        {
+            // Fallback to UClass-based spawning for string class names
+            UClass* actorClass = UClass::FindClass(request.className);
+            if (actorClass)
+            {
+                actor = SpawnActor<AActor>(actorClass, request.transform);
+            }
+        }
+
+        // If a result pointer was provided, store the result
+        if (actor && request.resultPtr != nullptr)
+        {
+            *static_cast<AActor**>(request.resultPtr) = actor;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
