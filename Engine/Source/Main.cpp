@@ -31,6 +31,9 @@ int main(int argc, char* argv[])
     std::signal(SIGINT, SignalHandler);
     std::signal(SIGTERM, SignalHandler);
 
+    // Setting the random seed
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     // Force loading of the game library
 #ifndef TKD_ENGINE_STANDALONE
     TKD_EnsureGameLibraryLoaded();
