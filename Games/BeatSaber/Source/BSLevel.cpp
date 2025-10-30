@@ -107,7 +107,7 @@ void BSBeatMap::LoadVersion2(void)
             entry.time = obs.value("_time", -1.f);
             entry.lineIndex = obs.value("_lineIndex", -1);
             entry.height = 1;
-            entry.duration = obs.value("_duration", 0.25);
+            entry.duration = obs.value("_duration", 0.25f);
             entry.type = obs.value("_type", 0);
 
             obstacles.push_back(entry);
