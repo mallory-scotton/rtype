@@ -10,6 +10,24 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
+FCamera::FCamera(void)
+    : position(0.0f, 2.0f, 10.0f)
+    , front(0.0f, 0.0f, -1.0f)
+    , up(0.0f, 1.0f, 0.0f)
+    , right(1.0f, 0.0f, 0.0f)
+    , yaw(-90.0f)
+    , pitch(0.0f)
+    , moveSpeed(5.0f)
+    , mouseSensitivity(0.05f)
+    , fov(60.0f)
+    , aspectRatio(4.0f / 3.0f)
+    , nearPlane(0.1f)
+    , farPlane(1000.0f)
+{
+    UpdateCameraVectors();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 FCamera::FCamera(Float32 fov, Float32 aspect, Float32 near, Float32 far)
     : position(0.0f, 2.0f, 10.0f)
     , front(0.0f, 0.0f, -1.0f)
