@@ -74,10 +74,7 @@ sf::Uint32 Window::ToSFMLStyle(const EWindowState& state)
 ///////////////////////////////////////////////////////////////////////////////
 void Window::SetFPSLimit(UInt32 fps)
 {
-    if (IsOpen() && m_window)
-    {
-        m_window->setFramerateLimit(fps);
-    }
+    if (IsOpen() && m_window) { m_window->setFramerateLimit(fps); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

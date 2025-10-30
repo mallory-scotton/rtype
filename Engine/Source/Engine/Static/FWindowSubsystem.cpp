@@ -88,10 +88,7 @@ bool FWindowSubsystem::Initialize(void)
         }
 
         // Set active debug mode
-        if (m_settings.debug)
-        {
-            m_window->SetDebugMode(true);
-        }
+        if (m_settings.debug) { m_window->SetDebugMode(true); }
 
         // Create renderer
         m_renderer = m_graphicsFactory->CreateRenderer(m_window.get());
@@ -105,12 +102,12 @@ bool FWindowSubsystem::Initialize(void)
         m_inputManager = std::make_unique<FInputManager>();
         m_inputManager->Initialize(m_settings);
 
-#ifndef TKD_SYSTEM_WINDOWS
+    #ifndef TKD_SYSTEM_WINDOWS
         // Deactivate the OpenGL context in the main thread
         // This is crucial for multi-threaded rendering with SFML/OpenGL
         // The context will be activated in the rendering thread
         m_window->SetActive(false);
-#endif
+    #endif
 
         m_initialized.store(true, std::memory_order_release);
         return true;
@@ -178,11 +175,11 @@ IWindow* FWindowSubsystem::GetWindow(void) const noexcept
 ///////////////////////////////////////////////////////////////////////////////
 void FWindowSubsystem::ThreadSetup(void)
 {
-#ifndef TKD_SYSTEM_WINDOWS
+    #ifndef TKD_SYSTEM_WINDOWS
     // Activate the OpenGL context for this thread
     // This is crucial for multi-threaded rendering with SFML/OpenGL
     if (m_window) { m_window->SetActive(true); }
-#endif
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,7 +205,11 @@ void FWindowSubsystem::ThreadLoop(void)
     static TimePoint fpsUpdateTime = lastTime;
     static int frameCount = 0;
 
-    if (!m_window->IsOpen()) { RequestShutdown(); return; }
+    if (!m_window->IsOpen())
+    {
+        RequestShutdown();
+        return;
+    }
 
     TimePoint frameStart = SteadyClock::now();
     float deltaTime = TDuration<float>(frameStart - lastTime).count();
@@ -228,10 +229,7 @@ void FWindowSubsystem::ThreadLoop(void)
 
         VR::FVRSystem& vrSystem = VR::FVRSystem::GetInstance();
 
-        if (m_vrInitialized)
-        {
-            vrSystem.BeginFrame();
-        }
+        if (m_vrInitialized) { vrSystem.BeginFrame(); }
 
         // Begin rendering
         m_renderer->BeginFrame();
@@ -260,10 +258,7 @@ void FWindowSubsystem::ThreadLoop(void)
         m_renderer->EndFrame();
 
         // End VR Frame
-        if (m_vrInitialized)
-        {
-            vrSystem.EndFrame();
-        }
+        if (m_vrInitialized) { vrSystem.EndFrame(); }
     }
 
     // Update performance metrics
@@ -272,18 +267,16 @@ void FWindowSubsystem::ThreadLoop(void)
     if (elapsed >= 1.0f)
     {
         m_currentFPS.store(
-            static_cast<float>(frameCount) / elapsed,
-            std::memory_order_release
+            static_cast<float>(frameCount) / elapsed, std::memory_order_release
         );
         frameCount = 0;
         fpsUpdateTime = frameStart;
     }
 
-#ifndef TKD_SYSTEM_WINDOWS
+    #ifndef TKD_SYSTEM_WINDOWS
     // Track frame time
     float frameTime =
-        TDuration<float>(SteadyClock::now() - frameStart).count() *
-        1000.0f;
+        TDuration<float>(SteadyClock::now() - frameStart).count() * 1000.0f;
     m_averageFrameTime.store(
         m_averageFrameTime.load(std::memory_order_acquire) * 0.95f +
             frameTime * 0.05f,
@@ -292,11 +285,8 @@ void FWindowSubsystem::ThreadLoop(void)
 
     // Yield CPU if frame was very fast to prevent 100% CPU usage
     // This is especially important when VSync is disabled
-    if (frameTime < 1.0f)
-    {
-        std::this_thread::yield();
-    }
-#endif
+    if (frameTime < 1.0f) { std::this_thread::yield(); }
+    #endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

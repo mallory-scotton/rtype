@@ -159,14 +159,14 @@ void Engine::Run(void)
     // Main monitoring loop
     while (m_running.load(std::memory_order_acquire))
     {
-#if TKD_ENGINE_CLIENT
+    #if TKD_ENGINE_CLIENT
         // Check if window was closed
         if (m_window && !m_window->IsOpen())
         {
             RequestShutdown();
             break;
         }
-#endif
+    #endif
 
         // Sleep to reduce CPU usage in monitoring loop
         std::this_thread::yield();
@@ -434,8 +434,8 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
             !gameLib->HasFunction("TKD_CreateGame"))
         {
             m_exitCode = 1;
-            m_exitMessage =
-                "Failed to load game module: " + gameLib->GetLastErrorMessage();
+            m_exitMessage = "Failed to load game module: " +
+                            gameLib->GetLastErrorMessage();
             return false;
         }
 

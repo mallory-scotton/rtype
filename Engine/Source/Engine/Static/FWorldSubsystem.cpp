@@ -90,7 +90,6 @@ void FWorldSubsystem::ThreadTeardown(void)
 ///////////////////////////////////////////////////////////////////////////////
 void FWorldSubsystem::ThreadLoop(void)
 {
-
     static TimePoint lastTime = SteadyClock::now();
     static float accumulator = 0.0f;
 
@@ -145,10 +144,9 @@ void FWorldSubsystem::ThreadLoop(void)
         }
 
         // Sleep to maintain target tick rate
-        auto targetFrameDuration =
-            std::chrono::duration_cast<Milliseconds>(
-                TDuration<float>(m_fixedDeltaTime)
-            );
+        auto targetFrameDuration = std::chrono::duration_cast<Milliseconds>(
+            TDuration<float>(m_fixedDeltaTime)
+        );
         WaitFor(targetFrameDuration);
     }
     else
@@ -179,8 +177,7 @@ void FWorldSubsystem::ThreadLoop(void)
 
         // Track tick performance
         float tickTime =
-            TDuration<float>(SteadyClock::now() - tickStart).count() *
-            1000.0f;
+            TDuration<float>(SteadyClock::now() - tickStart).count() * 1000.0f;
         m_averageTickTime.store(
             m_averageTickTime.load(std::memory_order_acquire) * 0.95f +
                 tickTime * 0.05f,

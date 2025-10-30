@@ -37,14 +37,14 @@ void FThreadedSubsystem::Start(void)
 
     m_running.store(true, std::memory_order_release);
 #ifndef TKD_SYSTEM_WINDOWS
-    m_thread = std::thread([this] {
-        ThreadSetup();
-        while (m_running.load(std::memory_order_acquire))
+    m_thread = std::thread(
+        [this]
         {
-            ThreadLoop();
+            ThreadSetup();
+            while (m_running.load(std::memory_order_acquire)) { ThreadLoop(); }
+            ThreadTeardown();
         }
-        ThreadTeardown();
-    });
+    );
 #endif
 }
 
