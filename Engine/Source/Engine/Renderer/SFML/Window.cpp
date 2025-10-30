@@ -72,6 +72,15 @@ sf::Uint32 Window::ToSFMLStyle(const EWindowState& state)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void Window::SetFPSLimit(UInt32 fps)
+{
+    if (IsOpen() && m_window)
+    {
+        m_window->setFramerateLimit(fps);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void Window::InitializeOpenGL(void)
 {
     // Enable depth testing
@@ -132,8 +141,8 @@ bool Window::Open(void)
     settings.depthBits = 24;
     settings.stencilBits = 8;
     settings.antialiasingLevel = 4;
-    settings.majorVersion = 2;
-    settings.minorVersion = 1;
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
 
     // Create the SFML window
     m_window = std::make_unique<sf::RenderWindow>(
