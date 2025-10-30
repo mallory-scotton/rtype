@@ -27,6 +27,7 @@ Renderer::Renderer(IWindow* window)
     : m_window(reinterpret_cast<sf::RenderWindow*>(window->GetNativeHandle()))
     , m_currentTarget(m_window)
     , m_currentView(/*FView::GetDefaultView()*/)
+    , m_camera(60.0f, 4.0f / 3.0f, 0.1f, 1000.0f)
 {
     // Set the camera to set the initial OpenGL states
     SetCamera(m_camera);
