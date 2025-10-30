@@ -19,13 +19,21 @@ BP_Monster::BP_Monster(void)
     , m_targetPosition(FVector3(2.f, 2.f, 0.0f))
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
+    , MulticastPos(
+          *this,
+          "RPC_MulticastPos",
+          ERPCType::Multicast,
+          std::bind(
+              &BP_Monster::RPC_MulticastPos, this, std::placeholders::_1
+          ),
+          true
+      )
 {
 #if TKD_ENGINE_CLIENT
     SetNetRole(ENetRole::SimulatedProxy);
 #else
     SetNetRole(ENetRole::Authority);
 #endif
-    // Monster is not a pawn and does not need transform replication by default
     SetTransformReplicated(true);
 
     AddComponent<UBillboardComponent>("BC_MonsterSprite");
@@ -56,63 +64,66 @@ void BP_Monster::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::Tick(Float32 deltaTime)
 {
-    // Only the server/authority should drive AI movement. If this actor
-    // runs on a client and authority-checking is enabled, you'd early-return
-    // here. For now we keep movement local for testing.
-    if (!IsAuthority()) { return; }
-
-    m_timeSinceTarget += deltaTime;
-
-    auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
-    if (!Billboard) { return; }
-
-    // Move towards the target position
-    FVector3 currentPosition = GetTransform().GetPosition();
-    FVector3 toTarget = m_targetPosition - currentPosition;
-
-    const Float32 dist2 = toTarget.x * toTarget.x + toTarget.y * toTarget.y +
-                          toTarget.z * toTarget.z;
-    const Float32 eps = 1e-4f;
-
-    if (dist2 < eps)
+    if (IsAuthority())
     {
-        velocity = FVector2f::Zero;
+        m_timeSinceTarget += deltaTime;
 
-        // If we haven't started waiting yet, initialize the wait timer
-        if (m_waitRemaining <= 0.0f) { m_waitRemaining = waitTime(); }
+        // Move towards the target position
+        FVector3 currentPosition = GetTransform().GetPosition();
+        FVector3 toTarget = m_targetPosition - currentPosition;
 
-        // Count down the wait timer. When it elapses, pick a new target and
-        // reset the accumulated time used for seeding the next pick.
-        m_waitRemaining -= deltaTime;
-        if (m_waitRemaining <= 0.0f)
+        const Float32 dist2 = toTarget.x * toTarget.x +
+                              toTarget.y * toTarget.y +
+                              toTarget.z * toTarget.z;
+        const Float32 eps = 1e-4f;
+
+        if (dist2 < eps)
         {
-            PickNewTarget(deltaTime);
-            m_timeSinceTarget = 0.0f;
-            m_waitRemaining = 0.0f;
-        }
-    }
-    else
-    {
-        // Desired velocity (units/sec) towards target
-        FVector3 dir = toTarget.Normalized();
-        FVector3 desiredVel3 = dir * speed();
+            // We're at the target: stop and handle wait timer
+            velocity = FVector2f::Zero;
 
-        // If this tick would overshoot the target, clamp velocity so we
-        // exactly reach it this frame
-        const Float32 dist = Math<Float32>::Sqrt(dist2);
-        const Float32 maxTravel = speed() * deltaTime;
-        if (maxTravel >= dist && deltaTime > 0.0f)
+            if (m_waitRemaining <= 0.0f) { m_waitRemaining = waitTime(); }
+
+            m_waitRemaining -= deltaTime;
+            if (m_waitRemaining <= 0.0f)
+            {
+                PickNewTarget(deltaTime);
+                m_timeSinceTarget = 0.0f;
+                m_waitRemaining = 0.0f;
+                // MulticastTarget(m_targetPosition);
+            }
+        }
+        else
         {
-            desiredVel3 = toTarget / deltaTime;
-        }
-        velocity = FVector2f(desiredVel3.x, desiredVel3.y);
+            // Desired velocity (units/sec) towards target
+            FVector3 dir = toTarget.Normalized();
+            FVector3 desiredVel3 = dir * speed();
 
-        // Apply movement by updating the actor transform directly
-        FVector3 displacement = desiredVel3 * deltaTime;
-        FVector3 newPosition = currentPosition + displacement;
-        FTransform newTransform = GetTransform();
-        newTransform.SetPosition(newPosition);
-        SetTransform(newTransform);
+            // If this tick would overshoot the target, clamp velocity so we
+            // exactly reach it this frame
+            const Float32 dist = Math<Float32>::Sqrt(dist2);
+            const Float32 maxTravel = speed() * deltaTime;
+            if (maxTravel >= dist && deltaTime > 0.0f)
+            {
+                desiredVel3 = toTarget / deltaTime;
+            }
+
+            // Update replicated velocity property (clients can use this for
+            // animation/extrapolation)
+            velocity = FVector2f(desiredVel3.x, desiredVel3.y);
+
+            // Simulate movement on the server and replicate to clients by
+            // calling the multicast RPC. This ensures the engine's
+            // interpolation/extrapolation paths are used on simulated
+            // proxies.
+            FTransform startTransform = GetTransform();
+            FTransform serverTransform =
+                SimulateMovement(desiredVel3, deltaTime, startTransform);
+
+            // Apply authoritative transform on server
+            SetTransform(serverTransform);
+            MulticastPos(serverTransform);
+        }
     }
     Super::Tick(deltaTime);
 
@@ -120,11 +131,19 @@ void BP_Monster::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void BP_Monster::RPC_MulticastPos(FTransform pos)
+{
+    // Play target update on all clients,
+    if (IsAuthority()) { return; }
+
+    SetTransform(pos);
+
+    // TODO: Implement RPC logic to notify clients of the new target position
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::PickNewTarget(Float32 deltaTime)
 {
-    // Choose a deterministic pseudo-random point within roamRadius around
-    // the actor's spawn position so the monster never strays too far.
-
     // Ensure we have a recorded spawn position. If m_spawnPosition hasn't
     // been set yet (default zero), fall back to current transform and
     // record it for future picks.
@@ -164,6 +183,28 @@ void BP_Monster::PickNewTarget(Float32 deltaTime)
     // Final target is relative to the spawn position, guaranteeing the
     // monster stays within roamRadius of where it spawned.
     m_targetPosition = spawnPos + offset;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FTransform BP_Monster::SimulateMovement(
+    const FVector3& inputVector,
+    Float32 deltaTime,
+    const FTransform& startTransform
+)
+{
+    FTransform result = startTransform;
+
+    // Update velocity property for client-side animation/extrapolation
+    if (inputVector.Length() > 0.0f)
+    {
+        velocity = FVector2f(inputVector.x, inputVector.y);
+
+        FVector3 movement = inputVector * deltaTime;
+        result.Translate(movement);
+    }
+    else { velocity = FVector2f::Zero; }
+
+    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

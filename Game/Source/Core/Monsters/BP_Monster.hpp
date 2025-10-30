@@ -49,6 +49,8 @@ private:
     FB_MonsterMove m_walkAnimation;       //<! Walk animation
     FB_MonsterMoveUp m_moveUpAnimation;   //<! Move up animation
 
+    UFunction<FTransform> MulticastPos;   //<! Multicast RPC for target updates
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Constructor
@@ -73,6 +75,23 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     virtual void Tick(Float32 deltaTime) override;
 
+protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Simulate movement for client-side prediction
+    ///
+    /// \param inputVector The input vector for this move
+    /// \param deltaTime The time elapsed since the last tick
+    /// \param startTransform The starting transform before the move
+    ///
+    /// \return The resulting transform after simulating movement
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FTransform SimulateMovement(
+        const FVector3& inputVector,
+        Float32 deltaTime,
+        const FTransform& startTransform
+    ) override;
+
 private:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Pick a new random target within the roam radius
@@ -85,6 +104,12 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void UpdateAnimationState(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Multicast RPC to notify clients of new target position
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_MulticastPos(FTransform pos);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
