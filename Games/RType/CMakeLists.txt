@@ -185,9 +185,7 @@ target_include_directories(RTypeGameClientExe PRIVATE
 
 target_link_libraries(RTypeGameClientExe PRIVATE
     TKDEngineClient
-    -Wl,--no-as-needed
     RTypeGameClient
-    -Wl,--as-needed
 )
 
 # Create RTypeGameServer executable (Server + Game + Main.cpp from Engine)
@@ -213,9 +211,7 @@ target_include_directories(RTypeGameServerExe PRIVATE
 
 target_link_libraries(RTypeGameServerExe PRIVATE
     TKDEngineServer
-    -Wl,--no-as-needed
     RTypeGameServer
-    -Wl,--as-needed
 )
 
 # Copy resources if they exist

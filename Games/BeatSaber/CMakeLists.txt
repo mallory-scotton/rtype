@@ -185,9 +185,7 @@ target_include_directories(BeatSaberGameClientExe PRIVATE
 
 target_link_libraries(BeatSaberGameClientExe PRIVATE
     TKDEngineClient
-    -Wl,--no-as-needed
     BeatSaberGameClient
-    -Wl,--as-needed
 )
 
 # Create BeatSaberGameServer executable (Server + Game + Main.cpp from Engine)
@@ -213,9 +211,7 @@ target_include_directories(BeatSaberGameServerExe PRIVATE
 
 target_link_libraries(BeatSaberGameServerExe PRIVATE
     TKDEngineServer
-    -Wl,--no-as-needed
     BeatSaberGameServer
-    -Wl,--as-needed
 )
 
 # Copy resources if they exist
