@@ -32,38 +32,7 @@ bool Engine::Initialize(int argc, char* argv[])
 
     FLogger::SetNamespace("Engine");
 
-#if TKD_USE_WEAK_LINKING
-    if (TKD_CreateGame)
-    {
-        m_game = std::move(TKD_CreateGame());
-        if (!m_game)
-        {
-            m_exitCode = TKD_EXIT_FAILURE;
-            m_exitMessage = "Failed to create game instance";
-            return false;
-        }
-    }
-#else
-    #ifdef TKD_SYSTEM_WINDOWS
-        HMODULE hModule = GetModuleHandle(NULL);
-        typedef std::unique_ptr<tkd::UGame> (*TKD_CreateGameFunc)(void);
-        TKD_CreateGameFunc createGameFunc = 
-            reinterpret_cast<TKD_CreateGameFunc>(
-                GetProcAddress(hModule, "TKD_CreateGame")
-            );
-
-        if (createGameFunc)
-        {
-            m_game = std::move(createGameFunc());
-            if (!m_game)
-            {
-                m_exitCode = TKD_EXIT_FAILURE;
-                m_exitMessage = "Failed to create game instance";
-                return false;
-            }
-        }
-    #endif
-#endif
+    m_game = GameRegistry::CreateGameInstance();
 
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
@@ -117,9 +86,6 @@ bool Engine::Initialize(int argc, char* argv[])
             m_exitMessage = "Failed to initialize window subsystem";
             return false;
         }
-
-        // Set debug mode for window
-        if (m_settings.debug) { m_window->GetWindow()->SetDebugMode(true); }
 
         // Setup render callback
         SetupRenderCallback();
@@ -189,6 +155,7 @@ void Engine::Run(void)
     FLogger::SetNamespace("Engine");
     FLogger::Info("All subsystems started");
 
+#ifndef TKD_SYSTEM_WINDOWS
     // Main monitoring loop
     while (m_running.load(std::memory_order_acquire))
     {
@@ -202,8 +169,35 @@ void Engine::Run(void)
 #endif
 
         // Sleep to reduce CPU usage in monitoring loop
-        std::this_thread::sleep_for(Milliseconds(100));
+        std::this_thread::yield();
     }
+#else
+    m_world->ThreadSetup();
+    TKD_ENGINE_IF_CLIENT({ m_window->ThreadSetup(); })
+    if (m_network) { m_network->ThreadSetup(); }
+
+    while (m_running.load(std::memory_order_acquire))
+    {
+        TKD_ENGINE_IF_CLIENT({
+            if (m_window && !m_window->IsOpen())
+            {
+                RequestShutdown();
+                break;
+            }
+        })
+
+        m_world->ThreadLoop();
+        TKD_ENGINE_IF_CLIENT({ m_window->ThreadLoop(); })
+        if (m_network) { m_network->ThreadLoop(); }
+
+        // Sleep to reduce CPU usage
+        std::this_thread::sleep_for(Milliseconds(10));
+    }
+
+    TKD_ENGINE_IF_CLIENT({ m_window->ThreadTeardown(); })
+    m_world->ThreadTeardown();
+    if (m_network) { m_network->ThreadTeardown(); }
+#endif
 
     // Set running to false to ensure all subsystems stop
     m_running.store(false, std::memory_order_release);

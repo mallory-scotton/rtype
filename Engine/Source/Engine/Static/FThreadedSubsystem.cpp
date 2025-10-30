@@ -36,7 +36,16 @@ void FThreadedSubsystem::Start(void)
     }
 
     m_running.store(true, std::memory_order_release);
-    m_thread = std::thread([this] { ThreadLoop(); });
+#ifndef TKD_SYSTEM_WINDOWS
+    m_thread = std::thread([this] {
+        ThreadSetup();
+        while (m_running.load(std::memory_order_acquire))
+        {
+            ThreadLoop();
+        }
+        ThreadTeardown();
+    });
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,7 +60,9 @@ void FThreadedSubsystem::Shutdown(void)
 {
     RequestShutdown();
 
+#ifndef TKD_SYSTEM_WINDOWS
     if (m_thread.joinable()) { m_thread.join(); }
+#endif
 
     m_initialized.store(false, std::memory_order_release);
 }
