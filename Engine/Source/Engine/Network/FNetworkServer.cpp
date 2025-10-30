@@ -361,6 +361,32 @@ void FNetworkServer::HandleConnectPacket(
         endpoint.port()
     );
 
+    FLogger::Info(
+        "[SERVER] Expected Game Title: '{}', Version: '{}'",
+        m_settings->game.title,
+        m_settings->game.version
+    );
+
+    FLogger::Info(
+        "[SERVER] Received from client - gameName: '{}', gameVersion: '{}'",
+        packet.gameName,
+        packet.gameVersion
+    );
+
+    if (packet.gameName != m_settings->game.title ||
+        packet.gameVersion != m_settings->game.version)
+    {
+        FLogger::Warn("[SERVER] Rejecting connection - Game/Version mismatch!"
+        );
+
+        Packets::ConnectResponse response;
+        response.accepted = false;
+        SendReliablePacket(response, endpoint);
+        return;
+    }
+
+    FLogger::Info("[SERVER] Game/Version validation passed!");
+
     // Create new connection
     auto connection = std::make_unique<FConnectionInformation>();
     connection->endpoint = endpoint;
