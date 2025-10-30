@@ -191,28 +191,3 @@ private:
 #else
     #define TKD_EXPORT_WEAK
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Main entry of the engine
-///////////////////////////////////////////////////////////////////////////////
-// #if defined(_MSC_VER)
-//     #define TKD_EXPORT_GAME(GameClass) \
-//         extern "C" __declspec(dllexport) std::unique_ptr<tkd::UGame> TKD_CreateGame(void) \
-//         { \
-//             static_assert( \
-//                 std::is_base_of<tkd::UGame, GameClass>::value, \
-//                 "GameClass must be derived from tkd::UGame" \
-//             ); \
-//             return std::make_unique<GameClass>(); \
-//         }
-// #else
-//     #define TKD_EXPORT_GAME(GameClass) \
-//         extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) \
-//         { \
-//             static_assert( \
-//                 std::is_base_of<tkd::UGame, GameClass>::value, \
-//                 "GameClass must be derived from tkd::UGame" \
-//             ); \
-//             return std::make_unique<GameClass>(); \
-//         }
-// #endif
