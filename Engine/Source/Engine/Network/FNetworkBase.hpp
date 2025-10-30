@@ -441,6 +441,24 @@ private:
     void HandleRPCPacket(
         const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
     );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleFragmentPacket(
+        const Packets::FragmentAcknowledgment& packet,
+        const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleFragmentAcknowledgment(
+        const Packets::Fragment& packet, const FEndpoint& endpoint
+    );
 };
 
 }   // namespace tkd
