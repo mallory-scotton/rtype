@@ -473,6 +473,63 @@ void Renderer::PopScissorTest(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void Renderer::UpdateCameraFromHMD(const VR::FPose& hmdPose)
+{
+    if (!hmdPose.isValid) { return; }
+
+    // Convert quaternion rotation to camera direction vectors
+    FMatrix4x4 rotMatrix = hmdPose.rotation.ToMatrix4x4();
+
+    // Extract direction vectors from rotation matrix
+    // Forward vector (negative Z in OpenGL convention)
+    m_camera.front =
+        FVector3(-rotMatrix(0, 2), -rotMatrix(1, 2), -rotMatrix(2, 2));
+
+    // Right vector (positive X)
+    m_camera.right =
+        FVector3(rotMatrix(0, 0), rotMatrix(1, 0), rotMatrix(2, 0));
+
+    // Up vector (positive Y)
+    m_camera.up = FVector3(rotMatrix(0, 1), rotMatrix(1, 1), rotMatrix(2, 1));
+
+    // Normalize vectors to be safe
+    float frontLen = std::sqrt(
+        m_camera.front.x * m_camera.front.x +
+        m_camera.front.y * m_camera.front.y +
+        m_camera.front.z * m_camera.front.z
+    );
+    if (frontLen > 0.0001f)
+    {
+        m_camera.front.x /= frontLen;
+        m_camera.front.y /= frontLen;
+        m_camera.front.z /= frontLen;
+    }
+
+    float upLen = std::sqrt(
+        m_camera.up.x * m_camera.up.x + m_camera.up.y * m_camera.up.y +
+        m_camera.up.z * m_camera.up.z
+    );
+    if (upLen > 0.0001f)
+    {
+        m_camera.up.x /= upLen;
+        m_camera.up.y /= upLen;
+        m_camera.up.z /= upLen;
+    }
+
+    float rightLen = std::sqrt(
+        m_camera.right.x * m_camera.right.x +
+        m_camera.right.y * m_camera.right.y +
+        m_camera.right.z * m_camera.right.z
+    );
+    if (rightLen > 0.0001f)
+    {
+        m_camera.right.x /= rightLen;
+        m_camera.right.y /= rightLen;
+        m_camera.right.z /= rightLen;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool Renderer::IsUsingVirtualReality(void) const { return m_vr.enabled; }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -805,7 +862,14 @@ void Renderer::ResolveVirtualRealityLeftEye(void)
 void Renderer::BeginFrame(void)
 {
     // Call the VR BeginFrame if VR is enabled
-    if (m_vr.enabled) { VR::FVRSystem::GetInstance().BeginFrame(); }
+    if (m_vr.enabled)
+    {
+        VR::FVRSystem::GetInstance().BeginFrame();
+
+        // Update camera rotation from HMD pose
+        VR::FPose hmdPose = VR::FVRSystem::GetInstance().GetHMDPose();
+        if (hmdPose.isValid) { UpdateCameraFromHMD(hmdPose); }
+    }
     else
     {
         // Get current window size and update aspect ratio
