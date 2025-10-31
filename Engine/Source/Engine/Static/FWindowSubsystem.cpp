@@ -221,6 +221,32 @@ void FWindowSubsystem::ThreadLoop(void)
         if (m_inputManager) { m_inputManager->Update(m_window.get()); }
     }
 
+    //? TEMPORARY PARTICLE SYSTEM FOR TESTING
+    static FTextureHandle particleTexture =
+        URessource::GetTextureHandle("Assets/Textures/CircleGradient.png");
+    static UParticleSystem system(500, particleTexture.Get());
+    static bool firstRun = true;
+
+    if (firstRun)
+    {
+        system.SetEmitterType(EParticleEmitterType::Box);
+        system.SetEmitterRadius(5.0f);
+        system.SetParticleLifetime(3.0f, 5.0f);
+        system.SetParticleSize(0.005f, 0.02f);
+        system.SetParticleSpeed(0.0f, 0.1f);
+        system.SetGravity(FVector3(0.0f, 0.0f, 0.0f));
+        system.SetParticleColor(
+            FColor(0.8f, 0.9f, 1.0f, 0.8f),  // Start: bright blue-white
+            FColor(0.6f, 0.7f, 0.9f, 0.0f)   // End: dimmer blue, transparent
+        );
+        system.SetAdditiveBlending(true);
+        firstRun = false;
+    }
+
+    system.EmitParticles(1);
+    system.Update(deltaTime);
+    // ? END TEMPORARY PARTICLE SYSTEM FOR TESTING
+
     // Render frame
     {
         std::shared_lock lock(m_windowMutex);
@@ -242,6 +268,7 @@ void FWindowSubsystem::ThreadLoop(void)
                     }
                 }
             );
+            system.Draw(*m_renderer);
             m_renderer->ResolveVirtualRealityLeftEye();
 
             // Execute render callback for right eye
@@ -256,6 +283,7 @@ void FWindowSubsystem::ThreadLoop(void)
                     }
                 }
             );
+            system.Draw(*m_renderer);
             m_renderer->ResolveVirtualRealityRightEye();
         }
         else
