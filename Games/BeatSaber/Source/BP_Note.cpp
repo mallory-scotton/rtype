@@ -17,7 +17,7 @@ BP_Note::BP_Note(ENoteType type, ECutDirection cutDirection, float speed)
     , m_cutDirection(cutDirection)
     , m_speed(speed)
 {
-    AddComponent<UCubeComponent>("SM_Cube");
+    AddComponent<UChamferCubeComponent>("SM_Cube");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,21 +27,26 @@ void BP_Note::BeginPlay(void)
     Super::BeginPlay();
 
     // Setup color based on the note type
-    auto cubeComp = GetComponent<UCubeComponent>("SM_Cube");
+    auto cubeComp = GetComponent<UChamferCubeComponent>("SM_Cube");
     if (cubeComp)
     {
-        auto& cube = cubeComp->GetCube();
+        auto& cube = cubeComp->GetChamferCube();
         switch (m_type)
         {
-        case ENoteType::LeftHand : cube = UCubePrimitive(FColor::Red); break;
-        case ENoteType::RightHand: cube = UCubePrimitive(FColor::Blue); break;
-        case ENoteType::Bomb     : cube = UCubePrimitive(FColor::Black); break;
-        default                  : cube = UCubePrimitive(FColor::White); break;
+        case ENoteType::LeftHand:
+            cube = UChamferCubePrimitive(FLinearColor(215, 12, 16).ToColor());
+            break;
+        case ENoteType::RightHand:
+            cube = UChamferCubePrimitive(FLinearColor(2, 112, 241).ToColor());
+            break;
+        case ENoteType::Bomb:
+            cube = UChamferCubePrimitive(FColor::Black);
+            break;
+        default: cube = UChamferCubePrimitive(FColor::White); break;
         }
-        m_handle =
-            URessource::GetTextureHandle("Assets/Textures/GridBox_Default.png"
-            );
-        cube.SetTexture(m_handle.Get());
+        FTransform transform = cubeComp->GetLocalTransform();
+        transform.SetScale(FVector3(0.5f, 0.5f, 0.5f));
+        cubeComp->SetLocalTransform(transform);
     }
 }
 
