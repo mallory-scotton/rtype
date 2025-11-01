@@ -76,7 +76,7 @@ private:
     /// \brief Update the vertices of the cube with texture coordinates
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void UpdateVertices(void);
+    virtual void UpdateVertices(void) override;
 };
 
 }   // namespace tkd
