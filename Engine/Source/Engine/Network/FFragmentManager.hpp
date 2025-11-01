@@ -76,6 +76,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     static constexpr SizeT MAX_FRAGMENT_SIZE = 512;
     static constexpr SizeT MAX_ACK_TIME = 100;
+    static constexpr SizeT DELETION_TIME = 10000;
 
 private:
     std::vector<FragmentEntry> m_fragments;
