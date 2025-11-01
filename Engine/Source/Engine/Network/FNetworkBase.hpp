@@ -61,6 +61,7 @@ enum class EDisconnectionReason : UInt32
     Shutdown = 3,          //<! Disconnected due to server shutdown
     Error = 4,             //<! Disconnected due to an error
     ClientRequested = 5,   //<! Disconnected at client's request
+    metadata = 6,          //<! Disconnected at client's request
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,7 +74,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_PACKET_SIZE = 1472;   //<! Max UDP packet size
+    static constexpr SizeT MAX_PACKET_SIZE = 1024;   //<! Max UDP packet size
     static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
 
 public:
@@ -444,21 +445,29 @@ private:
 
 private:
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief
+    /// \brief Handle incoming fragment packet
+    ///
+    /// \param packet Fragment packet received
+    /// \param endpoint Endpoint of the sender
     ///
     ///////////////////////////////////////////////////////////////////////////
     void HandleFragmentPacket(
+        const Packets::Fragment& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle fragment acknowledgment packet
+    ///
+    /// \param packet Fragment acknowledgment packet received
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleFragmentAcknowledgment(
         const Packets::FragmentAcknowledgment& packet,
         const FEndpoint& endpoint
     );
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void HandleFragmentAcknowledgment(
-        const Packets::Fragment& packet, const FEndpoint& endpoint
-    );
+    void addtoqueue(void);
 };
 
 }   // namespace tkd
