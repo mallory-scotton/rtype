@@ -13,6 +13,12 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 UBoxCollisionComponent::UBoxCollisionComponent(const FString& name)
     : UActorComponent(name)
+    , UPhysicsObject(
+          EPhysicsBodyType::Kinematic,
+          ECollisionDetection::Continuous,
+          ECollisionResponse::Overlap,
+          ECollisionChannel::PhysicsBody
+      )
     , m_boxExtent(50.0f, 50.0f, 50.0f)
     , m_localTransform(FTransform::Identity)
 {

@@ -10,6 +10,7 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/UObject.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
+#include <Engine/Runtime/Physics.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,7 +23,9 @@ namespace tkd
 /// \brief Box collision component class
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UBoxCollisionComponent : public UActorComponent
+class UBoxCollisionComponent
+    : public UActorComponent
+    , public UPhysicsObject
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
