@@ -25,7 +25,7 @@ void FragmentManager::Update(Float32 deltaTime, FNetworkBase* networkBase)
             MarkFragmentForDeletion(entry.id);
             continue;
         }
-        if (currentTime - entry.timestamp >= DELETION_TIME)
+        if (currentTime - entry.timestamp >= DELETION_TIMEOUT)
         {
             MarkFragmentForDeletion(entry.id);
             continue;
@@ -278,7 +278,7 @@ void FragmentManager::SendRetransmission(
 
             // If not received and enough time has passed since last send
             if (!status.received &&
-                (currentTime - status.lastSentTimestamp) >= MAX_ACK_TIME)
+                (currentTime - status.lastSentTimestamp) >= ACK_TIMEOUT)
             {
                 // Create Fragment packet for this chunk
                 Packets::Fragment fragmentPacket;
