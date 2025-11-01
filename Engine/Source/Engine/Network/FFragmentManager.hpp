@@ -61,6 +61,8 @@ struct FragmentEntry
     // >> ONLY FOR OUTGOING
     std::vector<Byte> original;
     std::vector<FEndpoint> destinations;
+    // >> ONLY FOR INCOMING
+    FEndpoint sender;   // Endpoint that sent the fragments
     Bool fullyReceived = false;
 };
 
@@ -74,7 +76,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_FRAGMENT_SIZE = 512;
+    static constexpr SizeT MAX_FRAGMENT_SIZE = 256;
     static constexpr SizeT MAX_ACK_TIME = 100;
     static constexpr SizeT DELETION_TIME = 10000;
 
@@ -121,8 +123,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Merge completed fragments into full packets
     ///
+    /// \param entry Fragment entry to merge
+    /// \param networkBase Network base to process the reassembled packet
+    ///
     ///////////////////////////////////////////////////////////////////////////
-    void MergeFragments(FragmentEntry& entry);
+    void MergeFragments(FragmentEntry& entry, FNetworkBase* networkBase);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Destroy completed or expired fragments
@@ -172,7 +177,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Send full packet transmission by fragmenting large packets
     ///
-    /// \param packet Packet to fragment and send
+    /// \param serializedData Already serialized packet data
     /// \param destinations List of endpoints to send to
     /// \param networkBase Network base to send fragments through
     ///
@@ -180,7 +185,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UUID SendFullTransmission(
-        const IPacket& packet,
+        const std::vector<Byte>& serializedData,
         const std::vector<FEndpoint>& destinations,
         FNetworkBase* networkBase
     );
@@ -221,14 +226,15 @@ private:
     );
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Fragment a packet into chunks
+    /// \brief Fragment serialized packet data into chunks
     ///
-    /// \param packet Packet to fragment
+    /// \param serializedData Serialized packet data to fragment
     ///
     /// \return Vector of data chunks
     ///
     ///////////////////////////////////////////////////////////////////////////
-    std::vector<std::vector<Byte>> FragmentPacket(const IPacket& packet) const;
+    std::vector<std::vector<Byte>>
+        FragmentPacket(const std::vector<Byte>& serializedData) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief
