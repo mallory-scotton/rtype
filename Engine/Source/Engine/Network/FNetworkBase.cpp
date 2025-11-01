@@ -256,7 +256,7 @@ bool FNetworkBase::SendReliablePacket(
     if (packet.GetSize() > MAX_PACKET_SIZE)
     {
         FLogger::SetNamespace("Network");
-        FLogger::Debug(
+        FLogger::Info(
             "Packet size {} exceeds MTU {}, fragmenting...",
             packet.GetSize(),
             MAX_PACKET_SIZE
@@ -271,9 +271,9 @@ bool FNetworkBase::SendReliablePacket(
         // Create vector with single endpoint for transmission
         std::vector<FEndpoint> destinations = { endpoint };
 
-        // Send fragmented transmission and get the fragment ID
+        // Send fragmented transmission with already-serialized data
         UUID fragmentID =
-            fragmentManager.SendFullTransmission(packet, destinations, this);
+            fragmentManager.SendFullTransmission(data, destinations, this);
 
         FLogger::Debug(
             "Packet fragmented with ID: {}", fragmentID.ToString().c_str()
@@ -481,9 +481,6 @@ void FNetworkBase::ProcessDeferredPropertyReplications(UWorld& world)
 {
     TKD_UNUSED(world);
 
-    // Process all queued property replications
-    // IMPORTANT: This is called from UWorld::Tick(), which already holds
-    // m_worldMutex The world is passed as a parameter to avoid re-locking
     std::queue<FDeferredPropertyReplication> localQueue;
 
     {
@@ -547,9 +544,6 @@ void FNetworkBase::ProcessDeferredPropertyReplications(UWorld& world)
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::ProcessSendQueue(void)
 {
-    // CRITICAL FIX: Allow processing send queue even during shutdown
-    // Only check if socket is valid, not m_running status
-    // This ensures disconnect packets can be sent during cleanup
     if (!m_socket) { return; }
 
     std::queue<FQueuedPacket> localQueue;
@@ -672,6 +666,8 @@ void FNetworkBase::HandleFragmentPacket(
         static_cast<UInt32>(packet.FragmentCount),
         packet.PackageID
     );
+    std::cout << "[NETWORK] we processing the fragments huh little bro"
+              << std::endl;
 
     // Forward to FragmentManager for processing
     // FragmentManager will send the acknowledgment
