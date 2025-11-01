@@ -30,6 +30,9 @@ public:
     // Width of the texture in world units (used to compute wrap position)
     Float32 m_textureWidth;
 
+    Float32 m_scaleX;       //<! Scale factor in X direction
+    Float32 m_worldWidth;   //<! Width of the background in world units
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
