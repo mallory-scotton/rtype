@@ -133,6 +133,14 @@ FCamera& FWindowInterface::GetCamera(void)
     return windowSubsystem->GetCamera();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+TKD_NODISCARD VR::FVRSystem& FWindowInterface::GetVRSystem(void)
+{
+    // Return the singleton instance of the VR system
+    // From the engine context, this is safe to do
+    return VR::FVRSystem::GetInstance();
+}
+
 #endif   // TKD_ENGINE_CLIENT
 
 }   // namespace tkd
