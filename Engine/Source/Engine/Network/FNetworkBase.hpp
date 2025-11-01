@@ -74,8 +74,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_PACKET_SIZE = 1024;   //<! Max UDP packet size
-    static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
+    static constexpr SizeT MAX_PACKET_SIZE = 512;   //<! Max UDP packet size
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;    //<! 500 ms
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -347,6 +347,22 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     bool SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process received data, deserialize the packet and call the
+    /// appropriate handler
+    ///
+    /// This method is public to allow FragmentManager to process reassembled
+    /// packets through the normal packet pipeline
+    ///
+    /// \param data Pointer to the received data
+    /// \param size Size of the received data
+    /// \param sender Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessReceivedData(
+        const UInt8* data, SizeT size, const FEndpoint& sender
+    );
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Flushes remaining packets to not cause udp issues at shutdown
@@ -376,19 +392,6 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void HandleReceive(const asio::error_code& error, SizeT bytesReceived);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Process received data, deserialize the packet and call the
-    /// appropriate handler
-    ///
-    /// \param data Pointer to the received data
-    /// \param size Size of the received data
-    /// \param sender Endpoint of the sender
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void ProcessReceivedData(
-        const UInt8* data, SizeT size, const FEndpoint& sender
-    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when a packet is received
