@@ -7,3 +7,4 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Physics/Enumerations.hpp>
+#include <Engine/Runtime/Physics/UPhysicsObject.hpp>
