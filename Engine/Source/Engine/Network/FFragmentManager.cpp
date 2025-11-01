@@ -21,7 +21,7 @@ void FragmentManager::Update(Float32 deltaTime, FNetworkBase* networkBase)
         if (entry.destination == EFragmentDestination::Incoming &&
             IsFragmentComplete(entry))
         {
-            MergeFragments(entry);
+            MergeFragments(entry, networkBase);
             MarkFragmentForDeletion(entry.id);
             continue;
         }
@@ -55,6 +55,7 @@ void FragmentManager::DestroyFragments(void)
 {
     if (m_fragmentsToDelete.empty()) { return; }
 
+    std::cout << "[manager] we deleting and shit" << std::endl;
     m_fragments.erase(
         std::remove_if(
             m_fragments.begin(),
@@ -86,14 +87,20 @@ void FragmentManager::MarkFragmentForDeletion(const UUID& fragmentID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FragmentManager::MergeFragments(FragmentEntry& entry)
+void FragmentManager::MergeFragments(
+    FragmentEntry& entry, FNetworkBase* networkBase
+)
 {
+    if (!networkBase) { return; }
+
     // Ensure fragments are sorted by sequence order
     SortFragments(entry);
 
     // Reserve space for the complete data
     std::vector<Byte> completeData;
-    completeData.reserve(entry.original.size());
+    SizeT totalSize = 0;
+    for (const auto& chunk: entry.chunks) { totalSize += chunk.data.size(); }
+    completeData.reserve(totalSize);
 
     // Merge all chunks in order
     for (const auto& chunk: entry.chunks)
@@ -102,10 +109,11 @@ void FragmentManager::MergeFragments(FragmentEntry& entry)
             completeData.end(), chunk.data.begin(), chunk.data.end()
         );
     }
-
-    // TODO: Deserialize and process the complete packet
-    // This should call the appropriate packet handler with the reconstructed
-    // packet
+    std::cout << "[manager] its processing time little one" << std::endl;
+    // Process the reassembled packet through the normal packet pipeline
+    networkBase->ProcessReceivedData(
+        completeData.data(), completeData.size(), entry.sender
+    );
 
     // Mark as fully received
     entry.fullyReceived = true;
@@ -120,17 +128,13 @@ Bool FragmentManager::IsFragmentComplete(const FragmentEntry& entry) const
 
 ///////////////////////////////////////////////////////////////////////////////
 std::vector<std::vector<Byte>>
-    FragmentManager::FragmentPacket(const IPacket& packet) const
+    FragmentManager::FragmentPacket(const std::vector<Byte>& serializedData
+    ) const
 {
     std::vector<std::vector<Byte>> chunks;
 
-    // Serialize the packet
-    std::vector<Byte> packetData;
-    // TODO: Implement packet serialization
-    // packetData = packet.Serialize();
-
     // Calculate number of chunks needed
-    const SizeT totalSize = packetData.size();
+    const SizeT totalSize = serializedData.size();
     const SizeT numChunks =
         (totalSize + MAX_FRAGMENT_SIZE - 1) / MAX_FRAGMENT_SIZE;
 
@@ -141,7 +145,7 @@ std::vector<std::vector<Byte>>
     {
         const SizeT chunkSize = std::min(MAX_FRAGMENT_SIZE, totalSize - i);
         std::vector<Byte> chunk(
-            packetData.begin() + i, packetData.begin() + i + chunkSize
+            serializedData.begin() + i, serializedData.begin() + i + chunkSize
         );
         chunks.push_back(std::move(chunk));
     }
@@ -182,22 +186,23 @@ UInt32 FragmentManager::GetCurrentTimestamp(void) const
 
 ///////////////////////////////////////////////////////////////////////////////
 UUID FragmentManager::SendFullTransmission(
-    const IPacket& packet,
+    const std::vector<Byte>& serializedData,
     const std::vector<FEndpoint>& destinations,
     FNetworkBase* networkBase
 )
 {
     if (!networkBase) { return UUID::Nil; }
-
+    std::cout << "[MANAGER] we out here and shit" << std::endl;
     // Create new fragment entry
     FragmentEntry entry;
     entry.id = UUID::V4();   // Generate unique ID
     entry.timestamp = GetCurrentTimestamp();
     entry.destination = EFragmentDestination::Outgoing;
     entry.destinations = destinations;
+    entry.original = serializedData;   // Store original data for reference
 
     // Fragment the packet
-    auto chunks = FragmentPacket(packet);
+    auto chunks = FragmentPacket(serializedData);
     entry.chunkCount = chunks.size();
 
     // Convert UUID to PackageID (first 4 bytes)
@@ -206,6 +211,7 @@ UUID FragmentManager::SendFullTransmission(
                        (static_cast<UInt32>(uuidData[1]) << 16) |
                        (static_cast<UInt32>(uuidData[2]) << 8) |
                        static_cast<UInt32>(uuidData[3]);
+    std::cout << "[MANAGER] id created" << std::endl;
 
     // Create chunk entries and send them
     for (SizeT i = 0; i < chunks.size(); ++i)
@@ -232,6 +238,8 @@ UUID FragmentManager::SendFullTransmission(
         fragmentPacket.FragmentCount = static_cast<UInt8>(entry.chunkCount);
         fragmentPacket.data = entry.chunks[i].data;
 
+        FLogger::SetNamespace("Fragment");
+        FLogger::Info("transmitting chunk {} ...", i);
         for (const auto& dest: destinations)
         {
             networkBase->SendPacket(fragmentPacket, dest);
@@ -311,7 +319,8 @@ void FragmentManager::ProcessFragment(
     UUID fragmentID =
         UUID::Fill(static_cast<UInt8>(fragmentPacket->PackageID));
     FragmentEntry* entry = FindFragmentEntry(fragmentID);
-
+    FLogger::SetNamespace("Fragment manager");
+    FLogger::Info("bew fragment received");
     if (!entry)
     {
         // Create new incoming fragment entry
@@ -321,6 +330,7 @@ void FragmentManager::ProcessFragment(
         newEntry.destination = EFragmentDestination::Incoming;
         newEntry.chunkCount = fragmentPacket->FragmentCount;
         newEntry.chunks.resize(fragmentPacket->FragmentCount);
+        newEntry.sender = sender;   // Store sender for reassembly
 
         m_fragments.push_back(std::move(newEntry));
         entry = &m_fragments.back();
