@@ -18,13 +18,14 @@ void FragmentManager::Update(Float32 deltaTime, FNetworkBase* networkBase)
 
     for (auto& entry: m_fragments)
     {
-        if (IsFragmentComplete(entry))
+        if (entry.destination == EFragmentDestination::Incoming &&
+            IsFragmentComplete(entry))
         {
             MergeFragments(entry);
             MarkFragmentForDeletion(entry.id);
             continue;
         }
-        if (currentTime - entry.timestamp >= MAX_ACK_TIME)
+        if (currentTime - entry.timestamp >= DELETION_TIME)
         {
             MarkFragmentForDeletion(entry.id);
             continue;
