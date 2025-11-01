@@ -76,9 +76,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_FRAGMENT_SIZE = 256;
-    static constexpr SizeT MAX_ACK_TIME = 100;
-    static constexpr SizeT DELETION_TIME = 10000;
+    static constexpr SizeT MAX_FRAGMENT_SIZE = 512;
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;        //<! 500 ms
+    static constexpr Float32 DELETION_TIMEOUT = 1.0f;   //<! 1s
 
 private:
     std::vector<FragmentEntry> m_fragments;
