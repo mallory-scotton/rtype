@@ -85,6 +85,9 @@ void UBillboardPrimitive::UpdateVertices()
     m_vertices.push_back(FVertex(
         FVector3(-halfWidth, halfHeight, 0.0f), m_color, FVector2(u0, v0)
     ));   // Top-left
+
+    // Apply the origin offset to center the billboard
+    for (auto& vertex: m_vertices) { vertex.position -= m_origin; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
