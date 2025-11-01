@@ -18,6 +18,8 @@ BP_Note::BP_Note(ENoteType type, ECutDirection cutDirection, float speed)
     , m_speed(speed)
 {
     AddComponent<UChamferCubeComponent>("SM_Cube");
+    AddComponent<UBoxCollisionComponent>("BC_CutCollision");
+    AddComponent<UBoxCollisionComponent>("BC_BadCutCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,6 +49,26 @@ void BP_Note::BeginPlay(void)
         FTransform transform = cubeComp->GetLocalTransform();
         transform.SetScale(FVector3(0.5f, 0.5f, 0.5f));
         cubeComp->SetLocalTransform(transform);
+    }
+
+    // Setup collision box sizes
+    auto cutCollision =
+        GetComponent<UBoxCollisionComponent>("BC_CutCollision");
+    if (cutCollision)
+    {
+        cutCollision->SetBoxExtent(FVector3f(0.3f, 0.3f, 0.6f));
+        cutCollision->SetHiddenInGame(false);
+        FTransform transform = cutCollision->GetLocalTransform();
+        transform.SetPosition(FVector3(0.f, 0.f, 0.6f));
+        cutCollision->SetLocalTransform(transform);
+    }
+
+    auto badCutCollision =
+        GetComponent<UBoxCollisionComponent>("BC_BadCutCollision");
+    if (badCutCollision)
+    {
+        badCutCollision->SetBoxExtent(FVector3f(0.2f, 0.2f, 0.2f));
+        badCutCollision->SetHiddenInGame(false);
     }
 }
 
