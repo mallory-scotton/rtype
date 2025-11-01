@@ -142,12 +142,6 @@ private:
         0.25f;   //<! Max time to extrapolate (250ms)
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    UFunction<AActor*> OnActorBeginOverlap;
-    UFunction<AActor*> OnActorEndOverlap;
-
     // Movement RPCs
     UFunction<UInt32, Float32, Float32, FVector3, FTransform> ServerMoveRPC;
     UFunction<UInt32, Float32, FTransform> ClientAckMoveRPC;

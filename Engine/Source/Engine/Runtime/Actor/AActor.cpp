@@ -35,8 +35,6 @@ AActor::AActor(const FString& name)
     , m_clientTime(0.0f)
     , m_estimatedRTT(0.1f)
     , m_lastMoveClientTime(0.0f)
-    , OnActorBeginOverlap(*this, "OnActorBeginOverlap")
-    , OnActorEndOverlap(*this, "OnActorEndOverlap")
     , ServerMoveRPC(
           *this,
           "ServerMove",
