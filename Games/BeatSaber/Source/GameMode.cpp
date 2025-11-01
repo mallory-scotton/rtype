@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <GameMode.hpp>
 #include <BP_Note.hpp>
+#include <BP_Sword.hpp>
 #include <BSLevel.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,15 @@ void BeatSaberGameMode::BeginPlay(void)
     Window::GetCamera().position = FVector3::Zero;
 #endif
 
+    // Spawn both swords for the player
+    World::SpawnActorDeferredWithParams<BP_Sword>(
+        FTransform::Identity, "SwordLeft", VR::EHand::Left
+    );
+    World::SpawnActorDeferredWithParams<BP_Sword>(
+        FTransform::Identity, "SwordRight", VR::EHand::Right
+    );
+
+    // Load a random level from the saves directory
     auto levelsPath = m_gameSaves / "Levels";
 
     if (!FileSystem::FileExists(levelsPath))
@@ -52,7 +62,7 @@ void BeatSaberGameMode::BeginPlay(void)
         if (m_level.isValid)
         {
             std::cout << m_level << std::endl;
-            Audio::PlaySound(m_level.levelPath / m_level.songFilename);
+            Audio::PlaySound(m_level.levelPath / m_level.songFilename, 0.2f);
         }
 
         if (!m_level.difficulties.empty())
@@ -162,6 +172,13 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
         spawnZ = playerZ + spawnOffset
     */
 
+    // Calculate spawn distance based on noteJumpMovementSpeed and BPM
+    // In Beat Saber, notes spawn at a distance that gives time to
+    // react
+    float halfJumpDuration = 4.0f;   // Half jump duration in beats (standard)
+    float jumpDistance = m_map.difficulty.noteJumpMovementSpeed *
+                         (halfJumpDuration / (m_level.beatsPerMinute / 60.0f));
+
     // Spawn the notes
     for (const auto& note: m_map.notes)
     {
@@ -173,17 +190,8 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
             // LineLayer: vertical position (0-2, bottom to top)
             // Layers are at: 0, 0.6, 1.2
             float horizontalPos =
-                (static_cast<float>(note.lineIndex) - 1.5f) * 1.f;
-            float verticalPos = static_cast<float>(note.lineLayer) * 1.f;
-
-            // Calculate spawn distance based on noteJumpMovementSpeed and BPM
-            // In Beat Saber, notes spawn at a distance that gives time to
-            // react
-            float halfJumpDuration =
-                4.0f;   // Half jump duration in beats (standard)
-            float jumpDistance =
-                m_map.difficulty.noteJumpMovementSpeed *
-                (halfJumpDuration / (m_level.beatsPerMinute / 60.0f));
+                (static_cast<float>(note.lineIndex) - 1.5f) * 0.6f;
+            float verticalPos = static_cast<float>(note.lineLayer + 1) * 0.6f;
 
             FVector3 position(horizontalPos, verticalPos, -jumpDistance);
             FTransform noteTransform(
