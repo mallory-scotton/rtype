@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkBase.hpp>
 #include <Engine/Core/Utils.hpp>
+#include <Engine/Network/FFragmentManager.hpp>
 #include <Engine/Runtime/World/UWorld.hpp>
 #include <Engine/Static/FWorldInterface.hpp>
 #include <sstream>
@@ -93,7 +94,7 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
     RegisterPacketHandler<Packets::Acknowledgment>(
         [this](
             const Packets::Acknowledgment& packet, const FEndpoint& endpoint
-        ) { (packet, endpoint); }
+        ) { HandleAcknowledgmentPacket(packet, endpoint); }
     );
 
     // Register handler for RPC packets
@@ -102,6 +103,20 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
             const Packets::RemoteProcedureCall& packet,
             const FEndpoint& endpoint
         ) { HandleRPCPacket(packet, endpoint); }
+    );
+
+    // Register handler for Fragment packets
+    RegisterPacketHandler<Packets::Fragment>(
+        [this](const Packets::Fragment& packet, const FEndpoint& endpoint)
+        { HandleFragmentPacket(packet, endpoint); }
+    );
+
+    // Register handler for FragmentAcknowledgment packets
+    RegisterPacketHandler<Packets::FragmentAcknowledgment>(
+        [this](
+            const Packets::FragmentAcknowledgment& packet,
+            const FEndpoint& endpoint
+        ) { HandleFragmentAcknowledgment(packet, endpoint); }
     );
 }
 
@@ -235,6 +250,36 @@ bool FNetworkBase::SendReliablePacket(
     {
         std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
         m_pendingAcks.push_back(ack);
+    }
+
+    // Check if packet needs fragmentation
+    if (packet.GetSize() > MAX_PACKET_SIZE)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Debug(
+            "Packet size {} exceeds MTU {}, fragmenting...",
+            packet.GetSize(),
+            MAX_PACKET_SIZE
+        );
+
+        // Add fragmented flag to header
+        header->AddFlag(EPacketFlags::Fragmented);
+
+        // Use FragmentManager singleton to handle fragmentation
+        auto& fragmentManager = FragmentManager::GetInstance();
+
+        // Create vector with single endpoint for transmission
+        std::vector<FEndpoint> destinations = { endpoint };
+
+        // Send fragmented transmission and get the fragment ID
+        UUID fragmentID =
+            fragmentManager.SendFullTransmission(packet, destinations, this);
+
+        FLogger::Debug(
+            "Packet fragmented with ID: {}", fragmentID.ToString().c_str()
+        );
+
+        return true;
     }
 
 #if TKD_ENGINE_CLIENT
@@ -576,10 +621,13 @@ void FNetworkBase::ProcessSendQueue(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::Update(Float32)
+void FNetworkBase::Update(Float32 deltaTime)
 {
     // Process all queued packets first
     ProcessSendQueue();
+
+    // Update FragmentManager for retransmission and cleanup
+    FragmentManager::GetInstance().Update(deltaTime, this);
 
     UInt32 currentTime = GetCurrentTimestamp();
 
@@ -608,6 +656,53 @@ void FNetworkBase::Update(Float32)
                 // Update timestamp
                 ack.header.timestamp = currentTime;
             }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleFragmentPacket(
+    const Packets::Fragment& packet, const FEndpoint& endpoint
+)
+{
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Received fragment {} of {} for package ID {}",
+        static_cast<UInt32>(packet.SequenceID),
+        static_cast<UInt32>(packet.FragmentCount),
+        packet.PackageID
+    );
+
+    // Forward to FragmentManager for processing
+    // FragmentManager will send the acknowledgment
+    FragmentManager::GetInstance().ProcessFragment(packet, endpoint, this);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleFragmentAcknowledgment(
+    const Packets::FragmentAcknowledgment& packet, const FEndpoint& endpoint
+)
+{
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Received fragment ACK for chunk {} of package ID {}",
+        packet.FragmentID,
+        packet.PackageID
+    );
+
+    // Find the fragment entry using PackageID as UUID
+    // Note: You may need to adapt this based on how you're storing PackageID
+    FragmentEntry* entry = FragmentManager::GetInstance().FindFragmentEntry(
+        UUID::Fill(static_cast<UInt8>(packet.PackageID))
+    );
+
+    if (entry && packet.FragmentID < entry->chunks.size())
+    {
+        auto& chunk = entry->chunks[packet.FragmentID];
+        auto statusIt = chunk.statuses.find(endpoint);
+        if (statusIt != chunk.statuses.end())
+        {
+            statusIt->second.received = true;
         }
     }
 }
