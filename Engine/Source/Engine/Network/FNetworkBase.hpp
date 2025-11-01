@@ -75,7 +75,7 @@ public:
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
     static constexpr SizeT MAX_PACKET_SIZE = 1024;   //<! Max UDP packet size
-    static constexpr Float32 AcCK_TIMEOUT = 0.5f;    //<! 500 ms
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
 
 public:
     ///////////////////////////////////////////////////////////////////////////
