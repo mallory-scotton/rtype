@@ -12,7 +12,6 @@
 #include <Engine/Runtime/Physics/FOBB.hpp>
 #include <Engine/Runtime/Physics/UPhysicsObject.hpp>
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +45,7 @@ private:
         AActor* owner;                    //<! The owning actor
         FOBB boundingBox;                 //<! The oriented bounding box
         FAABB
-            aabb;   //<! The axis-aligned bounding box for spatial partitioning
+        aabb;   //<! The axis-aligned bounding box for spatial partitioning
         bool isDirty;   //<! Needs bounding box recalculation
 
     public:
@@ -118,14 +117,14 @@ private:
     std::unordered_map<Int64, SpatialCell> m_spatialGrid;
     Float32 m_cellSize;
 
-    // Collision delegates
-    std::unordered_map<AActor*, std::vector<FCollisionDelegate>>
+    // Collision delegates (per component, not per actor)
+    std::unordered_map<UCollisionComponent*, std::vector<FCollisionDelegate>>
         m_onCollisionBegin;
-    std::unordered_map<AActor*, std::vector<FCollisionDelegate>>
+    std::unordered_map<UCollisionComponent*, std::vector<FCollisionDelegate>>
         m_onCollisionEnd;
-    std::unordered_map<AActor*, std::vector<FCollisionDelegate>>
+    std::unordered_map<UCollisionComponent*, std::vector<FCollisionDelegate>>
         m_onOverlapBegin;
-    std::unordered_map<AActor*, std::vector<FCollisionDelegate>>
+    std::unordered_map<UCollisionComponent*, std::vector<FCollisionDelegate>>
         m_onOverlapEnd;
 
     // Track overlapping pairs using proper hash-based pair tracking
@@ -181,40 +180,46 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Bind collision begin delegate
     ///
-    /// \param actor The actor to bind to
+    /// \param component The collision component to bind to
     /// \param callback The callback function
     ///
     ///////////////////////////////////////////////////////////////////////////
     void BindOnCollisionBegin(
-        AActor* actor, const FCollisionDelegate& callback
+        UCollisionComponent* component, const FCollisionDelegate& callback
     );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Bind collision end delegate
     ///
-    /// \param actor The actor to bind to
+    /// \param component The collision component to bind to
     /// \param callback The callback function
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void BindOnCollisionEnd(AActor* actor, const FCollisionDelegate& callback);
+    void BindOnCollisionEnd(
+        UCollisionComponent* component, const FCollisionDelegate& callback
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Bind overlap begin delegate
     ///
-    /// \param actor The actor to bind to
+    /// \param component The collision component to bind to
     /// \param callback The callback function
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void BindOnOverlapBegin(AActor* actor, const FCollisionDelegate& callback);
+    void BindOnOverlapBegin(
+        UCollisionComponent* component, const FCollisionDelegate& callback
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Bind overlap end delegate
     ///
-    /// \param actor The actor to bind to
+    /// \param component The collision component to bind to
     /// \param callback The callback function
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void BindOnOverlapEnd(AActor* actor, const FCollisionDelegate& callback);
+    void BindOnOverlapEnd(
+        UCollisionComponent* component, const FCollisionDelegate& callback
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set collision channel interaction

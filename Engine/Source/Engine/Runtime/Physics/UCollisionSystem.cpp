@@ -97,6 +97,12 @@ void UCollisionSystem::UnregisterComponent(UCollisionComponent* component)
     {
         m_overlappingPairs.erase(pair);
     }
+
+    // Clean up any registered callbacks for this component
+    m_onCollisionBegin.erase(component);
+    m_onCollisionEnd.erase(component);
+    m_onOverlapBegin.erase(component);
+    m_onOverlapEnd.erase(component);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -217,26 +223,26 @@ void UCollisionSystem::Update(Float32 deltaTime)
                 if (entryA.component->GetCollisionResponse() ==
                     ECollisionResponse::Block)
                 {
-                    auto& delegates = m_onCollisionEnd[entryA.owner];
+                    auto& delegates = m_onCollisionEnd[entryA.component];
                     for (auto& callback: delegates) { callback(infoA); }
                 }
                 else if (entryA.component->GetCollisionResponse() ==
                          ECollisionResponse::Overlap)
                 {
-                    auto& delegates = m_onOverlapEnd[entryA.owner];
+                    auto& delegates = m_onOverlapEnd[entryA.component];
                     for (auto& callback: delegates) { callback(infoA); }
                 }
 
                 if (entryB.component->GetCollisionResponse() ==
                     ECollisionResponse::Block)
                 {
-                    auto& delegates = m_onCollisionEnd[entryB.owner];
+                    auto& delegates = m_onCollisionEnd[entryB.component];
                     for (auto& callback: delegates) { callback(infoB); }
                 }
                 else if (entryB.component->GetCollisionResponse() ==
                          ECollisionResponse::Overlap)
                 {
-                    auto& delegates = m_onOverlapEnd[entryB.owner];
+                    auto& delegates = m_onOverlapEnd[entryB.component];
                     for (auto& callback: delegates) { callback(infoB); }
                 }
             }
@@ -421,26 +427,26 @@ void UCollisionSystem::TriggerCollisionEvents(
         if (entryA.component->GetCollisionResponse() ==
             ECollisionResponse::Block)
         {
-            auto& delegates = m_onCollisionBegin[entryA.owner];
+            auto& delegates = m_onCollisionBegin[entryA.component];
             for (auto& callback: delegates) { callback(infoA); }
         }
         else if (entryA.component->GetCollisionResponse() ==
                  ECollisionResponse::Overlap)
         {
-            auto& delegates = m_onOverlapBegin[entryA.owner];
+            auto& delegates = m_onOverlapBegin[entryA.component];
             for (auto& callback: delegates) { callback(infoA); }
         }
 
         if (entryB.component->GetCollisionResponse() ==
             ECollisionResponse::Block)
         {
-            auto& delegates = m_onCollisionBegin[entryB.owner];
+            auto& delegates = m_onCollisionBegin[entryB.component];
             for (auto& callback: delegates) { callback(infoB); }
         }
         else if (entryB.component->GetCollisionResponse() ==
                  ECollisionResponse::Overlap)
         {
-            auto& delegates = m_onOverlapBegin[entryB.owner];
+            auto& delegates = m_onOverlapBegin[entryB.component];
             for (auto& callback: delegates) { callback(infoB); }
         }
     }
@@ -448,34 +454,34 @@ void UCollisionSystem::TriggerCollisionEvents(
 
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::BindOnCollisionBegin(
-    AActor* actor, const FCollisionDelegate& callback
+    UCollisionComponent* component, const FCollisionDelegate& callback
 )
 {
-    if (actor) { m_onCollisionBegin[actor].push_back(callback); }
+    if (component) { m_onCollisionBegin[component].push_back(callback); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::BindOnCollisionEnd(
-    AActor* actor, const FCollisionDelegate& callback
+    UCollisionComponent* component, const FCollisionDelegate& callback
 )
 {
-    if (actor) { m_onCollisionEnd[actor].push_back(callback); }
+    if (component) { m_onCollisionEnd[component].push_back(callback); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::BindOnOverlapBegin(
-    AActor* actor, const FCollisionDelegate& callback
+    UCollisionComponent* component, const FCollisionDelegate& callback
 )
 {
-    if (actor) { m_onOverlapBegin[actor].push_back(callback); }
+    if (component) { m_onOverlapBegin[component].push_back(callback); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::BindOnOverlapEnd(
-    AActor* actor, const FCollisionDelegate& callback
+    UCollisionComponent* component, const FCollisionDelegate& callback
 )
 {
-    if (actor) { m_onOverlapEnd[actor].push_back(callback); }
+    if (component) { m_onOverlapEnd[component].push_back(callback); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
