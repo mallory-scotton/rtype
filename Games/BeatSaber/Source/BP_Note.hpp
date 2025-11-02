@@ -56,6 +56,7 @@ private:
     ECutDirection m_cutDirection;   //<!
     FTextureHandle m_handle;        //<!
     float m_speed;                  //<!
+    
 
 public:
     ///////////////////////////////////////////////////////////////////////////
