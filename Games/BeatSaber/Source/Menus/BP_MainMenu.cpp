@@ -234,13 +234,21 @@ void BP_MainMenu::BeginPlay(void)
 
         SettingsIcon->SetTexturePath("Assets/Textures/OptionsButton.png");
 
-        SettingsBox->SetLocalTransform(transform);
-        SettingsBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(0.075f, 0.f, 0.5f));
+        SettingsBox->SetLocalTransform(boxTransform);
+        SettingsBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.5f));
 
         SettingsIcon->SetLocalTransform(transform);
 
         SettingsBox->SetHiddenInGame(false);   //?TEMP
         SettingsBox->SetShowDebug(true);       //?TEMP
+        SetupSubMenuHighlighting(
+            SettingsBox,
+            SettingsIcon,
+            "Assets/Textures/OptionsHighlightButton.png",
+            "Assets/Textures/OptionsButton.png"
+        );
     }
 
     auto* HelpIcon = GetComponent<UBillboardComponent>("BC_HelpIcon");
@@ -253,13 +261,21 @@ void BP_MainMenu::BeginPlay(void)
 
         HelpIcon->SetTexturePath("Assets/Textures/HelpButton.png");
 
-        HelpBox->SetLocalTransform(transform);
-        HelpBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(0.025f, 0.f, 0.5f));
+        HelpBox->SetLocalTransform(boxTransform);
+        HelpBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.5f));
 
         HelpIcon->SetLocalTransform(transform);
 
         HelpBox->SetHiddenInGame(false);   //?TEMP
         HelpBox->SetShowDebug(true);       //?TEMP
+        SetupSubMenuHighlighting(
+            HelpBox,
+            HelpIcon,
+            "Assets/Textures/HelpHighlightButton.png",
+            "Assets/Textures/HelpButton.png"
+        );
     }
 
     auto* EditIcon = GetComponent<UBillboardComponent>("BC_EditIcon");
@@ -272,13 +288,21 @@ void BP_MainMenu::BeginPlay(void)
 
         EditIcon->SetTexturePath("Assets/Textures/EditorButton.png");
 
-        EditBox->SetLocalTransform(transform);
-        EditBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(-0.025f, 0.f, 0.5f));
+        EditBox->SetLocalTransform(boxTransform);
+        EditBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.5f));
 
         EditIcon->SetLocalTransform(transform);
 
         EditBox->SetHiddenInGame(false);   //?TEMP
         EditBox->SetShowDebug(true);       //?TEMP
+        SetupSubMenuHighlighting(
+            EditBox,
+            EditIcon,
+            "Assets/Textures/EditorHighlightButton.png",
+            "Assets/Textures/EditorButton.png"
+        );
     }
 
     auto* ExitIcon = GetComponent<UBillboardComponent>("BC_ExitIcon");
@@ -291,13 +315,21 @@ void BP_MainMenu::BeginPlay(void)
 
         ExitIcon->SetTexturePath("Assets/Textures/ExitButton.png");
 
-        ExitBox->SetLocalTransform(transform);
-        ExitBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(-0.075f, 0.f, 0.5f));
+        ExitBox->SetLocalTransform(boxTransform);
+        ExitBox->SetBoxExtent(FVector3f(1.65625f, 1.65625f, 0.5f));
 
         ExitIcon->SetLocalTransform(transform);
 
         ExitBox->SetHiddenInGame(false);   //?TEMP
         ExitBox->SetShowDebug(true);       //?TEMP
+        SetupSubMenuHighlighting(
+            ExitBox,
+            ExitIcon,
+            "Assets/Textures/ExitHighlightButton.png",
+            "Assets/Textures/ExitButton.png"
+        );
     }
 
     auto* LogoBAT = GetComponent<UBillboardComponent>("BC_LogoBAT");
@@ -370,6 +402,44 @@ void BP_MainMenu::SetupHighlighting(
                     auto* hghl =
                         GetComponent<UBillboardComponent>(highlightName);
                     hghl->SetHiddenInGame(true);
+                }
+            }
+        );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_MainMenu::SetupSubMenuHighlighting(
+    UBoxCollisionComponent* box,
+    UBillboardComponent* billboard,
+    const FilePath& highlightTexture,
+    const FilePath& normalTexture
+)
+{
+    if (box && box->GetCollisionSystem() && billboard)
+    {
+        box->GetCollisionSystem()->BindOnOverlapBegin(
+            box,
+            [billboard, highlightTexture](const FCollisionInfo& info)
+            {
+                if (info.otherActor && info.otherComponent &&
+                    info.otherActor->Is<BP_Sword>() &&
+                    info.otherComponent->Is<AC_Pointer>())
+                {
+                    billboard->SetTexturePath(highlightTexture);
+                }
+            }
+        );
+
+        box->GetCollisionSystem()->BindOnOverlapEnd(
+            box,
+            [billboard, normalTexture](const FCollisionInfo& info)
+            {
+                if (info.otherActor && info.otherComponent &&
+                    info.otherActor->Is<BP_Sword>() &&
+                    info.otherComponent->Is<AC_Pointer>())
+                {
+                    billboard->SetTexturePath(normalTexture);
                 }
             }
         );

@@ -62,6 +62,22 @@ private:
         UBoxCollisionComponent* box, const FString& highlightName
     );
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Setup hilighting for a submenu icon
+    ///
+    /// \param box The box collision component
+    /// \param billboard The billboard component
+    /// \param highlightTexture The highlight texture path
+    /// \param normalTexture The normal texture path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetupSubMenuHighlighting(
+        UBoxCollisionComponent* box,
+        UBillboardComponent* billboard,
+        const FilePath& highlightTexture,
+        const FilePath& normalTexture
+    );
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Definitons
