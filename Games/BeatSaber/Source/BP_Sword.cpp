@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <BP_Sword.hpp>
+#include <AC_Pointer.hpp>
 #include <AC_SwordBlade.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,7 +18,7 @@ BP_Sword::BP_Sword(const FString& name, VR::EHand hand)
 {
     // Add Components to act as the sword's visual representation and collision
     AddComponent<AC_SwordBlade>("SwordBladeCollider", m_hand);
-    // AddComponent<UBoxCollisionComponent>("SwordCollisionBox");
+    AddComponent<AC_Pointer>("SwordPointer", m_hand);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,20 +26,6 @@ void BP_Sword::BeginPlay(void)
 {
     // Call the base class BeginPlay
     Super::BeginPlay();
-
-    // auto* box = GetComponent<UBoxCollisionComponent>("SwordCollisionBox");
-    // if (box)
-    // {
-    //     // Set the box extent to match the blade dimensions
-    //     // The blade is a thin cylinder extending 1.0 unit in the -Z direction
-    //     box->SetBoxExtent(FVector3f(0.02f, 0.02f, 0.5f));
-    //     box->SetHiddenInGame(false);
-
-    //     // Position the box center along the blade (halfway down at -0.5 in Z)
-    //     FTransform localTransform;
-    //     localTransform.SetPosition(FVector3(0.0f, 0.0f, -0.5f));
-    //     box->SetLocalTransform(localTransform);
-    // }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,7 +52,7 @@ void BP_Sword::Tick(Float32 deltaTime)
         {
             // Create player rotation matrix for controllers (rotation only, no
             // translation)
-            float yawRad = 0.0f * (3.14159265359f / 180.0f);
+            float yawRad = 0.0f * (M_PI / 180.0f);
             float cosYaw = std::cos(yawRad);
             float sinYaw = std::sin(yawRad);
 
