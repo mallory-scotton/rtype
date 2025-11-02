@@ -85,8 +85,10 @@ void BP_MainMenu::BeginPlay(void)
             "Assets/Textures/SoloButtonOverlay.png"
         );
 
-        SinglePlayerBox->SetLocalTransform(transform);
-        SinglePlayerBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(0.15f, -0.11f, 0.5f));
+        SinglePlayerBox->SetLocalTransform(boxTransform);
+        SinglePlayerBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.5f));
 
         SinglePlayerIconBackground->SetLocalTransform(transform);
         transform.Translate(FVector3(0.f, 0.f, 0.01f));
@@ -126,7 +128,9 @@ void BP_MainMenu::BeginPlay(void)
             "Assets/Textures/OnlineButtonOverlay.png"
         );
 
-        MultiPlayerBox->SetLocalTransform(transform);
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(0.05f, -0.11f, 0.5f));
+        MultiPlayerBox->SetLocalTransform(boxTransform);
         MultiPlayerBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.1f));
 
         MultiPlayerIconBackground->SetLocalTransform(transform);
@@ -167,8 +171,10 @@ void BP_MainMenu::BeginPlay(void)
             "Assets/Textures/CampaignButtonOverlay.png"
         );
 
-        CampaignBox->SetLocalTransform(transform);
-        CampaignBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.1f));
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(-0.05f, -0.11f, 0.5f));
+        CampaignBox->SetLocalTransform(boxTransform);
+        CampaignBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.5f));
 
         CampaignIconBackground->SetLocalTransform(transform);
         transform.Translate(FVector3(0.f, 0.f, 0.01f));
@@ -207,7 +213,9 @@ void BP_MainMenu::BeginPlay(void)
             "Assets/Textures/LocalPartyButtonOverlay.png"
         );
 
-        PartyBox->SetLocalTransform(transform);
+        FTransform boxTransform = transform;
+        boxTransform.Translate(FVector3(-0.15f, -0.11f, 0.5f));
+        PartyBox->SetLocalTransform(boxTransform);
         PartyBox->SetBoxExtent(FVector3f(4.75f, 7.8125f, 0.1f));
 
         PartyIconBackground->SetLocalTransform(transform);
