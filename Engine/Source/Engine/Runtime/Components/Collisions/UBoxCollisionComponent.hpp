@@ -9,8 +9,8 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Math.hpp>
 #include <Engine/Core/Object/UObject.hpp>
-#include <Engine/Runtime/Components/UActorComponent.hpp>
-#include <Engine/Runtime/Physics.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
+#include <Engine/Runtime/Physics/UPhysicsObject.hpp>
 #include <vector>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,9 +23,7 @@ namespace tkd
 /// \brief Box collision component class
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class UBoxCollisionComponent
-    : public UActorComponent
-    , public UPhysicsObject
+class UBoxCollisionComponent : public UCollisionComponent
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -83,6 +81,30 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Render(IRenderer& renderer) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the local bounding box of the component
+    ///
+    /// \return The local oriented bounding box
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FOBB GetLocalBoundingBox(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the world bounding box of the component
+    ///
+    /// \return The world oriented bounding box
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FOBB GetWorldBoundingBox(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the world AABB for spatial partitioning
+    ///
+    /// \return The world axis-aligned bounding box
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual FAABB GetWorldAABB(void) const override;
 };
 
 }   // namespace tkd
