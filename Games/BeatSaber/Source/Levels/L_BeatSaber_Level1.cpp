@@ -16,6 +16,7 @@ L_BeatSaber_Level1::L_BeatSaber_Level1(void)
     SetLevelName("L_BeatSaber_Level1");
     SetGameMode("BeatSaberGameMode");
     AddActorEntry("BP_Platform", "Platform", FTransform::Identity);
+    AddActorEntry("BP_MainMenu", "MainMenu", FTransform::Identity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
