@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <BP_Note.hpp>
 #include <AC_NoteArrow.hpp>
+#include <AC_SwordBlade.hpp>
 #include <BP_Sword.hpp>
 #include <Engine/Assets/URessource.hpp>
 
@@ -107,10 +108,12 @@ void BP_Note::BeginPlay(void)
         if (cs)
         {
             cs->BindOnOverlapBegin(
-                this,
+                cutCollision,
                 [this](const FCollisionInfo& info)
                 {
-                    if (info.otherActor && info.otherActor->Is<BP_Sword>())
+                    if (info.otherActor && info.otherActor->Is<BP_Sword>() &&
+                        info.otherComponent &&
+                        info.otherComponent->Is<AC_SwordBlade>())
                     {
                         // Note hit by sword - handle scoring, effects, etc.
                         // here
