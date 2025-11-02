@@ -6,7 +6,6 @@
 #include <Engine/Runtime/Physics/FOBB.hpp>
 #include <Engine/Runtime/Physics/UCollisionSystem.hpp>
 
-
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
@@ -97,56 +96,66 @@ void UBoxCollisionComponent::SetLocalTransform(const FTransform& transform)
 ///////////////////////////////////////////////////////////////////////////////
 void UBoxCollisionComponent::Render(IRenderer& renderer) const
 {
-    if (IsHiddenInGame()) { return; }
+    // Call parent render for debug bounding box
+    UCollisionComponent::Render(renderer);
+}
 
-    const FTransform& worldTransform =
-        GetOwner()->GetTransform() * m_localTransform;
-    renderer.Draw(m_vertices, EPrimitiveType::LineStrip, worldTransform);
+///////////////////////////////////////////////////////////////////////////////
+void UBoxCollisionComponent::Tick(Float32)
+{
+    if (!IsHiddenInGame()) { SetShowDebug(true); }
+    else { SetShowDebug(false); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 FOBB UBoxCollisionComponent::GetLocalBoundingBox(void) const
 {
-    FOBB obb;
-    obb.center = m_localTransform.GetPosition();
-    obb.extents = FVector3(m_boxExtent.x, m_boxExtent.y, m_boxExtent.z);
+    FOBB bound;
 
-    // Extract rotation axes from local transform
-    FRotator rotation = m_localTransform.GetRotation();
-    Float32 pitch = rotation.GetPitch() * M_PI / 180.0f;
-    Float32 yaw = rotation.GetYaw() * M_PI / 180.0f;
-    Float32 roll = rotation.GetRoll() * M_PI / 180.0f;
+    bound.center = m_localTransform.GetPosition();
+    bound.extents = m_boxExtent * m_localTransform.GetScale();
 
-    Float32 cp = std::cos(pitch);
-    Float32 sp = std::sin(pitch);
-    Float32 cy = std::cos(yaw);
-    Float32 sy = std::sin(yaw);
-    Float32 cr = std::cos(roll);
-    Float32 sr = std::sin(roll);
+    // Local axes (identity - no rotation in local space)
+    bound.axes[0] = FVector3(1.0f, 0.0f, 0.0f);   // X-axis
+    bound.axes[1] = FVector3(0.0f, 1.0f, 0.0f);   // Y-axis
+    bound.axes[2] = FVector3(0.0f, 0.0f, 1.0f);   // Z-axis
 
-    // Right axis (X)
-    obb.axes[0] = FVector3(cy * cr, cy * sr, -sy);
-    // Up axis (Y)
-    obb.axes[1] =
-        FVector3(sp * sy * cr - cp * sr, sp * sy * sr + cp * cr, sp * cy);
-    // Forward axis (Z)
-    obb.axes[2] =
-        FVector3(cp * sy * cr + sp * sr, cp * sy * sr - sp * cr, cp * cy);
-
-    return obb;
+    return bound;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 FOBB UBoxCollisionComponent::GetWorldBoundingBox(void) const
 {
-    // Full transform (world * local)
-    FTransform worldTransform = GetOwner()->GetTransform() * m_localTransform;
+    FOBB bound;
 
-    FOBB obb;
-    obb.UpdateFromTransform(
-        worldTransform, FVector3(m_boxExtent.x, m_boxExtent.y, m_boxExtent.z)
-    );
-    return obb;
+    // Get the owner's transform
+    FTransform transform = GetOwner()->GetTransform() * m_localTransform;
+
+    // Get local bounding box
+    FOBB localBound = GetLocalBoundingBox();
+
+    // Transform the center to world space
+    bound.center = transform.TransformPoint(localBound.center);
+
+    // Scale the box extents by the transform's scale
+    bound.extents = localBound.extents * GetOwner()->GetTransform().GetScale();
+
+    // Transform the axes to world space (rotate but don't translate)
+    bound.axes[0] = transform.TransformDirection(localBound.axes[0]);
+    bound.axes[1] = transform.TransformDirection(localBound.axes[1]);
+    bound.axes[2] = transform.TransformDirection(localBound.axes[2]);
+
+    // Normalize axes (in case transform has scaling)
+    bound.axes[0] = bound.axes[0].Normalized();
+    bound.axes[1] = bound.axes[1].Normalized();
+    bound.axes[2] = bound.axes[2].Normalized();
+
+    // Extents remain the same (assuming uniform scaling or no scaling)
+    // If you need to handle non-uniform scaling, you'd need to scale extents
+    // along each axis based on the transform's scale
+    bound.extents = localBound.extents;
+
+    return bound;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
