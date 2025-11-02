@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <BP_Note.hpp>
+#include <AC_NoteArrow.hpp>
 #include <BP_Sword.hpp>
 #include <Engine/Assets/URessource.hpp>
 
@@ -21,6 +22,12 @@ BP_Note::BP_Note(ENoteType type, ECutDirection cutDirection, float speed)
     AddComponent<UChamferCubeComponent>("SM_Cube");
     AddComponent<UBoxCollisionComponent>("BC_CutCollision");
     AddComponent<UBoxCollisionComponent>("BC_BadCutCollision");
+
+    // Add note arrow component for directional indicator
+    auto arrowType = (cutDirection == ECutDirection::None)
+                         ? AC_NoteArrow::EType::Dot
+                         : AC_NoteArrow::EType::Arrow;
+    AddComponent<AC_NoteArrow>("AC_NoteArrow", arrowType);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -28,6 +35,39 @@ void BP_Note::BeginPlay(void)
 {
     // Call the Begin Play of the Super Class
     Super::BeginPlay();
+
+    {
+        // Rotate the note based on cut direction
+        FTransform transform = GetTransform();
+        switch (m_cutDirection)
+        {
+        case ECutDirection::Up  : break;
+        case ECutDirection::None: break;
+        case ECutDirection::Down:
+            transform.SetRotation(TRotator(0.f, 180.f, 0.f));
+            break;
+        case ECutDirection::Left:
+            transform.SetRotation(TRotator(0.f, -90.f, 0.f));
+            break;
+        case ECutDirection::Right:
+            transform.SetRotation(TRotator(0.f, 90.f, 0.f));
+            break;
+        case ECutDirection::UpLeft:
+            transform.SetRotation(TRotator(0.f, -45.f, 0.f));
+            break;
+        case ECutDirection::UpRight:
+            transform.SetRotation(TRotator(0.f, 45.f, 0.f));
+            break;
+        case ECutDirection::DownLeft:
+            transform.SetRotation(TRotator(0.f, -135.f, 0.f));
+            break;
+        case ECutDirection::DownRight:
+            transform.SetRotation(TRotator(0.f, 135.f, 0.f));
+            break;
+        default: break;
+        }
+        SetTransform(transform);
+    }
 
     // Setup color based on the note type
     auto cubeComp = GetComponent<UChamferCubeComponent>("SM_Cube");
@@ -111,6 +151,12 @@ void BP_Note::Tick(float deltaTime)
     // Delete note when it passes the player position
     if (transform.GetPosition().z > 2.0f) { MarkForDeletion(); }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+ENoteType BP_Note::GetNoteType(void) const { return m_type; }
+
+///////////////////////////////////////////////////////////////////////////////
+ECutDirection BP_Note::GetCutDirection(void) const { return m_cutDirection; }
 
 ///////////////////////////////////////////////////////////////////////////////
 IMPLEMENT_CLASS_WITH_SUPER(BP_Note, AActor)
