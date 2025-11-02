@@ -236,6 +236,9 @@ void Renderer::Draw(
     glRotatef(rotation.GetYaw(), 0.0f, 0.0f, 1.0f);
     glScalef(scale.x, scale.y, scale.z);
 
+    // **Save current blend state**
+    GLboolean wasBlendEnabled = glIsEnabled(GL_BLEND);
+
     // Set material color once for the entire object
     if (count > 0)
     {
@@ -425,7 +428,8 @@ void Renderer::Draw(
     glEnd();
     glPopMatrix();
 
-    if (count > 0 && vertices[0].color.a < 1.0f) { glDisable(GL_BLEND); }
+    if (wasBlendEnabled) { glEnable(GL_BLEND); }
+    else { glDisable(GL_BLEND); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -932,10 +936,26 @@ void Renderer::EndFrame(void)
         // Get the size of the window
         sf::Vector2u windowSize = m_window->getSize();
 
+        // Save all OpenGL state
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+
         // Display preview in window (show what left eye sees)
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, windowSize.x, windowSize.y);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // **RESET TO KNOWN CLEAN STATE FOR 2D TEXTURE RENDERING**
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDepthMask(GL_FALSE);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         // Setup orthographic projection for displaying texture
         glMatrixMode(GL_PROJECTION);
@@ -947,6 +967,12 @@ void Renderer::EndFrame(void)
         // Bind and display the left eye texture
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, m_vr.leftEye.GetRenderTarget().textureID);
+
+        // Ensure proper texture parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         // Draw a full-screen quad with the texture
         glColor3f(1.0f, 1.0f, 1.0f);
@@ -964,7 +990,10 @@ void Renderer::EndFrame(void)
         // Cleanup - unbind the texture
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_TEXTURE_2D);
-        glEnable(GL_DEPTH_TEST);
+
+        // **RESTORE ALL OPENGL STATE**
+        glPopClientAttrib();
+        glPopAttrib();
 
         // Display the window contents
         if (m_currentTarget == m_window) { m_window->display(); }
