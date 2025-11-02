@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <BP_Note.hpp>
+#include <BP_Sword.hpp>
 #include <Engine/Assets/URessource.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,6 +62,30 @@ void BP_Note::BeginPlay(void)
         FTransform transform = cutCollision->GetLocalTransform();
         transform.SetPosition(FVector3(0.f, 0.f, 0.6f));
         cutCollision->SetLocalTransform(transform);
+
+        auto* cs = cutCollision->GetCollisionSystem();
+        if (cs)
+        {
+            cs->BindOnOverlapBegin(
+                this,
+                [this](const FCollisionInfo& info)
+                {
+                    if (info.otherActor && info.otherActor->Is<BP_Sword>())
+                    {
+                        // Note hit by sword - handle scoring, effects, etc.
+                        // here
+                        MarkForDeletion();
+
+#if TKD_ENGINE_CLIENT
+                        auto& vr = Window::GetVRSystem();
+                        vr.TriggerHapticPulse(
+                            info.otherActor->As<BP_Sword>()->GetHand(), 0.1f
+                        );
+#endif
+                    }
+                }
+            );
+        }
     }
 
     auto badCutCollision =
