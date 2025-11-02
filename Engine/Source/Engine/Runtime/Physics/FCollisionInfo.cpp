@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Physics/FCollisionInfo.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
-#include <Engine/Runtime/Components/UActorComponent.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -14,7 +14,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 FCollisionInfo::FCollisionInfo(void)
     : otherActor(nullptr)
-    , otherComp(nullptr)
+    , otherComponent(nullptr)
     , impactPoint(FVector3::Zero)
     , impactNormal(FVector3::Zero)
     , penetrationDepth(0.0f)

@@ -19,7 +19,7 @@ namespace tkd
 // Forward declarations
 ///////////////////////////////////////////////////////////////////////////////
 class AActor;
-class UActorComponent;
+class UCollisionComponent;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Structure to hold collision information
@@ -31,10 +31,11 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    AActor* otherActor;           //<! The other actor in the collision
-    UActorComponent* otherComp;   //<! The other component in the collision
-    FVector3 impactPoint;         //<! The point of impact in world space
-    FVector3 impactNormal;        //<! The normal of the impact in world space
+    AActor* otherActor;         //<! The other actor in the collision
+    UCollisionComponent*
+        otherComponent;         //<! The other component in the collision
+    FVector3 impactPoint;       //<! The point of impact in world space
+    FVector3 impactNormal;      //<! The normal of the impact in world space
     Float32 penetrationDepth;   //<! Depth of penetration during the collision
 
 public:
