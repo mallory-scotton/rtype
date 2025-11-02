@@ -29,9 +29,21 @@ public:
     // Two billboards used to tile the background seamlessly
     // Width of the texture in world units (used to compute wrap position)
     Float32 m_textureWidth;
-
     Float32 m_scaleX;       //<! Scale factor in X direction
     Float32 m_worldWidth;   //<! Width of the background in world units
+
+    // Additional layers for parallax effect
+    FilePath m_texturePathPlanet;     //<! Path to the planet texture
+    FilePath m_texturePathStars;      //<! Path to the stars texture
+
+    Float32 m_textureWidthPlanet;     //<! Width in pixels for planet texture
+    Float32 m_textureWidthStars;      //<! Width in pixels for stars texture
+
+    Float32 m_worldWidthPlanet;       //<! World width for planet layer
+    Float32 m_worldWidthStars;        //<! World width for stars layer
+
+    Float32 m_parallaxPlanetFactor;   //<! Parallax factor for planet layer
+    Float32 m_parallaxStarsFactor;    //<! Parallax factor for stars layer
 
 public:
     ///////////////////////////////////////////////////////////////////////////
