@@ -6,8 +6,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Assets/UResourceHandle.hpp>
 #include <Engine/Audio.hpp>
 #include <shared_mutex>
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -94,6 +96,32 @@ public:
     );
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a sound from a resource handle
+    ///
+    /// \param bufferHandle Handle to the audio buffer resource
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TSharedPtr<IAudioSource> PlaySound(
+        const FAudioBufferHandle& bufferHandle,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a sound from a PAK file or resource system
+    ///
+    /// \param soundPath Path to the sound file (will search in PAK files)
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TSharedPtr<IAudioSource> PlaySoundFromPak(
+        const FilePath& soundPath, Float32 volume = 1.0f, Bool loop = false
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Play a 3D sound
     ///
     /// \param filePath The path to the audio file
@@ -154,6 +182,38 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     static TSharedPtr<IAudioSource> PlaySound3D(
         const UAsset* asset,
+        const FVector3& position,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a 3D sound from a resource handle
+    ///
+    /// \param bufferHandle Handle to the audio buffer resource
+    /// \param position The position of the sound in 3D space
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TSharedPtr<IAudioSource> PlaySound3D(
+        const FAudioBufferHandle& bufferHandle,
+        const FVector3& position,
+        Float32 volume = 1.0f,
+        Bool loop = false
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Play a 3D sound from a PAK file or resource system
+    ///
+    /// \param soundPath Path to the sound file (will search in PAK files)
+    /// \param position The position of the sound in 3D space
+    /// \param volume The volume of the sound (0.0 to 1.0)
+    /// \param loop Whether to loop the sound
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TSharedPtr<IAudioSource> PlaySound3DFromPak(
+        const FilePath& soundPath,
         const FVector3& position,
         Float32 volume = 1.0f,
         Bool loop = false
