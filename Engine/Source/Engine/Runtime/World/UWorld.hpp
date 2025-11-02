@@ -10,6 +10,8 @@
 #include <Engine/Core.hpp>
 #include <Engine/Renderer.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
+#include <Engine/Runtime/Physics/UCollisionSystem.hpp>
 #include <Engine/Runtime/Time/ITickable.hpp>
 #include <Engine/Runtime/World/ULevel.hpp>
 #include <functional>
@@ -60,6 +62,7 @@ private:
     std::vector<DeferredSpawnRequest>
         m_deferredSpawns;                 //<! Queue of deferred spawn requests
     mutable std::mutex m_deferredSpawnsMutex;   //<! Mutex for deferred spawns
+    TUniquePtr<UCollisionSystem> m_collisionSystem;   //<! The collision system
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -155,6 +158,18 @@ public:
         m_actors.push_back(std::make_shared<T>());
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
+
+        // Auto-setup collision components
+        auto components = actor->GetComponents();
+        for (const auto& comp: components)
+        {
+            if (auto* collisionComp =
+                    dynamic_cast<UCollisionComponent*>(comp.get()))
+            {
+                collisionComp->SetCollisionSystem(m_collisionSystem.get());
+            }
+        }
+
         if (m_hasBegunPlay) { actor->BeginPlay(); }
         return actor;
     }
@@ -181,6 +196,18 @@ public:
         m_actors.push_back(std::make_shared<T>(std::forward<Args>(args)...));
         T* actor = static_cast<T*>(m_actors.back().get());
         actor->SetTransform(transform);
+
+        // Auto-setup collision components
+        auto components = actor->GetComponents();
+        for (const auto& comp: components)
+        {
+            if (auto* collisionComp =
+                    dynamic_cast<UCollisionComponent*>(comp.get()))
+            {
+                collisionComp->SetCollisionSystem(m_collisionSystem.get());
+            }
+        }
+
         if (m_hasBegunPlay) { actor->BeginPlay(); }
         return actor;
     }
@@ -240,6 +267,18 @@ public:
         // Add to world
         m_actors.push_back(std::shared_ptr<AActor>(actor));
         actor->SetTransform(transform);
+
+        // Auto-setup collision components
+        auto components = actor->GetComponents();
+        for (const auto& comp: components)
+        {
+            if (auto* collisionComp =
+                    dynamic_cast<UCollisionComponent*>(comp.get()))
+            {
+                collisionComp->SetCollisionSystem(m_collisionSystem.get());
+            }
+        }
+
         if (m_hasBegunPlay) { actor->BeginPlay(); }
 
         return actor;

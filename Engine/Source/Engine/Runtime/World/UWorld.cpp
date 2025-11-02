@@ -21,6 +21,7 @@ UWorld::UWorld(const FString& name)
     , m_loadedLevels()
     , m_lastSnapshotID(0)
     , m_hasBegunPlay(false)
+    , m_collisionSystem(std::make_unique<UCollisionSystem>(200.0f))
     , SpawnActorRPC(
           *this,
           "SpawnActor",
@@ -188,6 +189,9 @@ void UWorld::Tick(Float32 deltaTime)
     {
         if (actor && actor->IsActive()) { actor->Tick(deltaTime); }
     }
+
+    // Update collision system
+    if (m_collisionSystem) { m_collisionSystem->Update(deltaTime); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -580,6 +584,20 @@ void UWorld::ProcessDeferredSpawns(void)
                 m_actors.push_back(actorPtr);
                 actor = actorPtr.get();
                 actor->SetTransform(request.transform);
+
+                // Auto-setup collision components
+                auto components = actor->GetComponents();
+                for (const auto& comp: components)
+                {
+                    if (auto* collisionComp =
+                            dynamic_cast<UCollisionComponent*>(comp.get()))
+                    {
+                        collisionComp->SetCollisionSystem(
+                            m_collisionSystem.get()
+                        );
+                    }
+                }
+
                 if (m_hasBegunPlay) { actor->BeginPlay(); }
             }
         }
