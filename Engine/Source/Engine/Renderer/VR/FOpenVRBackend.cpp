@@ -16,9 +16,12 @@ namespace tkd::VR
 ///////////////////////////////////////////////////////////////////////////////
 FOpenVRBackend::FOpenVRBackend(void)
     : m_system(nullptr)
+    , m_hapticTimers()
 {
     m_controllerIndices[0] = -1;
     m_controllerIndices[1] = -1;
+    m_hapticTimers[EHand::Left] = 0.0f;
+    m_hapticTimers[EHand::Right] = 0.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,6 +189,31 @@ void FOpenVRBackend::UpdatePoses(void)
 {
     // Poses are updated in WaitForSync
     WaitForSync();
+
+    static const float maxHapticDuration = 0.04f;   // seconds
+    static const UInt16 microseconds =
+        static_cast<UInt16>(maxHapticDuration * 1000000.0f);
+
+    // Update haptic timers
+    if (m_hapticTimers[EHand::Left] > 0.0f)
+    {
+        int idx = m_controllerIndices[static_cast<SizeT>(EHand::Left)];
+        if (idx != -1)
+        {
+            m_system->TriggerHapticPulse(idx, 0, microseconds);
+            m_hapticTimers[EHand::Left] -= maxHapticDuration;
+        }
+    }
+
+    if (m_hapticTimers[EHand::Right] > 0.0f)
+    {
+        int idx = m_controllerIndices[static_cast<SizeT>(EHand::Right)];
+        if (idx != -1)
+        {
+            m_system->TriggerHapticPulse(idx, 0, microseconds);
+            m_hapticTimers[EHand::Right] -= maxHapticDuration;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -384,16 +412,12 @@ bool FOpenVRBackend::IsButtonPressed(EHand hand, EButton button) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FOpenVRBackend::TriggerHapticPulse(
-    EHand hand, Float32 intensity, Float32 duration
-)
+void FOpenVRBackend::TriggerHapticPulse(EHand hand, Float32 duration)
 {
     int idx = m_controllerIndices[static_cast<SizeT>(hand)];
     if (idx == -1 || !m_system) { return; }
 
-    UInt16 microseconds =
-        static_cast<UInt16>(duration * 1000000.0f * intensity);
-    m_system->TriggerHapticPulse(idx, 0, microseconds);
+    if (m_hapticTimers[hand] <= duration) { m_hapticTimers[hand] = duration; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
