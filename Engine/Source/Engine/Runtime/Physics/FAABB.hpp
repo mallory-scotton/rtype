@@ -69,7 +69,7 @@ public:
     /// \return The extent of the AABB
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FVector3 GetExtent(void) const;
+    FVector3 GetExtents(void) const;
 };
 
 }   // namespace tkd

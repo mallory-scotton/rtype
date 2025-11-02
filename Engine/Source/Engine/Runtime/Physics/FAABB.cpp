@@ -38,7 +38,7 @@ FVector3 FAABB::GetCenter(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FVector3 FAABB::GetExtent(void) const
+FVector3 FAABB::GetExtents(void) const
 {
     return FVector3(
         (max.x - min.x) * 0.5f, (max.y - min.y) * 0.5f, (max.z - min.z) * 0.5f
