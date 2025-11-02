@@ -153,7 +153,8 @@ bool UPak::Create(const FilePath& pakPath, const std::vector<UAsset*>& assets)
     {
         FPakEntry entry;
         entry.uuid = asset->GetUUID();
-        entry.name = NormalizePath(asset->GetName());  // Normalize path separators
+        entry.name =
+            NormalizePath(asset->GetName());   // Normalize path separators
         entry.type = asset->GetType();
         entry.offset = dataOffset;
         entry.size = asset->GetSize();
@@ -321,6 +322,16 @@ const FPakEntry* UPak::GetEntry(const FString& uuid) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+const FPakEntry* UPak::GetEntryByName(const FString& name) const
+{
+    // Try with normalized path first
+    FString normalizedName = NormalizePath(name);
+    auto it = m_nameIndex.find(normalizedName);
+    if (it == m_nameIndex.end()) { return nullptr; }
+    return &it->second;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::vector<FPakEntry> UPak::GetAllEntries(void) const
 {
     std::vector<FPakEntry> entries;
@@ -329,6 +340,22 @@ std::vector<FPakEntry> UPak::GetAllEntries(void) const
     for (const auto& pair: m_entries) { entries.push_back(pair.second); }
 
     return entries;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TUniquePtr<UAsset> UPak::GetAsset(const FString& uuid)
+{
+    auto asset = CreateAsset(uuid);
+    if (!asset) { return nullptr; }
+    return TUniquePtr<UAsset>(std::move(asset));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TUniquePtr<UAsset> UPak::GetAssetByName(const FString& name)
+{
+    auto asset = CreateAssetByName(name);
+    if (!asset) { return nullptr; }
+    return TUniquePtr<UAsset>(std::move(asset));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
