@@ -12,6 +12,7 @@
 #include <Engine/Runtime/Components/UBillboardComponent.hpp>
 #include <Engine/Runtime/Components/UCapsuleComponent.hpp>
 #include <Engine/Runtime/Components/UChamferCubeComponent.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
 #include <Engine/Runtime/Components/UConeComponent.hpp>
 #include <Engine/Runtime/Components/UCubeComponent.hpp>
 #include <Engine/Runtime/Components/UCylinderComponent.hpp>
