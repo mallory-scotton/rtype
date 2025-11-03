@@ -117,7 +117,7 @@ void UCollisionSystem::MarkDirty(UCollisionComponent* component)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UCollisionSystem::Update(Float32 deltaTime)
+void UCollisionSystem::Update(Float32)
 {
     // Update bounding boxes for dirty components
     for (auto& entry: m_collisionComponents)
