@@ -7,6 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine.hpp>
+// Particle system for cut effects
+#include <Engine/Renderer/UParticleSystem.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -56,7 +58,22 @@ private:
     ECutDirection m_cutDirection;   //<!
     FTextureHandle m_handle;        //<!
     float m_speed;                  //<!
-    
+    // Cut / fragment state
+    bool m_cutProcessed = false;   //<! Whether this note has already been cut
+    bool m_fragmentsActive = false;   //<! Whether fragment animation is active
+    float m_fragmentLifetime = 0.0f;   //<! Remaining lifetime for fragments
+    // Simple physics for two fragments (velocities in world space)
+    FVector3 m_fragmentVelocityA;
+    FVector3 m_fragmentVelocityB;
+    FVector3 m_fragmentAngularA;
+    FVector3 m_fragmentAngularB;
+    // Particle system for the cut explosion
+    UParticleSystem m_cutParticles;
+    // Debris fragments (small mesh pieces)
+    std::vector<UChamferCubeComponent*> m_debrisComps;
+    std::vector<FVector3> m_debrisVelocities;
+    std::vector<FVector3> m_debrisAngularVel;
+    SizeT m_debrisCount = 6;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -72,6 +89,9 @@ public:
         ECutDirection cutDirection = ECutDirection::Up,
         float speed = 10.0f
     );
+
+    // Handle a cut collision (called from overlap callback)
+    void OnCut(const FCollisionInfo& info);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
