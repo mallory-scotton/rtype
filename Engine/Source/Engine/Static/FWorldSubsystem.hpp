@@ -138,6 +138,14 @@ public:
     const AGameMode& GetGameMode(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the game mode of the current level
+    ///
+    /// \return The game mode of the current level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    AGameMode& GetGameMode(void);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the loaded levels
     ///
     /// \return A constant reference to the vector of loaded levels

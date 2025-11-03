@@ -205,6 +205,13 @@ const AGameMode& FWorldSubsystem::GetGameMode(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+AGameMode& FWorldSubsystem::GetGameMode(void)
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 const std::vector<ULevel>& FWorldSubsystem::GetLoadedLevels(void) const
 {
     std::shared_lock lock(m_worldMutex);
