@@ -34,6 +34,7 @@ void UWidgetPanelComponent::SetColor(const FColor& color)
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::BeginPlay(void)
 {
+    // Call parent BeginPlay
     Super::BeginPlay();
 
     m_rectangleShape = new URectangleShape();
@@ -49,6 +50,9 @@ void UWidgetPanelComponent::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::EndPlay(void)
 {
+    // Call parent EndPlay
+    Super::EndPlay();
+
     if (m_rectangleShape)
     {
         delete m_rectangleShape;
@@ -59,6 +63,9 @@ void UWidgetPanelComponent::EndPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::Tick(Float32 deltaTime)
 {
+    // Call parent Tick
+    Super::Tick(deltaTime);
+
     // If the widget can move / resize at runtime, make sure the shape follows.
     // Only update when there is a shape to avoid null checks elsewhere.
     if (m_rectangleShape)
@@ -67,8 +74,6 @@ void UWidgetPanelComponent::Tick(Float32 deltaTime)
         m_rectangleShape->SetSize(GetSize());
         m_rectangleShape->SetOrigin(GetOrigin());
     }
-
-    Super::Tick(deltaTime);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

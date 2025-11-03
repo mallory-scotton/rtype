@@ -21,9 +21,6 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 /// \brief Panel widget component that displays a colored rectangle
 ///
-/// Provides functionality for creating simple colored panel widgets.
-/// Inherits core widget functionality from UWidgetComponent.
-///
 ///////////////////////////////////////////////////////////////////////////////
 class UWidgetPanelComponent : public UWidgetComponent
 {
@@ -55,6 +52,7 @@ public:
     UWidgetPanelComponent(const UWidgetPanelComponent&) = delete;
     UWidgetPanelComponent& operator=(const UWidgetPanelComponent&) = delete;
 
+public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current color of the panel
     ///
@@ -85,7 +83,6 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     virtual void Tick(Float32 deltaTime) override;
 
-protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is first created
     ///
