@@ -11,6 +11,7 @@
 #include <Engine/Core/Math.hpp>
 #include <Engine/Renderer/Interfaces/IRenderer.hpp>
 #include <Engine/Runtime/Components/UActorComponent.hpp>
+#include <Engine/Runtime/Input/FInputManager.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -52,15 +53,16 @@ public:
         BottomRight     ///< Align to bottom right corner
     };
 
-private:
+protected:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FVector2 m_position;      ///< Widget position in screen space
-    FVector2 m_rawPosition;   ///< Raw position (no alignment applied)
-    FVector2 m_size;          ///< Widget dimensions (width, height)
-    FVector2 m_rawSize;       ///< Widget dimensions (width, height)
-    FVector2 m_scale;         ///< Widget scale factor
+    FInputManager* m_inputManager;   //<! The input manager
+    FVector2 m_position;             ///< Widget position in screen space
+    FVector2 m_rawPosition;          ///< Raw position (no alignment applied)
+    FVector2 m_size;                 ///< Widget dimensions (width, height)
+    FVector2 m_rawSize;              ///< Widget dimensions (width, height)
+    FVector2 m_scale;                ///< Widget scale factor
     Int32 m_zIndex;          ///< Layer ordering (higher numbers appear on top)
     EAlignment m_align;      ///< Widget alignment
     bool m_visible;          ///< Visibility state
@@ -82,6 +84,7 @@ public:
     UWidgetComponent(const UWidgetComponent&) = delete;
     UWidgetComponent& operator=(const UWidgetComponent&) = delete;
 
+public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current position of the widget
     ///
@@ -250,7 +253,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void SetEnabled(Bool enabled);
 
-protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the input manager for the inputs
+    ///
+    /// \param inputManager the input manager to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetInputManager(FInputManager* inputManager);
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is first created
     ///
