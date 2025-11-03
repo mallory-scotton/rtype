@@ -18,13 +18,6 @@ BP_MonsterSpawner::BP_MonsterSpawner(void)
     , SpawnInterval(*this, "SpawnInterval", 2.5f)
     , MaxCount(*this, "MaxCount", 6)
     , SpawnRadius(*this, "SpawnRadius", 200.0f)
-    , SpawnOne(
-          *this,
-          "SpawnOne",
-          ERPCType::Server,
-          std::bind(&BP_MonsterSpawner::RPC_SpawnOne, this),
-          true
-      )
     , MulticastSpawnOne(
           *this,
           "MulticastSpawnOne",
@@ -39,6 +32,12 @@ BP_MonsterSpawner::BP_MonsterSpawner(void)
     , m_time(0.0f)
     , m_spawned(0)
 {
+#if TKD_ENGINE_CLIENT
+    SetNetRole(ENetRole::SimulatedProxy);
+#else
+    SetNetRole(ENetRole::Authority);
+#endif
+    // SetTransformReplicated(true);
     // Spawner itself doesn't need to replicate transform
     SetTransformReplicated(false);
 }
@@ -71,7 +70,7 @@ void BP_MonsterSpawner::Tick(Float32 deltaTime)
     m_time += deltaTime;
     if (m_time >= SpawnInterval())
     {
-        SpawnOne();
+        SpawnOneMonster();
         m_time = 0.0f;
     }
 }
@@ -118,25 +117,7 @@ void BP_MonsterSpawner::SpawnOneMonster(void)
     );
 
     ++m_spawned;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-void BP_MonsterSpawner::RPC_SpawnOne(void)
-{
-    if (IsAuthority() && m_spawned < MaxCount() && m_time >= SpawnInterval())
-    {
-        m_time = 0.0f;
-        m_spawned++;
-
-        FTransform transform = GetTransform();
-        transform.SetRotation(FRotator(0.f, 0.f, 0.f));
-        transform.SetScale(FVector3f::One);
-
-        this->MulticastSpawnOne(transform);
-
-        // Spawn the monster on the server (authority)
-        World::SpawnActor("BP_Monster", transform);
-    }
+    // MulticastSpawnOne(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -31,11 +31,10 @@ public:
     UProperty<Float32> SpawnInterval;   //<! seconds between spawns
     UProperty<Int32> MaxCount;          //<! maximum monsters to spawn
     UProperty<Float32>
-        SpawnRadius;        //<! radius around spawner to pick random positions
+        SpawnRadius;   //<! radius around spawner to pick random positions
 
-    UFunction<> SpawnOne;   //<! Internal function to spawn one monster
     UFunction<FTransform> MulticastSpawnOne;   //<! Internal function to
-                                               //multicast spawn one monster
+                                               // multicast spawn one monster
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -74,12 +73,6 @@ public:
     virtual void Tick(Float32 deltaTime) override;
 
 private:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Spawn a single monster at a random point inside the radius
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void RPC_SpawnOne(void);
-
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Multicast spawn one monster
     ///
