@@ -14,13 +14,18 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 UWidgetButtonComponent::UWidgetButtonComponent(const FString& name)
     : UWidgetComponent(name)
-    , m_color(FColor::White)   // Default to white color
+    , m_color(FColor::White)
     , m_rectangleShape(nullptr)
     , m_isHovered(false)
     , m_isClicked(false)
+    , m_isUnclicked(false)
+    , m_isReleased(false)
+    , m_isHeld(false)
     , m_clicks(0)
     , m_wasMousePressed(false)
     , m_onClickCallback(nullptr)
+    , m_onUnclickedCallback(nullptr)
+    , m_onReleasedCallback(nullptr)
     , m_onHeldCallback(nullptr)
     , m_onHoverCallback(nullptr)
 {}
@@ -32,6 +37,18 @@ const FColor& UWidgetButtonComponent::GetColor(void) const { return m_color; }
 void UWidgetButtonComponent::SetOnClick(FOnClickCallback callback)
 {
     m_onClickCallback = callback;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetButtonComponent::SetOnUnclicked(FOnUnclickedCallback callback)
+{
+    m_onUnclickedCallback = callback;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetButtonComponent::SetOnReleased(FOnReleasedCallback callback)
+{
+    m_onReleasedCallback = callback;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -102,41 +119,52 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
     {
         m_isHovered = false;
         m_wasMousePressed = false;
+        m_isClicked = false;
+        m_isUnclicked = false;
+        m_isReleased = true;
+        m_isHeld = false;
         return;
     }
 
     if (!m_inputManager) { return; }
 
-    // Get mouse position and check if inside bounds
     FVector2 mousePos = m_inputManager->GetMousePosition();
     m_isHovered = ContainsPoint(mousePos);
 
-    // Check for NEW click (just pressed this frame while hovering)
     bool isMousePressed = m_inputManager->IsPressed(EInput::Mouse_Left) ||
                           m_inputManager->IsJustReleased(EInput::Mouse_Left);
 
     m_isHeld = m_isHovered && isMousePressed;
+    m_isReleased = !m_isHeld;
     if (m_isHovered && isMousePressed && !m_wasMousePressed)
     {
         m_isClicked = true;
         m_wasMousePressed = true;
         m_clicks++;
     }
+    else if (!isMousePressed && m_wasMousePressed)
+    {
+        m_isUnclicked = true;
+        m_wasMousePressed = false;
+    }
     else
     {
         m_isClicked = false;
+        m_isUnclicked = false;
         m_wasMousePressed = isMousePressed;
     }
 
     if (m_isClicked && m_onClickCallback) { m_onClickCallback(); }
+    if (m_isUnclicked && m_onUnclickedCallback) { m_onUnclickedCallback(); }
+    if (m_isReleased && m_onReleasedCallback) { m_onReleasedCallback(); }
     if (m_isHeld && m_onHeldCallback) { m_onHeldCallback(); }
     if (m_isHovered && m_onHoverCallback) { m_onHoverCallback(); }
 
     // Debug output (can be removed later)
-    // if (m_isHovered) { std::cout << GetName() << ": hovered!" << std::endl;
-    // } if (m_isClicked) { std::cout << GetName() << ": clicked!" <<
-    // std::endl; } if (m_isHeld) { std::cout << GetName() << ": held!" <<
-    // std::endl; }
+    std::cout << "WidgetButtonComponent Tick: Hovered=" << m_isHovered
+              << " Clicked=" << m_isClicked << " Unclicked=" << m_isUnclicked
+              << " Released=" << m_isReleased << " Held=" << m_isHeld
+              << " Clicks=" << m_clicks << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

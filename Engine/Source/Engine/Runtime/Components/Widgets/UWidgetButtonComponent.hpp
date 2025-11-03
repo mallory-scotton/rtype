@@ -38,9 +38,11 @@ private:
     FColor m_color;                      ///< Button background color
     URectangleShape* m_rectangleShape;   ///< Rectangle shape for rendering
     bool m_isHovered;                    ///< Mouse is over the widget
-    bool m_isClicked;         ///< Widget was just clicked this frame
-    bool m_isHeld;            ///< Widget is being held (mouse button down)
-    int m_clicks;             ///< Number of clicks on the widget
+    bool m_isClicked;     ///< Widget was just clicked this frame
+    bool m_isUnclicked;   ///< Widget was just released this frame
+    bool m_isReleased;    ///< Mouse button was released (regardless of hover)
+    bool m_isHeld;        ///< Widget is being held (mouse button down)
+    int m_clicks;         ///< Number of clicks on the widget
     bool m_wasMousePressed;   ///< Mouse was pressed in previous frame
 
 public:
@@ -48,6 +50,8 @@ public:
     // Callback function types
     ///////////////////////////////////////////////////////////////////////////
     using FOnClickCallback = std::function<void()>;
+    using FOnUnclickedCallback = std::function<void()>;
+    using FOnReleasedCallback = std::function<void()>;
     using FOnHeldCallback = std::function<void()>;
     using FOnHoverCallback = std::function<void()>;
 
@@ -55,9 +59,11 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Callback Members
     ///////////////////////////////////////////////////////////////////////////
-    FOnClickCallback m_onClickCallback;   ///< Called when button is clicked
-    FOnHeldCallback m_onHeldCallback;     ///< Called while button is held
-    FOnHoverCallback m_onHoverCallback;   ///< Called when button is hovered
+    FOnClickCallback m_onClickCallback;           ///< when button is clicked
+    FOnUnclickedCallback m_onUnclickedCallback;   ///< when button is unclicked
+    FOnReleasedCallback m_onReleasedCallback;     ///< when button is released
+    FOnHeldCallback m_onHeldCallback;             ///< while button is held
+    FOnHoverCallback m_onHoverCallback;           ///< when button is hovered
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -82,6 +88,23 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetOnClick(FOnClickCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the callback for when button is unclicked (released after
+    /// click)
+    ///
+    /// \param callback Function to call on unclick
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetOnUnclicked(FOnUnclickedCallback callback);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the callback for when button is released
+    ///
+    /// \param callback Function to call on release
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetOnReleased(FOnReleasedCallback callback);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the callback for while button is held
@@ -131,20 +154,36 @@ public:
     virtual void Tick(Float32 deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if mouse is hovering over the widget
-    ///
-    /// \return True if hovered, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool IsHovered(void) const { return m_isHovered; }
-
-    ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if widget was just clicked this frame
     ///
     /// \return True if clicked, false otherwise
     ///
     ///////////////////////////////////////////////////////////////////////////
     bool IsClicked(void) const { return m_isClicked; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if widget was unclicked this frame
+    ///
+    /// \return True if unclicked, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsUnclicked(void) const { return m_isUnclicked; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if mouse button was released this frame
+    ///
+    /// \return True if released, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsReleased(void) const { return m_isReleased; }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if mouse is hovering over the widget
+    ///
+    /// \return True if hovered, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool IsHovered(void) const { return m_isHovered; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if a point is inside the widget bounds

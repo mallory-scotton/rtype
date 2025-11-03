@@ -40,6 +40,10 @@ void BP_Level1Button::BeginPlay(void)
             FVector2(640.0f, 720.0f)   // Bottom-center edge
             // FVector2(640.0f, 0.0f)   // Top-center edge
         );
+        m_button->SetOnHeld([m_button]()
+                            { m_button->SetColor(FColor::Yellow); });
+        m_button->SetOnReleased([m_button]()
+                                { m_button->SetColor(FColor::Green); });
     }
 }
 
