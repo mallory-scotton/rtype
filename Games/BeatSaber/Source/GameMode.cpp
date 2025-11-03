@@ -5,6 +5,7 @@
 #include <BP_Note.hpp>
 #include <BP_Sword.hpp>
 #include <BSLevel.hpp>
+#include <ST_State.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -16,8 +17,6 @@ namespace tkd
 BeatSaberGameMode::BeatSaberGameMode(void)
     : AGameMode("BeatSaberGameMode")
     , m_gameSaves(FileSystem::GetLocalAppDataDirectory() / "Beat Saber")
-    , m_playTime(0.0f)
-    , m_beatTime(0.0f)
 {
     m_playerControllerClassName = "APlayerController";
     m_actorClassName = "APawn";
@@ -31,9 +30,11 @@ BeatSaberGameMode::BeatSaberGameMode(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BeatSaberGameMode::BeginPlay(void)
 {
+    // Call the BeginPlay of the Super
     Super::BeginPlay();
 
 #if TKD_ENGINE_CLIENT
+    // Center the camera at the origin
     Window::GetCamera().position = FVector3::Zero;
 #endif
 
@@ -48,39 +49,22 @@ void BeatSaberGameMode::BeginPlay(void)
     // Load a random level from the saves directory
     auto levelsPath = m_gameSaves / "Levels";
 
+    // Ensure the levels directory exists
     if (!FileSystem::FileExists(levelsPath))
     {
         FileSystem::Mkdirs(levelsPath);
     }
 
+    // Load all levels
     auto levels = FileSystem::ListDirectories(levelsPath);
-
-    if (!levels.empty())
+    for (auto& levelPath: levels)
     {
-        m_level = BSLevel(levels[std::rand() % levels.size()]);
-
-        if (m_level.isValid)
-        {
-            std::cout << m_level << std::endl;
-            Audio::PlaySound(m_level.levelPath / m_level.songFilename, 0.2f);
-        }
-
-        if (!m_level.difficulties.empty())
-        {
-            m_map = m_level.LoadMap(std::rand() % m_level.difficulties.size());
-
-            std::cout << "\nLoaded level: " << m_map.difficulty.beatmapFilename
-                      << std::endl;
-            std::cout << "Version: " << m_map.version << std::endl;
-            std::cout << "Notes Count: " << m_map.notes.size() << std::endl;
-            std::cout << "Obstacles Count: " << m_map.obstacles.size()
-                      << std::endl;
-            std::cout << "Events Count: " << m_map.events.size() << std::endl;
-            std::cout << "Waypoints Count: " << m_map.waypoints.size()
-                      << std::endl;
-        }
+        BSLevel level(levelPath);
+        if (level.isValid) { m_levels.push_back(level); }
     }
-    else { std::cout << "No levels found in: " << levelsPath << std::endl; }
+
+    // Switch to the default Menu state
+    SwitchGameState(EBeatSaberGameState::Menu);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,9 +73,36 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
     // Call the tick of the Super
     Super::Tick(deltaTime);
 
+    // Get the current state manager
+    auto& stateManager = ST_State::GetInstance();
+
+    // Tick based on the current game state
+    switch (stateManager.gameState)
+    {
+    case EBeatSaberGameState::Playing: TickPlaying(deltaTime); break;
+    case EBeatSaberGameState::Menu   : TickMenu(deltaTime); break;
+    case EBeatSaberGameState::Paused : TickPaused(deltaTime); break;
+    default                          : break;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BeatSaberGameMode::TickPlaying(Float32 deltaTime)
+{
+    // Ensure we have a valid level
+    if (!m_level || m_map.isValid == false || m_map.notes.empty())
+    {
+        SwitchGameState(EBeatSaberGameState::Menu);
+        return;
+    }
+
+    // Get the current state manager
+    auto& stateManager = ST_State::GetInstance();
+
     // Update the play time
-    m_playTime += deltaTime;
-    m_beatTime = m_playTime * m_level.beatsPerMinute / 60.f;
+    stateManager.playTime += deltaTime;
+    stateManager.beatTime =
+        stateManager.playTime * m_level->beatsPerMinute / 60.f;
 
     /*
         🚀 Note Jump Movement Speed (NJS)
@@ -176,13 +187,14 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
     // In Beat Saber, notes spawn at a distance that gives time to
     // react
     float halfJumpDuration = 4.0f;   // Half jump duration in beats (standard)
-    float jumpDistance = m_map.difficulty.noteJumpMovementSpeed *
-                         (halfJumpDuration / (m_level.beatsPerMinute / 60.0f));
+    float jumpDistance =
+        m_map.difficulty.noteJumpMovementSpeed *
+        (halfJumpDuration / (m_level->beatsPerMinute / 60.0f));
 
     // Spawn the notes
     for (const auto& note: m_map.notes)
     {
-        if (note.time <= m_beatTime)
+        if (note.time <= stateManager.beatTime)
         {
             // Beat Saber uses 0.6 units spacing between lanes
             // LineIndex: horizontal position (0-3, left to right)
@@ -210,15 +222,121 @@ void BeatSaberGameMode::Tick(Float32 deltaTime)
     }
 
     // Remove the already processed notes
+    float currentBeatTime = stateManager.beatTime;
     m_map.notes.erase(
         std::remove_if(
             m_map.notes.begin(),
             m_map.notes.end(),
-            [this](const BSLevelNodeEntry& note)
-            { return note.time <= m_beatTime; }
+            [this, currentBeatTime](const BSLevelNodeEntry& note)
+            { return note.time <= currentBeatTime; }
         ),
         m_map.notes.end()
     );
+
+#if TKD_ENGINE_CLIENT
+    auto& vrSystem = Window::GetVRSystem();
+    if (vrSystem.IsButtonPressed(VR::EHand::Right, VR::EButton::ButtonB))
+    {
+        SwitchGameState(EBeatSaberGameState::Menu);
+    }
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BeatSaberGameMode::TickMenu(Float32 deltaTime)
+{
+#if TKD_ENGINE_CLIENT
+    auto& vrSystem = Window::GetVRSystem();
+    if (vrSystem.IsButtonPressed(VR::EHand::Left, VR::EButton::ButtonB))
+    {
+        PlayLevel(std::rand() % m_levels.size(), 0);
+    }
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BeatSaberGameMode::TickPaused(Float32 deltaTime) {}
+
+///////////////////////////////////////////////////////////////////////////////
+void BeatSaberGameMode::SwitchGameState(EBeatSaberGameState newState)
+{
+    auto& stateManager = ST_State::GetInstance();
+
+    // No state change
+    if (stateManager.gameState == newState) { return; }
+
+    // Save old state for reference
+    EBeatSaberGameState oldState = stateManager.gameState;
+
+    // Handle exiting current state
+    stateManager.gameState = newState;
+
+    // TODO: Handle state entry/exit logic
+    TKD_UNUSED(oldState);
+
+    if (oldState == EBeatSaberGameState::Playing &&
+        newState != EBeatSaberGameState::Paused)
+    {
+        // Stop the music when exiting Playing state
+        if (stateManager.music)
+        {
+            stateManager.music->Stop();
+            stateManager.music.reset();
+        }
+
+        // Clear current level and map
+        m_level = nullptr;
+        m_map = BSBeatMap();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool BeatSaberGameMode::PlayLevel(SizeT levelIndex, SizeT difficultyIndex)
+{
+    // Check for valid level index
+    if (levelIndex >= m_levels.size() || !m_levels[levelIndex].isValid ||
+        difficultyIndex >= m_levels[levelIndex].difficulties.size())
+    {
+        return false;
+    }
+
+    // Set the current level
+    m_level = &m_levels[levelIndex];
+    m_map = m_level->LoadMap(difficultyIndex);
+
+    // Check if the map is valid
+    if (m_map.isValid == false || m_map.notes.empty())
+    {
+        m_level = nullptr;
+        return false;
+    }
+
+    // Get the state manager
+    auto& stateManager = ST_State::GetInstance();
+
+    // Output some info about the loaded level
+    std::cout << "\nLoaded level: " << m_map.difficulty.beatmapFilename
+              << std::endl;
+    std::cout << "Version: " << m_map.version << std::endl;
+    std::cout << "Notes Count: " << m_map.notes.size() << std::endl;
+    std::cout << "Obstacles Count: " << m_map.obstacles.size() << std::endl;
+    std::cout << "Events Count: " << m_map.events.size() << std::endl;
+    std::cout << "Waypoints Count: " << m_map.waypoints.size() << std::endl;
+
+    // Output level info and play the song
+    std::cout << m_level << std::endl;
+    stateManager.music =
+        Audio::PlaySound(m_level->levelPath / m_level->songFilename, 0.2f);
+
+    // Switch to Playing state
+    SwitchGameState(EBeatSaberGameState::Playing);
+
+    // Reset play time
+    stateManager.playTime = 0.0f;
+    stateManager.beatTime = 0.0f;
+
+    // Level started successfully
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
