@@ -4,6 +4,7 @@
 #include <BP_Sword.hpp>
 #include <AC_Pointer.hpp>
 #include <AC_SwordBlade.hpp>
+#include <GameMode.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
