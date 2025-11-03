@@ -127,9 +127,15 @@ void BP_Background::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Background::ChangeTexture(const FilePath& newTexturePath)
+void BP_Background::ChangeTexture(
+    const FilePath& newTexturePath,
+    const FilePath& newPlanetPath,
+    const FilePath& newStarsPath
+)
 {
     m_texturePath = newTexturePath;
+    m_texturePathPlanet = newPlanetPath;
+    m_texturePathStars = newStarsPath;
 
     // Reconfigure billboards with the new texture
     SetupBillboards();

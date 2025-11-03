@@ -73,7 +73,11 @@ protected:
 
 private:
     ///////////////////////////////////////////////////////////////////////////
-    void ChangeTexture(const FilePath& newTexturePath);
+    void ChangeTexture(
+        const FilePath& newTexturePath = "Assets/Images/bg-back.png",
+        const FilePath& newPlanetPath = "Assets/Images/bg-planet.png",
+        const FilePath& newStarsPath = "Assets/Images/bg-stars.png"
+    );
 
 public:
     ///////////////////////////////////////////////////////////////////////////
