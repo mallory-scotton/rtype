@@ -4,6 +4,7 @@
 #include <Menus/BP_MainMenu.hpp>
 #include <AC_Pointer.hpp>
 #include <BP_Sword.hpp>
+#include <ST_State.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -459,6 +460,22 @@ void BP_MainMenu::Tick(Float32 deltaTime)
 {
     // Call the Tick of the Super Class
     Super::Tick(deltaTime);
+
+    // Get the current state
+    auto& stateManager = ST_State::GetInstance();
+
+    // If we are not in the menu state, early out
+    if (stateManager.gameState != EBeatSaberGameState::Menu)
+    {
+        FTransform transform = FTransform::Identity;
+        transform.SetPosition(FVector3(-10000.f, -10000.f, -10000.f));
+        SetTransform(transform);
+    }
+    else
+    {
+        FTransform transform = FTransform::Identity;
+        SetTransform(transform);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
