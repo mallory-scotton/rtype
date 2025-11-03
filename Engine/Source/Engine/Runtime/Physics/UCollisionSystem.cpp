@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Physics/UCollisionSystem.hpp>
 #include <algorithm>
+#include <cfloat>
 #include <cmath>
 #include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Runtime/Components/UCollisionComponent.hpp>
