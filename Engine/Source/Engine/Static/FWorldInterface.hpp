@@ -365,7 +365,15 @@ public:
     /// \return The game mode of the current level
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const AGameMode& GetGameMode(void) const;
+    static const AGameMode& GetGameMode(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the game mode of the current level
+    ///
+    /// \return The game mode of the current level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static AGameMode& GetGameModeUnsafe(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the loaded levels
@@ -373,7 +381,7 @@ public:
     /// \return A constant reference to the vector of loaded levels
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<ULevel>& GetLoadedLevels(void) const;
+    static const std::vector<ULevel>& GetLoadedLevels(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current level
@@ -381,7 +389,7 @@ public:
     /// \return A pointer to the current level
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ULevel* GetCurrentLevel(void) const;
+    static ULevel* GetCurrentLevel(void);
 };
 
 }   // namespace tkd

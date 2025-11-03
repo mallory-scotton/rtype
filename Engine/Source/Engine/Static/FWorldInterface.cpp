@@ -129,7 +129,7 @@ void FWorldInterface::SetTargetTickRate(float tickRate)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const AGameMode& FWorldInterface::GetGameMode(void) const
+const AGameMode& FWorldInterface::GetGameMode(void)
 {
     static AGameMode defaultGameMode;
     auto* worldSubsystem = GetWorldSubsystem();
@@ -140,7 +140,18 @@ const AGameMode& FWorldInterface::GetGameMode(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::vector<ULevel>& FWorldInterface::GetLoadedLevels(void) const
+AGameMode& FWorldInterface::GetGameModeUnsafe(void)
+{
+    static AGameMode defaultGameMode;
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return defaultGameMode; }
+
+    // GetGameMode() already uses shared_lock internally, no need to change
+    return worldSubsystem->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const std::vector<ULevel>& FWorldInterface::GetLoadedLevels(void)
 {
     static std::vector<ULevel> defaultLevels;
     auto* worldSubsystem = GetWorldSubsystem();
@@ -151,7 +162,7 @@ const std::vector<ULevel>& FWorldInterface::GetLoadedLevels(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ULevel* FWorldInterface::GetCurrentLevel(void) const
+ULevel* FWorldInterface::GetCurrentLevel(void)
 {
     static ULevel defaultLevel;
     auto* worldSubsystem = GetWorldSubsystem();
