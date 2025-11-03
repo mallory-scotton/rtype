@@ -61,7 +61,12 @@ void RenderTarget::Clear(const FColor& color)
 {
     if (m_renderTexture)
     {
-        sf::Color sfColor(color.r, color.g, color.b, color.a);
+        sf::Color sfColor(
+            static_cast<UInt32>(color.r * 255.f),
+            static_cast<UInt32>(color.g * 255.f),
+            static_cast<UInt32>(color.b * 255.f),
+            static_cast<UInt32>(color.a * 255.f)
+        );
         m_renderTexture->clear(sfColor);
     }
 }
