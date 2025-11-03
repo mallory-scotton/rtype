@@ -17,6 +17,7 @@ BP_Platform::BP_Platform(const FString& name)
 {
     // Add Components
     AddComponent<UPlaneComponent>("PL_PlatformPlane");
+    AddComponent<UPlaneComponent>("PL_PlatformPlaneOutline");
     AddComponent<AC_DebugGrid>("DCG_PlatformDebugGrid");
     AddComponent<USphereComponent>("SKY_Sphere");
     AddComponent<AC_FireflyParticles>("FP_PlatformFireflies");
@@ -29,11 +30,18 @@ void BP_Platform::BeginPlay(void)
 
     // Initialization of the platform
     auto planeComp = GetComponent<UPlaneComponent>("PL_PlatformPlane");
-    if (planeComp)
+    auto outlineComp =
+        GetComponent<UPlaneComponent>("PL_PlatformPlaneOutline");
+    if (planeComp && outlineComp)
     {
-        auto& plane = planeComp->GetPlane();
-        plane.SetScale(FVector3(5.0f, 0.5f, 1.0f));
-        plane.SetColor(FColor::Blue);
+        FTransform transform = FTransform::Identity;
+        transform.Scale(FVector3(4.0f, 0.5f, 3.0f));
+        planeComp->SetLocalTransform(transform);
+        planeComp->GetPlane().SetColor(FColor::Black);
+
+        transform.Translate(FVector3(0.f, -0.001f, 0.f));
+        outlineComp->SetLocalTransform(transform);
+        outlineComp->GetPlane().SetColor(FColor::Blue);
     }
 
     // Setup sky sphere
