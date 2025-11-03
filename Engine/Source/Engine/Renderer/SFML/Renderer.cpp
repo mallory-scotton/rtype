@@ -94,9 +94,11 @@ void Renderer::Draw(
 
     // Get the current window size and create a proper 2D view
     sf::Vector2u size = m_currentTarget->getSize();
-    sf::View view2D(sf::FloatRect(
-        0.f, 0.f, static_cast<float>(size.x), static_cast<float>(size.y)
-    ));
+    sf::View view2D(
+        sf::FloatRect(
+            0.f, 0.f, static_cast<float>(size.x), static_cast<float>(size.y)
+        )
+    );
     m_currentTarget->setView(view2D);
 
     // Reset to 2D mode for SFML rendering
@@ -489,6 +491,9 @@ void Renderer::SetCamera(const FCamera& camera)
 
 ///////////////////////////////////////////////////////////////////////////////
 const FCamera& Renderer::GetCamera(void) const { return m_camera; }
+
+///////////////////////////////////////////////////////////////////////////////
+FCamera& Renderer::GetCamera(void) { return m_camera; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void Renderer::PushAttributes(UInt32 flags) { glPushAttrib(flags); }

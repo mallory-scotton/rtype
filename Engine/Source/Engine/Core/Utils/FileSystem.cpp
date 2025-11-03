@@ -54,6 +54,13 @@ bool FileSystem::FileExists(const FilePath& path)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool FileSystem::DirectoryExists(const FilePath& path)
+{
+    std::error_code ec;
+    return fs::exists(path, ec) && fs::is_directory(path, ec) && !ec;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool FileSystem::IsDirectory(const FilePath& path)
 {
     std::error_code ec;
@@ -311,6 +318,70 @@ FileSystem::FilePath FileSystem::GetTempDirectory(void)
     auto tempPath = fs::temp_directory_path(ec);
     if (ec) { return FilePath(); }
     return tempPath;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FileSystem::FilePath FileSystem::GetLocalAppDataDirectory(void)
+{
+#ifdef TKD_SYSTEM_WINDOWS
+    const char* localAppData = std::getenv("LOCALAPPDATA");
+    if (localAppData) { return FilePath(std::string(localAppData)); }
+    const char* userProfile = std::getenv("USERPROFILE");
+    if (userProfile)
+    {
+        return FilePath(std::string(userProfile) + "\\AppData\\Local");
+    }
+    return FilePath();
+#else
+    // On Unix systems, use XDG_DATA_HOME or fallback to ~/.local/share
+    const char* xdgDataHome = std::getenv("XDG_DATA_HOME");
+    if (xdgDataHome) { return FilePath(std::string(xdgDataHome)); }
+    auto home = GetHomeDirectory();
+    if (!home.empty()) { return home / ".local" / "share"; }
+    return FilePath();
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FileSystem::FilePath FileSystem::GetRoamingAppDataDirectory(void)
+{
+#ifdef TKD_SYSTEM_WINDOWS
+    const char* appData = std::getenv("APPDATA");
+    if (appData) { return FilePath(std::string(appData)); }
+    const char* userProfile = std::getenv("USERPROFILE");
+    if (userProfile)
+    {
+        return FilePath(std::string(userProfile) + "\\AppData\\Roaming");
+    }
+    return FilePath();
+#else
+    // On Unix systems, use XDG_CONFIG_HOME or fallback to ~/.config
+    const char* xdgConfigHome = std::getenv("XDG_CONFIG_HOME");
+    if (xdgConfigHome) { return FilePath(std::string(xdgConfigHome)); }
+    auto home = GetHomeDirectory();
+    if (!home.empty()) { return home / ".config"; }
+    return FilePath();
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FileSystem::FilePath FileSystem::GetLastAppDataDirectory(void)
+{
+#ifdef TKD_SYSTEM_WINDOWS
+    const char* programData = std::getenv("PROGRAMDATA");
+    if (programData) { return FilePath(std::string(programData)); }
+    const char* allUsersProfile = std::getenv("ALLUSERSPROFILE");
+    if (allUsersProfile) { return FilePath(std::string(allUsersProfile)); }
+    return FilePath("C:\\ProgramData");
+#else
+    // On Unix systems, try common system-wide data directories
+    if (fs::exists("/usr/local/share"))
+    {
+        return FilePath("/usr/local/share");
+    }
+    if (fs::exists("/usr/share")) { return FilePath("/usr/share"); }
+    return FilePath("/usr/local/share");
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

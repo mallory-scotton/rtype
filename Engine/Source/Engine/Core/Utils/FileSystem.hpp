@@ -63,7 +63,7 @@ public:
     static bool Mkdirs(const FilePath& path);
 
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Checks if a file or directory exists
+    /// \brief Checks if a file exists
     ///
     /// Determines whether the specified path exists in the file system.
     /// This method returns true for both files and directories.
@@ -74,6 +74,19 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static bool FileExists(const FilePath& path);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Checks if a directory exists
+    ///
+    /// Determines whether the specified path exists in the file system.
+    /// This method returns true for both files and directories.
+    ///
+    /// \param path The path to check for existence
+    ///
+    /// \return True if the path exists, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static bool DirectoryExists(const FilePath& path);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Checks if the path is a directory
@@ -352,6 +365,42 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     static FilePath GetTempDirectory(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the local application data directory
+    ///
+    /// Returns the absolute path to the local application data directory.
+    /// On Windows this is typically C:\Users\username\AppData\Local.
+    /// On Unix systems this is typically ~/.local/share.
+    ///
+    /// \return The local application data directory path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FilePath GetLocalAppDataDirectory(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the roaming application data directory
+    ///
+    /// Returns the absolute path to the roaming application data directory.
+    /// On Windows this is typically C:\Users\username\AppData\Roaming.
+    /// On Unix systems this is typically ~/.config.
+    ///
+    /// \return The roaming application data directory path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FilePath GetRoamingAppDataDirectory(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the last application data directory
+    ///
+    /// Returns the absolute path to the last application data directory.
+    /// On Windows this is typically C:\ProgramData.
+    /// On Unix systems this is typically /usr/local/share or /usr/share.
+    ///
+    /// \return The last application data directory path
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static FilePath GetLastAppDataDirectory(void);
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Creates a unique temporary file path
     ///
@@ -534,8 +583,8 @@ public:
     /// \return A vector of all directory paths found recursively
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static std::vector<FilePath> RecursiveListDirectories(const FilePath& path
-    );
+    static std::vector<FilePath>
+        RecursiveListDirectories(const FilePath& path);
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Recursively lists all entries in a directory tree
     ///

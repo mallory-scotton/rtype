@@ -5,6 +5,7 @@
 #include <Engine/Assets/URessource.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
+#include <Engine/Static/FAudioInterface.hpp>
 #include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,6 +101,9 @@ bool Engine::Initialize(int argc, char* argv[])
 
         // Setup render callback
         SetupRenderCallback();
+
+        // Setup Autio
+        Audio::Initialize();
 #endif
 
         if (m_settings.network.enabled)
@@ -193,6 +197,15 @@ void Engine::Run(void)
 
     // Shutdown world FIRST (before window) so actors can properly clean up
     // their input bindings while the input manager still exists
+    TKD_ENGINE_IF_CLIENT({
+        if (m_window)
+        {
+            FLogger::SetNamespace("Engine");
+            FLogger::Info("Shutting down window subsystem...");
+            m_window->Shutdown();
+        }
+    })
+
     if (m_world)
     {
         FLogger::SetNamespace("Engine");
@@ -208,16 +221,6 @@ void Engine::Run(void)
         m_network->Shutdown();
         m_network.reset();
     }
-
-    TKD_ENGINE_IF_CLIENT({
-        if (m_window)
-        {
-            FLogger::SetNamespace("Engine");
-            FLogger::Info("Shutting down window subsystem...");
-            m_window->Shutdown();
-            m_window.reset();
-        }
-    })
 
     m_initialized = false;
     FLogger::SetNamespace("Engine");

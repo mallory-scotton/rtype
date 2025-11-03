@@ -10,6 +10,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Concurrency/FMutex.hpp>
 #include <Engine/Core/Concurrency/FThread.hpp>
+#include <Engine/Core/Object/IProperty.hpp>
 #include <Engine/Core/Utils/EventEmitter.hpp>
 #include <Engine/Network/FConnectionInformation.hpp>
 #include <Engine/Network/FNetworkBase.hpp>
@@ -167,6 +168,14 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Update(float deltaTime) override;
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Replicate dirty properties to the server
+    ///
+    /// Iterates through all actors in the world and sends modified properties
+    /// to the server for replication.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ReplicateDirtyProperties(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check if client is connected to server
@@ -225,6 +234,14 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetupDefaultHandlers(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \return
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SendReplication(std::vector<IProperty*> toReplicate);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Check for connection timeout
@@ -289,6 +306,17 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     void HandleHeartbeatPacket(
         const Packets::HeartBeat& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle a property replication packet
+    ///
+    /// \param packet The received property replication packet
+    /// \param endpoint The endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandlePropertyReplicationPacket(
+        const Packets::Replication& packet, const FEndpoint& endpoint
     );
 
     ///////////////////////////////////////////////////////////////////////////

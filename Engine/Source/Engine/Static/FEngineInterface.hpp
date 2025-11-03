@@ -79,6 +79,14 @@ public:
     TKD_NODISCARD static bool IsInitialized(void);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the engine instance is valid (not null)
+    ///
+    /// \return True if the engine instance exists, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD static bool IsValid(void);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the exit code of the engine
     ///
     /// \return The exit code of the engine

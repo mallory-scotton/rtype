@@ -231,6 +231,65 @@ void FWindowSubsystem::ThreadLoop(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+IRenderer* FWindowSubsystem::GetRenderer(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        return m_renderer.get();
+    }
+    catch (const std::exception&)
+    {
+        return nullptr;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IGraphicsFactory* FWindowSubsystem::GetGraphicsFactory(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        return m_graphicsFactory.get();
+    }
+    catch (const std::exception&)
+    {
+        return nullptr;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FCamera& FWindowSubsystem::GetCamera(void) const noexcept
+{
+    try
+    {
+        std::shared_lock lock(m_windowMutex);
+        if (m_renderer) { return m_renderer->GetCamera(); }
+        static FCamera defaultCamera;
+        return defaultCamera;
+    }
+    catch (const std::exception&)
+    {
+        static FCamera defaultCamera;
+        return defaultCamera;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FWindowSubsystem::Shutdown(void)
+{
+    FThreadedSubsystem::Shutdown();
+    {
+        std::unique_lock lock(m_windowMutex);
+        if (m_window && m_window->IsOpen()) { m_window->Close(); }
+        // std::this_thread::sleep_for(std::chrono::milliseconds(300));
+
+        m_renderer.reset();
+        m_window.reset();
+    }
+}
+
 #endif
 
 }   // namespace tkd::__internal

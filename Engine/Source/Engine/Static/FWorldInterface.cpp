@@ -3,6 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Static/FWorldInterface.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
+#include <shared_mutex>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -18,6 +19,9 @@ __internal::FWorldSubsystem* FWorldInterface::GetWorldSubsystem(void)
 {
     std::lock_guard lock(s_mutex);
 
+    // SEGFAULT FIX: Check if engine is valid before accessing it
+    if (!FEngineInterface::IsValid()) { return nullptr; }
+
     try
     {
         auto& engine = FEngineInterface::GetInstance();
@@ -30,21 +34,30 @@ __internal::FWorldSubsystem* FWorldInterface::GetWorldSubsystem(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FWorldInterface::SpawnActorDeferred(
+    const FString& className, const FTransform& transform
+)
+{
+    auto* worldSubsystem = GetWorldSubsystem();
+    if (!worldSubsystem) { return; }
+
+    // Access world directly without locking (deferred spawns are queued)
+    UWorld* world = worldSubsystem->GetWorld();
+    if (world) { world->SpawnActorDeferred(className, transform); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 std::vector<std::shared_ptr<AActor>> FWorldInterface::GetActors(void)
 {
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return {}; }
 
-    std::vector<std::shared_ptr<AActor>> result;
-    worldSubsystem->WithWorld(
-        [&](UWorld& world)
-        {
-            const auto& actors = world.GetActors();
-            result.assign(actors.begin(), actors.end());
-        }
+    // Use WithWorldReadOnly for read-only access (shared_lock)
+    // This allows multiple readers without blocking each other
+    return worldSubsystem->WithWorldReadOnly(
+        [](const UWorld& world) -> std::vector<std::shared_ptr<AActor>>
+        { return world.GetActors(); }
     );
-
-    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,23 +67,22 @@ std::vector<AActor*>
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return {}; }
 
-    std::vector<AActor*> result;
-    worldSubsystem->WithWorld(
-        [&](UWorld& world)
-        { result = world.GetActorsByClass(actorClass, includeChildren); }
+    // Use WithWorldReadOnly for read-only access (shared_lock)
+    return worldSubsystem->WithWorldReadOnly(
+        [actorClass, includeChildren](const UWorld& world)
+        { return world.GetActorsByClass(actorClass, includeChildren); }
     );
-
-    return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void FWorldInterface::DestroyActor(AActor* actor)
 {
-    auto* worldSubsystem = GetWorldSubsystem();
-    if (!worldSubsystem) { return; }
+    // Instead of locking with WithWorld(), just mark the actor for deletion
+    // This is thread-safe as it only sets a flag on the actor itself
+    // The actual cleanup happens during World::Tick()
+    if (!actor) { return; }
 
-    worldSubsystem->WithWorld([&](UWorld& world) { world.DestroyActor(actor); }
-    );
+    actor->MarkForDeletion();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -79,11 +91,10 @@ TKD_NODISCARD float FWorldInterface::GetTime(void)
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return 0.0f; }
 
-    float result = 0.0f;
-    worldSubsystem->WithWorld([&](UWorld& world)
-                              { result = world.GetWorldTime(); });
-
-    return result;
+    // Use WithWorldReadOnly for read-only access (shared_lock)
+    // World time is a simple float read, doesn't need exclusive access
+    return worldSubsystem->WithWorldReadOnly([](const UWorld& world)
+                                             { return world.GetWorldTime(); });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,6 +131,7 @@ const AGameMode& FWorldInterface::GetGameMode(void) const
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return defaultGameMode; }
 
+    // GetGameMode() already uses shared_lock internally, no need to change
     return worldSubsystem->GetGameMode();
 }
 
@@ -130,6 +142,7 @@ const std::vector<ULevel>& FWorldInterface::GetLoadedLevels(void) const
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return defaultLevels; }
 
+    // GetLoadedLevels() already uses shared_lock internally, no need to change
     return worldSubsystem->GetLoadedLevels();
 }
 
@@ -140,6 +153,7 @@ ULevel* FWorldInterface::GetCurrentLevel(void) const
     auto* worldSubsystem = GetWorldSubsystem();
     if (!worldSubsystem) { return &defaultLevel; }
 
+    // GetCurrentLevel() already uses shared_lock internally, no need to change
     return worldSubsystem->GetCurrentLevel();
 }
 

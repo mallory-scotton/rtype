@@ -72,9 +72,10 @@ private:
     ///
     /// \param level The level to display
     /// \param isCurrentLevel Whether this is the current level
+    /// \param world The world context
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void DisplayLevelInfo(ULevel& level, bool isCurrentLevel);
+    void DisplayLevelInfo(ULevel& level, bool isCurrentLevel, UWorld* world);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Display game mode information
@@ -107,9 +108,9 @@ private:
     /// \param properties The properties to display
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void
-        DisplayActorProperties(const TVector<ULevel::PropertyEntry>& properties
-        );
+    void DisplayActorProperties(
+        const TVector<ULevel::PropertyEntry>& properties
+    );
 };
 
 #endif

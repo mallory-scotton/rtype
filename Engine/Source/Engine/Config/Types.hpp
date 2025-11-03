@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <variant>
 
@@ -69,5 +70,7 @@ template <typename T>
 using TAtomic = std::atomic<T>;
 template <typename T>
 using TOptional = std::optional<T>;
+
+using Json = nlohmann::json;
 
 }   // namespace tkd

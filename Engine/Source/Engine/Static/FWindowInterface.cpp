@@ -121,6 +121,18 @@ bool FWindowInterface::IsInitialized(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+FCamera& FWindowInterface::GetCamera(void)
+{
+    auto* windowSubsystem = GetWindowSubsystem();
+    if (!windowSubsystem)
+    {
+        throw std::runtime_error("Window subsystem is not initialized");
+    }
+
+    return windowSubsystem->GetCamera();
+}
+
 #endif   // TKD_ENGINE_CLIENT
 
 }   // namespace tkd

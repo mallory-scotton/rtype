@@ -78,6 +78,24 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Execute a function with read-only access to the world
+    ///
+    /// \tparam Func The type of the function
+    ///
+    /// \param func The function to execute
+    ///
+    /// \return The result of the function
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename Func>
+    auto WithWorldReadOnly(Func&& func) const
+        -> decltype(func(std::declval<const UWorld&>()))
+    {
+        std::shared_lock lock(m_worldMutex);
+        return func(*m_world);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current simulation time
     ///
     /// \return The simulation time in seconds

@@ -1,0 +1,39 @@
+# Compiled source
+*.o
+*.so
+*.exe
+*.dll
+*.d
+*.out
+
+# Logs and databases
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Compilation directories
+Build/
+Binaries/
+Bin/
+Libraries/
+Libs/
+
+# Criterion Unit Tests
+*.gcno
+*.gcda
+*.gcov
+
+# Valgrind Reports
+vgcore.*
+
+# Environment files
+.env
+.env.*
+!.env.example

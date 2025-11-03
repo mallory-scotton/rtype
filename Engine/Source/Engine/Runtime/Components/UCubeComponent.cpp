@@ -36,6 +36,18 @@ void UCubeComponent::SetLocalTransform(const FTransform& transform)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void UCubeComponent::SetTexture(ITexture* texture)
+{
+    m_cube.SetTexture(texture);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+ITexture* UCubeComponent::GetTexture(void) const
+{
+    return m_cube.GetTexture();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UCubeComponent::Render(IRenderer& renderer) const
 {
     if (IsHiddenInGame()) { return; }

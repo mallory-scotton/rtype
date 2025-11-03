@@ -33,6 +33,7 @@ find_package(ImGui-SFML REQUIRED)
 find_package(asio REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenVR REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Find test dependencies if building tests
 if(BUILD_TESTS)
@@ -113,6 +114,7 @@ target_link_libraries(TKDEngineClient
         openvr::openvr
         GLU
         GL
+        nlohmann_json::nlohmann_json
 )
 
 # Link libraries for server (minimal SFML components)
@@ -120,6 +122,7 @@ target_link_libraries(TKDEngineServer
     PUBLIC
         sfml::sfml
         asio::asio
+        nlohmann_json::nlohmann_json
 )
 
 # Define graphics support for client

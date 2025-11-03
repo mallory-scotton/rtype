@@ -6,7 +6,7 @@
         "${workspaceFolder}/**",
         "${workspaceFolder}/Engine/Source",
         "${workspaceFolder}/Engine/Tests",
-        "${workspaceFolder}/Game/Source",
+        "${workspaceFolder}/Games/*/Source",
         "~/.conan2/p/b/**/p/include",
         "/root/.conan2/p/b/**/p/include",
         "/usr/include/**"
