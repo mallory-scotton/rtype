@@ -319,6 +319,9 @@ bool UWorld::ChangeLevel(const FString& levelName)
 const AGameMode& UWorld::GetGameMode(void) const { return *m_gameMode; }
 
 ///////////////////////////////////////////////////////////////////////////////
+AGameMode& UWorld::GetGameMode(void) { return *m_gameMode; }
+
+///////////////////////////////////////////////////////////////////////////////
 const std::vector<ULevel>& UWorld::GetLoadedLevels(void) const
 {
     return m_loadedLevels;
