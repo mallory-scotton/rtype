@@ -12,10 +12,10 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 BP_Monster::BP_Monster(void)
     : AActor("BP_Monster")
-    , speed(*this, "Speed", 1.5f)
+    , speed(*this, "Speed", 1.25f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , roamRadius(*this, "RoamRadius", 4.0f)
-    , waitTime(*this, "WaitTime", 0.7f)
+    , waitTime(*this, "WaitTime", 1.0f)
     , m_targetPosition(FVector3(2.f, 2.f, 0.0f))
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
@@ -32,12 +32,15 @@ BP_Monster::BP_Monster(void)
           true
       )
 {
+    // TODO: Implement network role assignment
 #if TKD_ENGINE_CLIENT
     SetNetRole(ENetRole::SimulatedProxy);
 #else
     SetNetRole(ENetRole::Authority);
 #endif
     SetTransformReplicated(true);
+
+    // TODO: scale down sprite by half
 
     AddComponent<UBillboardComponent>("BC_MonsterSprite");
     AddComponent<UBoxCollisionComponent>("BoxCollision");
@@ -54,6 +57,9 @@ void BP_Monster::BeginPlay(void)
     {
         Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
         Billboard->SetFlipBook(&m_idleAnimation);
+        FTransform t = Billboard->GetLocalTransform();
+        t.SetScale(FVector3(0.5f, 0.5f, 1.0f));
+        Billboard->SetLocalTransform(t);
     }
 
     auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
