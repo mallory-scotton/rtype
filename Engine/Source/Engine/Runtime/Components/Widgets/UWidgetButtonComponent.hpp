@@ -35,10 +35,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FColor m_color;                      ///< Button background color
-    URectangleShape* m_rectangleShape;   ///< Rectangle shape for rendering
-    bool m_isHovered;                    ///< Mouse is over the widget
-    bool m_isClicked;     ///< Widget was just clicked this frame
+    FColor m_color;                     ///< Button background color
+    URectangleShape m_rectangleShape;   ///< Rectangle shape for rendering
+    bool m_isHovered;                   ///< Mouse is over the widget
+    bool m_isClicked;                   ///< Widget was just clicked this frame
     bool m_isUnclicked;   ///< Widget was just released this frame
     bool m_isReleased;    ///< Mouse button was released (regardless of hover)
     bool m_isHeld;        ///< Widget is being held (mouse button down)

@@ -2,7 +2,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Components/Widgets/UWidgetButtonComponent.hpp>
-#include <Engine/Renderer/Shapes/URectangleShape.hpp>   // add rectangle shape
 #include <Engine/Runtime/Actor/AActor.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,7 +14,7 @@ namespace tkd
 UWidgetButtonComponent::UWidgetButtonComponent(const FString& name)
     : UWidgetComponent(name)
     , m_color(FColor::White)
-    , m_rectangleShape(nullptr)
+    , m_rectangleShape()
     , m_isHovered(false)
     , m_isClicked(false)
     , m_isUnclicked(false)
@@ -67,40 +66,22 @@ void UWidgetButtonComponent::SetOnHover(FOnHoverCallback callback)
 void UWidgetButtonComponent::SetColor(const FColor& color)
 {
     m_color = color;
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetFillColor(m_color);   // update live shape color
-    }
+    m_rectangleShape.SetFillColor(m_color);   // update live shape color
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetButtonComponent::BeginPlay(void)
 {
-    // Call parent BeginPlay
     Super::BeginPlay();
 
-    m_rectangleShape = new URectangleShape();
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetFillColor(m_color);
-        m_rectangleShape->SetPosition(GetPosition());
-        m_rectangleShape->SetSize(GetSize());
-        m_rectangleShape->SetOrigin(GetSize() / 2.0f);
-    }
+    m_rectangleShape.SetFillColor(m_color);
+    m_rectangleShape.SetPosition(GetPosition());
+    m_rectangleShape.SetSize(GetSize());
+    m_rectangleShape.SetOrigin(GetSize() / 2.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWidgetButtonComponent::EndPlay(void)
-{
-    // Call parent EndPlay
-    Super::EndPlay();
-
-    if (m_rectangleShape)
-    {
-        delete m_rectangleShape;
-        m_rectangleShape = nullptr;
-    }
-}
+void UWidgetButtonComponent::EndPlay(void) { Super::EndPlay(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetButtonComponent::Tick(Float32 deltaTime)
@@ -108,12 +89,9 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
     Super::Tick(deltaTime);
 
     // Update shape for debug rendering
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetPosition(GetPosition());
-        m_rectangleShape->SetSize(GetSize());
-        m_rectangleShape->SetOrigin(GetOrigin());
-    }
+    m_rectangleShape.SetPosition(GetPosition());
+    m_rectangleShape.SetSize(GetSize());
+    m_rectangleShape.SetOrigin(GetOrigin());
 
     if (!IsEnabled())
     {
@@ -161,10 +139,11 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
     if (m_isHovered && m_onHoverCallback) { m_onHoverCallback(); }
 
     // Debug output (can be removed later)
-    std::cout << "WidgetButtonComponent Tick: Hovered=" << m_isHovered
-              << " Clicked=" << m_isClicked << " Unclicked=" << m_isUnclicked
-              << " Released=" << m_isReleased << " Held=" << m_isHeld
-              << " Clicks=" << m_clicks << std::endl;
+    // std::cout << "WidgetButtonComponent Tick: Hovered=" << m_isHovered
+    //           << " Clicked=" << m_isClicked << " Unclicked=" <<
+    //           m_isUnclicked
+    //           << " Released=" << m_isReleased << " Held=" << m_isHeld
+    //           << " Clicks=" << m_clicks << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -182,7 +161,7 @@ bool UWidgetButtonComponent::ContainsPoint(const FVector2& point) const
 void UWidgetButtonComponent::Render(IRenderer& renderer) const
 {
     // Only render debug shape if visible (can be toggled off)
-    if (IsVisible() && m_rectangleShape) { m_rectangleShape->Draw(renderer); }
+    if (IsVisible()) { m_rectangleShape.Draw(renderer); }
 }
 
 }   // namespace tkd
