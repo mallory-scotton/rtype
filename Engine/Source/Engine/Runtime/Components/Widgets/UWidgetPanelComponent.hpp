@@ -34,8 +34,8 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FColor m_color;                      ///< Panel background color
-    URectangleShape* m_rectangleShape;   ///< Rectangle shape for rendering
+    FColor m_color;                     ///< Panel background color
+    URectangleShape m_rectangleShape;   ///< Rectangle shape for rendering
 
 public:
     ///////////////////////////////////////////////////////////////////////////

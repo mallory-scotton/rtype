@@ -15,7 +15,7 @@ namespace tkd
 UWidgetPanelComponent::UWidgetPanelComponent(const FString& name)
     : UWidgetComponent(name)
     , m_color(FColor::White)   // Default to white color
-    , m_rectangleShape(nullptr)
+    , m_rectangleShape()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,40 +25,23 @@ const FColor& UWidgetPanelComponent::GetColor(void) const { return m_color; }
 void UWidgetPanelComponent::SetColor(const FColor& color)
 {
     m_color = color;
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetFillColor(m_color);   // update live shape color
-    }
+    m_rectangleShape.SetFillColor(m_color);   // update live shape color
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::BeginPlay(void)
 {
-    // Call parent BeginPlay
     Super::BeginPlay();
 
-    m_rectangleShape = new URectangleShape();
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetFillColor(m_color);
-        m_rectangleShape->SetPosition(GetPosition());
-        m_rectangleShape->SetSize(GetSize());
-        m_rectangleShape->SetOrigin(GetSize() / 2.0f);
-    }
+    // how do I create a Urectangleshape without new ?
+    m_rectangleShape.SetFillColor(m_color);
+    m_rectangleShape.SetPosition(GetPosition());
+    m_rectangleShape.SetSize(GetSize());
+    m_rectangleShape.SetOrigin(GetSize() / 2.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWidgetPanelComponent::EndPlay(void)
-{
-    // Call parent EndPlay
-    Super::EndPlay();
-
-    if (m_rectangleShape)
-    {
-        delete m_rectangleShape;
-        m_rectangleShape = nullptr;
-    }
-}
+void UWidgetPanelComponent::EndPlay(void) { Super::EndPlay(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::Tick(Float32 deltaTime)
@@ -66,20 +49,15 @@ void UWidgetPanelComponent::Tick(Float32 deltaTime)
     // Call parent Tick
     Super::Tick(deltaTime);
 
-    // If the widget can move / resize at runtime, make sure the shape follows.
-    // Only update when there is a shape to avoid null checks elsewhere.
-    if (m_rectangleShape)
-    {
-        m_rectangleShape->SetPosition(GetPosition());
-        m_rectangleShape->SetSize(GetSize());
-        m_rectangleShape->SetOrigin(GetOrigin());
-    }
+    m_rectangleShape.SetPosition(GetPosition());
+    m_rectangleShape.SetSize(GetSize());
+    m_rectangleShape.SetOrigin(GetOrigin());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetPanelComponent::Render(IRenderer& renderer) const
 {
-    if (m_rectangleShape) { m_rectangleShape->Draw(renderer); }
+    if (IsVisible()) { m_rectangleShape.Draw(renderer); }
 }
 
 }   // namespace tkd
