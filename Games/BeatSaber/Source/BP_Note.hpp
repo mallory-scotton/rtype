@@ -54,10 +54,18 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    ENoteType m_type;               //<!
-    ECutDirection m_cutDirection;   //<!
-    FTextureHandle m_handle;        //<!
-    float m_speed;                  //<!
+    ENoteType m_type;                 //<!
+    ECutDirection m_cutDirection;     //<!
+    FTextureHandle m_handle;          //<!
+    FTransform m_originalTransform;   //<!
+    float m_speed;                    //<!
+    // Spawn animation state (note comes from a side/top/bottom into place)
+    bool m_spawning = true;              //<! whether spawn animation is active
+    float m_spawnDuration = 0.35f;       //<! duration of spawn animation (s)
+    float m_spawnTime = 0.0f;            //<! accumulated spawn time
+    FTransform m_spawnStartTransform;    //<! starting transform for spawn
+    FTransform m_spawnTargetTransform;   //<! dynamic target (moves forward
+                                         //while spawning)
     // Cut / fragment state
     bool m_cutProcessed = false;   //<! Whether this note has already been cut
     bool m_fragmentsActive = false;   //<! Whether fragment animation is active

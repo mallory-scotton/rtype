@@ -6,6 +6,7 @@
 #include <AC_SwordBlade.hpp>
 #include <algorithm>
 #include <BP_Sword.hpp>
+#include <cmath>
 #include <Engine/Assets/URessource.hpp>
 #include <numeric>
 #include <ST_State.hpp>
@@ -148,6 +149,37 @@ void BP_Note::BeginPlay(void)
         default: break;
         }
         SetTransform(transform);
+    }
+
+    // Save initial transform
+    m_originalTransform = GetTransform();
+
+    // Setup spawn animation: pick a random direction (left/right/top/bottom)
+    // and place the cube offscreen there. We'll interpolate from this start
+    // transform into m_originalTransform over m_spawnDuration while
+    // advancing both start/target forward so the note continues moving.
+    {
+        // safe random direction (0..3)
+        int dir = std::rand() % 4;
+        float spawnDist = 1.2f;   // world units off-axis to start
+        FTransform start = m_originalTransform;
+        FVector3 pos = start.GetPosition();
+        switch (dir)
+        {
+        case 0 : pos.x += spawnDist; break;   // right
+        case 1 : pos.x -= spawnDist; break;   // left
+        case 2 : pos.y += spawnDist; break;   // top
+        case 3 : pos.y -= spawnDist; break;   // bottom
+        default: pos.x += spawnDist; break;
+        }
+        start.SetPosition(pos);
+        m_spawnStartTransform = start;
+        m_spawnTargetTransform = m_originalTransform;
+        m_spawnTime = 0.0f;
+        m_spawning = true;
+
+        // Place actor at the spawn start immediately
+        SetTransform(m_spawnStartTransform);
     }
 
     // Setup color based on the note type
@@ -612,10 +644,61 @@ void BP_Note::Tick(float deltaTime)
     // Call the Tick of the Super Class
     Super::Tick(deltaTime);
 
-    // Move the note toward the player using the configured speed
+    // Move the note toward the player using the configured speed.
+    // If spawning, interpolate from the offscreen start into the target
+    // while advancing both start and target forward so the note keeps
+    // moving along Z during the lateral spawn animation.
+    if (m_spawning)
+    {
+        float dz = deltaTime * m_speed;
+        // advance both start and target forward so interpolation follows
+        m_spawnStartTransform.Translate(FVector3(0.f, 0.f, dz));
+        m_spawnTargetTransform.Translate(FVector3(0.f, 0.f, dz));
+
+        m_spawnTime += deltaTime;
+        float t = m_spawnTime / m_spawnDuration;
+        if (t >= 1.0f)
+        {
+            t = 1.0f;
+            m_spawning = false;
+        }
+
+        // ease-out cubic for a nicer feel
+        float et = 1.0f - std::pow(1.0f - t, 3.0f);
+
+        // Interpolate position, rotation and scale
+        FVector3 p = m_spawnStartTransform.GetPosition() +
+                     (m_spawnTargetTransform.GetPosition() -
+                      m_spawnStartTransform.GetPosition()) *
+                         et;
+        // Interpolate rotations component-wise (TRotator doesn't support
+        // subtraction or scalar multiplication)
+        TRotator r0 = m_spawnStartTransform.GetRotation();
+        TRotator r1 = m_spawnTargetTransform.GetRotation();
+        float pitch = r0.GetPitch() + (r1.GetPitch() - r0.GetPitch()) * et;
+        float yaw = r0.GetYaw() + (r1.GetYaw() - r0.GetYaw()) * et;
+        float roll = r0.GetRoll() + (r1.GetRoll() - r0.GetRoll()) * et;
+        TRotator r(pitch, yaw, roll);
+        FVector3 s = m_spawnStartTransform.GetScale() +
+                     (m_spawnTargetTransform.GetScale() -
+                      m_spawnStartTransform.GetScale()) *
+                         et;
+
+        FTransform newT;
+        newT.SetPosition(p);
+        newT.SetRotation(r);
+        newT.SetScale(s);
+        SetTransform(newT);
+    }
+    else
+    {
+        FTransform transform = GetTransform();
+        transform.Translate(FVector3(0.f, 0.f, deltaTime * m_speed));
+        SetTransform(transform);
+    }
+
+    // Read back the current transform after movement for the deletion check
     FTransform transform = GetTransform();
-    transform.Translate(FVector3(0.f, 0.f, deltaTime * m_speed));
-    SetTransform(transform);
 
     // Get the state manager
     auto& stateManager = ST_State::GetInstance();
