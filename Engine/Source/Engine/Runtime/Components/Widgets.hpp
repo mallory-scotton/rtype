@@ -7,4 +7,5 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Components/Widgets/UWidgetButtonComponent.hpp>
+#include <Engine/Runtime/Components/Widgets/UWidgetImageComponent.hpp>
 #include <Engine/Runtime/Components/Widgets/UWidgetPanelComponent.hpp>
