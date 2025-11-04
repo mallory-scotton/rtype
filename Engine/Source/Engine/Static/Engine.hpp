@@ -41,6 +41,14 @@ private:
     TUniquePtr<FWorldSubsystem> m_world;       //<! World subsystem
     TUniquePtr<UGame> m_game;                  //<! The game instance
 
+    // Network configuration from command line
+    struct
+    {
+        std::string host = "localhost";
+        UInt16 port = 8080;
+        bool autoConnect = false;
+    } m_networkConfig;
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor

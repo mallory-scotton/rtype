@@ -61,9 +61,10 @@ public:
             ENetworkCapability::Required;   //<! Network capability mode
         int maxClients = -1;                //<! Maximum number of clients
         int port = 8080;                    //<! Default network port
-        int timeout = 5000;         //<! Network timeout in milliseconds
-        int maxPacketSize = 1452;   //<! Maximum UDP packet size
-        int protocolVersion = 1;    //<! Network protocol version
+        int timeout = 5000;                //<! Network timeout in milliseconds
+        int maxPacketSize = 1452;          //<! Maximum UDP packet size
+        int protocolVersion = 1;           //<! Network protocol version
+        bool autoFragementPacket = true;   //<! Do large packets get auto frag
     } network;
 
     ///////////////////////////////////////////////////////////////////////////

@@ -114,15 +114,40 @@ bool Engine::Initialize(int argc, char* argv[])
 
 #if TKD_ENGINE_SERVER
             networkConfig.mode = FNetworkSubsystem::Mode::Server;
+            networkConfig.port = m_networkConfig.port;
+            FLogger::Info(
+                "Network server configured - Port: {}", m_networkConfig.port
+            );
 #elif TKD_ENGINE_CLIENT
             networkConfig.mode = FNetworkSubsystem::Mode::Client;
+
+            // Use command-line arguments
+            networkConfig.host = m_networkConfig.host.c_str();
+            networkConfig.port = m_networkConfig.port;
+            networkConfig.autoConnect = m_networkConfig.autoConnect;
+
+            FLogger::Info(
+                "Network client configured - Host: {}, Port: {}, Auto-connect: {}",
+                m_networkConfig.host.c_str(),
+                m_networkConfig.port,
+                m_networkConfig.autoConnect ? "enabled" : "disabled"
+            );
+
+            if (!m_networkConfig.autoConnect)
+            {
+                FLogger::Info(
+                    "Manual connection required. Use Network::Connect() to connect."
+                );
+            }
 #endif
             networkConfig.maxClients = m_settings.network.maxClients;
-            networkConfig.port = m_settings.network.port;
-            networkConfig.host = "127.0.0.1";
 
-            // Initialize network subsystem (server only)
+            // Initialize network subsystem
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
+
+            // Set engine settings for network validation BEFORE Initialize
+            // might try to use the settings immediately
+            m_network->SetEngineSettings(m_settings);
 
             // Setup network interface
             Network::Setup(m_network.get());
@@ -383,11 +408,26 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
     args.AddFlags("verbose", "Enable verbose logging", verbose, false);
 
 #if TKD_ENGINE_SERVER
-    std::string host = "localhost";
-    UInt16 port = 8080;
-
-    args.AddFlags("host", "Server hostname or IP address", host, false);
-    args.AddFlags("port", "Server port number", port, false);
+    args.AddFlags(
+        "host", "Server hostname or IP address", m_networkConfig.host, false
+    );
+    args.AddFlags("port", "Server port number", m_networkConfig.port, false);
+#elif TKD_ENGINE_CLIENT
+    args.AddFlags(
+        "host",
+        "Server hostname or IP address to connect to",
+        m_networkConfig.host,
+        false
+    );
+    args.AddFlags(
+        "port", "Server port number to connect to", m_networkConfig.port, false
+    );
+    args.AddFlags(
+        "connect",
+        "Automatically connect to server on startup",
+        m_networkConfig.autoConnect,
+        false
+    );
 #endif
 
     // Process arguments

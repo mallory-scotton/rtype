@@ -1,0 +1,246 @@
+///////////////////////////////////////////////////////////////////////////////
+// Header guard
+///////////////////////////////////////////////////////////////////////////////
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <Engine/Config.hpp>
+#include <Engine/Core.hpp>
+#include <Engine/Network/Asio.hpp>
+#include <Engine/Network/FNetworkBase.hpp>
+#include <Engine/Network/TPacket.hpp>
+#include <map>
+#include <vector>
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace tkd
+///////////////////////////////////////////////////////////////////////////////
+namespace tkd
+{
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief enumeration for fragment type
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EFragmentDestination
+{
+    Outgoing,
+    Incoming
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief chunk structure for each part of the fragmented message
+///
+///////////////////////////////////////////////////////////////////////////////
+struct Chunk
+{
+    struct Status
+    {
+        Bool received;
+        UInt32 lastSentTimestamp;
+    };
+
+    SizeT sequenceOrder;
+    std::vector<Byte> data;
+    std::map<FEndpoint, Status> statuses;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief fragment entry for packet
+///
+///////////////////////////////////////////////////////////////////////////////
+struct FragmentEntry
+{
+    UUID id;
+    UInt32 timestamp;
+    EFragmentDestination destination;
+    SizeT chunkCount;
+    std::vector<Chunk> chunks;
+    // >> ONLY FOR OUTGOING
+    std::vector<Byte> original;
+    std::vector<FEndpoint> destinations;
+    // >> ONLY FOR INCOMING
+    FEndpoint sender;   // Endpoint that sent the fragments
+    Bool fullyReceived = false;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief
+///
+///////////////////////////////////////////////////////////////////////////////
+class FragmentManager : public TSingleton<FragmentManager>
+{
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Constants
+    ///////////////////////////////////////////////////////////////////////////
+    static constexpr SizeT MAX_FRAGMENT_SIZE = 512;
+    static constexpr Float32 ACK_TIMEOUT = 0.5f;        //<! 500 ms
+    static constexpr Float32 DELETION_TIMEOUT = 1.0f;   //<! 1s
+
+private:
+    std::vector<FragmentEntry> m_fragments;
+    std::vector<UUID> m_fragmentsToDelete;   //<! Deferred deletion queue
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Default constructor for singleton
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FragmentManager(void) = default;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief tick update for sending and retransmission
+    ///
+    /// \param deltaTime Time elapsed since last update in seconds
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Update(Float32 deltaTime, FNetworkBase* networkBase);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Sort the recuperated fragmented pieces by sequence order
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SortFragments(FragmentEntry& entry);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process incoming fragment packet
+    ///
+    /// \param packet Fragment packet to process
+    /// \param sender Endpoint of the sender
+    /// \param networkBase Network base to send acknowledgment
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessFragment(
+        const IPacket& packet,
+        const FEndpoint& sender,
+        FNetworkBase* networkBase
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Merge completed fragments into full packets
+    ///
+    /// \param entry Fragment entry to merge
+    /// \param networkBase Network base to process the reassembled packet
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void MergeFragments(FragmentEntry& entry, FNetworkBase* networkBase);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Destroy completed or expired fragments
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void DestroyFragments(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Mark a fragment for deferred deletion
+    ///
+    /// \param fragmentID ID of the fragment to mark for deletion
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void MarkFragmentForDeletion(const UUID& fragmentID);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if a fragment entry is complete
+    ///
+    /// \param entry Fragment entry to check
+    ///
+    /// \return true if all chunks are received
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Bool IsFragmentComplete(const FragmentEntry& entry) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Find fragment entry by ID
+    ///
+    /// \param fragmentID ID of the fragment to find
+    ///
+    /// \return Pointer to fragment entry or nullptr if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FragmentEntry* FindFragmentEntry(const UUID& fragmentID);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Find fragment entry by ID (const version)
+    ///
+    /// \param fragmentID ID of the fragment to find
+    ///
+    /// \return Pointer to fragment entry or nullptr if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FragmentEntry* FindFragmentEntry(const UUID& fragmentID) const;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send full packet transmission by fragmenting large packets
+    ///
+    /// \param serializedData Already serialized packet data
+    /// \param destinations List of endpoints to send to
+    /// \param networkBase Network base to send fragments through
+    ///
+    /// \return UUID of the fragment entry created
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UUID SendFullTransmission(
+        const std::vector<Byte>& serializedData,
+        const std::vector<FEndpoint>& destinations,
+        FNetworkBase* networkBase
+    );
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send full packet transmission by fragmenting large packets
+    ///
+    /// \param packet Packet to fragment and send
+    /// \param destinations List of endpoints to send to
+    ///
+    /// \return UUID of the fragment entry created
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SendFragmentChunk(
+        const FragmentEntry& packet, const FEndpoint destinations
+    );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send selective retransmission for missing chunks
+    ///
+    /// \param fragmentID ID of the fragment to retransmit
+    /// \param destinations List of endpoints to send to
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SendRetransmission(
+        const FragmentEntry& entry, FNetworkBase* networkBase
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Send selective retransmission for missing chunks
+    ///
+    /// \param fragmentID ID of the fragment to retransmit
+    /// \param destinations List of endpoints to send to
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SendSelectiveRetransmission(
+        const UUID& fragmentID, const std::vector<FEndpoint>& destinations
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Fragment serialized packet data into chunks
+    ///
+    /// \param serializedData Serialized packet data to fragment
+    ///
+    /// \return Vector of data chunks
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    std::vector<std::vector<Byte>>
+        FragmentPacket(const std::vector<Byte>& serializedData) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    UInt32 GetCurrentTimestamp(void) const;
+};
+
+}   // namespace tkd
