@@ -2,8 +2,6 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Levels/L_RType_Level1.hpp>
-#include <Engine/Runtime/Components/Widgets/UWidgetButtonComponent.hpp>
-#include <Engine/Runtime/Components/Widgets/UWidgetPanelComponent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -18,8 +16,7 @@ L_RType_Level1::L_RType_Level1()
     SetLevelName("L_RType_Level1");
     SetGameMode("RTypeGameMode");
     AddActorEntry("BP_Player", "Player1", FTransform::Identity);
-    AddActorEntry("BP_Level1Panel", "LevelPanel", FTransform::Identity);
-    AddActorEntry("BP_Level1Button", "LevelButton", FTransform::Identity);
+    AddActorEntry("BP_Level1HUD", "LevelHUD", FTransform::Identity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
