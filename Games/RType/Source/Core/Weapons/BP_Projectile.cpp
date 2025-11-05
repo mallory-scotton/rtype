@@ -78,7 +78,7 @@ void BP_Projectile::Tick(Float32 deltaTime)
     Translate(FVector3(8.0f * deltaTime, 0.0f, 0.0f));
 
     // If the projectile goes out of bounds, destroy it
-    if (GetTransform().GetPosition().x > 2000.0f) { MarkForDeletion(); }
+    if (GetTransform().GetPosition().x > 200.0f) { MarkForDeletion(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
