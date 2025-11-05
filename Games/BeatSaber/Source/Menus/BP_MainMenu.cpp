@@ -398,7 +398,9 @@ void BP_MainMenu::SetupHighlighting(
                 auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
-                    info.otherComponent->Is<AC_Pointer>())
+                    info.otherComponent->Is<AC_Pointer>() &&
+                    info.otherActor->As<BP_Sword>()->GetHand() ==
+                        stateManager.lastMenuHand)
                 {
                     auto* hghl =
                         GetComponent<UBillboardComponent>(highlightName);
@@ -445,7 +447,9 @@ void BP_MainMenu::SetupSubMenuHighlighting(
                 auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
-                    info.otherComponent->Is<AC_Pointer>())
+                    info.otherComponent->Is<AC_Pointer>() &&
+                    info.otherActor->As<BP_Sword>()->GetHand() ==
+                        stateManager.lastMenuHand)
                 {
                     billboard->SetTexturePath(highlightTexture);
                     stateManager.hoveredMenuItem = menuItem;
