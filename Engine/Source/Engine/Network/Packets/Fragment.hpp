@@ -17,62 +17,19 @@ namespace tkd::Packets
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-/// \brief Packet sent by a client to request a connection to the server
+/// \brief Packet sent by a client to notify the server of its disconnection
 ///
 ///////////////////////////////////////////////////////////////////////////////
-class Connect : public TPacket<Connect>
+class Fragment : public TPacket<Fragment>
 {
 public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UInt32 clientID = 0;         //<! ID of the connecting client
-    std::string name{};          //<! Name of the connecting client
-    std::string gameName{};      //<! Name of the game
-    std::string gameVersion{};   //<! Version of the game
-
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Serialize the packet data into the writer
-    ///
-    /// \param writer Binary writer to serialize data into
-    ///
-    /// \return true if serialization was successful, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool Serialize(FBinaryWriter& writer) const override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Deserialize the packet data from the reader
-    ///
-    /// \param reader Binary reader to deserialize data from
-    ///
-    /// \return true if deserialization was successful, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool Deserialize(FBinaryReader& reader) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Get the size of the packet in bytes
-    ///
-    /// \return size of the packet in bytes
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    SizeT GetSize(void) const override;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-/// \brief Packet sent by the server in response to a connection request
-///
-///////////////////////////////////////////////////////////////////////////////
-class ConnectResponse : public TPacket<ConnectResponse>
-{
-public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    bool accepted = false;   //<! true if the connection is accepted
-    UInt32 clientID = 0;     //<! Assigned ID for the client
+    UInt32 PackageID = 0;      //<! ID of the entire Package
+    UInt8 SequenceID = 0;      //<! Fragment sequence number
+    UInt8 FragmentCount = 0;   //<! total fragment count
+    std::vector<Byte> data;
 
 public:
     ///////////////////////////////////////////////////////////////////////////

@@ -68,6 +68,15 @@ bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
         );
 
         Packets::Connect connectPacket;
+        connectPacket.gameName = m_settings->game.title;
+        connectPacket.gameVersion = m_settings->game.version;
+
+        FLogger::Info(
+            "[CLIENT] Sending Connect packet - gameName: '{}', gameVersion: '{}'",
+            connectPacket.gameName,
+            connectPacket.gameVersion
+        );
+
         if (SendReliablePacket(connectPacket, m_serverEndpoint))
         {
             m_lastUpdate = SteadyClock::now();
