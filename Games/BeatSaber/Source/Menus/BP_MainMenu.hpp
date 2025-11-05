@@ -7,6 +7,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine.hpp>
+#include <ST_State.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -59,7 +60,9 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void SetupHighlighting(
-        UBoxCollisionComponent* box, const FString& highlightName
+        UBoxCollisionComponent* box,
+        const FString& highlightName,
+        EBeatSaberHoveredMenu menuItem
     );
 
     ///////////////////////////////////////////////////////////////////////////
@@ -75,7 +78,8 @@ private:
         UBoxCollisionComponent* box,
         UBillboardComponent* billboard,
         const FilePath& highlightTexture,
-        const FilePath& normalTexture
+        const FilePath& normalTexture,
+        EBeatSaberHoveredMenu menuItem
     );
 
 public:

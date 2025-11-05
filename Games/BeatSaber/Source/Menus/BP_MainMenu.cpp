@@ -101,7 +101,11 @@ void BP_MainMenu::BeginPlay(void)
 
         SinglePlayerBox->SetHiddenInGame(false);   //?TEMP
         SinglePlayerBox->SetShowDebug(true);       //?TEMP
-        SetupHighlighting(SinglePlayerBox, "BC_SinglePlayerIconHighlight");
+        SetupHighlighting(
+            SinglePlayerBox,
+            "BC_SinglePlayerIconHighlight",
+            EBeatSaberHoveredMenu::SinglePlayer
+        );
     }
 
     auto* MultiPlayerIconBackground =
@@ -144,7 +148,11 @@ void BP_MainMenu::BeginPlay(void)
 
         MultiPlayerBox->SetHiddenInGame(false);   //?TEMP
         MultiPlayerBox->SetShowDebug(true);       //?TEMP
-        SetupHighlighting(MultiPlayerBox, "BC_MultiPlayerIconHighlight");
+        SetupHighlighting(
+            MultiPlayerBox,
+            "BC_MultiPlayerIconHighlight",
+            EBeatSaberHoveredMenu::Multiplayer
+        );
     }
 
     auto* CampaignIconBackground =
@@ -187,7 +195,11 @@ void BP_MainMenu::BeginPlay(void)
 
         CampaignBox->SetHiddenInGame(false);   //?TEMP
         CampaignBox->SetShowDebug(true);       //?TEMP
-        SetupHighlighting(CampaignBox, "BC_CampaignIconHighlight");
+        SetupHighlighting(
+            CampaignBox,
+            "BC_CampaignIconHighlight",
+            EBeatSaberHoveredMenu::Campaign
+        );
     }
 
     auto* PartyIconBackground =
@@ -229,7 +241,9 @@ void BP_MainMenu::BeginPlay(void)
 
         PartyBox->SetHiddenInGame(false);   //?TEMP
         PartyBox->SetShowDebug(true);       //?TEMP
-        SetupHighlighting(PartyBox, "BC_PartyIconHighlight");
+        SetupHighlighting(
+            PartyBox, "BC_PartyIconHighlight", EBeatSaberHoveredMenu::Party
+        );
     }
 
     auto* SettingsIcon = GetComponent<UBillboardComponent>("BC_SettingsIcon");
@@ -256,7 +270,8 @@ void BP_MainMenu::BeginPlay(void)
             SettingsBox,
             SettingsIcon,
             "Assets/Textures/OptionsHighlightButton.png",
-            "Assets/Textures/OptionsButton.png"
+            "Assets/Textures/OptionsButton.png",
+            EBeatSaberHoveredMenu::Settings
         );
     }
 
@@ -283,7 +298,8 @@ void BP_MainMenu::BeginPlay(void)
             HelpBox,
             HelpIcon,
             "Assets/Textures/HelpHighlightButton.png",
-            "Assets/Textures/HelpButton.png"
+            "Assets/Textures/HelpButton.png",
+            EBeatSaberHoveredMenu::Help
         );
     }
 
@@ -310,7 +326,8 @@ void BP_MainMenu::BeginPlay(void)
             EditBox,
             EditIcon,
             "Assets/Textures/EditorHighlightButton.png",
-            "Assets/Textures/EditorButton.png"
+            "Assets/Textures/EditorButton.png",
+            EBeatSaberHoveredMenu::Edit
         );
     }
 
@@ -337,7 +354,8 @@ void BP_MainMenu::BeginPlay(void)
             ExitBox,
             ExitIcon,
             "Assets/Textures/ExitHighlightButton.png",
-            "Assets/Textures/ExitButton.png"
+            "Assets/Textures/ExitButton.png",
+            EBeatSaberHoveredMenu::Exit
         );
     }
 
@@ -380,15 +398,18 @@ void BP_MainMenu::BeginPlay(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_MainMenu::SetupHighlighting(
-    UBoxCollisionComponent* box, const FString& highlightName
+    UBoxCollisionComponent* box,
+    const FString& highlightName,
+    EBeatSaberHoveredMenu menuItem
 )
 {
     if (box && box->GetCollisionSystem())
     {
         box->GetCollisionSystem()->BindOnOverlapBegin(
             box,
-            [this, highlightName](const FCollisionInfo& info)
+            [this, highlightName, menuItem](const FCollisionInfo& info)
             {
+                auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
                     info.otherComponent->Is<AC_Pointer>())
@@ -396,6 +417,7 @@ void BP_MainMenu::SetupHighlighting(
                     auto* hghl =
                         GetComponent<UBillboardComponent>(highlightName);
                     hghl->SetHiddenInGame(false);
+                    stateManager.hoveredMenuItem = menuItem;
                 }
             }
         );
@@ -404,6 +426,7 @@ void BP_MainMenu::SetupHighlighting(
             box,
             [this, highlightName](const FCollisionInfo& info)
             {
+                auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
                     info.otherComponent->Is<AC_Pointer>())
@@ -411,6 +434,7 @@ void BP_MainMenu::SetupHighlighting(
                     auto* hghl =
                         GetComponent<UBillboardComponent>(highlightName);
                     hghl->SetHiddenInGame(true);
+                    stateManager.hoveredMenuItem = EBeatSaberHoveredMenu::None;
                 }
             }
         );
@@ -422,20 +446,23 @@ void BP_MainMenu::SetupSubMenuHighlighting(
     UBoxCollisionComponent* box,
     UBillboardComponent* billboard,
     const FilePath& highlightTexture,
-    const FilePath& normalTexture
+    const FilePath& normalTexture,
+    EBeatSaberHoveredMenu menuItem
 )
 {
     if (box && box->GetCollisionSystem() && billboard)
     {
         box->GetCollisionSystem()->BindOnOverlapBegin(
             box,
-            [billboard, highlightTexture](const FCollisionInfo& info)
+            [billboard, highlightTexture, menuItem](const FCollisionInfo& info)
             {
+                auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
                     info.otherComponent->Is<AC_Pointer>())
                 {
                     billboard->SetTexturePath(highlightTexture);
+                    stateManager.hoveredMenuItem = menuItem;
                 }
             }
         );
@@ -444,11 +471,13 @@ void BP_MainMenu::SetupSubMenuHighlighting(
             box,
             [billboard, normalTexture](const FCollisionInfo& info)
             {
+                auto& stateManager = ST_State::GetInstance();
                 if (info.otherActor && info.otherComponent &&
                     info.otherActor->Is<BP_Sword>() &&
                     info.otherComponent->Is<AC_Pointer>())
                 {
                     billboard->SetTexturePath(normalTexture);
+                    stateManager.hoveredMenuItem = EBeatSaberHoveredMenu::None;
                 }
             }
         );
