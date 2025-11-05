@@ -117,19 +117,19 @@ std::array<UInt8, 6> UUID::GetMACAddress(void)
 #if defined(_WIN32)
     // Windows implementation would go here
     // For now, generate random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #elif defined(__linux__) || defined(__APPLE__)
     // Unix implementation would go here
     // For now, generate random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #else
     // Fallback: random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #endif
     return mac;

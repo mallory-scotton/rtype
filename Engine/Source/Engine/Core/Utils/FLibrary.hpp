@@ -254,7 +254,7 @@ public:
     /// \return The last error message
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const FString& GetLastError(void) const;
+    const FString& GetLastErrorMessage(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Retrieves a function from the loaded library and casts it to the

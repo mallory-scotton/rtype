@@ -16,9 +16,11 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Find dependencies
 find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(OpenVR REQUIRED)
 
 # Define tool paths
-set(TKDPACK_TOOL "${CMAKE_BINARY_DIR}/bin/Tools/TKDPack")
 set(ASSETS_DIR "Assets")
 set(CONTENT_PAK "${CMAKE_BINARY_DIR}/bin/Data/RTypeGameContent.pak")
 
@@ -26,8 +28,8 @@ set(CONTENT_PAK "${CMAKE_BINARY_DIR}/bin/Data/RTypeGameContent.pak")
 add_custom_command(
     OUTPUT ${CONTENT_PAK}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/Data
-    COMMAND ${TKDPACK_TOOL} -i ${ASSETS_DIR} -o ${CONTENT_PAK} -m pack
-    DEPENDS ${TKDPACK_TOOL}
+    COMMAND $<TARGET_FILE:TKDPack> -i ${ASSETS_DIR} -o ${CONTENT_PAK} -m pack
+    DEPENDS TKDPack
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT "Generating packed content from Assets directory"
     VERBATIM
@@ -35,7 +37,7 @@ add_custom_command(
 
 # Create a custom target for packed content
 add_custom_target(ContentPak
-    DEPENDS ${CONTENT_PAK}
+    DEPENDS ${CONTENT_PAK} TKDPack
 )
 
 # Collect source files
@@ -64,7 +66,19 @@ set_target_properties(RTypeGameClient PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(RTypeGameClient PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 # Include directories for client
 target_include_directories(RTypeGameClient
@@ -85,8 +99,8 @@ target_link_libraries(RTypeGameClient
         sfml-graphics
         sfml-audio
         sfml-network
-        GLU
-        GL
+        OpenGL::GL
+        OpenGL::GLU
         GLEW::GLEW
         openvr::openvr
 )
@@ -104,7 +118,19 @@ set_target_properties(RTypeGameServer PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(RTypeGameServer PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 # Include directories for server
 target_include_directories(RTypeGameServer
@@ -144,6 +170,14 @@ set_target_properties(RTypeGameClientExe PROPERTIES
     OUTPUT_NAME "RTypeGameClient"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(RTypeGameClientExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(RTypeGameClientExe PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
@@ -151,9 +185,7 @@ target_include_directories(RTypeGameClientExe PRIVATE
 
 target_link_libraries(RTypeGameClientExe PRIVATE
     TKDEngineClient
-    -Wl,--no-as-needed
     RTypeGameClient
-    -Wl,--as-needed
 )
 
 # Create RTypeGameServer executable (Server + Game + Main.cpp from Engine)
@@ -164,6 +196,14 @@ set_target_properties(RTypeGameServerExe PROPERTIES
     OUTPUT_NAME "RTypeGameServer"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(RTypeGameServerExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(RTypeGameServerExe PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/Source
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
@@ -171,9 +211,7 @@ target_include_directories(RTypeGameServerExe PRIVATE
 
 target_link_libraries(RTypeGameServerExe PRIVATE
     TKDEngineServer
-    -Wl,--no-as-needed
     RTypeGameServer
-    -Wl,--as-needed
 )
 
 # Copy resources if they exist

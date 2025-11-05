@@ -201,15 +201,10 @@ Float32 FVRSystem::GetGripValue(EHand hand) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FVRSystem::TriggerHapticPulse(
-    EHand hand, Float32 intensity, Float32 duration
-)
+void FVRSystem::TriggerHapticPulse(EHand hand, Float32 duration)
 {
-    if (m_backend)
-    {
-        m_backend->TriggerHapticPulse(hand, intensity, duration);
-    }
-    if (m_hapticCallback) { m_hapticCallback(hand, intensity, duration); }
+    if (m_backend) { m_backend->TriggerHapticPulse(hand, duration); }
+    if (m_hapticCallback) { m_hapticCallback(hand, duration); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

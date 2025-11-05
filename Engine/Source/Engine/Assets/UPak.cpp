@@ -20,6 +20,19 @@ namespace
 constexpr UInt32 PAK_MAGIC = 0x5041434B;   // "PACK" in hex
 constexpr UInt16 PAK_VERSION = 1;
 
+///////////////////////////////////////////////////////////////////////////////
+// Helper function to normalize path separators to forward slashes
+///////////////////////////////////////////////////////////////////////////////
+FString NormalizePath(const FString& path)
+{
+    FString normalized = path;
+    for (SizeT i = 0; i < normalized.Size(); ++i)
+    {
+        if (normalized[i] == '\\') { normalized[i] = '/'; }
+    }
+    return normalized;
+}
+
 }   // namespace
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -140,7 +153,8 @@ bool UPak::Create(const FilePath& pakPath, const std::vector<UAsset*>& assets)
     {
         FPakEntry entry;
         entry.uuid = asset->GetUUID();
-        entry.name = asset->GetName();
+        entry.name =
+            NormalizePath(asset->GetName());   // Normalize path separators
         entry.type = asset->GetType();
         entry.offset = dataOffset;
         entry.size = asset->GetSize();
@@ -214,7 +228,7 @@ bool UPak::Create(const FilePath& pakPath, const std::vector<UAsset*>& assets)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool UPak::AddAsset(TKD_MAYBE_UNUSED UAsset* asset)
+bool UPak::AddAsset(UAsset*)
 {
     // Not implemented - would require pak file reconstruction
     // For now, use Create() with all assets
@@ -238,7 +252,9 @@ bool UPak::LoadAssetDataByName(const FString& name, std::vector<Byte>& outData)
 {
     if (!m_isOpen) { return false; }
 
-    auto it = m_nameIndex.find(name);
+    // Try with normalized path first
+    FString normalizedName = NormalizePath(name);
+    auto it = m_nameIndex.find(normalizedName);
     if (it == m_nameIndex.end()) { return false; }
 
     const FPakEntry& entry = it->second;
@@ -275,7 +291,9 @@ std::unique_ptr<UAsset> UPak::CreateAssetByName(const FString& name)
 {
     if (!m_isOpen) { return nullptr; }
 
-    auto it = m_nameIndex.find(name);
+    // Try with normalized path first
+    FString normalizedName = NormalizePath(name);
+    auto it = m_nameIndex.find(normalizedName);
     if (it == m_nameIndex.end()) { return nullptr; }
 
     return CreateAsset(it->second.uuid);
@@ -290,7 +308,9 @@ bool UPak::HasAsset(const FString& uuid) const
 ///////////////////////////////////////////////////////////////////////////////
 bool UPak::HasAssetByName(const FString& name) const
 {
-    return m_nameIndex.find(name) != m_nameIndex.end();
+    // Try with normalized path first
+    FString normalizedName = NormalizePath(name);
+    return m_nameIndex.find(normalizedName) != m_nameIndex.end();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -298,6 +318,16 @@ const FPakEntry* UPak::GetEntry(const FString& uuid) const
 {
     auto it = m_entries.find(uuid);
     if (it == m_entries.end()) { return nullptr; }
+    return &it->second;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FPakEntry* UPak::GetEntryByName(const FString& name) const
+{
+    // Try with normalized path first
+    FString normalizedName = NormalizePath(name);
+    auto it = m_nameIndex.find(normalizedName);
+    if (it == m_nameIndex.end()) { return nullptr; }
     return &it->second;
 }
 
@@ -310,6 +340,22 @@ std::vector<FPakEntry> UPak::GetAllEntries(void) const
     for (const auto& pair: m_entries) { entries.push_back(pair.second); }
 
     return entries;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TUniquePtr<UAsset> UPak::GetAsset(const FString& uuid)
+{
+    auto asset = CreateAsset(uuid);
+    if (!asset) { return nullptr; }
+    return TUniquePtr<UAsset>(std::move(asset));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TUniquePtr<UAsset> UPak::GetAssetByName(const FString& name)
+{
+    auto asset = CreateAssetByName(name);
+    if (!asset) { return nullptr; }
+    return TUniquePtr<UAsset>(std::move(asset));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

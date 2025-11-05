@@ -14,6 +14,7 @@
 #include <Engine/Network/Enumerations.hpp>
 #include <string>
 #include <vector>
+#include <mutex>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd

@@ -52,7 +52,7 @@ bool FNetworkSubsystem::Initialize(void)
 
         return true;
     }
-    catch (const std::exception& e)
+    catch (...)
     {
         // Log error
         return false;
@@ -161,62 +161,74 @@ FNetworkStatistics FNetworkSubsystem::GetStatistics(void) const noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkSubsystem::ThreadLoop(void)
+void FNetworkSubsystem::ThreadSetup(void)
 {
-    TimePoint lastStatsUpdate = SteadyClock::now();
-    TimePoint lastUpdateTime = SteadyClock::now();
-    UInt64 totalBytesSent = 0;
-    UInt64 totalBytesReceived = 0;
+    // No special setup needed for now
+}
 
-    while (m_running.load(std::memory_order_acquire))
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::ThreadTeardown(void)
+{
+    std::unique_lock lock(m_networkMutex);
+
+    if (m_server)
     {
-        TimePoint now = SteadyClock::now();
-
-        float deltaTime =
-            std::chrono::duration<float>(now - lastUpdateTime).count();
-        lastUpdateTime = now;   // Update for next frame
-
-        if (m_config.mode == Mode::Server && m_server)
-        {
-            std::unique_lock lock(m_networkMutex);
-
-            // Process server updates
-            m_server->Update(deltaTime);
-        }
-        else if (m_config.mode == Mode::Client && m_client)
-        {
-            std::unique_lock lock(m_networkMutex);
-
-            // Process client updates
-            m_client->Update(deltaTime);
-        }
-
-        // Update statistics every second
-        float elapsed = TDuration<float>(now - lastStatsUpdate).count();
-        if (elapsed >= 1.0f)
-        {
-            m_bytesSentPerSecond.store(
-                static_cast<UInt64>(totalBytesSent / elapsed),
-                std::memory_order_release
-            );
-            m_bytesReceivedPerSecond.store(
-                static_cast<UInt64>(totalBytesReceived / elapsed),
-                std::memory_order_release
-            );
-
-            totalBytesSent = 0;
-            totalBytesReceived = 0;
-            lastStatsUpdate = now;
-        }
-
-        // Network tick rate: ~30Hz is usually sufficient
-        WaitFor(Milliseconds(33));
+        m_server->Stop();
+        m_server.reset();
     }
 
-    // Cleanup
+    if (m_client)
+    {
+        m_client->Disconnect();
+        m_client.reset();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkSubsystem::ThreadLoop(void)
+{
+    static TimePoint lastStatsUpdate = SteadyClock::now();
+    static TimePoint lastUpdateTime = SteadyClock::now();
+    static UInt64 totalBytesSent = 0;
+    static UInt64 totalBytesReceived = 0;
+
+    TimePoint now = SteadyClock::now();
+
+    float deltaTime =
+        std::chrono::duration<float>(now - lastUpdateTime).count();
+    lastUpdateTime = now;   // Update for next frame
+
+    if (m_config.mode == Mode::Server && m_server)
     {
         std::unique_lock lock(m_networkMutex);
 
+        // Process server updates
+        m_server->Update(deltaTime);
+    }
+    else if (m_config.mode == Mode::Client && m_client)
+    {
+        std::unique_lock lock(m_networkMutex);
+
+        // Process client updates
+        m_client->Update(deltaTime);
+    }
+
+    // Update statistics every second
+    float elapsed = TDuration<float>(now - lastStatsUpdate).count();
+    if (elapsed >= 1.0f)
+    {
+        m_bytesSentPerSecond.store(
+            static_cast<UInt64>(totalBytesSent / elapsed),
+            std::memory_order_release
+        );
+        m_bytesReceivedPerSecond.store(
+            static_cast<UInt64>(totalBytesReceived / elapsed),
+            std::memory_order_release
+        );
+
+        totalBytesSent = 0;
+        totalBytesReceived = 0;
+        lastStatsUpdate = now;
         if (m_server)
         {
             // CRITICAL FIX: Don't call Stop() here - let the server cleanup
@@ -235,6 +247,11 @@ void FNetworkSubsystem::ThreadLoop(void)
             m_client.reset();
         }
     }
+
+#ifndef TKD_SYSTEM_WINDOWS
+    // Network tick rate: ~30Hz is usually sufficient
+    WaitFor(Milliseconds(33));
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

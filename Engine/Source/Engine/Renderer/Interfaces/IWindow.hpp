@@ -161,6 +161,14 @@ public:
     TKD_NODISCARD virtual bool IsOpen(void) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the frames per second (FPS) limit for the window
+    ///
+    /// \param fps The new FPS value to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetFPSLimit(UInt32 fps) = 0;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window state
     ///
     /// \param state The new state to set

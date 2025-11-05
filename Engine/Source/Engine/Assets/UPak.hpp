@@ -222,12 +222,42 @@ public:
     const FPakEntry* GetEntry(const FString& uuid) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Gets the entry information for an asset by name.
+    ///
+    /// \param name The name of the asset.
+    ///
+    /// \return Pointer to the entry, or nullptr if not found.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    const FPakEntry* GetEntryByName(const FString& name) const;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Gets all entries in the pak.
     ///
     /// \return Vector of all pak entries.
     ///
     ///////////////////////////////////////////////////////////////////////////
     std::vector<FPakEntry> GetAllEntries(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get an asset from the pak by UUID.
+    ///
+    /// \param uuid The unique identifier of the asset.
+    ///
+    /// \return Unique pointer to the asset, or nullptr if not found.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TUniquePtr<UAsset> GetAsset(const FString& uuid);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get an asset from the pak by name.
+    ///
+    /// \param name The name of the asset.
+    ///
+    /// \return Unique pointer to the asset, or nullptr if not found.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TUniquePtr<UAsset> GetAssetByName(const FString& name);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Gets the number of assets in the pak.

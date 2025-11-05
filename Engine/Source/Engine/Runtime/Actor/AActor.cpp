@@ -2,6 +2,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
+#include <Engine/Runtime/Physics/UCollisionSystem.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -38,8 +40,6 @@ AActor::AActor(const FString& name)
     , m_clientTime(0.0f)
     , m_estimatedRTT(0.1f)
     , m_lastMoveClientTime(0.0f)
-    , OnActorBeginOverlap(*this, "OnActorBeginOverlap")
-    , OnActorEndOverlap(*this, "OnActorEndOverlap")
     , ServerMoveRPC(
           *this,
           "ServerMove",
@@ -155,6 +155,17 @@ FTransform AActor::GetTransform(void) const { return m_transform.Get(); }
 void AActor::SetTransform(const FTransform& transform)
 {
     m_transform = transform;
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

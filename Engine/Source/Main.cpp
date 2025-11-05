@@ -4,6 +4,15 @@
 #include <csignal>
 #include <Engine.hpp>
 
+#ifndef TKD_ENGINE_STANDALONE
+
+///////////////////////////////////////////////////////////////////////////////
+// External Functions
+///////////////////////////////////////////////////////////////////////////////
+extern "C" TKD_API_IMPORT void TKD_EnsureGameLibraryLoaded(void);
+
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 // Graceful exit to ensure shutdown of the engine when SIGINT or SIGTERM
 ///////////////////////////////////////////////////////////////////////////////
@@ -21,6 +30,14 @@ int main(int argc, char* argv[])
 {
     std::signal(SIGINT, SignalHandler);
     std::signal(SIGTERM, SignalHandler);
+
+    // Setting the random seed
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    // Force loading of the game library
+#ifndef TKD_ENGINE_STANDALONE
+    TKD_EnsureGameLibraryLoaded();
+#endif
 
     // Initialize engine
     if (!Engine::Initialize(argc, argv))

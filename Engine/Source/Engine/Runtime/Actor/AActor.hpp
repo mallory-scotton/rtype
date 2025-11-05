@@ -197,12 +197,6 @@ private:
         0.1f;    //<! Default interpolation delay (100ms)
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    UFunction<AActor*> OnActorBeginOverlap;
-    UFunction<AActor*> OnActorEndOverlap;
-
     // Movement RPCs
     UFunction<UInt32, Float32, Float32, FVector3, FTransform> ServerMoveRPC;
     UFunction<UInt32, Float32, FTransform> ClientAckMoveRPC;

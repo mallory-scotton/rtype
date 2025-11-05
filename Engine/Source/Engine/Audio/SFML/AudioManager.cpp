@@ -184,12 +184,12 @@ void AudioManager::UnloadAllBuffers(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound(
+TSharedPtr<IAudioSource> AudioManager::PlaySound(
     const FilePath& filePath, Float32 volume, Bool loop
 )
 {
     auto buffer = LoadBuffer(filePath);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -197,15 +197,16 @@ void AudioManager::PlaySound(
     source->SetLooping(loop);
     source->SetSpatial(false);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound(
+TSharedPtr<IAudioSource> AudioManager::PlaySound(
     const std::vector<Byte>& data, Float32 volume, Bool loop
 )
 {
     auto buffer = LoadBuffer(data);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -213,15 +214,16 @@ void AudioManager::PlaySound(
     source->SetLooping(loop);
     source->SetSpatial(false);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound(
+TSharedPtr<IAudioSource> AudioManager::PlaySound(
     const Byte* data, SizeT size, Float32 volume, Bool loop
 )
 {
     auto buffer = LoadBuffer(data, size);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -229,13 +231,15 @@ void AudioManager::PlaySound(
     source->SetLooping(loop);
     source->SetSpatial(false);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound(const UAsset* asset, Float32 volume, Bool loop)
+TSharedPtr<IAudioSource>
+    AudioManager::PlaySound(const UAsset* asset, Float32 volume, Bool loop)
 {
     auto buffer = LoadBuffer(asset);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -243,10 +247,11 @@ void AudioManager::PlaySound(const UAsset* asset, Float32 volume, Bool loop)
     source->SetLooping(loop);
     source->SetSpatial(false);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound3D(
+TSharedPtr<IAudioSource> AudioManager::PlaySound3D(
     const FilePath& filePath,
     const FVector3& position,
     Float32 volume,
@@ -254,7 +259,7 @@ void AudioManager::PlaySound3D(
 )
 {
     auto buffer = LoadBuffer(filePath);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -266,10 +271,11 @@ void AudioManager::PlaySound3D(
     source->SetLooping(loop);
     source->SetSpatial(true);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound3D(
+TSharedPtr<IAudioSource> AudioManager::PlaySound3D(
     const std::vector<Byte>& data,
     const FVector3& position,
     Float32 volume,
@@ -277,7 +283,7 @@ void AudioManager::PlaySound3D(
 )
 {
     auto buffer = LoadBuffer(data);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -289,10 +295,11 @@ void AudioManager::PlaySound3D(
     source->SetLooping(loop);
     source->SetSpatial(true);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound3D(
+TSharedPtr<IAudioSource> AudioManager::PlaySound3D(
     const Byte* data,
     SizeT size,
     const FVector3& position,
@@ -301,7 +308,7 @@ void AudioManager::PlaySound3D(
 )
 {
     auto buffer = LoadBuffer(data, size);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -313,15 +320,16 @@ void AudioManager::PlaySound3D(
     source->SetLooping(loop);
     source->SetSpatial(true);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AudioManager::PlaySound3D(
+TSharedPtr<IAudioSource> AudioManager::PlaySound3D(
     const UAsset* asset, const FVector3& position, Float32 volume, Bool loop
 )
 {
     auto buffer = LoadBuffer(asset);
-    if (!buffer) { return; }
+    if (!buffer) { return nullptr; }
 
     auto source = CreateSource();
     source->SetBuffer(buffer);
@@ -333,6 +341,7 @@ void AudioManager::PlaySound3D(
     source->SetLooping(loop);
     source->SetSpatial(true);
     source->Play();
+    return source;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

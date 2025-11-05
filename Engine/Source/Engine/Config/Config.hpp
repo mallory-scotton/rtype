@@ -45,6 +45,10 @@
     #ifndef NOMINMAX
         #define NOMINMAX
     #endif
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #include <windows.h>
 #elif defined(__APPLE__) && defined(__MACH__)
     #include "TargetConditionals.h"
     #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
@@ -84,10 +88,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #if defined(__GNUC__) || defined(__clang__)
     #define TKD_WEAK __attribute__((__weak__))
-#elif defined(_MSC_VER)
-    #define TKD_WEAK __declspec(selectany)
+    #define TKD_USE_WEAK_LINKING 1
 #else
     #define TKD_WEAK
+    #define TKD_USE_WEAK_LINKING 0
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -130,9 +134,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Force Inline Configuration
 ///////////////////////////////////////////////////////////////////////////////
-#if defined(TKD_FORCE_INLINE)
+#if defined(TKD_FORCE_INLINE) && !defined(FORCEINLINE)
     #define FORCEINLINE inline
-#else
+#elif !defined(FORCEINLINE)
     #define FORCEINLINE
 #endif
 
@@ -195,6 +199,15 @@
     #define TKD_NODISCARD [[nodiscard]]
 #else
     #define TKD_NODISCARD
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Define Engine API export/import macros
+///////////////////////////////////////////////////////////////////////////////
+#if defined(ENGINE_EXPORTS)
+    #define ENGINE_API TKD_API_EXPORT
+#else
+    #define ENGINE_API TKD_API_IMPORT
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

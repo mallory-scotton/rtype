@@ -17,7 +17,7 @@ UPyramidPrimitive::UPyramidPrimitive(
     , m_height(height)
     , m_capBase(capBase)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ void UPyramidPrimitive::SetHeight(float height)
     if (m_height != height)
     {
         m_height = height;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -42,7 +42,7 @@ void UPyramidPrimitive::SetCapBase(bool cap)
     if (m_capBase != cap)
     {
         m_capBase = cap;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -53,7 +53,7 @@ TKD_NODISCARD bool UPyramidPrimitive::IsCapBase(void) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UPyramidPrimitive::GenerateVertices(void)
+void UPyramidPrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
 
@@ -99,6 +99,9 @@ void UPyramidPrimitive::GenerateVertices(void)
         m_vertices.push_back(FVertex(base3, m_color));
         m_vertices.push_back(FVertex(base4, m_color));
     }
+
+    // Apply the origin offset to center the billboard
+    for (auto& vertex: m_vertices) { vertex.position -= m_origin; }
 }
 
 }   // namespace tkd

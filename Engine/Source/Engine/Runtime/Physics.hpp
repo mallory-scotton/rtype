@@ -7,3 +7,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Physics/Enumerations.hpp>
+#include <Engine/Runtime/Physics/FAABB.hpp>
+#include <Engine/Runtime/Physics/FCollisionInfo.hpp>
+#include <Engine/Runtime/Physics/FOBB.hpp>
+#include <Engine/Runtime/Physics/UCollisionSystem.hpp>
+#include <Engine/Runtime/Physics/UPhysicsObject.hpp>
