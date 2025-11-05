@@ -28,7 +28,8 @@ BP_MonsterSpawner::BP_MonsterSpawner(void)
               &BP_MonsterSpawner::RPC_MulticastSpawnOne,
               this,
               std::placeholders::_1,
-              std::placeholders::_2
+              std::placeholders::_2,
+              std::placeholders::_3
           ),
           true
       )
@@ -119,16 +120,35 @@ void BP_MonsterSpawner::SpawnOneMonster(void)
 
     // Spawn the monster on the server (authority) with a deterministic UUID
     UUID id = UUID::V4();
-    World::SpawnActorDeferredWithParams<BP_Monster>(t, id);
+
+    // Derive a small initial target offset (jitter) so monsters spawned
+    // around the spawner don't all pick the exact same path on first move.
+    // Use a second pseudo-random fraction derived from the seed so the
+    // jitter is stable/deterministic per spawn count.
+    Float32 seed2 =
+        seed * 1.6180339f + static_cast<Float32>(m_spawned) * 13.7f;
+    Float32 frac2 = seed2 - static_cast<int>(seed2);
+    if (frac2 < 0.0f) { frac2 = -frac2; }
+
+    Float32 jitterScale =
+        SpawnRadius() * 0.35f;   // up to ~35% of spawn radius
+    Float32 jitterX = (frac2 - 0.5f) * 2.0f * jitterScale;
+    Float32 jitterY = ((1.0f - frac2) - 0.5f) * 2.0f * jitterScale;
+    FVector3 initOffset = FVector3(jitterX, jitterY, 0.2f);
+
+    World::SpawnActorDeferredWithParams<BP_Monster>(t, id, initOffset);
 
     ++m_spawned;
-    // Tell clients to spawn the same monster with the same UUID so both
-    // sides can correlate the actor.
-    MulticastSpawnOne(t, id);
+    // Tell clients to spawn the same monster with the same UUID and
+    // initial offset so both sides can correlate the actor and the
+    // first movement target.
+    MulticastSpawnOne(t, id, initOffset);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform, UUID uuid)
+void BP_MonsterSpawner::RPC_MulticastSpawnOne(
+    FTransform transform, UUID uuid, FVector3 initOffset
+)
 {
     // Only clients should run this
     if (IsAuthority()) { return; }
@@ -136,9 +156,12 @@ void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform, UUID uuid)
     m_time = 0.0f;
     m_spawned++;
 
-    // Spawn the monster on clients using the server-provided UUID so the
-    // client-side instance maps to the server's instance.
-    World::SpawnActorDeferredWithParams<BP_Monster>(transform, uuid);
+    // Spawn the monster on clients using the server-provided UUID and
+    // initial offset so client-side instance maps to the server's and
+    // picks a different first target.
+    World::SpawnActorDeferredWithParams<BP_Monster>(
+        transform, uuid, initOffset
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////

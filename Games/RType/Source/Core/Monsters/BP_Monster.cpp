@@ -11,13 +11,14 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Monster::BP_Monster(const UUID& uuid)
+BP_Monster::BP_Monster(const UUID& uuid, const FVector3& initialOffset)
     : AActor("BP_Monster")
     , speed(*this, "Speed", 1.25f)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , roamRadius(*this, "RoamRadius", 4.0f)
     , waitTime(*this, "WaitTime", 1.0f)
     , m_targetPosition(FVector3(2.f, 2.f, 0.2f))
+    , m_initialOffset(initialOffset)
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
     , MulticastPos(
@@ -54,6 +55,19 @@ void BP_Monster::BeginPlay(void)
     Super::BeginPlay();
 
     // Record spawn position as center of roaming
+    // Set spawn position now and apply any initial offset provided by the
+    // spawner so different monsters don't pick the exact same first target.
+    if (m_spawnPosition == FVector3::Zero)
+    {
+        m_spawnPosition = GetTransform().GetPosition();
+    }
+    if (m_initialOffset != FVector3::Zero)
+    {
+        m_targetPosition = m_spawnPosition + m_initialOffset;
+        m_timeSinceTarget = 0.0f;
+        m_waitRemaining = 0.0f;
+    }
+
     auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
     if (Billboard)
     {

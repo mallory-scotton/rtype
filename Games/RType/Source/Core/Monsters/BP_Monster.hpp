@@ -45,6 +45,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     FVector3 m_spawnPosition;    //<! spawn position used as roam center
     FVector3 m_targetPosition;   //<! current movement target
+    FVector3 m_initialOffset;    //<! initial offset to apply to first target
     Float32 m_timeSinceTarget;   //<! timer since last target pick
     Float32 m_waitRemaining;   //<! remaining wait time when arrived at target
     Float32 m_lastXVelocity;   //<! last frame x velocity for animation
@@ -66,7 +67,10 @@ public:
     /// \param row Sprite sheet row to use for this monster
     ///
     ///////////////////////////////////////////////////////////////////////////
-    BP_Monster(const UUID& uuid = UUID::V4());
+    BP_Monster(
+        const UUID& uuid = UUID::V4(),
+        const FVector3& initialOffset = FVector3::Zero
+    );
 
 public:
     ///////////////////////////////////////////////////////////////////////////
