@@ -2,6 +2,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Monsters/BP_MonsterSpawner.hpp>
+#include <Core/Monsters/BP_Monster.hpp>
+#include <Engine.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -82,42 +84,15 @@ void BP_MonsterSpawner::Tick(Float32 deltaTime)
 void BP_MonsterSpawner::SpawnOneMonster(void)
 {
     FVector3 center = GetTransform().GetPosition();
-    // Float32 r = Math<Float32>::Random() * SpawnRadius();
-    // Float32 angle = Math<Float32>::Random() * Math<Float32>::PI * 2.0f;
-    // FVector3 offset(
-    // r * Math<Float32>::Cos(angle), r * Math<Float32>::Sin(angle), 0.0f
-    // );
 
     FTransform t = GetTransform();
-    t.Translate(
-        center
-    );   // center for now just to see the monster spawning on screen
+    t.Translate(center);
 
     // Spawn the monster on the server (authority)
-    auto* spawned = World::SpawnActor("BP_Monster", t);
-    if (!spawned) { return; }
-
-    // Notify all clients about the spawn using the world's RPC (multicast)
-    World::WithWorld(
-        [&](UWorld& world)
-        {
-            // Temporarily set RPC to multicast so all clients receive the
-            // spawn
-            world.SpawnActorRPC.SetRPCType(ERPCType::Multicast);
-            world.SpawnActorRPC(
-                "BP_Monster",
-                t,
-                spawned->GetUUID(),
-                0u   // owningClientID = 0 (server)
-            );
-            // Restore to client-targeted (default) to avoid changing global
-            // behavior
-            world.SpawnActorRPC.SetRPCType(ERPCType::Client);
-        }
-    );
+    World::SpawnActorDeferredWithParams<BP_Monster>(t);
 
     ++m_spawned;
-    // MulticastSpawnOne(t);
+    MulticastSpawnOne(t);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -129,8 +104,7 @@ void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform)
     m_time = 0.0f;
     m_spawned++;
 
-    // Spawn the monster on the client
-    World::SpawnActor("BP_Monster", transform);
+    World::SpawnActorDeferredWithParams<BP_Monster>(transform);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

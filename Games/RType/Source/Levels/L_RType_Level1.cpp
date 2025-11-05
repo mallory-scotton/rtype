@@ -18,6 +18,9 @@ L_RType_Level1::L_RType_Level1()
     AddActorEntry("BP_Player", "Player1", FTransform::Identity);
     AddActorEntry("BP_Background", "Background1", FTransform::Identity);
     AddActorEntry("BP_Monster", "Monster1", FTransform::Identity);
+    AddActorEntry(
+        "BP_MonsterSpawner", "MonsterSpawner1", FTransform::Identity
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
