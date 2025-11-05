@@ -99,8 +99,6 @@ void BP_MainMenu::BeginPlay(void)
 
         SinglePlayerIconHighlight->SetHiddenInGame(true);
 
-        SinglePlayerBox->SetHiddenInGame(false);   //?TEMP
-        SinglePlayerBox->SetShowDebug(true);       //?TEMP
         SetupHighlighting(
             SinglePlayerBox,
             "BC_SinglePlayerIconHighlight",
@@ -146,8 +144,6 @@ void BP_MainMenu::BeginPlay(void)
 
         MultiPlayerIconHighlight->SetHiddenInGame(true);
 
-        MultiPlayerBox->SetHiddenInGame(false);   //?TEMP
-        MultiPlayerBox->SetShowDebug(true);       //?TEMP
         SetupHighlighting(
             MultiPlayerBox,
             "BC_MultiPlayerIconHighlight",
@@ -193,8 +189,6 @@ void BP_MainMenu::BeginPlay(void)
 
         CampaignIconHighlight->SetHiddenInGame(true);
 
-        CampaignBox->SetHiddenInGame(false);   //?TEMP
-        CampaignBox->SetShowDebug(true);       //?TEMP
         SetupHighlighting(
             CampaignBox,
             "BC_CampaignIconHighlight",
@@ -239,8 +233,6 @@ void BP_MainMenu::BeginPlay(void)
 
         PartyIconHighlight->SetHiddenInGame(true);
 
-        PartyBox->SetHiddenInGame(false);   //?TEMP
-        PartyBox->SetShowDebug(true);       //?TEMP
         SetupHighlighting(
             PartyBox, "BC_PartyIconHighlight", EBeatSaberHoveredMenu::Party
         );
@@ -292,8 +284,6 @@ void BP_MainMenu::BeginPlay(void)
 
         HelpIcon->SetLocalTransform(transform);
 
-        HelpBox->SetHiddenInGame(false);   //?TEMP
-        HelpBox->SetShowDebug(true);       //?TEMP
         SetupSubMenuHighlighting(
             HelpBox,
             HelpIcon,
@@ -320,8 +310,6 @@ void BP_MainMenu::BeginPlay(void)
 
         EditIcon->SetLocalTransform(transform);
 
-        EditBox->SetHiddenInGame(false);   //?TEMP
-        EditBox->SetShowDebug(true);       //?TEMP
         SetupSubMenuHighlighting(
             EditBox,
             EditIcon,
@@ -348,8 +336,6 @@ void BP_MainMenu::BeginPlay(void)
 
         ExitIcon->SetLocalTransform(transform);
 
-        ExitBox->SetHiddenInGame(false);   //?TEMP
-        ExitBox->SetShowDebug(true);       //?TEMP
         SetupSubMenuHighlighting(
             ExitBox,
             ExitIcon,
