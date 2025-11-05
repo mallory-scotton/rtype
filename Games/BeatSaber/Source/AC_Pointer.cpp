@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <AC_Pointer.hpp>
+#include <ST_State.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -15,10 +16,7 @@ AC_Pointer::AC_Pointer(const FString& name, VR::EHand hand)
     , m_hand(hand)
     , m_length(10.0f)
     , m_thickness(0.01f)
-{
-    SetHiddenInGame(false);
-    SetShowDebug(true);
-}
+{}
 
 ///////////////////////////////////////////////////////////////////////////////
 FOBB AC_Pointer::GetLocalBoundingBox(void) const
@@ -121,6 +119,19 @@ void AC_Pointer::Tick(float deltaTime)
     if (vrSystem.IsInitialized())
     {
         m_state = vrSystem.GetControllerState(m_hand);
+    }
+
+    // Get state
+    auto& stateManager = ST_State::GetInstance();
+    if (stateManager.lastMenuHand == m_hand)
+    {
+        SetHiddenInGame(false);
+        SetShowDebug(true);
+    }
+    else
+    {
+        SetHiddenInGame(true);
+        SetShowDebug(false);
     }
 #else
     TKD_UNUSED(deltaTime);
