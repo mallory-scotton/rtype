@@ -74,6 +74,8 @@ void BP_Monster::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::Tick(Float32 deltaTime)
 {
+    Super::Tick(deltaTime);
+
     if (IsAuthority())
     {
         m_timeSinceTarget += deltaTime;
@@ -136,7 +138,6 @@ void BP_Monster::Tick(Float32 deltaTime)
         }
         MulticastPos(serverTransform, velocity);
     }
-    Super::Tick(deltaTime);
 
     UpdateAnimationState();
 }

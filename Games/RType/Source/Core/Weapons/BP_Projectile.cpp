@@ -43,9 +43,9 @@ void BP_Projectile::BeginPlay(void)
     if (Collision)
     {
         Collision->SetHiddenInGame(false);
-        Collision->SetBoxExtent(FVector3(0.30f, 0.30f, 0.30f));
+        Collision->SetBoxExtent(FVector3(0.40f, 0.40f, 0.40f));
         FTransform transform = Collision->GetLocalTransform();
-        transform.SetPosition(FVector3(0.f, 0.f, 0.2f));
+        transform.SetPosition(FVector3(0.f, 0.f, 0.1f));
         Collision->SetLocalTransform(transform);
 
         auto* cs = Collision->GetCollisionSystem();
