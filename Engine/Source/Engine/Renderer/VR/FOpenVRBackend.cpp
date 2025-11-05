@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/VR/FOpenVRBackend.hpp>
+#include <Engine/Core/Utils/FLogger.hpp>
 #include <Engine/Renderer/VR/FVREvent.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,9 +16,12 @@ namespace tkd::VR
 ///////////////////////////////////////////////////////////////////////////////
 FOpenVRBackend::FOpenVRBackend(void)
     : m_system(nullptr)
+    , m_hapticTimers()
 {
     m_controllerIndices[0] = -1;
     m_controllerIndices[1] = -1;
+    m_hapticTimers[EHand::Left] = 0.0f;
+    m_hapticTimers[EHand::Right] = 0.0f;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -129,20 +133,20 @@ FMatrix4x4 FOpenVRBackend::GetEyeToHeadTransform(EEye eye) const
 
     return FMatrix4x4(
         transform.m[0][0],
-        transform.m[1][0],
-        transform.m[2][0],
-        0.0f,
         transform.m[0][1],
-        transform.m[1][1],
-        transform.m[2][1],
-        0.0f,
         transform.m[0][2],
-        transform.m[1][2],
-        transform.m[2][2],
-        0.0f,
         transform.m[0][3],
+        transform.m[1][0],
+        transform.m[1][1],
+        transform.m[1][2],
         transform.m[1][3],
+        transform.m[2][0],
+        transform.m[2][1],
+        transform.m[2][2],
         transform.m[2][3],
+        0.0f,
+        0.0f,
+        0.0f,
         1.0f
     );
 }
@@ -185,6 +189,31 @@ void FOpenVRBackend::UpdatePoses(void)
 {
     // Poses are updated in WaitForSync
     WaitForSync();
+
+    static const float maxHapticDuration = 0.04f;   // seconds
+    static const UInt16 microseconds =
+        static_cast<UInt16>(maxHapticDuration * 1000000.0f);
+
+    // Update haptic timers
+    if (m_hapticTimers[EHand::Left] > 0.0f)
+    {
+        int idx = m_controllerIndices[static_cast<SizeT>(EHand::Left)];
+        if (idx != -1)
+        {
+            m_system->TriggerHapticPulse(idx, 0, microseconds);
+            m_hapticTimers[EHand::Left] -= maxHapticDuration;
+        }
+    }
+
+    if (m_hapticTimers[EHand::Right] > 0.0f)
+    {
+        int idx = m_controllerIndices[static_cast<SizeT>(EHand::Right)];
+        if (idx != -1)
+        {
+            m_system->TriggerHapticPulse(idx, 0, microseconds);
+            m_hapticTimers[EHand::Right] -= maxHapticDuration;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -276,15 +305,15 @@ FPose FOpenVRBackend::ConvertPose(const vr::TrackedDevicePose_t& pose) const
 
     result.rotation.FromMatrix4x4(FMatrix4x4(
         mat.m[0][0],
-        mat.m[1][0],
-        mat.m[2][0],
-        0.0f,
         mat.m[0][1],
-        mat.m[1][1],
-        mat.m[2][1],
-        0.0f,
         mat.m[0][2],
+        0.0f,
+        mat.m[1][0],
+        mat.m[1][1],
         mat.m[1][2],
+        0.0f,
+        mat.m[2][0],
+        mat.m[2][1],
         mat.m[2][2],
         0.0f,
         0.0f,
@@ -383,16 +412,12 @@ bool FOpenVRBackend::IsButtonPressed(EHand hand, EButton button) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FOpenVRBackend::TriggerHapticPulse(
-    EHand hand, Float32 intensity, Float32 duration
-)
+void FOpenVRBackend::TriggerHapticPulse(EHand hand, Float32 duration)
 {
     int idx = m_controllerIndices[static_cast<SizeT>(hand)];
     if (idx == -1 || !m_system) { return; }
 
-    UInt16 microseconds =
-        static_cast<UInt16>(duration * 1000000.0f * intensity);
-    m_system->TriggerHapticPulse(idx, 0, microseconds);
+    if (m_hapticTimers[hand] <= duration) { m_hapticTimers[hand] = duration; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -400,15 +425,44 @@ void FOpenVRBackend::SubmitFrame(EEye eye, const FRenderTarget& target)
 {
     if (!m_system) { return; }
 
+    // Validate texture
+    if (target.textureID == 0)
+    {
+        FLogger::SetNamespace("VR");
+        FLogger::Error(
+            "Attempting to submit invalid texture ID for {} eye",
+            (eye == EEye::Left ? "Left" : "Right")
+        );
+        return;
+    }
+
     vr::Texture_t vrTexture = {
         reinterpret_cast<void*>(static_cast<SizeT>(target.textureID)),
         vr::TextureType_OpenGL,
         vr::ColorSpace_Gamma
     };
 
+    // OpenGL textures are bottom-left origin
+    vr::VRTextureBounds_t bounds;
+    bounds.uMin = 0.0f;
+    bounds.uMax = 1.0f;
+    bounds.vMin = 0.0f;   // Bottom
+    bounds.vMax = 1.0f;   // Top
+
     vr::EVREye vrEye = (eye == EEye::Left) ? vr::Eye_Left : vr::Eye_Right;
 
-    vr::VRCompositor()->Submit(vrEye, &vrTexture);
+    vr::EVRCompositorError err =
+        vr::VRCompositor()->Submit(vrEye, &vrTexture, &bounds);
+
+    if (err != vr::VRCompositorError_None)
+    {
+        FLogger::SetNamespace("VR");
+        FLogger::Error(
+            "Compositor submit failed for {} eye: Error code {}",
+            (eye == EEye::Left ? "Left" : "Right"),
+            static_cast<int>(err)
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

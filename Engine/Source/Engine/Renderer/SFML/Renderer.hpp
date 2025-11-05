@@ -10,6 +10,7 @@
 #include <Engine/Renderer/FCamera.hpp>
 #include <Engine/Renderer/Interfaces/IRenderer.hpp>
 #include <Engine/Renderer/Interfaces/IWindow.hpp>
+#include <Engine/Renderer/VR.hpp>
 #include <stack>
 
 #if TKD_ENGINE_CLIENT
@@ -34,6 +35,19 @@ class Renderer : public IRenderer
 {
 private:
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief VR Data Structure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct VRData
+    {
+        bool enabled{ false };         //<! Whether VR is enabled
+        VR::FVRFrameBuffer rightEye;   //<! Framebuffer for the right eye
+        VR::FVRFrameBuffer leftEye;    //<! Framebuffer for the left eye
+        VR::FVRSpecs specs;            //<! VR specifications
+    };
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
     sf::RenderWindow* m_window;              //<! SFML render window
@@ -41,6 +55,7 @@ private:
     FView m_currentView;                     //<! Current view
     FCamera m_camera;                        //<! 3D camera
     std::stack<FRectangle> m_scissorStack;   //<! Scissor test stack
+    VRData m_vr;                             //<! VR related data
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -58,6 +73,38 @@ public:
     virtual ~Renderer() = default;
 
 public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Check if the renderer is using virtual reality
+    ///
+    /// \return True if VR is enabled, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual bool IsUsingVirtualReality(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Setup rendering for the right eye in VR
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetupVirtualRealityRightEye(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Setup rendering for the left eye in VR
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetupVirtualRealityLeftEye(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Resolve the rendered content for the left eye in VR
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void ResolveVirtualRealityLeftEye(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Resolve the rendered content for the right eye in VR
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void ResolveVirtualRealityRightEye(void) override;
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Clear the render target with a color
     ///
@@ -436,6 +483,14 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void ApplyCameraView(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Update the camera based on HMD pose
+    ///
+    /// \param hmdPose The current HMD pose
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void UpdateCameraFromHMD(const VR::FPose& hmdPose);
 };
 
 }   // namespace tkd::SFML

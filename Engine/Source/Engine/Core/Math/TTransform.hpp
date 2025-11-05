@@ -233,9 +233,12 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     explicit TTransform(const TMatrix4x4<T>& matrix)
     {
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++) { m_matrix[i][j] = matrix.data[i][j]; }
+            for (SizeT j = 0; j < 4; j++)
+            {
+                m_matrix[i][j] = matrix.data[i][j];
+            }
         }
     }
 
@@ -247,9 +250,12 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     explicit TTransform(const T matrixData[4][4])
     {
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++) { m_matrix[i][j] = matrixData[i][j]; }
+            for (SizeT j = 0; j < 4; j++)
+            {
+                m_matrix[i][j] = matrixData[i][j];
+            }
         }
     }
 
@@ -261,9 +267,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TTransform(const TTransform& other)
     {
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++)
+            for (SizeT j = 0; j < 4; j++)
             {
                 m_matrix[i][j] = other.m_matrix[i][j];
             }
@@ -278,9 +284,9 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     TTransform(TTransform&& other) noexcept
     {
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++)
+            for (SizeT j = 0; j < 4; j++)
             {
                 m_matrix[i][j] = other.m_matrix[i][j];
             }
@@ -354,9 +360,9 @@ public:
     {
         if (this != &other)
         {
-            for (int i = 0; i < 4; i++)
+            for (SizeT i = 0; i < 4; i++)
             {
-                for (int j = 0; j < 4; j++)
+                for (SizeT j = 0; j < 4; j++)
                 {
                     m_matrix[i][j] = other.m_matrix[i][j];
                 }
@@ -464,9 +470,12 @@ public:
     TMatrix4x4<T> GetMatrix(void) const
     {
         TMatrix4x4<T> result;
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++) { result.data[i][j] = m_matrix[i][j]; }
+            for (SizeT j = 0; j < 4; j++)
+            {
+                result.data[i][j] = m_matrix[i][j];
+            }
         }
         return result;
     }
@@ -479,9 +488,12 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void SetMatrix(const TMatrix4x4<T>& matrix)
     {
-        for (int i = 0; i < 4; i++)
+        for (SizeT i = 0; i < 4; i++)
         {
-            for (int j = 0; j < 4; j++) { m_matrix[i][j] = matrix.data[i][j]; }
+            for (SizeT j = 0; j < 4; j++)
+            {
+                m_matrix[i][j] = matrix.data[i][j];
+            }
         }
     }
 
@@ -493,7 +505,7 @@ public:
     /// \return Reference to matrix element
     ///
     ///////////////////////////////////////////////////////////////////////////
-    T& operator()(int row, int col) { return m_matrix[row][col]; }
+    T& operator()(SizeT row, SizeT col) { return m_matrix[row][col]; }
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Access matrix element (const)
@@ -503,7 +515,10 @@ public:
     /// \return Const reference to matrix element
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const T& operator()(int row, int col) const { return m_matrix[row][col]; }
+    const T& operator()(SizeT row, SizeT col) const
+    {
+        return m_matrix[row][col];
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -837,9 +852,9 @@ TTransform<T>& operator*=(TTransform<T>& lhs, const TTransform<T>& rhs)
 template <typename T>
 bool operator==(const TTransform<T>& lhs, const TTransform<T>& rhs)
 {
-    for (int i = 0; i < 4; i++)
+    for (SizeT i = 0; i < 4; i++)
     {
-        for (int j = 0; j < 4; j++)
+        for (SizeT j = 0; j < 4; j++)
         {
             if (lhs(i, j) != rhs(i, j)) { return false; }
         }

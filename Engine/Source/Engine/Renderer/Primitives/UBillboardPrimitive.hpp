@@ -83,7 +83,7 @@ private:
     /// \brief Update the vertices of the billboard
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void UpdateVertices(void);
+    virtual void UpdateVertices(void) override;
 };
 
 }   // namespace tkd

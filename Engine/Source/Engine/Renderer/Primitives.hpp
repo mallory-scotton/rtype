@@ -8,6 +8,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/Primitives/UBillboardPrimitive.hpp>
 #include <Engine/Renderer/Primitives/UCapsulePrimitive.hpp>
+#include <Engine/Renderer/Primitives/UChamferCubePrimitive.hpp>
 #include <Engine/Renderer/Primitives/UConePrimitive.hpp>
 #include <Engine/Renderer/Primitives/UCubePrimitive.hpp>
 #include <Engine/Renderer/Primitives/UCylinderPrimitive.hpp>

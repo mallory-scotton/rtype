@@ -1,35 +1,183 @@
-name: R-Type Release Workflow
+name: R-Type Unit Tests
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
-  install-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      # TODO: Add steps to install dependencies
-
-  build:
-    runs-on: ubuntu-latest
-    needs: install-dependencies
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-    # TODO: Add steps to build the project
-
-
   test:
     runs-on: ubuntu-latest
-    needs: build
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-    # TODO: Add steps to test the build artifacts
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pipx packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/pipx
+            ~/.local/bin
+          key: ${{ runner.os }}-pipx-${{ hashFiles('**/conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pipx-
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            build-essential \
+            pkg-config \
+            git \
+            pipx \
+            python3-pip \
+            libudev-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libfontenc-dev \
+            libice-dev \
+            libsm-dev \
+            libxau-dev \
+            libxaw7-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxdamage-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxkbfile-dev \
+            libxmu-dev \
+            libxmuu-dev \
+            libxpm-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libxres-dev \
+            libxss-dev \
+            libxt-dev \
+            libxtst-dev \
+            libxv-dev \
+            libxxf86vm-dev \
+            libxcb-glx0-dev \
+            libxcb-render0-dev \
+            libxcb-render-util0-dev \
+            libxcb-xkb-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-randr0-dev \
+            libxcb-shape0-dev \
+            libxcb-sync-dev \
+            libxcb-xfixes0-dev \
+            libxcb-xinerama0-dev \
+            libxcb-dri3-dev \
+            libxcb-cursor-dev \
+            libxcb-dri2-0-dev \
+            libxcb-present-dev \
+            libxcb-composite0-dev \
+            libxcb-ewmh-dev \
+            libxcb-res0-dev \
+            libxcb-util-dev \
+            libxcb-util0-dev \
+            uuid-dev \
+            libgl1-mesa-dev \
+            libopenal-dev \
+            libflac-dev \
+            libvorbis-dev \
+            libfreetype6-dev \
+            libjpeg-dev
+
+      - name: Ensure pipx is in PATH
+        run: |
+          pipx ensurepath
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Conan
+        run: |
+          pipx install conan
+
+      - name: Verify installations
+        run: |
+          cmake --version
+          gcc --version
+          conan --version
+
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.conan2/p
+          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+
+      - name: Create Conan profile
+        run: |
+          conan profile detect --force
+
+      - name: Install Conan dependencies
+        run: |
+          conan install . \
+            --output-folder=Build \
+            --build=missing \
+            --profile:build=default \
+            --profile:host=default \
+            --settings=build_type=Release \
+            --settings=compiler.cppstd=20 \
+            --settings=compiler=gcc \
+            --settings=compiler.version=$(gcc -dumpversion | cut -d. -f1) \
+            -c tools.system.package_manager:mode=check \
+            -c tools.system.package_manager:sudo=True
+
+      - name: Cache CMake build
+        uses: actions/cache@v4
+        with:
+          path: |
+            Build/CMakeFiles
+            Build/CMakeCache.txt
+            Build/**/*.cmake
+          key: ${{ runner.os }}-cmake-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-cmake-
+
+      - name: Configure CMake
+        run: |
+          cmake -B Build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_TOOLCHAIN_FILE=Build/build/Release/generators/conan_toolchain.cmake
+
+      - name: Build project
+        run: |
+          cmake --build Build --config Release -j$(nproc)
+
+      - name: List build artifacts
+        run: |
+          echo "=== Built executables ==="
+          ls -lh Build/bin/ || echo "No bin directory"
+          echo ""
+          echo "=== Built libraries ==="
+          ls -lh Build/libs/ || echo "No libs directory"
+
+      - name: Run unit tests
+        run: |
+          cd Build
+          ./bin/TKDEngineTests
+
+      - name: Test Summary
+        if: always()
+        run: |
+          if [ -f "Build/bin/TKDEngineTests" ]; then
+            echo "✓ Test executable exists"
+          else
+            echo "✗ Test executable not found"
+            exit 1
+          fi

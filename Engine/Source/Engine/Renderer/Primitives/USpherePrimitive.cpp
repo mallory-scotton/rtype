@@ -17,7 +17,7 @@ USpherePrimitive::USpherePrimitive(
     , m_sectorCount(sectorCount)
     , m_stackCount(stackCount)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ void USpherePrimitive::SetSectorCount(SizeT sectorCount)
     if (m_sectorCount != sectorCount)
     {
         m_sectorCount = sectorCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -42,7 +42,7 @@ void USpherePrimitive::SetStackCount(SizeT stackCount)
     if (m_stackCount != stackCount)
     {
         m_stackCount = stackCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -66,7 +66,7 @@ void USpherePrimitive::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void USpherePrimitive::GenerateVertices(void)
+void USpherePrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
 
@@ -90,6 +90,12 @@ void USpherePrimitive::GenerateVertices(void)
         }
 
         m_stacks.push_back(stack);
+    }
+
+    // Apply the origin offset to center the sphere
+    for (auto& stack: m_stacks)
+    {
+        for (auto& vertex: stack) { vertex.position -= m_origin; }
     }
 }
 

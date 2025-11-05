@@ -38,7 +38,7 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     using sizeType = SizeT;    //<! Type alias for string size type.
-    static const SizeT NPOS;   //<! The largest possible value.
+    static inline constexpr SizeT NPOS = static_cast<SizeT>(-1);   //<! The largest possible value.
 
 private:
     ///////////////////////////////////////////////////////////////////////////

@@ -3,6 +3,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Core/Utils/FLibrary.hpp>
 #include <algorithm>
+#ifdef TKD_SYSTEM_WINDOWS
+    #include <errhandlingapi.h>
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -119,13 +122,13 @@ FLibrary::FLibraryPtr FLibrary::LoadFromName(const FString& name)
 
     // If no file found, try to load anyway (system might find it in
     // PATH/LD_LIBRARY_PATH)
-    return Load(FilePath(name));
+    return Load(FilePath(name.CStr()));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 bool FLibrary::IsLibraryLoaded(const FilePath& path)
 {
-    std::string normalizedPath = NormalizePath(path);
+    std::string normalizedPath = NormalizePath(path).string();
     auto it = s_loadedLibraries.find(normalizedPath);
     return it != s_loadedLibraries.end() && !it->second.expired();
 }
@@ -152,12 +155,12 @@ ELibraryStatus FLibrary::Load(void)
     // Check if file exists (skip for system libraries)
     if (!FileSystem::FileExists(m_path))
     {
-        SetLastError("Library file not found: " + FString(m_path.c_str()));
+        SetLastError("Library file not found: " + FString(m_path.string()));
         return ELibraryStatus::FileNotFound;
     }
 
     // Load the library
-    m_handle = LOAD_LIBRARY_IMPL(m_path.c_str());
+    m_handle = LOAD_LIBRARY_IMPL(m_path.string().c_str());
     if (!m_handle)
     {
         SetLastError("Failed to load library: " + GetSystemError());
@@ -253,7 +256,7 @@ void FLibrary::SetLastError(const FString& error) const
 ///////////////////////////////////////////////////////////////////////////////
 FString FLibrary::GetSystemError(void) const
 {
-#ifdef _WIN32
+#ifdef TKD_SYSTEM_WINDOWS
     DWORD errorCode = GetLastError();
     if (errorCode == 0) { return "Unknown error"; }
 
@@ -296,7 +299,7 @@ FString FLibrary::ExtractLibraryName(const FilePath& path)
 bool FLibrary::IsLoaded(void) const { return m_isLoaded; }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FString& FLibrary::GetLastError(void) const { return m_lastError; }
+const FString& FLibrary::GetLastErrorMessage(void) const { return m_lastError; }
 
 ///////////////////////////////////////////////////////////////////////////////
 const FString& FLibrary::GetName(void) const { return m_name; }

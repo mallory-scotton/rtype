@@ -67,6 +67,7 @@ private:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     IGraphicsFactory* m_graphicsFactory;   //<! Graphics factory
+    IAudioManager* m_audioManager;         //<! Audio manager
     bool m_isShuttingDown;                 //<! Shutdown flag
     mutable std::mutex m_mutex;            //<! Thread safety mutex
 
@@ -115,6 +116,14 @@ public:
     void SetGraphicsFactory(IGraphicsFactory* factory);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the audio manager
+    ///
+    /// \param manager Pointer to the audio manager
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetAudioManager(IAudioManager* manager);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Load an asset from file or pak
     ///
     /// \param path Path to the asset file or UUID if from pak
@@ -133,6 +142,16 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     UAsset* GetAsset(const FString& uuid) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a loaded asset by name
+    ///
+    /// \param name Name of the asset
+    ///
+    /// \return Pointer to the asset, or nullptr if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TUniquePtr<UAsset> GetAssetFromName(const FString& name) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Load a texture from various sources with reference counting
@@ -182,6 +201,28 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     FShaderHandle GetShader(const FString& id) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load an audio buffer from various sources with reference
+    /// counting
+    ///
+    /// \param source Source of the audio (file path, UUID, or asset)
+    ///
+    /// \return Handle to the loaded audio buffer, or invalid handle on failure
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FAudioBufferHandle
+        LoadAudioBuffer(const TVariant<FilePath, FString, UAsset*>& source);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get an audio buffer handle by identifier
+    ///
+    /// \param id Identifier of the audio buffer (file path or asset UUID)
+    ///
+    /// \return Handle to the audio buffer, or invalid handle if not found
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    FAudioBufferHandle GetAudioBuffer(const FString& id) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Load or mount a pak file
