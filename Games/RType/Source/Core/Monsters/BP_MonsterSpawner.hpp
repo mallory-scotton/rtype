@@ -33,8 +33,9 @@ public:
     UProperty<Float32>
         SpawnRadius;   //<! radius around spawner to pick random positions
 
-    UFunction<FTransform> MulticastSpawnOne;   //<! Internal function to
-                                               // multicast spawn one monster
+    UFunction<FTransform, UUID>
+        MulticastSpawnOne;   //<! Internal function to
+                             // multicast spawn one monster
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -77,7 +78,7 @@ private:
     /// \brief Multicast spawn one monster
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void RPC_MulticastSpawnOne(FTransform transform);
+    void RPC_MulticastSpawnOne(FTransform transform, UUID uuid);
 
 public:
     ///////////////////////////////////////////////////////////////////////////

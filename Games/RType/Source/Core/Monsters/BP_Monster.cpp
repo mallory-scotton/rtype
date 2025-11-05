@@ -11,7 +11,7 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Monster::BP_Monster(void)
+BP_Monster::BP_Monster(const UUID& uuid)
     : AActor("BP_Monster")
     , speed(*this, "Speed", 1.25f)
     , velocity(*this, "Velocity", FVector2f::Zero)
@@ -33,6 +33,9 @@ BP_Monster::BP_Monster(void)
           true
       )
 {
+    // Ensure the monster has the provided UUID instead of the default one.
+    SetUUID(uuid);
+
     // TODO: Implement network role assignment
 #if TKD_ENGINE_CLIENT
     SetNetRole(ENetRole::SimulatedProxy);
@@ -203,6 +206,8 @@ FTransform BP_Monster::SimulateMovement(
 {
     FTransform result = startTransform;
 
+    auto box = GetComponent<UBoxCollisionComponent>("BoxCollision");
+
     // Update velocity property for client-side animation/extrapolation
     if (inputVector.Length() > 0.0f)
     {
@@ -210,6 +215,7 @@ FTransform BP_Monster::SimulateMovement(
 
         FVector3 movement = inputVector * deltaTime;
         result.Translate(movement);
+        box->SetLocalTransform(result);
     }
     else { velocity = FVector2f::Zero; }
 

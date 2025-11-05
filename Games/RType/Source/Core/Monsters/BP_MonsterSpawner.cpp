@@ -19,7 +19,7 @@ BP_MonsterSpawner::BP_MonsterSpawner(void)
     : AActor()
     , SpawnInterval(*this, "SpawnInterval", 2.5f)
     , MaxCount(*this, "MaxCount", 6)
-    , SpawnRadius(*this, "SpawnRadius", 200.0f)
+    , SpawnRadius(*this, "SpawnRadius", 5.0f)
     , MulticastSpawnOne(
           *this,
           "MulticastSpawnOne",
@@ -27,7 +27,8 @@ BP_MonsterSpawner::BP_MonsterSpawner(void)
           std::bind(
               &BP_MonsterSpawner::RPC_MulticastSpawnOne,
               this,
-              std::placeholders::_1
+              std::placeholders::_1,
+              std::placeholders::_2
           ),
           true
       )
@@ -83,20 +84,51 @@ void BP_MonsterSpawner::Tick(Float32 deltaTime)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_MonsterSpawner::SpawnOneMonster(void)
 {
+    // Center of the spawner
     FVector3 center = GetTransform().GetPosition();
 
-    FTransform t = GetTransform();
-    t.Translate(center);
+    // Create a pseudo-random offset using the spawner's accumulated time
+    // and spawn count. This mirrors the simple deterministic approach
+    // used in BP_Monster::PickNewTarget so spawned positions vary over time.
+    Float32 seed = (m_time + static_cast<Float32>(m_spawned)) * 1000.0f;
+    int idx = static_cast<int>(seed) & 7;   // 8 possible directions (0..7)
+    Float32 frac = seed - static_cast<int>(seed);   // fractional part in [0,1)
+    if (frac < 0.0f) { frac = -frac; }
 
-    // Spawn the monster on the server (authority)
-    World::SpawnActorDeferredWithParams<BP_Monster>(t);
+    // radius in [0.25*SpawnRadius, 1.0*SpawnRadius]
+    Float32 r = SpawnRadius() * (0.25f + 0.75f * frac);
+    const Float32 KD = 0.70710678f;
+
+    FVector3 offset;
+    switch (idx)
+    {
+    case 0 : offset = FVector3(r, 0.0f, 0.2f); break;
+    case 1 : offset = FVector3(r * KD, r * KD, 0.2f); break;
+    case 2 : offset = FVector3(0.0f, r, 0.2f); break;
+    case 3 : offset = FVector3(-r * KD, r * KD, 0.2f); break;
+    case 4 : offset = FVector3(-r, 0.0f, 0.2f); break;
+    case 5 : offset = FVector3(-r * KD, -r * KD, 0.2f); break;
+    case 6 : offset = FVector3(0.0f, -r, 0.2f); break;
+    default: offset = FVector3(r * KD, -r * KD, 0.2f); break;
+    }
+
+    // Spawn transform: start from the spawner transform and translate by
+    // the computed offset so the monster appears within SpawnRadius.
+    FTransform t = GetTransform();
+    t.Translate(offset);
+
+    // Spawn the monster on the server (authority) with a deterministic UUID
+    UUID id = UUID::V4();
+    World::SpawnActorDeferredWithParams<BP_Monster>(t, id);
 
     ++m_spawned;
-    MulticastSpawnOne(t);
+    // Tell clients to spawn the same monster with the same UUID so both
+    // sides can correlate the actor.
+    MulticastSpawnOne(t, id);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform)
+void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform, UUID uuid)
 {
     // Only clients should run this
     if (IsAuthority()) { return; }
@@ -104,7 +136,9 @@ void BP_MonsterSpawner::RPC_MulticastSpawnOne(FTransform transform)
     m_time = 0.0f;
     m_spawned++;
 
-    World::SpawnActorDeferredWithParams<BP_Monster>(transform);
+    // Spawn the monster on clients using the server-provided UUID so the
+    // client-side instance maps to the server's instance.
+    World::SpawnActorDeferredWithParams<BP_Monster>(transform, uuid);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
