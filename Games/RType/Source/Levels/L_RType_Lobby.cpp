@@ -14,8 +14,14 @@ L_RType_Lobby::L_RType_Lobby()
     : Super("L_RType_Lobby")
 {
     SetLevelName("L_RType_Lobby");
-    // Empty lobby level for now. Actors will be added later when lobby
-    // UI/logic is implemented.
+
+    // Add background
+    AddActorEntry("BP_Background", "Background1", FTransform::Identity);
+
+    // Add lobby controller to handle ready system
+    AddActorEntry(
+        "BP_LobbyController", "LobbyController", FTransform::Identity
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
