@@ -9,3 +9,5 @@
 #include <Engine/Runtime/Components/Widgets/UWidgetButtonComponent.hpp>
 #include <Engine/Runtime/Components/Widgets/UWidgetImageComponent.hpp>
 #include <Engine/Runtime/Components/Widgets/UWidgetPanelComponent.hpp>
+#include <Engine/Runtime/Components/Widgets/UWidgetTextboxComponent.hpp>
+#include <Engine/Runtime/Components/Widgets/UWidgetTextComponent.hpp>
