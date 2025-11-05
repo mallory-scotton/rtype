@@ -4,6 +4,7 @@
 #include <BP_Platform.hpp>
 #include <AC_DebugGrid.hpp>
 #include <AC_FireflyParticles.hpp>
+#include <AC_HollowCube.hpp>
 #include <ST_State.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,6 +21,9 @@ BP_Platform::BP_Platform(const FString& name)
     , m_barIntensity(0.0f)
     , m_previousEnergy(0.0f)
     , m_energyHistory(43, 0.0f)   // ~43 frames for rolling average
+    , m_beatDetected(false)
+    , m_cubeRotations(NUM_SPINNING_CUBE, 0.0f)
+    , m_cubeRotationSpeeds(NUM_SPINNING_CUBE, 0.0f)
 {
     // Add Components
     AddComponent<UPlaneComponent>("PL_PlatformPlane");
@@ -57,6 +61,11 @@ BP_Platform::BP_Platform(const FString& name)
     {
         AddComponent<UCubeComponent>(FString::Format("SV_BarL{}", i));
         AddComponent<UCubeComponent>(FString::Format("SV_BarR{}", i));
+    }
+
+    for (SizeT i = 0; i < NUM_SPINNING_CUBE; ++i)
+    {
+        AddComponent<AC_HollowCube>(FString::Format("SC_SpinningCube{}", i));
     }
 }
 
@@ -238,6 +247,30 @@ void BP_Platform::BeginPlay(void)
             br->GetCube().SetColor(FLinearColor(5, 5, 5).ToColor());
         }
     }
+
+    for (SizeT i = 0; i < NUM_SPINNING_CUBE; ++i)
+    {
+        auto cb =
+            GetComponent<AC_HollowCube>(FString::Format("SC_SpinningCube{}", i)
+            );
+        if (!cb) { continue; }
+
+        // Set up transform
+        FTransform transform = FTransform::Identity;
+        transform.SetPosition(FVector3(0.f, 0.f, -20.f - i * 6.f));
+        cb->SetLocalTransform(transform);
+
+        // Set up appearance
+        cb->SetOuterScale(10.0f);
+        cb->SetInnerScale(9.0f);
+        cb->SetThickness(0.5f);
+        cb->SetColor(FLinearColor(2, 112, 241, 200).ToColor());
+
+        // Initialize rotation with alternating directions and different speeds
+        m_cubeRotations[i] = i * 45.0f;   // Stagger initial rotations
+        // Alternating directions: even = clockwise, odd = counter-clockwise
+        m_cubeRotationSpeeds[i] = (i % 2 == 0) ? 30.0f : -45.0f;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -309,8 +342,8 @@ void BP_Platform::Tick(Float32 deltaTime)
         // Beat detection: current energy is significantly higher than average
         // Adjust sensitivity (lower = more sensitive)
         const float beatThreshold = 1.5f;
-        bool beatDetected = instantEnergy > (avgEnergy * beatThreshold) &&
-                            instantEnergy > m_previousEnergy;
+        m_beatDetected = instantEnergy > (avgEnergy * beatThreshold) &&
+                         instantEnergy > m_previousEnergy;
         m_previousEnergy = instantEnergy;
 
         // Update global max with smoothing
@@ -325,7 +358,7 @@ void BP_Platform::Tick(Float32 deltaTime)
         if (m_maxAmplitude < 0.001f) { m_maxAmplitude = 0.001f; }
 
         // Update top bar intensity - flash on beat detection
-        if (beatDetected)
+        if (m_beatDetected)
         {
             m_barIntensity = 1.0f;   // Instant flash
         }
@@ -407,9 +440,43 @@ void BP_Platform::Tick(Float32 deltaTime)
             br->SetLocalTransform(rt);
             bl->SetLocalTransform(lt);
         }
+
+        for (SizeT i = 0; i < NUM_SPINNING_CUBE; ++i)
+        {
+            auto cb = GetComponent<AC_HollowCube>(
+                FString::Format("SC_SpinningCube{}", i)
+            );
+            if (!cb) { continue; }
+
+            // Calculate rotation speed with beat boost
+            float rotationSpeed = m_cubeRotationSpeeds[i];
+            if (m_beatDetected)
+            {
+                // On beat, boost rotation speed by 2.5x
+                rotationSpeed *= 2.5f;
+            }
+
+            // Update rotation angle
+            m_cubeRotations[i] += rotationSpeed * deltaTime;
+
+            // Keep rotation in [0, 360) range to prevent overflow
+            while (m_cubeRotations[i] >= 360.0f)
+            {
+                m_cubeRotations[i] -= 360.0f;
+            }
+            while (m_cubeRotations[i] < 0.0f) { m_cubeRotations[i] += 360.0f; }
+
+            // Apply rotation to transform
+            FTransform transform = cb->GetLocalTransform();
+            transform.SetRotation(FRotator(0.f, 0.f, m_cubeRotations[i]));
+            cb->SetLocalTransform(transform);
+        }
     }
     else
     {
+        // When no music is playing, reset beat detection
+        m_beatDetected = false;
+
         for (SizeT i = 0; i < NUM_SPECTRUM_BARS; ++i)
         {
             auto bl =

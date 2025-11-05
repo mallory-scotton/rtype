@@ -26,6 +26,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     static constexpr SizeT NUM_SPECTRUM_BARS = 32;   //<! Number of bars
     static constexpr float MAX_BAR_HEIGHT = 20.0f;   //<! Max height of bars
+    static constexpr SizeT NUM_SPINNING_CUBE = 8;    //<! Number of cubes
 
 private:
     ///////////////////////////////////////////////////////////////////////////
@@ -36,6 +37,11 @@ private:
     float m_barIntensity;     //<! Intensity for the top flicker bar
     float m_previousEnergy;   //<! Previous energy for beat detection
     std::vector<float> m_energyHistory;   //<! History of energy values
+    bool m_beatDetected;                  //<! Current beat detection state
+    std::vector<float>
+        m_cubeRotations;   //<! Current rotation for each cube (in degrees)
+    std::vector<float> m_cubeRotationSpeeds;   //<! Base rotation speed for
+                                               // each cube (degrees/sec)
 
 public:
     ///////////////////////////////////////////////////////////////////////////
