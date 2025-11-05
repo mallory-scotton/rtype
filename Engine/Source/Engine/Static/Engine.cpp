@@ -114,6 +114,11 @@ bool Engine::Initialize(int argc, char* argv[])
             networkConfig.port = m_networkConfig.port;
             networkConfig.autoConnect = m_networkConfig.autoConnect;
 
+            if (networkConfig.host == "localhost")
+            {
+                networkConfig.host = "127.0.0.1";
+            }
+
             FLogger::Info(
                 "Network client configured - Host: {}, Port: {}, Auto-connect: {}",
                 m_networkConfig.host.c_str(),
@@ -129,8 +134,6 @@ bool Engine::Initialize(int argc, char* argv[])
             }
 #endif
             networkConfig.maxClients = m_settings.network.maxClients;
-            networkConfig.port = static_cast<UInt16>(m_settings.network.port);
-            networkConfig.host = "127.0.0.1";
 
             // Initialize network subsystem
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);

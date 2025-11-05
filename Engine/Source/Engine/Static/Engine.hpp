@@ -44,7 +44,7 @@ private:
     // Network configuration from command line
     struct
     {
-        std::string host = "localhost";
+        std::string host = "127.0.0.1";
         UInt16 port = 8080;
         bool autoConnect = false;
     } m_networkConfig;

@@ -173,12 +173,18 @@ void FNetworkSubsystem::ThreadTeardown(void)
 
     if (m_server)
     {
-        m_server->Stop();
+        // CRITICAL FIX: Don't call Stop() here - let the server cleanup
+        // handle the shutdown gracefully by flushing packets first
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Cleaning up server...");
+        m_server->Cleanup();   // Cleanup flushes packets before stopping
+        m_server->Stop();      // Now stop the network thread
         m_server.reset();
     }
 
     if (m_client)
     {
+        // Disconnect will stop the client properly
         m_client->Disconnect();
         m_client.reset();
     }
@@ -229,23 +235,6 @@ void FNetworkSubsystem::ThreadLoop(void)
         totalBytesSent = 0;
         totalBytesReceived = 0;
         lastStatsUpdate = now;
-        if (m_server)
-        {
-            // CRITICAL FIX: Don't call Stop() here - let the server cleanup
-            // handle the shutdown gracefully by flushing packets first
-            FLogger::SetNamespace("Network");
-            FLogger::Info("Cleaning up server...");
-            m_server->Cleanup();   // Cleanup flushes packets before stopping
-            m_server->Stop();      // Now stop the network thread
-            m_server.reset();
-        }
-
-        if (m_client)
-        {
-            // Disconnect will stop the client properly
-            m_client->Disconnect();
-            m_client.reset();
-        }
     }
 
 #ifndef TKD_SYSTEM_WINDOWS
