@@ -12,6 +12,10 @@ on:
         required: false
         default: 'alpha'
 
+permissions:
+  contents: write
+  discussions: write
+
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
@@ -149,6 +153,16 @@ jobs:
         run: |
           conan profile detect --force
 
+      - name: Configure Conan for better network reliability
+        run: |
+          # Increase download timeout and retry attempts
+          conan config home
+          mkdir -p ~/.conan2/global.conf.d
+          cat > ~/.conan2/global.conf.d/network.conf << 'EOF'
+          core.download:retry=5
+          core.download:retry_wait=10
+          EOF
+
       - name: Install Conan dependencies
         run: |
           conan install . \
@@ -162,6 +176,7 @@ jobs:
             --settings=compiler.version=$(gcc -dumpversion | cut -d. -f1) \
             -c tools.system.package_manager:mode=check \
             -c tools.system.package_manager:sudo=True
+        timeout-minutes: 60
 
       - name: Configure CMake
         run: |
