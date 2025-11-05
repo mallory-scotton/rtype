@@ -211,7 +211,6 @@ void BP_Note::BeginPlay(void)
     if (cutCollision)
     {
         cutCollision->SetBoxExtent(FVector3f(0.3f, 0.3f, 0.6f));
-        cutCollision->SetHiddenInGame(false);
         FTransform transform = cutCollision->GetLocalTransform();
         transform.SetPosition(FVector3(0.f, 0.f, 0.2f));
         cutCollision->SetLocalTransform(transform);
@@ -251,7 +250,6 @@ void BP_Note::BeginPlay(void)
     if (badCutCollision)
     {
         badCutCollision->SetBoxExtent(FVector3f(0.2f, 0.2f, 0.2f));
-        badCutCollision->SetHiddenInGame(false);
     }
 }
 
