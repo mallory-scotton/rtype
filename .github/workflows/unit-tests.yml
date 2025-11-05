@@ -38,7 +38,20 @@ jobs:
             pkg-config \
             git \
             pipx \
-            python3-pip
+            python3-pip \
+            libudev-dev \
+            libx11-dev \
+            libxrandr-dev \
+            libxcursor-dev \
+            libxi-dev \
+            libgl1-mesa-dev \
+            libudev-dev \
+            libopenal-dev \
+            libflac-dev \
+            libvorbis-dev \
+            libfreetype6-dev \
+            libjpeg-dev \
+            libxinerama-dev
 
       - name: Ensure pipx is in PATH
         run: |
@@ -79,7 +92,8 @@ jobs:
             --settings=compiler.cppstd=20 \
             --settings=compiler=gcc \
             --settings=compiler.version=$(gcc -dumpversion | cut -d. -f1) \
-            -c tools.system.package_manager:mode=install
+            -c tools.system.package_manager:mode=check \
+            -c tools.system.package_manager:sudo=True
 
       - name: Cache CMake build
         uses: actions/cache@v4
