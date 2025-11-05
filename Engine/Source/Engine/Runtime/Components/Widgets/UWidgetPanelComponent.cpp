@@ -37,7 +37,7 @@ void UWidgetPanelComponent::BeginPlay(void)
     m_rectangleShape.SetFillColor(m_color);
     m_rectangleShape.SetPosition(GetPosition());
     m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetSize() / 2.0f);
+    m_rectangleShape.SetOrigin(GetOrigin());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
