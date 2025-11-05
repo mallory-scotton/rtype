@@ -251,6 +251,17 @@ void BeatSaberGameMode::TickMenu(Float32 deltaTime)
     {
         PlayLevel(std::rand() % m_levels.size(), 0);
     }
+
+    auto& stateManager = ST_State::GetInstance();
+    if (stateManager.hoveredMenuItem == EBeatSaberHoveredMenu::SinglePlayer)
+    {
+        if (vrSystem.IsButtonPressed(
+                stateManager.lastMenuHand, VR::EButton::ButtonA
+            ))
+        {
+            PlayLevel(std::rand() % m_levels.size(), 0);
+        }
+    }
 #endif
 }
 
@@ -287,6 +298,12 @@ void BeatSaberGameMode::SwitchGameState(EBeatSaberGameState newState)
         // Clear current level and map
         m_level = nullptr;
         m_map = BSBeatMap();
+    }
+
+    if (oldState == EBeatSaberGameState::Menu)
+    {
+        // Reset hovered menu item when leaving Menu state
+        stateManager.hoveredMenuItem = EBeatSaberHoveredMenu::None;
     }
 }
 
