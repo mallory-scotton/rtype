@@ -27,6 +27,21 @@ void BP_Sword::BeginPlay(void)
 {
     // Call the base class BeginPlay
     Super::BeginPlay();
+
+#if TKD_ENGINE_CLIENT
+    VR::FVRSystem& vrSystem = Window::GetVRSystem();
+
+    vrSystem.SetButtonCallback(
+        [this](VR::EHand hand, VR::EButton, Bool pressed)
+        {
+            auto& stateManager = ST_State::GetInstance();
+            if (stateManager.gameState == EBeatSaberGameState::Menu && pressed)
+            {
+                stateManager.lastMenuHand = hand;
+            }
+        }
+    );
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -42,12 +57,6 @@ void BP_Sword::Tick(Float32 deltaTime)
     if (vrSystem.IsInitialized())
     {
         VR::FControllerState ctrl = vrSystem.GetControllerState(m_hand);
-
-        if (vrSystem.IsButtonPressed(m_hand, VR::EButton::ButtonA))
-        {
-            // Haptic Pulse on trigger press
-            vrSystem.TriggerHapticPulse(m_hand, 2.f);
-        }
 
         if (ctrl.pose.isValid)
         {
