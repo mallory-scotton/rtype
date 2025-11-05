@@ -18,7 +18,7 @@ UConePrimitive::UConePrimitive(
     , m_height(height)
     , m_capBase(capBase)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@ void UConePrimitive::SetSectorCount(SizeT sectorCount)
     if (m_sectorCount != sectorCount)
     {
         m_sectorCount = sectorCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -43,7 +43,7 @@ void UConePrimitive::SetHeight(float height)
     if (m_height != height)
     {
         m_height = height;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -56,7 +56,7 @@ void UConePrimitive::SetCapBase(bool cap)
     if (m_capBase != cap)
     {
         m_capBase = cap;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -77,7 +77,7 @@ void UConePrimitive::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UConePrimitive::GenerateVertices(void)
+void UConePrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
     m_strips.clear();
@@ -114,6 +114,12 @@ void UConePrimitive::GenerateVertices(void)
             baseCap.push_back(FVertex(FVector3(x, -halfHeight, z), m_color));
         }
         m_strips.push_back(baseCap);
+    }
+
+    // Apply the origin offset to center the cone
+    for (auto& strip: m_strips)
+    {
+        for (auto& vertex: strip) { vertex.position -= m_origin; }
     }
 }
 

@@ -229,6 +229,22 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     FConnectionInformation* GetClientInformation(UInt32 clientID) const;
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Replciates the dirtyp uproperties in the world
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ReplicateDirtyProperties(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle client disconnection and server cleanup
+    ///
+    /// This method sends disconnect notifications to all clients and
+    /// flushes packets before shutdown. Can be called externally during
+    /// shutdown sequence to ensure proper cleanup.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Cleanup(void);
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Handle incoming packets
@@ -295,12 +311,16 @@ private:
     void HandleHeartbeatPacket(
         const Packets::HeartBeat& packet, const FEndpoint& endpoint
     );
-
     ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle client disconnection and server cleeanup
+    /// \brief Handle a property replication packet from a client
+    ///
+    /// \param packet The received property replication packet
+    /// \param endpoint The endpoint of the sender
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void Cleanup(void);
+    void HandlePropertyReplicationPacket(
+        const Packets::Replication& packet, const FEndpoint& endpoint
+    );
 };
 
 }   // namespace tkd

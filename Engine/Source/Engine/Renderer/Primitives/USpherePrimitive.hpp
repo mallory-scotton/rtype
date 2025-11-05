@@ -107,7 +107,7 @@ private:
     /// \brief Generate the sphere vertices
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void GenerateVertices(void);
+    virtual void UpdateVertices(void) override;
 };
 
 }   // namespace tkd

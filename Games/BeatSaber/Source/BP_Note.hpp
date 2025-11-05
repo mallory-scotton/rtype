@@ -1,0 +1,148 @@
+///////////////////////////////////////////////////////////////////////////////
+// Header guard
+///////////////////////////////////////////////////////////////////////////////
+#pragma once
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <Engine.hpp>
+// Particle system for cut effects
+#include <Engine/Renderer/UParticleSystem.hpp>
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace tkd
+///////////////////////////////////////////////////////////////////////////////
+namespace tkd
+{
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration for the different types of notes
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class ENoteType
+{
+    RightHand,   //<!
+    LeftHand,    //<!
+    Bomb         //<!
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration for the different cut directions
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class ECutDirection
+{
+    Up,          //<!
+    Down,        //<!
+    Left,        //<!
+    Right,       //<!
+    UpLeft,      //<!
+    UpRight,     //<!
+    DownLeft,    //<!
+    DownRight,   //<!
+    None         //<!
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// \brief A Beat Saber note actor
+///
+///////////////////////////////////////////////////////////////////////////////
+class BP_Note : public AActor
+{
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    ENoteType m_type;                 //<!
+    ECutDirection m_cutDirection;     //<!
+    FTextureHandle m_handle;          //<!
+    FTransform m_originalTransform;   //<!
+    float m_speed;                    //<!
+    // Spawn animation state (note comes from a side/top/bottom into place)
+    bool m_spawning = true;              //<! whether spawn animation is active
+    float m_spawnDuration = 0.35f;       //<! duration of spawn animation (s)
+    float m_spawnTime = 0.0f;            //<! accumulated spawn time
+    FTransform m_spawnStartTransform;    //<! starting transform for spawn
+    FTransform m_spawnTargetTransform;   //<! dynamic target (moves forward
+                                         //while spawning)
+    // Cut / fragment state
+    bool m_cutProcessed = false;   //<! Whether this note has already been cut
+    bool m_fragmentsActive = false;   //<! Whether fragment animation is active
+    float m_fragmentLifetime = 0.0f;   //<! Remaining lifetime for fragments
+    // Simple physics for two fragments (velocities in world space)
+    FVector3 m_fragmentVelocityA;
+    FVector3 m_fragmentVelocityB;
+    FVector3 m_fragmentAngularA;
+    FVector3 m_fragmentAngularB;
+    // Particle system for the cut explosion
+    UParticleSystem m_cutParticles;
+    // Debris fragments (small mesh pieces)
+    std::vector<UChamferCubeComponent*> m_debrisComps;
+    std::vector<FVector3> m_debrisVelocities;
+    std::vector<FVector3> m_debrisAngularVel;
+    SizeT m_debrisCount = 6;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Default constructor
+    ///
+    /// \param type The type of the note
+    /// \param cutDirection The cut direction of the note
+    /// \param speed The movement speed of the note
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    BP_Note(
+        ENoteType type = ENoteType::LeftHand,
+        ECutDirection cutDirection = ECutDirection::Up,
+        float speed = 10.0f
+    );
+
+    // Handle a cut collision (called from overlap callback)
+    void OnCut(const FCollisionInfo& info);
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Called when the object is first created
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void BeginPlay(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Ticks the object
+    ///
+    /// \param deltaTime The time elapsed since the last tick
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void Tick(Float32 deltaTime) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Called when the object is being destroyed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    // virtual void EndPlay(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the type of the note
+    ///
+    /// \return The note type
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ENoteType GetNoteType(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the cut direction of the note
+    ///
+    /// \return The cut direction
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    ECutDirection GetCutDirection(void) const;
+
+public:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Registration
+    ///////////////////////////////////////////////////////////////////////////
+    DECLARE_CLASS_WITH_SUPER(BP_Note, AActor)
+};
+
+}   // namespace tkd

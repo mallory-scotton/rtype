@@ -61,6 +61,16 @@ public:
     TKD_NODISCARD UWorld* GetWorld(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the world pointer without locking (for internal use)
+    ///
+    /// \return Pointer to the world (unsafe, no lock)
+    ///
+    /// \warning Only use when you know the world won't be destroyed
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD UWorld* GetWorldUnsafe(void) const noexcept;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Execute a function with exclusive access to the world
     ///
     /// \tparam Func The type of the function
@@ -74,6 +84,24 @@ public:
     auto WithWorld(Func&& func) -> decltype(func(std::declval<UWorld&>()))
     {
         std::unique_lock lock(m_worldMutex);
+        return func(*m_world);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Execute a function with read-only access to the world
+    ///
+    /// \tparam Func The type of the function
+    ///
+    /// \param func The function to execute
+    ///
+    /// \return The result of the function
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename Func>
+    auto WithWorldReadOnly(Func&& func) const
+        -> decltype(func(std::declval<const UWorld&>()))
+    {
+        std::shared_lock lock(m_worldMutex);
         return func(*m_world);
     }
 
@@ -110,6 +138,14 @@ public:
     const AGameMode& GetGameMode(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the game mode of the current level
+    ///
+    /// \return The game mode of the current level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    AGameMode& GetGameMode(void);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the loaded levels
     ///
     /// \return A constant reference to the vector of loaded levels
@@ -125,7 +161,18 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     ULevel* GetCurrentLevel(void) const;
 
-protected:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Setup the thread before entering the main loop
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void ThreadSetup(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Teardown the thread after exiting the main loop
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void ThreadTeardown(void) override;
+
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Thread loop
     ///

@@ -23,7 +23,7 @@ UCapsulePrimitive::UCapsulePrimitive(
     , m_cylinderHeight(cylinderHeight)
     , m_radius(radius)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ void UCapsulePrimitive::SetSectorCount(SizeT sectorCount)
     if (m_sectorCount != sectorCount)
     {
         m_sectorCount = sectorCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -48,7 +48,7 @@ void UCapsulePrimitive::SetStackCount(SizeT stackCount)
     if (m_stackCount != stackCount)
     {
         m_stackCount = stackCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -64,7 +64,7 @@ void UCapsulePrimitive::SetCylinderHeight(float height)
     if (m_cylinderHeight != height)
     {
         m_cylinderHeight = height;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -80,7 +80,7 @@ void UCapsulePrimitive::SetRadius(float radius)
     if (m_radius != radius)
     {
         m_radius = radius;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -110,7 +110,7 @@ void UCapsulePrimitive::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UCapsulePrimitive::GenerateVertices(void)
+void UCapsulePrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
     m_strips.clear();
@@ -178,6 +178,12 @@ void UCapsulePrimitive::GenerateVertices(void)
         }
 
         m_strips.push_back(strip);
+    }
+
+    // Apply the origin offset to center the capsule
+    for (auto& strip: m_strips)
+    {
+        for (auto& vertex: strip) { vertex.position -= m_origin; }
     }
 }
 

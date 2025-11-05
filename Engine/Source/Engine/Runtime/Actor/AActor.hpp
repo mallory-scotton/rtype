@@ -6,6 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
+#include <deque>
 #include <Engine/Config.hpp>
 #include <Engine/Core/Containers.hpp>
 #include <Engine/Core/Math.hpp>
@@ -35,6 +36,50 @@ public:
     // Class Aliases
     ///////////////////////////////////////////////////////////////////////////
     using Component = std::shared_ptr<UActorComponent>;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Struct to hold position snapshots for interpolation
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    struct FPositionSnapshot
+    {
+        Float32 serverTime;     //<! Server time when this position was valid
+        FTransform transform;   //<! The position/rotation at this time
+        FVector3 velocity;      //<! Movement velocity at this time
+        Float32 receivedTime;   //<! Local time when this snapshot was received
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Default constructor
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        FPositionSnapshot(void)
+            : serverTime(0.0f)
+            , transform(FTransform::Identity)
+            , velocity(FVector3::Zero)
+            , receivedTime(0.0f)
+        {}
+
+        ///////////////////////////////////////////////////////////////////////
+        /// \brief Parameterized constructor
+        ///
+        /// \param st Server time
+        /// \param trans Transform
+        /// \param vel Velocity
+        /// \param rt Received time
+        ///
+        ///////////////////////////////////////////////////////////////////////
+        FPositionSnapshot(
+            Float32 st,
+            const FTransform& trans,
+            const FVector3& vel,
+            Float32 rt
+        )
+            : serverTime(st)
+            , transform(trans)
+            , velocity(vel)
+            , receivedTime(rt)
+        {}
+    };
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -107,6 +152,7 @@ private:
     // Server reconciliation
     UInt32 m_lastAcknowledgedMove;   //<! Last move processed by server
     FTransform m_serverTransform;    //<! Last known server transform
+    bool m_isTransformReplicated;    //<! Boolian for rpc trasnform replication
 
     // Movement state
     FTransform m_pendingTransform;   //<! Pending transform for replication
@@ -124,6 +170,12 @@ private:
     Float32 m_interpolationDuration;    //<! Duration of interpolation
     FVector3 m_extrapolationVelocity;   //<! Velocity for extrapolation
 
+    // Snapshot buffer for interpolation (simulated proxies only)
+    std::deque<FPositionSnapshot>
+        m_positionHistory;          //<! History of positions
+    Float32 m_interpolationDelay;   //<! Time delay for interpolation (buffer)
+    Float32 m_localTime;            //<! Local time accumulator
+
     // Network timing
     Float32 m_clientTime;           //<! Client-side time accumulator
     Float32 m_estimatedRTT;         //<! Estimated round-trip time
@@ -139,14 +191,12 @@ private:
         0.1f;    //<! Interpolation duration
     static constexpr Float32 EXTRAPOLATION_LIMIT =
         0.25f;   //<! Max time to extrapolate (250ms)
+    static constexpr UInt32 SNAPSHOT_BUFFER_SIZE =
+        32;      //<! Max snapshots in history buffer
+    static constexpr Float32 DEFAULT_INTERPOLATION_DELAY =
+        0.1f;    //<! Default interpolation delay (100ms)
 
 public:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    UFunction<AActor*> OnActorBeginOverlap;
-    UFunction<AActor*> OnActorEndOverlap;
-
     // Movement RPCs
     UFunction<UInt32, Float32, Float32, FVector3, FTransform> ServerMoveRPC;
     UFunction<UInt32, Float32, FTransform> ClientAckMoveRPC;
@@ -231,6 +281,30 @@ private:
         const FVector3& velocity,
         Float32 serverTime
     );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Interpolate position for simulated proxies using snapshot buffer
+    ///
+    /// \param deltaTime The time elapsed since last tick
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void InterpolatePosition(Float32 deltaTime);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Estimate the current server time based on local time
+    ///
+    /// \return Estimated current server time
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    Float32 EstimateCurrentServerTime(void) const;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Extrapolate or clamp to newest position when out of snapshots
+    ///
+    /// \param renderTime The time we want to render at
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ExtrapolateOrClamp(Float32 renderTime);
 
 public:
     ///////////////////////////////////////////////////////////////////////////

@@ -46,7 +46,7 @@ void UActorComponent::BeginPlay(void) {}
 void UActorComponent::EndPlay(void) {}
 
 ///////////////////////////////////////////////////////////////////////////////
-void UActorComponent::Render(TKD_MAYBE_UNUSED IRenderer& renderer) const {}
+void UActorComponent::Render(IRenderer&) const {}
 
 ///////////////////////////////////////////////////////////////////////////////
 Bool UActorComponent::IsHiddenInGame(void) const { return m_hiddenInGame; }

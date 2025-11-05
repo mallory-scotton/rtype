@@ -8,9 +8,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <variant>
 
@@ -36,6 +38,7 @@ typedef float Float32;               // IEEE 754 single precision
 typedef double Float64;              // IEEE 754 double precision
 typedef bool Bool;                   // true or false
 typedef unsigned char Byte;          // 8 bits
+typedef uintptr_t UIntPtr;   // Unsigned integer type for pointer arithmetic
 
 ///////////////////////////////////////////////////////////////////////////////
 // SizeT Type
@@ -69,5 +72,7 @@ template <typename T>
 using TAtomic = std::atomic<T>;
 template <typename T>
 using TOptional = std::optional<T>;
+
+using Json = nlohmann::json;
 
 }   // namespace tkd

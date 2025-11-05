@@ -23,7 +23,7 @@ UCylinderPrimitive::UCylinderPrimitive(
     , m_capTop(capTop)
     , m_capBottom(capBottom)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ void UCylinderPrimitive::SetSectorCount(SizeT sectorCount)
     if (m_sectorCount != sectorCount)
     {
         m_sectorCount = sectorCount;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -48,7 +48,7 @@ void UCylinderPrimitive::SetHeight(float height)
     if (m_height != height)
     {
         m_height = height;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -64,7 +64,7 @@ void UCylinderPrimitive::SetCapTop(bool cap)
     if (m_capTop != cap)
     {
         m_capTop = cap;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -80,7 +80,7 @@ void UCylinderPrimitive::SetCapBottom(bool cap)
     if (m_capBottom != cap)
     {
         m_capBottom = cap;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -104,7 +104,7 @@ void UCylinderPrimitive::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UCylinderPrimitive::GenerateVertices(void)
+void UCylinderPrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
     m_strips.clear();
@@ -155,6 +155,12 @@ void UCylinderPrimitive::GenerateVertices(void)
             bottomCap.push_back(FVertex(FVector3(x, -halfHeight, z), m_color));
         }
         m_strips.push_back(bottomCap);
+    }
+
+    // Apply the origin offset to center the cylinder
+    for (auto& strip: m_strips)
+    {
+        for (auto& vertex: strip) { vertex.position -= m_origin; }
     }
 }
 

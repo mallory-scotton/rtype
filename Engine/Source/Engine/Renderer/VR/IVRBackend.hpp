@@ -142,13 +142,10 @@ public:
     /// \brief Triggers a haptic pulse on a controller
     ///
     /// \param hand Hand identifier (left or right)
-    /// \param intensity Pulse intensity
     /// \param duration Pulse duration in seconds
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void TriggerHapticPulse(
-        EHand hand, Float32 intensity, Float32 duration
-    ) = 0;
+    virtual void TriggerHapticPulse(EHand hand, Float32 duration) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Submits a rendered frame for a specific eye

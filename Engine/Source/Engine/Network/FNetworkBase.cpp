@@ -3,9 +3,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkBase.hpp>
 #include <Engine/Core/Utils.hpp>
+#include <Engine/Network/FFragmentManager.hpp>
 #include <Engine/Runtime/World/UWorld.hpp>
 #include <Engine/Static/FWorldInterface.hpp>
 #include <sstream>
+
 #if TKD_ENGINE_CLIENT
     #include <Engine/Debug/FNetworkDebug.hpp>
 #endif
@@ -32,6 +34,13 @@ void FNetworkBase::Stop(void)
 {
     if (m_running.exchange(false))
     {
+        // CRITICAL FIX: Process any remaining queued packets before stopping
+        // This ensures disconnect packets are sent before the socket closes
+        FLogger::SetNamespace("Network");
+        FLogger::Debug("Processing final packet queue before stopping...");
+        ProcessSendQueue();
+
+        // Stop the io_context and close socket
         m_ioContext.stop();
         if (m_networkThread && m_networkThread->Joinable())
         {
@@ -74,6 +83,8 @@ void FNetworkBase::InitializePacketManager(void)
     m_packetManager.RegisterPacket<Packets::RemoteProcedureCall>();
     m_packetManager.RegisterPacket<Packets::Acknowledgment>();
     m_packetManager.RegisterPacket<Packets::Snapshot>();
+    m_packetManager.RegisterPacket<Packets::Fragment>();
+    m_packetManager.RegisterPacket<Packets::FragmentAcknowledgment>();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,6 +104,26 @@ void FNetworkBase::RegisterBasePacketHandlers(void)
             const FEndpoint& endpoint
         ) { HandleRPCPacket(packet, endpoint); }
     );
+
+    // Register handler for Fragment packets
+    RegisterPacketHandler<Packets::Fragment>(
+        [this](const Packets::Fragment& packet, const FEndpoint& endpoint)
+        { HandleFragmentPacket(packet, endpoint); }
+    );
+
+    // Register handler for FragmentAcknowledgment packets
+    RegisterPacketHandler<Packets::FragmentAcknowledgment>(
+        [this](
+            const Packets::FragmentAcknowledgment& packet,
+            const FEndpoint& endpoint
+        ) { HandleFragmentAcknowledgment(packet, endpoint); }
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::SetEngineSettings(const FEngineSettings& settings)
+{
+    m_settings = std::make_unique<FEngineSettings>(settings);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,6 +131,7 @@ void FNetworkBase::
     HandleAcknowledgmentPacket(const Packets::Acknowledgment& packet, const FEndpoint&)
 {
     // Remove the acknowledged sequence number from pending ACKs
+    std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
     m_pendingAcks.erase(
         std::remove_if(
             m_pendingAcks.begin(),
@@ -138,18 +170,18 @@ bool FNetworkBase::SendData(
 {
     if (!m_socket || !m_running || data.empty()) { return false; }
 
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = data;
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = false;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        m_statistics.packetsDropped++;
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,18 +211,18 @@ bool FNetworkBase::SendPacket(const IPacket& packet, const FEndpoint& endpoint)
     }
 #endif
 
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = std::move(data);
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = false;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        m_statistics.packetsDropped++;
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -215,7 +247,40 @@ bool FNetworkBase::SendReliablePacket(
     FAcknowledgment ack = { .header = *header,
                             .data = data,
                             .endpoint = endpoint };
-    m_pendingAcks.push_back(ack);
+    {
+        std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+        m_pendingAcks.push_back(ack);
+    }
+
+    // Check if packet needs fragmentation
+    if (packet.GetSize() > MAX_PACKET_SIZE)
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Info(
+            "Packet size {} exceeds MTU {}, fragmenting...",
+            packet.GetSize(),
+            MAX_PACKET_SIZE
+        );
+
+        // Add fragmented flag to header
+        header->AddFlag(EPacketFlags::Fragmented);
+
+        // Use FragmentManager singleton to handle fragmentation
+        auto& fragmentManager = FragmentManager::GetInstance();
+
+        // Create vector with single endpoint for transmission
+        std::vector<FEndpoint> destinations = { endpoint };
+
+        // Send fragmented transmission with already-serialized data
+        UUID fragmentID =
+            fragmentManager.SendFullTransmission(data, destinations, this);
+
+        FLogger::Debug(
+            "Packet fragmented with ID: {}", fragmentID.ToString().c_str()
+        );
+
+        return true;
+    }
 
 #if TKD_ENGINE_CLIENT
     // Log packet for debugging
@@ -231,30 +296,19 @@ bool FNetworkBase::SendReliablePacket(
     }
 #endif
 
-    // Send the packet
-    try
+    // Queue the packet for sending
+    FQueuedPacket queuedPacket;
+    queuedPacket.data = std::move(data);
+    queuedPacket.endpoint = endpoint;
+    queuedPacket.reliable = true;
+    queuedPacket.header = *header;
+
     {
-        SizeT bytesSent = m_socket->send_to(asio::buffer(data), endpoint);
-        m_statistics.packetsSent++;
-        m_statistics.bytesOutgoing += bytesSent;
-        return bytesSent == data.size();
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        m_sendQueue.push(std::move(queuedPacket));
     }
-    catch (const std::exception&)
-    {
-        // On failure, remove the sequence number from pending ACKs
-        m_statistics.packetsDropped++;
-        // Remove sequence number from pending ACKs
-        m_pendingAcks.erase(
-            std::remove_if(
-                m_pendingAcks.begin(),
-                m_pendingAcks.end(),
-                [&header](const FAcknowledgment& ack)
-                { return ack.header.sequenceNumber == header->sequenceNumber; }
-            ),
-            m_pendingAcks.end()
-        );
-        return false;
-    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -376,6 +430,9 @@ UInt32 FNetworkBase::GetCurrentTimestamp(void) const
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkBase::FlushPackets(void)
 {
+    // Process any remaining queued packets
+    ProcessSendQueue();
+
     if (m_socket && m_ioContext.stopped()) { m_ioContext.restart(); }
 
     // Process any pending send operations
@@ -420,21 +477,228 @@ void FNetworkBase::ProcessDeferredRPCs(UWorld& world)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::Update(Float32)
+void FNetworkBase::ProcessDeferredPropertyReplications(UWorld& world)
 {
+    TKD_UNUSED(world);
+
+    std::queue<FDeferredPropertyReplication> localQueue;
+
+    {
+        // Quickly swap the queue to minimize lock contention
+        std::lock_guard<std::mutex> lock(m_propertyQueueMutex);
+        std::swap(localQueue, m_deferredPropertyReplications);
+    }
+
+    // Process property replications outside the lock
+    while (!localQueue.empty())
+    {
+        const auto& deferredReplication = localQueue.front();
+        const auto& packet = deferredReplication.packet;
+
+        // Convert actorID array to UUID
+        UUID actorID(packet.actorID);
+
+        // RACE CONDITION FIX: Copy actors to avoid iterator invalidation
+        auto actors = world.GetActors();
+        std::shared_ptr<AActor> targetActorPtr = nullptr;
+
+        for (const auto& actor: actors)
+        {
+            if (!actor) { continue; }
+
+            if (actor->GetUUID() == actorID)
+            {
+                targetActorPtr = actor;
+                break;
+            }
+        }
+
+        if (targetActorPtr)
+        {
+            // Get the property
+            IProperty* property =
+                targetActorPtr->GetProperty(packet.propertyName);
+
+            if (property)
+            {
+                // Deserialize the property value from byte array
+                try
+                {
+                    // Update the property value with the received binary data
+                    property->SetValue(packet.data.data(), packet.data.size());
+
+                    // Clear dirty flag to avoid re-replicating this change
+                    property->ClearDirty();
+                }
+                catch (const std::exception&)
+                {
+                    // Silently ignore malformed property data
+                }
+            }
+        }
+
+        localQueue.pop();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::ProcessSendQueue(void)
+{
+    if (!m_socket) { return; }
+
+    std::queue<FQueuedPacket> localQueue;
+
+    // Quickly swap the queue to minimize lock contention
+    {
+        std::lock_guard<std::mutex> lock(m_sendQueueMutex);
+        std::swap(localQueue, m_sendQueue);
+    }
+
+    // Process all queued packets outside the lock
+    while (!localQueue.empty())
+    {
+        const auto& queuedPacket = localQueue.front();
+
+        try
+        {
+            SizeT bytesSent = m_socket->send_to(
+                asio::buffer(queuedPacket.data), queuedPacket.endpoint
+            );
+            m_statistics.packetsSent++;
+            m_statistics.bytesOutgoing += bytesSent;
+
+            // If this was a reliable packet and sending failed, remove from
+            // pending ACKs
+            if (queuedPacket.reliable && bytesSent != queuedPacket.data.size())
+            {
+                std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+                m_pendingAcks.erase(
+                    std::remove_if(
+                        m_pendingAcks.begin(),
+                        m_pendingAcks.end(),
+                        [&queuedPacket](const FAcknowledgment& ack)
+                        {
+                            return ack.header.sequenceNumber ==
+                                   queuedPacket.header.sequenceNumber;
+                        }
+                    ),
+                    m_pendingAcks.end()
+                );
+            }
+        }
+        catch (const std::exception&)
+        {
+            m_statistics.packetsDropped++;
+
+            // If this was a reliable packet, remove from pending ACKs on
+            // failure
+            if (queuedPacket.reliable)
+            {
+                std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+                m_pendingAcks.erase(
+                    std::remove_if(
+                        m_pendingAcks.begin(),
+                        m_pendingAcks.end(),
+                        [&queuedPacket](const FAcknowledgment& ack)
+                        {
+                            return ack.header.sequenceNumber ==
+                                   queuedPacket.header.sequenceNumber;
+                        }
+                    ),
+                    m_pendingAcks.end()
+                );
+            }
+        }
+
+        localQueue.pop();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::Update(Float32 deltaTime)
+{
+    // Process all queued packets first
+    ProcessSendQueue();
+
+    // Update FragmentManager for retransmission and cleanup
+    FragmentManager::GetInstance().Update(deltaTime, this);
+
     UInt32 currentTime = GetCurrentTimestamp();
 
     // Check for pending ACKs to resend
-    for (auto& ack: m_pendingAcks)
     {
-        static const UInt32 TIMEOUT = static_cast<UInt32>(ACK_TIMEOUT * 1000);
-
-        if (currentTime - ack.header.timestamp >= TIMEOUT)
+        std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
+        for (auto& ack: m_pendingAcks)
         {
-            // Resend the packet
-            SendData(ack.data, ack.endpoint);
-            // Update timestamp
-            ack.header.timestamp = currentTime;
+            static const UInt32 TIMEOUT =
+                static_cast<UInt32>(ACK_TIMEOUT * 1000);
+
+            if (currentTime - ack.header.timestamp >= TIMEOUT)
+            {
+                // Re-queue the packet for resending
+                FQueuedPacket queuedPacket;
+                queuedPacket.data = ack.data;
+                queuedPacket.endpoint = ack.endpoint;
+                queuedPacket.reliable = true;
+                queuedPacket.header = ack.header;
+
+                {
+                    std::lock_guard<std::mutex> sendLock(m_sendQueueMutex);
+                    m_sendQueue.push(std::move(queuedPacket));
+                }
+
+                // Update timestamp
+                ack.header.timestamp = currentTime;
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleFragmentPacket(
+    const Packets::Fragment& packet, const FEndpoint& endpoint
+)
+{
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Received fragment {} of {} for package ID {}",
+        static_cast<UInt32>(packet.SequenceID),
+        static_cast<UInt32>(packet.FragmentCount),
+        packet.PackageID
+    );
+    std::cout << "[NETWORK] we processing the fragments huh little bro"
+              << std::endl;
+
+    // Forward to FragmentManager for processing
+    // FragmentManager will send the acknowledgment
+    FragmentManager::GetInstance().ProcessFragment(packet, endpoint, this);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkBase::HandleFragmentAcknowledgment(
+    const Packets::FragmentAcknowledgment& packet, const FEndpoint& endpoint
+)
+{
+    FLogger::SetNamespace("Network");
+    FLogger::Debug(
+        "Received fragment ACK for chunk {} of package ID {}",
+        packet.FragmentID,
+        packet.PackageID
+    );
+
+    // Find the fragment entry using PackageID as UUID
+    // Note: You may need to adapt this based on how you're storing PackageID
+    FragmentEntry* entry = FragmentManager::GetInstance().FindFragmentEntry(
+        UUID::Fill(static_cast<UInt8>(packet.PackageID))
+    );
+
+    if (entry && packet.FragmentID < entry->chunks.size())
+    {
+        auto& chunk = entry->chunks[packet.FragmentID];
+        auto statusIt = chunk.statuses.find(endpoint);
+        if (statusIt != chunk.statuses.end())
+        {
+            statusIt->second.received = true;
         }
     }
 }

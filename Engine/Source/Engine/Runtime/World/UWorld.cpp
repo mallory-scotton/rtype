@@ -21,6 +21,7 @@ UWorld::UWorld(const FString& name)
     , m_loadedLevels()
     , m_lastSnapshotID(0)
     , m_hasBegunPlay(false)
+    , m_collisionSystem(std::make_unique<UCollisionSystem>(200.0f))
     , SpawnActorRPC(
           *this,
           "SpawnActor",
@@ -93,7 +94,7 @@ UWorld::UWorld(const FString& name)
 
     if (!m_loadedLevels.empty())
     {
-        m_currentLevel = m_loadedLevels.front();
+        m_currentLevel = &m_loadedLevels[0];
         SpawnLevel(m_currentLevel);
     }
 }
@@ -141,7 +142,7 @@ void UWorld::DestroyActor(AActor* actor)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-ULevel* UWorld::GetCurrentLevel(void) { return &m_currentLevel; }
+ULevel* UWorld::GetCurrentLevel(void) { return m_currentLevel; }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::BeginPlay(void)
@@ -153,7 +154,7 @@ void UWorld::BeginPlay(void)
     m_hasBegunPlay = true;
 
     // Begin play for game mode
-    m_currentLevel.GetGameMode().BeginPlay();
+    if (m_gameMode) { m_gameMode->BeginPlay(); }
 
     // Begin play
     for (const auto& actor: m_actors) { actor->BeginPlay(); }
@@ -181,20 +182,23 @@ void UWorld::Tick(Float32 deltaTime)
     );
 
     // Tick the game mode
-    m_currentLevel.GetGameMode().Tick(deltaTime);
+    if (m_gameMode) { m_gameMode->Tick(deltaTime); }
 
     // Tick all active actors
     for (const auto& actor: m_actors)
     {
         if (actor && actor->IsActive()) { actor->Tick(deltaTime); }
     }
+
+    // Update collision system
+    if (m_collisionSystem) { m_collisionSystem->Update(deltaTime); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWorld::EndPlay(void)
 {
     // End play for game mode
-    m_currentLevel.GetGameMode().EndPlay();
+    if (m_gameMode) { m_gameMode->EndPlay(); }
 
     // Reset begun play flag
     m_hasBegunPlay = false;
@@ -229,8 +233,10 @@ void UWorld::Render(IRenderer& renderer)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-bool UWorld::SpawnLevel(const ULevel& level)
+bool UWorld::SpawnLevel(ULevel* level)
 {
+    if (level == nullptr) { return false; }
+
     // Simple implementation: just set the current level to the new level
     m_currentLevel = level;
 
@@ -241,8 +247,37 @@ bool UWorld::SpawnLevel(const ULevel& level)
     }
     m_actors.clear();
 
+    // Get the game mode class from the level
+    UClass* gameModeClass = UClass::FindClass(level->GetGameMode());
+    if (gameModeClass)
+    {
+        UObject* instance = gameModeClass->CreateInstance();
+        if (instance)
+        {
+            AGameMode* gameMode = instance->As<AGameMode>();
+            if (gameMode) { m_gameMode.reset(gameMode); }
+            else { delete static_cast<AGameMode*>(instance); }
+        }
+    }
+
+    if (!m_gameMode)
+    {
+        // Fallback to default game mode if none specified
+        UClass* defaultGameModeClass = UClass::FindClass("AGameMode");
+        if (defaultGameModeClass)
+        {
+            UObject* instance = defaultGameModeClass->CreateInstance();
+            if (instance)
+            {
+                AGameMode* gameMode = instance->As<AGameMode>();
+                if (gameMode) { m_gameMode.reset(gameMode); }
+                else { delete static_cast<AGameMode*>(instance); }
+            }
+        }
+    }
+
     // Spawn actors from the level
-    for (const auto& entry: level.GetActorEntries())
+    for (const auto& entry: level->GetActorEntries())
     {
         auto actor = SpawnActor(
             entry.class_name,
@@ -270,9 +305,10 @@ bool UWorld::SpawnLevel(const ULevel& level)
 bool UWorld::ChangeLevel(const FString& levelName)
 {
     // Find the level by name in the loaded levels
-    for (const auto& level: m_loadedLevels)
+    for (SizeT i = 0; i < m_loadedLevels.size(); i++)
     {
-        if (level.GetLevelName() == levelName) { return SpawnLevel(level); }
+        ULevel* level = &m_loadedLevels[i];
+        if (level->GetLevelName() == levelName) { return SpawnLevel(level); }
     }
 
     // Level not found
@@ -280,10 +316,10 @@ bool UWorld::ChangeLevel(const FString& levelName)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const AGameMode& UWorld::GetGameMode(void) const
-{
-    return m_currentLevel.GetGameMode();
-}
+const AGameMode& UWorld::GetGameMode(void) const { return *m_gameMode; }
+
+///////////////////////////////////////////////////////////////////////////////
+AGameMode& UWorld::GetGameMode(void) { return *m_gameMode; }
 
 ///////////////////////////////////////////////////////////////////////////////
 const std::vector<ULevel>& UWorld::GetLoadedLevels(void) const
@@ -309,18 +345,22 @@ void UWorld::RPC_SyncSnapshot(const std::vector<Byte>& snapshotData)
     // Update last processed snapshot ID
     m_lastSnapshotID = snapshot.snapshotID;
 
+    // RACE CONDITION FIX: Copy actors vector to avoid iterator invalidation
+    // when spawning new actors during snapshot processing
+    auto actorsCopy = m_actors;
+
     // Loop through each actor state in the snapshot
     for (const auto& actorState: snapshot.actors)
     {
-        // Find the actor in the current world by its UUID
+        // Find the actor in the copied vector by its UUID
         auto it = std::find_if(
-            m_actors.begin(),
-            m_actors.end(),
+            actorsCopy.begin(),
+            actorsCopy.end(),
             [&actorState](const std::shared_ptr<AActor>& actor)
             { return actor && actor->GetUUID() == actorState.id; }
         );
 
-        if (it != m_actors.end())
+        if (it != actorsCopy.end())
         {
             // Actor exists, update its state
             auto& actor = *it;
@@ -418,8 +458,8 @@ void UWorld::RPC_SpawnPlayer(
 )
 {
     // Get the player and controller classes from the game mode
-    UClass* plyrClass = GetGameMode().GetActorClass();
-    UClass* ctlrClass = GetGameMode().GetPlayerControllerClass();
+    UClass* plyrClass = m_gameMode->GetActorClass();
+    UClass* ctlrClass = m_gameMode->GetPlayerControllerClass();
 
     // Check if both classes are valid
     if (plyrClass == nullptr || ctlrClass == nullptr) { return; }
@@ -453,7 +493,7 @@ void UWorld::RPC_SpawnPlayer(
 void UWorld::RPC_SpawnClient(UInt32 owningClientID)
 {
     // Get the player class from the game mode
-    UClass* plyrClass = GetGameMode().GetActorClass();
+    UClass* plyrClass = m_gameMode->GetActorClass();
 
     // Check if the class is valid
     if (plyrClass == nullptr) { return; }
@@ -504,6 +544,82 @@ void UWorld::RPC_SpawnClient(UInt32 owningClientID)
 
     // Reset the owning client ID
     SetOwningClientID(0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::SpawnActorDeferred(
+    const FString& className, const FTransform& transform
+)
+{
+    std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
+    DeferredSpawnRequest request;
+    request.className = className;
+    request.transform = transform;
+    request.resultPtr = nullptr;
+    m_deferredSpawns.push_back(request);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::ProcessDeferredSpawns(void)
+{
+    std::vector<DeferredSpawnRequest> spawnsToProcess;
+
+    {
+        std::lock_guard<std::mutex> lock(m_deferredSpawnsMutex);
+        if (m_deferredSpawns.empty()) { return; }
+
+        // Move spawns to local vector to minimize lock time
+        spawnsToProcess = std::move(m_deferredSpawns);
+        m_deferredSpawns.clear();
+    }
+
+    // Process all deferred spawns without holding the mutex
+    for (const auto& request: spawnsToProcess)
+    {
+        AActor* actor = nullptr;
+
+        // Use factory function if available (for parameterized spawns)
+        if (request.factory)
+        {
+            auto actorPtr = request.factory();
+            if (actorPtr)
+            {
+                m_actors.push_back(actorPtr);
+                actor = actorPtr.get();
+                actor->SetTransform(request.transform);
+
+                // Auto-setup collision components
+                auto components = actor->GetComponents();
+                for (const auto& comp: components)
+                {
+                    if (auto* collisionComp =
+                            dynamic_cast<UCollisionComponent*>(comp.get()))
+                    {
+                        collisionComp->SetCollisionSystem(
+                            m_collisionSystem.get()
+                        );
+                    }
+                }
+
+                if (m_hasBegunPlay) { actor->BeginPlay(); }
+            }
+        }
+        else
+        {
+            // Fallback to UClass-based spawning for string class names
+            UClass* actorClass = UClass::FindClass(request.className);
+            if (actorClass)
+            {
+                actor = SpawnActor<AActor>(actorClass, request.transform);
+            }
+        }
+
+        // If a result pointer was provided, store the result
+        if (actor && request.resultPtr != nullptr)
+        {
+            *static_cast<AActor**>(request.resultPtr) = actor;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

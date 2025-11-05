@@ -5,6 +5,7 @@
 #include <Engine/Assets/URessource.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Debug.hpp>
+#include <Engine/Static/FAudioInterface.hpp>
 #include <Engine/Static/FNetworkInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -31,16 +32,7 @@ bool Engine::Initialize(int argc, char* argv[])
 
     FLogger::SetNamespace("Engine");
 
-    if (TKD_CreateGame)
-    {
-        m_game = std::move(TKD_CreateGame());
-        if (!m_game)
-        {
-            m_exitCode = TKD_EXIT_FAILURE;
-            m_exitMessage = "Failed to create game instance";
-            return false;
-        }
-    }
+    m_game = GameRegistry::CreateGameInstance();
 
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
@@ -95,11 +87,11 @@ bool Engine::Initialize(int argc, char* argv[])
             return false;
         }
 
-        // Set debug mode for window
-        if (m_settings.debug) { m_window->GetWindow()->SetDebugMode(true); }
-
         // Setup render callback
         SetupRenderCallback();
+
+        // Setup Autio
+        Audio::Initialize();
 #endif
 
         if (m_settings.network.enabled)
@@ -110,15 +102,45 @@ bool Engine::Initialize(int argc, char* argv[])
 
 #if TKD_ENGINE_SERVER
             networkConfig.mode = FNetworkSubsystem::Mode::Server;
+            networkConfig.port = m_networkConfig.port;
+            FLogger::Info(
+                "Network server configured - Port: {}", m_networkConfig.port
+            );
 #elif TKD_ENGINE_CLIENT
             networkConfig.mode = FNetworkSubsystem::Mode::Client;
+
+            // Use command-line arguments
+            networkConfig.host = m_networkConfig.host.c_str();
+            networkConfig.port = m_networkConfig.port;
+            networkConfig.autoConnect = m_networkConfig.autoConnect;
+
+            if (networkConfig.host == "localhost")
+            {
+                networkConfig.host = "127.0.0.1";
+            }
+
+            FLogger::Info(
+                "Network client configured - Host: {}, Port: {}, Auto-connect: {}",
+                m_networkConfig.host.c_str(),
+                m_networkConfig.port,
+                m_networkConfig.autoConnect ? "enabled" : "disabled"
+            );
+
+            if (!m_networkConfig.autoConnect)
+            {
+                FLogger::Info(
+                    "Manual connection required. Use Network::Connect() to connect."
+                );
+            }
 #endif
             networkConfig.maxClients = m_settings.network.maxClients;
-            networkConfig.port = m_settings.network.port;
-            networkConfig.host = "127.0.0.1";
 
-            // Initialize network subsystem (server only)
+            // Initialize network subsystem
             m_network = std::make_unique<FNetworkSubsystem>(networkConfig);
+
+            // Set engine settings for network validation BEFORE Initialize
+            // might try to use the settings immediately
+            m_network->SetEngineSettings(m_settings);
 
             // Setup network interface
             Network::Setup(m_network.get());
@@ -163,21 +185,49 @@ void Engine::Run(void)
     FLogger::SetNamespace("Engine");
     FLogger::Info("All subsystems started");
 
+#ifndef TKD_SYSTEM_WINDOWS
     // Main monitoring loop
     while (m_running.load(std::memory_order_acquire))
     {
-#if TKD_ENGINE_CLIENT
+    #if TKD_ENGINE_CLIENT
         // Check if window was closed
         if (m_window && !m_window->IsOpen())
         {
             RequestShutdown();
             break;
         }
-#endif
+    #endif
 
         // Sleep to reduce CPU usage in monitoring loop
-        std::this_thread::sleep_for(Milliseconds(100));
+        std::this_thread::yield();
     }
+#else
+    m_world->ThreadSetup();
+    TKD_ENGINE_IF_CLIENT({ m_window->ThreadSetup(); })
+    if (m_network) { m_network->ThreadSetup(); }
+
+    while (m_running.load(std::memory_order_acquire))
+    {
+        TKD_ENGINE_IF_CLIENT({
+            if (m_window && !m_window->IsOpen())
+            {
+                RequestShutdown();
+                break;
+            }
+        })
+
+        m_world->ThreadLoop();
+        TKD_ENGINE_IF_CLIENT({ m_window->ThreadLoop(); })
+        if (m_network) { m_network->ThreadLoop(); }
+
+        // Sleep to reduce CPU usage
+        std::this_thread::yield();
+    }
+
+    TKD_ENGINE_IF_CLIENT({ m_window->ThreadTeardown(); })
+    m_world->ThreadTeardown();
+    if (m_network) { m_network->ThreadTeardown(); }
+#endif
 
     // Set running to false to ensure all subsystems stop
     m_running.store(false, std::memory_order_release);
@@ -193,6 +243,15 @@ void Engine::Run(void)
 
     // Shutdown world FIRST (before window) so actors can properly clean up
     // their input bindings while the input manager still exists
+    TKD_ENGINE_IF_CLIENT({
+        if (m_window)
+        {
+            FLogger::SetNamespace("Engine");
+            FLogger::Info("Shutting down window subsystem...");
+            m_window->Shutdown();
+        }
+    })
+
     if (m_world)
     {
         FLogger::SetNamespace("Engine");
@@ -208,16 +267,6 @@ void Engine::Run(void)
         m_network->Shutdown();
         m_network.reset();
     }
-
-    TKD_ENGINE_IF_CLIENT({
-        if (m_window)
-        {
-            FLogger::SetNamespace("Engine");
-            FLogger::Info("Shutting down window subsystem...");
-            m_window->Shutdown();
-            m_window.reset();
-        }
-    })
 
     m_initialized = false;
     FLogger::SetNamespace("Engine");
@@ -380,11 +429,26 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
     args.AddFlags("verbose", "Enable verbose logging", verbose, false);
 
 #if TKD_ENGINE_SERVER
-    std::string host = "localhost";
-    UInt16 port = 8080;
-
-    args.AddFlags("host", "Server hostname or IP address", host, false);
-    args.AddFlags("port", "Server port number", port, false);
+    args.AddFlags(
+        "host", "Server hostname or IP address", m_networkConfig.host, false
+    );
+    args.AddFlags("port", "Server port number", m_networkConfig.port, false);
+#elif TKD_ENGINE_CLIENT
+    args.AddFlags(
+        "host",
+        "Server hostname or IP address to connect to",
+        m_networkConfig.host,
+        false
+    );
+    args.AddFlags(
+        "port", "Server port number to connect to", m_networkConfig.port, false
+    );
+    args.AddFlags(
+        "connect",
+        "Automatically connect to server on startup",
+        m_networkConfig.autoConnect,
+        false
+    );
 #endif
 
     // Process arguments
@@ -415,8 +479,8 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
             !gameLib->HasFunction("TKD_CreateGame"))
         {
             m_exitCode = 1;
-            m_exitMessage =
-                "Failed to load game module: " + gameLib->GetLastError();
+            m_exitMessage = "Failed to load game module: " +
+                            gameLib->GetLastErrorMessage();
             return false;
         }
 
@@ -430,7 +494,7 @@ bool Engine::ProcessCommandLine(int argc, char* argv[])
         {
             m_exitCode = 1;
             m_exitMessage = "Failed to find TKD_CreateGame in module: " +
-                            gameLib->GetLastError();
+                            gameLib->GetLastErrorMessage();
             return false;
         }
 

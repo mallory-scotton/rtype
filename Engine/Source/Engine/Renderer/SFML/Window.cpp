@@ -3,8 +3,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Renderer/SFML/Window.hpp>
 #include <Engine/Renderer/FCamera.hpp>
+#include <Engine/Renderer/VR.hpp>
 #include <Engine/Static/FEngineInterface.hpp>
 #if TKD_ENGINE_CLIENT
+    #include <GL/glew.h>
     #include <GL/glu.h>
     #include <imgui-SFML.h>
     #include <imgui.h>
@@ -72,53 +74,115 @@ sf::Uint32 Window::ToSFMLStyle(const EWindowState& state)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void Window::SetFPSLimit(UInt32 fps)
+{
+    if (IsOpen() && m_window) { m_window->setFramerateLimit(fps); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void Window::InitializeOpenGL(void)
 {
-    // Enable depth testing
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    // Initialize GLEW
+    glewExperimental = GL_TRUE;
+    GLenum glewError = glewInit();
+    if (glewError != GLEW_OK)
+    {
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Error(
+            "Failed to initialize GLEW: {}",
+            reinterpret_cast<const char*>(glewGetErrorString(glewError))
+        );
+        return;
+    }
 
-    // Enable back-face culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
-
-    // Enable lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_NORMALIZE);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-
-    // Set up light
-    GLfloat lightPos[] = { 10.0f, 10.0f, 10.0f, 1.0f };
-    GLfloat lightAmbient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-
-    // Create a default camera
-    FCamera defaultCamera;
-
-    // Set up viewport and projection
-    glViewport(0, 0, m_dimension.x, m_dimension.y);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(
-        defaultCamera.fov,
-        defaultCamera.aspectRatio,
-        defaultCamera.nearPlane,
-        defaultCamera.farPlane
+    FLogger::SetNamespace("OpenGL");
+    FLogger::Info("GLEW initialized successfully");
+    FLogger::Info(
+        "Using OpenGL version: {}",
+        reinterpret_cast<const char*>(glGetString(GL_VERSION))
     );
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
 
-    // Clear color (background)
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    if (!VR::FVRSystem::GetInstance().IsInitialized())
+    {
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Info(
+            "No VR detected - performing standard OpenGL initialization"
+        );
 
-    // Enable smooth shading
-    glShadeModel(GL_SMOOTH);
+        // Enable depth testing
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+
+        // Enable multisampling for anti-aliasing
+        glEnable(GL_MULTISAMPLE);
+
+        // Enable back-face culling
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+
+        // Enable lighting
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_NORMALIZE);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+        // Set up light
+        GLfloat lightPos[] = { 10.0f, 10.0f, 10.0f, 1.0f };
+        GLfloat lightAmbient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+        GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+
+        // Create a default camera
+        FCamera defaultCamera;
+
+        // Set up viewport and projection
+        glViewport(0, 0, m_dimension.x, m_dimension.y);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(
+            defaultCamera.fov,
+            defaultCamera.aspectRatio,
+            defaultCamera.nearPlane,
+            defaultCamera.farPlane
+        );
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        // Clear color (background)
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        // Enable smooth shading
+        glShadeModel(GL_SMOOTH);
+    }
+    else
+    {
+        FLogger::SetNamespace("OpenGL");
+        FLogger::Info("VR detected - skipping standard OpenGL initialization");
+
+        // VR Mode - minimal OpenGL state setup
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_MULTISAMPLE);
+
+        // Enable lighting
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable(GL_NORMALIZE);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+        // Set up light
+        GLfloat lightPos[] = { 10.0f, 10.0f, 10.0f, 1.0f };
+        GLfloat lightAmbient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
+        GLfloat lightDiffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -132,8 +196,8 @@ bool Window::Open(void)
     settings.depthBits = 24;
     settings.stencilBits = 8;
     settings.antialiasingLevel = 4;
-    settings.majorVersion = 2;
-    settings.minorVersion = 1;
+    settings.majorVersion = 3;
+    settings.minorVersion = 3;
 
     // Create the SFML window
     m_window = std::make_unique<sf::RenderWindow>(
@@ -145,6 +209,9 @@ bool Window::Open(void)
 
     // Check if the window was created successfully
     if (!m_window || !m_window->isOpen()) { return false; }
+
+    // Set the windows OpenGL context as active
+    m_window->setActive(true);
 
     // Initialize OpenGL settings
     InitializeOpenGL();
@@ -409,19 +476,22 @@ void Window::Update(TKD_MAYBE_UNUSED float deltaTime)
             );
             m_window->setView(Utils::Convert(m_view));
 
-            // Default camera
-            FCamera defaultCamera;
+            if (!VR::FVRSystem::GetInstance().IsInitialized())
+            {
+                // Default camera
+                FCamera defaultCamera;
 
-            glViewport(0, 0, event.size.width, event.size.height);
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            gluPerspective(
-                defaultCamera.fov,
-                (float)event.size.width / event.size.height,
-                defaultCamera.nearPlane,
-                defaultCamera.farPlane
-            );
-            glMatrixMode(GL_MODELVIEW);
+                glViewport(0, 0, event.size.width, event.size.height);
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                gluPerspective(
+                    defaultCamera.fov,
+                    (float)event.size.width / event.size.height,
+                    defaultCamera.nearPlane,
+                    defaultCamera.farPlane
+                );
+                glMatrixMode(GL_MODELVIEW);
+            }
 
             break;
         }
@@ -445,17 +515,27 @@ void Window::Draw(const std::function<void(void)>& drawFunction)
     drawFunction();
 
     // Render ImGui if it was initialized
+    // NOTE: Skip ImGui rendering when rendering to VR framebuffers
+    // ImGui should only be rendered to the main window, not to VR eye buffers
     if (m_imguiInitialized)
     {
-        // Save OpenGL State
-        glPushAttrib(GL_ALL_ATTRIB_BITS);
-        glPushMatrix();
+        // Check if we're rendering to a framebuffer (VR mode)
+        GLint currentFramebuffer = 0;
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentFramebuffer);
 
-        ImGui::SFML::Render(*m_window);
+        // Only render ImGui when rendering to the default framebuffer (window)
+        if (currentFramebuffer == 0)
+        {
+            // Save OpenGL State
+            glPushAttrib(GL_ALL_ATTRIB_BITS);
+            glPushMatrix();
 
-        // Restore OpenGL State
-        glPopMatrix();
-        glPopAttrib();
+            ImGui::SFML::Render(*m_window);
+
+            // Restore OpenGL State
+            glPopMatrix();
+            glPopAttrib();
+        }
     }
 }
 

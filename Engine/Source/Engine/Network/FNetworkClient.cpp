@@ -3,6 +3,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Network/FNetworkClient.hpp>
 #include <Engine/Core/Utils/FLogger.hpp>
+#include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Static/FEngineInterface.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -66,6 +68,15 @@ bool FNetworkClient::Connect(const std::string& hostname, UInt16 port)
         );
 
         Packets::Connect connectPacket;
+        connectPacket.gameName = m_settings->game.title;
+        connectPacket.gameVersion = m_settings->game.version;
+
+        FLogger::Info(
+            "[CLIENT] Sending Connect packet - gameName: '{}', gameVersion: '{}'",
+            connectPacket.gameName,
+            connectPacket.gameVersion
+        );
+
         if (SendReliablePacket(connectPacket, m_serverEndpoint))
         {
             m_lastUpdate = SteadyClock::now();
@@ -153,6 +164,13 @@ void FNetworkClient::HandleConnectResponsePacket(
 ///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Disconnect(EDisconnectionReason reason)
 {
+    // SEGFAULT FIX: Only disconnect if not already stopped
+    // This prevents double-disconnect during shutdown
+    if (!m_running.load())
+    {
+        return;   // Already stopped, just perform internal cleanup
+    }
+
     // Perform disconnection
     DisconnectInternal(reason, true);
     // Stop network thread if running
@@ -214,6 +232,12 @@ void FNetworkClient::SetupDefaultHandlers(void)
         [this](const Packets::Snapshot& packet, const FEndpoint& endpoint)
         { HandleSnapshotPacket(packet, endpoint); }
     );
+
+    // Register handler for property replication packets
+    RegisterPacketHandler<Packets::Replication>(
+        [this](const Packets::Replication& packet, const FEndpoint& endpoint)
+        { HandlePropertyReplicationPacket(packet, endpoint); }
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -239,6 +263,12 @@ void FNetworkClient::Update(TKD_MAYBE_UNUSED float deltaTime)
     CheckConnectionAttemptTimeout(now);
     SendHeartbeat(now);
     CheckConnectionTimeout(now);
+
+    // Replicate dirty properties to server if connected
+    if (m_connectionState == EConnectionState::Connected)
+    {
+        // ReplicateDirtyProperties();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -443,8 +473,115 @@ void FNetworkClient::HandleSnapshotPacket(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::HandlePropertyReplicationPacket(
+    const Packets::Replication& packet, const FEndpoint& endpoint
+)
+{
+    // Only accept replication packets from our server
+    if (endpoint != m_serverEndpoint ||
+        m_connectionState != EConnectionState::Connected)
+    {
+        return;
+    }
+
+    // Queue the property replication for deferred execution to avoid deadlock
+    // The network thread queues replications here without blocking on
+    // m_worldMutex The world thread will process them via
+    // ProcessDeferredPropertyReplications()
+    std::lock_guard<std::mutex> lock(m_propertyQueueMutex);
+    m_deferredPropertyReplications.push({ packet, endpoint });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::ReplicateDirtyProperties(void)
+{
+    // Get the world subsystem from the engine
+    auto* worldSubsystem = Engine::GetInstance().GetWorld();
+    if (!worldSubsystem) { return; }
+
+    // Collect properties to replicate
+    std::vector<IProperty*> toReplicate;
+
+    worldSubsystem->WithWorld(
+        [&toReplicate](UWorld& world)
+        {
+            // RACE CONDITION FIX: Copy actors to avoid iterator invalidation
+            auto actors = world.GetActors();
+
+            for (const auto& actor: actors)
+            {
+                if (!actor) { continue; }
+
+                TVector<IProperty*> properties;
+                actor->GetLifetimeReplicatedProperties(properties);
+
+                for (auto* property: properties)
+                {
+                    // Only replicate properties that have the Replicated flag
+                    // and are dirty
+                    if (property && property->IsDirty() &&
+                        property->HasFlag(EPropertyFlags::Replicated))
+                    {
+                        // Then push the modified property to the vector
+                        std::cout << "[CLIENT] who is it bum: "
+                                  << property->GetName().CStr() << std::endl;
+                        toReplicate.push_back(property);
+                    }
+                }
+            }
+        }
+    );
+    SendReplication(toReplicate);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FNetworkClient::SendReplication(std::vector<IProperty*> toReplicate)
+{
+    // Send all collected properties
+    for (auto* property: toReplicate)
+    {
+        if (!property) { continue; }
+
+        auto& owner = property->GetOwner();
+
+        // Create replication packet
+        Packets::Replication replicationPacket;
+
+        // Set actor ID from UUID
+        replicationPacket.actorID = owner.GetUUID().Data();
+
+        replicationPacket.propertyName = property->GetName();
+        replicationPacket.timestamp = GetCurrentTimestamp();
+
+        // Serialize the property to binary data
+        replicationPacket.data = property->Serialize();
+
+        // Send the replication packet to the server
+        if (SendPacketToServer(replicationPacket)) { property->ClearDirty(); }
+        else
+        {
+            FLogger::SetNamespace("Network");
+            FLogger::Warn(
+                "Failed to replicate property '{}' of actor '{}'",
+                property->GetName().CStr(),
+                owner.GetUUID()
+            );
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FNetworkClient::Cleanup(void)
 {
+    // SEGFAULT FIX: Only perform cleanup if still running
+    // During shutdown, Stop() is already called by subsystem
+    if (!m_running.load())
+    {
+        FLogger::SetNamespace("Network");
+        FLogger::Info("Client already stopped, skipping cleanup");
+        return;
+    }
+
     FLogger::SetNamespace("Network");
     FLogger::Info("Cleaning up client resources");
     Disconnect(EDisconnectionReason::Shutdown);

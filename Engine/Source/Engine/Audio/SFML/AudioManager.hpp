@@ -192,7 +192,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound(
+    virtual TSharedPtr<IAudioSource> PlaySound(
         const FilePath& filePath, Float32 volume = 1.0f, Bool loop = false
     ) override;
 
@@ -204,7 +204,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound(
+    virtual TSharedPtr<IAudioSource> PlaySound(
         const std::vector<Byte>& data, Float32 volume = 1.0f, Bool loop = false
     ) override;
 
@@ -217,7 +217,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound(
+    virtual TSharedPtr<IAudioSource> PlaySound(
         const Byte* data, SizeT size, Float32 volume = 1.0f, Bool loop = false
     ) override;
 
@@ -229,7 +229,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound(
+    virtual TSharedPtr<IAudioSource> PlaySound(
         const UAsset* asset, Float32 volume = 1.0f, Bool loop = false
     ) override;
 
@@ -242,7 +242,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound3D(
+    virtual TSharedPtr<IAudioSource> PlaySound3D(
         const FilePath& filePath,
         const FVector3& position,
         Float32 volume = 1.0f,
@@ -258,7 +258,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound3D(
+    virtual TSharedPtr<IAudioSource> PlaySound3D(
         const std::vector<Byte>& data,
         const FVector3& position,
         Float32 volume = 1.0f,
@@ -275,7 +275,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound3D(
+    virtual TSharedPtr<IAudioSource> PlaySound3D(
         const Byte* data,
         SizeT size,
         const FVector3& position,
@@ -292,7 +292,7 @@ public:
     /// \param loop Whether to loop the sound
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void PlaySound3D(
+    virtual TSharedPtr<IAudioSource> PlaySound3D(
         const UAsset* asset,
         const FVector3& position,
         Float32 volume = 1.0f,

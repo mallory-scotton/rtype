@@ -300,6 +300,50 @@ public:
     {
         rotator.Rotate(TRotator<T>(pitch, yaw, roll));
     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Linear interpolation between two rotators
+    ///
+    /// \param from The starting rotator
+    /// \param to The target rotator
+    /// \param alpha The interpolation factor [0,1]
+    /// \return The interpolated rotator
+    ///
+    /// \note Uses shortest path interpolation for each angle component
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static TRotator<T>
+        Lerp(const TRotator<T>& from, const TRotator<T>& to, T alpha)
+    {
+        // Clamp alpha to [0, 1]
+        alpha =
+            std::max(static_cast<T>(0), std::min(alpha, static_cast<T>(1)));
+
+        // Helper lambda to find shortest angle difference
+        auto ShortestAngleDiff = [](T from, T to) -> T
+        {
+            T diff = to - from;
+            // Normalize to [-180, 180]
+            while (diff > static_cast<T>(180)) { diff -= static_cast<T>(360); }
+            while (diff < static_cast<T>(-180))
+            {
+                diff += static_cast<T>(360);
+            }
+            return diff;
+        };
+
+        // Calculate shortest path for each component
+        T pitchDiff = ShortestAngleDiff(from.GetPitch(), to.GetPitch());
+        T yawDiff = ShortestAngleDiff(from.GetYaw(), to.GetYaw());
+        T rollDiff = ShortestAngleDiff(from.GetRoll(), to.GetRoll());
+
+        // Interpolate
+        T newPitch = from.GetPitch() + pitchDiff * alpha;
+        T newYaw = from.GetYaw() + yawDiff * alpha;
+        T newRoll = from.GetRoll() + rollDiff * alpha;
+
+        return TRotator<T>(newPitch, newYaw, newRoll);
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

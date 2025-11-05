@@ -2,6 +2,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Engine/Runtime/Actor/AActor.hpp>
+#include <Engine/Runtime/Components/UCollisionComponent.hpp>
+#include <Engine/Runtime/Physics/UCollisionSystem.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -12,7 +14,9 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 AActor::AActor(const FString& name)
     : UObject(name)
-    , m_transform(*this, "Transform", FTransform::Identity)
+    , m_transform(
+          *this, "Transform", FTransform::Identity, EPropertyFlags::None
+      )
     , m_isActive(*this, "IsActive", true)
     , m_components()
     , m_markedForDeletion(false)
@@ -30,11 +34,12 @@ AActor::AActor(const FString& name)
     , m_interpolationAlpha(1.0f)
     , m_interpolationDuration(INTERPOLATION_TIME)
     , m_extrapolationVelocity(FVector3::Zero)
+    , m_positionHistory()
+    , m_interpolationDelay(DEFAULT_INTERPOLATION_DELAY)
+    , m_localTime(0.0f)
     , m_clientTime(0.0f)
     , m_estimatedRTT(0.1f)
     , m_lastMoveClientTime(0.0f)
-    , OnActorBeginOverlap(*this, "OnActorBeginOverlap")
-    , OnActorEndOverlap(*this, "OnActorEndOverlap")
     , ServerMoveRPC(
           *this,
           "ServerMove",
@@ -93,6 +98,9 @@ void AActor::Tick(Float32 deltaTime)
     // Update client time
     if (IsLocallyControlled()) { m_clientTime += deltaTime; }
 
+    // Update local time for all actors (used for snapshot timing)
+    m_localTime += deltaTime;
+
     // Server-side continuous movement simulation
     if (IsAuthority() && !IsLocallyControlled())
     {
@@ -118,40 +126,10 @@ void AActor::Tick(Float32 deltaTime)
             }
         }
     }
-    // Interpolation with extrapolation for simulated proxies (other clients)
+    // Use snapshot-based interpolation for simulated proxies
     else if (!IsLocallyControlled() && !IsAuthority())
     {
-        // Interpolate towards target position
-        if (m_interpolationAlpha < 1.0f)
-        {
-            m_interpolationAlpha += deltaTime / m_interpolationDuration;
-            if (m_interpolationAlpha > 1.0f) { m_interpolationAlpha = 1.0f; }
-
-            // Lerp position
-            FVector3 newPosition = FVector3::Lerp(
-                m_interpolationStart.GetPosition(),
-                m_interpolationTarget.GetPosition(),
-                m_interpolationAlpha
-            );
-
-            // Create interpolated transform
-            FTransform interpolated = m_transform.Get();
-            interpolated.SetPosition(newPosition);
-            m_transform = interpolated;
-        }
-        else
-        {
-            // After interpolation is complete, apply extrapolation if moving
-            if (m_extrapolationVelocity.Length() > INPUT_THRESHOLD)
-            {
-                // Extrapolate based on last known velocity
-                // This helps smooth movement during network delays
-                FTransform currentTransform = m_transform.Get();
-                FVector3 extrapolation = m_extrapolationVelocity * deltaTime;
-                currentTransform.Translate(extrapolation);
-                m_transform = currentTransform;
-            }
-        }
+        InterpolatePosition(deltaTime);
     }
 
     // Tick all components
@@ -177,6 +155,17 @@ FTransform AActor::GetTransform(void) const { return m_transform.Get(); }
 void AActor::SetTransform(const FTransform& transform)
 {
     m_transform = transform;
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,30 +219,27 @@ void AActor::SetTransformReplicated(Bool replicated)
 {
     if (replicated)
     {
-        m_transform.AddFlag(EPropertyFlags::Replicated);
         if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 20.f; }
     }
     else
     {
-        m_transform.RemoveFlag(EPropertyFlags::Replicated);
         if (!m_hasSetUpdateFrequency) { m_netUpdateFrequency = 10.f; }
     }
+
+    m_isTransformReplicated = replicated;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(const FVector3& translation)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Translate(translation);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Translate(translation); }
     else { m_transform->Translate(translation); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Translate(Float32 x, Float32 y, Float32 z)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (m_isTransformReplicated)
     {
         m_pendingTransform.Translate(FVector3(x, y, z));
     }
@@ -264,20 +250,14 @@ void AActor::Translate(Float32 x, Float32 y, Float32 z)
 void AActor::Rotate(const FVector3& rotation)
 {
     FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotator);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Rotate(const FRotator& rotation)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotation);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotation); }
     else { m_transform->Rotate(rotation); }
 }
 
@@ -285,27 +265,21 @@ void AActor::Rotate(const FRotator& rotation)
 void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
 {
     FRotator rotator = FRotator(pitch, yaw, roll);
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Rotate(rotator);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(const FVector3& scale)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
-    {
-        m_pendingTransform.Scale(scale);
-    }
+    if (m_isTransformReplicated) { m_pendingTransform.Scale(scale); }
     else { m_transform->Scale(scale); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::Scale(Float32 x, Float32 y, Float32 z)
 {
-    if (m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (m_isTransformReplicated)
     {
         m_pendingTransform.Scale(FVector3(x, y, z));
     }
@@ -315,7 +289,7 @@ void AActor::Scale(Float32 x, Float32 y, Float32 z)
 ///////////////////////////////////////////////////////////////////////////////
 void AActor::ApplyMovement(const FVector3& inputVector, Float32 deltaTime)
 {
-    if (!m_transform.HasFlag(EPropertyFlags::Replicated))
+    if (!m_isTransformReplicated)
     {
         // No replication, just apply movement directly
         FTransform newTransform =
@@ -608,42 +582,154 @@ void AActor::RPC_MulticastMove(
     // Skip if we're the owning client or the server
     if (IsLocallyControlled() || IsAuthority()) { return; }
 
-    // This is a simulated proxy - set up interpolation with latency
-    // compensation
-    m_interpolationStart = m_transform.Get();
-    m_interpolationTarget = newTransform;
-    m_interpolationAlpha = 0.0f;
+    // Create a new snapshot and add it to the buffer
+    FPositionSnapshot snapshot(
+        serverTime,
+        newTransform,
+        velocity,
+        m_localTime   // Current local time when we received this
+    );
 
-    // Adjust interpolation duration based on estimated network conditions
-    // We want to interpolate over a time that accounts for the full round trip
-    // From: Client -> Server (25ms) -> This Client (25ms) = 50ms one-way to
-    // other clients Use the interpolation time to smooth over expected update
-    // intervals
-    m_interpolationDuration = INTERPOLATION_TIME;
+    // Add to history buffer
+    m_positionHistory.push_back(snapshot);
 
-    // Calculate extrapolation velocity
-    // This is used after interpolation completes to predict where the object
-    // will be
-    if (velocity.Length() > INPUT_THRESHOLD)
+    // Maintain buffer size - remove oldest snapshots if we exceed the limit
+    while (m_positionHistory.size() > SNAPSHOT_BUFFER_SIZE)
     {
-        // Store velocity for extrapolation (normalized direction * speed)
-        m_extrapolationVelocity = velocity;
+        m_positionHistory.pop_front();
+    }
 
-        // Optional: Apply a small extrapolation to the target to compensate
-        // for latency This helps reduce perceived lag by predicting ahead
-        Float32 extrapolationTime =
-            std::min(INTERPOLATION_TIME * 0.5f, EXTRAPOLATION_LIMIT);
-        FVector3 extrapolatedOffset = velocity * extrapolationTime;
+    // Clean up snapshots that are too old (older than 500ms)
+    const Float32 MAX_SNAPSHOT_AGE = 0.5f;
+    while (!m_positionHistory.empty())
+    {
+        Float32 age = m_localTime - m_positionHistory.front().receivedTime;
+        if (age > MAX_SNAPSHOT_AGE) { m_positionHistory.pop_front(); }
+        else
+        {
+            break;   // Snapshots are ordered, so we can stop here
+        }
+    }
+}
 
-        // Adjust the target position with extrapolation
-        FTransform extrapolatedTarget = m_interpolationTarget;
-        extrapolatedTarget.Translate(extrapolatedOffset);
-        m_interpolationTarget = extrapolatedTarget;
+///////////////////////////////////////////////////////////////////////////////
+void AActor::InterpolatePosition(Float32 deltaTime)
+{
+    // Need at least 2 snapshots to interpolate
+    if (m_positionHistory.size() < 2)
+    {
+        // Not enough data yet, try extrapolation if we have at least one
+        if (!m_positionHistory.empty())
+        {
+            const FPositionSnapshot& latest = m_positionHistory.back();
+            ExtrapolateOrClamp(latest.serverTime);
+        }
+        return;
+    }
+
+    // Calculate render time = current server time - interpolation delay
+    Float32 currentServerTime = EstimateCurrentServerTime();
+    Float32 renderTime = currentServerTime - m_interpolationDelay;
+
+    // Find two snapshots that bracket the render time
+    FPositionSnapshot* from = nullptr;
+    FPositionSnapshot* to = nullptr;
+
+    for (size_t i = 0; i < m_positionHistory.size() - 1; i++)
+    {
+        if (m_positionHistory[i].serverTime <= renderTime &&
+            m_positionHistory[i + 1].serverTime >= renderTime)
+        {
+            from = &m_positionHistory[i];
+            to = &m_positionHistory[i + 1];
+            break;
+        }
+    }
+
+    if (from && to)
+    {
+        // Calculate interpolation factor
+        Float32 timeDiff = to->serverTime - from->serverTime;
+
+        // Avoid division by zero
+        if (timeDiff < 0.001f)
+        {
+            m_transform = from->transform;
+            return;
+        }
+
+        Float32 t = (renderTime - from->serverTime) / timeDiff;
+        t = std::max(0.0f, std::min(t, 1.0f));   // Clamp to [0,1]
+
+        // Lerp position
+        FVector3 position = FVector3::Lerp(
+            from->transform.GetPosition(), to->transform.GetPosition(), t
+        );
+
+        // Lerp rotation (simple linear interpolation for now)
+        // TODO: Consider using Slerp for smoother rotation
+        FRotator rotation = FRotator::Lerp(
+            from->transform.GetRotation(), to->transform.GetRotation(), t
+        );
+
+        // Apply interpolated transform
+        FTransform interpolated = m_transform.Get();
+        interpolated.SetPosition(position);
+        interpolated.SetRotation(rotation);
+        m_transform = interpolated;
     }
     else
     {
-        // Not moving, don't extrapolate
-        m_extrapolationVelocity = FVector3::Zero;
+        // Handle edge cases: extrapolate or clamp to newest
+        ExtrapolateOrClamp(renderTime);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Float32 AActor::EstimateCurrentServerTime(void) const
+{
+    if (m_positionHistory.empty()) { return 0.0f; }
+
+    // Use the last known server time + time elapsed since we received it
+    const FPositionSnapshot& latest = m_positionHistory.back();
+    Float32 timeSinceReceived = m_localTime - latest.receivedTime;
+
+    return latest.serverTime + timeSinceReceived;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void AActor::ExtrapolateOrClamp(Float32 renderTime)
+{
+    if (m_positionHistory.empty()) { return; }
+
+    const FPositionSnapshot& latest = m_positionHistory.back();
+
+    // Check how far beyond our data we are
+    Float32 extrapolationTime = renderTime - latest.serverTime;
+
+    if (extrapolationTime > 0.0f && extrapolationTime < EXTRAPOLATION_LIMIT)
+    {
+        // Extrapolate using last known velocity
+        if (latest.velocity.Length() > INPUT_THRESHOLD)
+        {
+            FVector3 extrapolatedPosition =
+                latest.transform.GetPosition() +
+                latest.velocity * extrapolationTime;
+
+            FTransform newTransform = latest.transform;
+            newTransform.SetPosition(extrapolatedPosition);
+            m_transform = newTransform;
+        }
+        else
+        {
+            // Not moving, just use latest position
+            m_transform = latest.transform;
+        }
+    }
+    else
+    {
+        // Too far out or in the past, just clamp to latest position
+        m_transform = latest.transform;
     }
 }
 

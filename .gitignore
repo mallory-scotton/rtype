@@ -56,3 +56,9 @@ vgcore.*
 
 # IDE files
 compile_commands.json
+
+# CMake files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CMakeUserPresets.json

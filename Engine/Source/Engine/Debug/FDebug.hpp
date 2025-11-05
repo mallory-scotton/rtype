@@ -9,12 +9,14 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core/Utils/Singleton.hpp>
 #include <Engine/Debug/FActorDebug.hpp>
+#include <Engine/Debug/FCameraDebug.hpp>
 #include <Engine/Debug/FEngineSettingsDebug.hpp>
 #include <Engine/Debug/FInputsDebug.hpp>
 #include <Engine/Debug/FNetworkDebug.hpp>
 #include <Engine/Debug/FPerformanceMonitorDebug.hpp>
 #include <Engine/Debug/FWorldDebug.hpp>
 #include <Engine/Debug/IDebugInterface.hpp>
+
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
 #endif
@@ -60,6 +62,7 @@ private:
     FPerformanceMonitorDebug
         m_performanceMonitor;                //<! Performance monitor instance
     FWorldDebug m_worldDebug;                //<! World debug instance
+    FCameraDebug m_cameraDebug;              //<! Camera debug instance
 
 private:
     ///////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@
 #include <Engine/Debug/FDebug.hpp>
 #include <Engine/Config.hpp>
 #include <Engine/Network/FNetworkBase.hpp>
+#include <Engine/Static.hpp>
 #if TKD_ENGINE_CLIENT
     #include <imgui.h>
     #include <imgui_internal.h>
@@ -97,7 +98,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
             }
 
             if (ImGui::MenuItem(
-                    "Camera Debug", "Ctrl+Shift+C", m_showCameraDebug, false
+                    "Camera Debug", "Ctrl+Shift+C", m_showCameraDebug
                 ))
             {
                 m_showCameraDebug = !m_showCameraDebug;
@@ -275,6 +276,7 @@ void FDebug::Show(const FEngineSettings& settings, UWorld* world)
     // Show debug windows
     if (m_showEngineSettings) { m_engineSettings.Show(settings, world); }
     if (m_showInputDebug) { m_inputsDebug.Show(settings, world); }
+    if (m_showCameraDebug) { m_cameraDebug.Show(settings, world); }
     if (m_showActorDebug) { m_actorDebug.Show(settings, world); }
     if (m_showNetworkMonitor) { m_networkDebug.Show(settings, world); }
     if (m_showPerformanceMonitor)

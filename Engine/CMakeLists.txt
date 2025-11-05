@@ -31,8 +31,10 @@ find_package(SFML 2.6.1 REQUIRED COMPONENTS system window graphics audio network
 find_package(imgui REQUIRED)
 find_package(ImGui-SFML REQUIRED)
 find_package(asio REQUIRED)
+find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenVR REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 # Find test dependencies if building tests
 if(BUILD_TESTS)
@@ -70,7 +72,19 @@ set_target_properties(TKDEngineClient PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineClient PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 # Set target properties for server
 set_target_properties(TKDEngineServer PROPERTIES
@@ -82,7 +96,19 @@ set_target_properties(TKDEngineServer PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/libs
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    # Export all symbols on Windows for DLL
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
 )
+
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineServer PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        ARCHIVE_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/libs
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
 
 # Include directories for client
 target_include_directories(TKDEngineClient
@@ -111,8 +137,9 @@ target_link_libraries(TKDEngineClient
         ImGui-SFML::ImGui-SFML
         GLEW::GLEW
         openvr::openvr
-        GLU
-        GL
+        OpenGL::GL
+        OpenGL::GLU
+        nlohmann_json::nlohmann_json
 )
 
 # Link libraries for server (minimal SFML components)
@@ -120,6 +147,7 @@ target_link_libraries(TKDEngineServer
     PUBLIC
         sfml::sfml
         asio::asio
+        nlohmann_json::nlohmann_json
 )
 
 # Define graphics support for client
@@ -179,8 +207,20 @@ set_target_properties(TKDEngineClientExe PROPERTIES
     OUTPUT_NAME "TKDEngineClient"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineClientExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(TKDEngineClientExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+target_compile_definitions(TKDEngineClientExe PRIVATE
+    TKD_ENGINE_STANDALONE=1
 )
 
 target_link_libraries(TKDEngineClientExe PRIVATE
@@ -195,8 +235,20 @@ set_target_properties(TKDEngineServerExe PROPERTIES
     OUTPUT_NAME "TKDEngineServer"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDEngineServerExe PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+    )
+endforeach()
+
 target_include_directories(TKDEngineServerExe PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Source
+)
+
+target_compile_definitions(TKDEngineServerExe PRIVATE
+    TKD_ENGINE_STANDALONE=1
 )
 
 target_link_libraries(TKDEngineServerExe PRIVATE
@@ -255,6 +307,14 @@ if(BUILD_TESTS)
     set_target_properties(TKDEngineTests PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
+
+    # For multi-config generators, remove the config subdirectory
+    foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${CONFIG} CONFIG_UPPER)
+        set_target_properties(TKDEngineTests PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin
+        )
+    endforeach()
 
     # Include directories for tests
     target_include_directories(TKDEngineTests PRIVATE

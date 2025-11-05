@@ -17,6 +17,7 @@
 #include <Engine/Renderer/Primitives.hpp>
 #include <Engine/Renderer/SFML.hpp>
 #include <Engine/Renderer/Shapes.hpp>
+#include <Engine/Renderer/UParticleSystem.hpp>
 #include <Engine/Renderer/UPrimitive.hpp>
 #include <Engine/Renderer/UShape.hpp>
 #include <Engine/Renderer/USprite.hpp>

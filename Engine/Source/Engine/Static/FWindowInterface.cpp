@@ -121,6 +121,26 @@ bool FWindowInterface::IsInitialized(void)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+FCamera& FWindowInterface::GetCamera(void)
+{
+    auto* windowSubsystem = GetWindowSubsystem();
+    if (!windowSubsystem)
+    {
+        throw std::runtime_error("Window subsystem is not initialized");
+    }
+
+    return windowSubsystem->GetCamera();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TKD_NODISCARD VR::FVRSystem& FWindowInterface::GetVRSystem(void)
+{
+    // Return the singleton instance of the VR system
+    // From the engine context, this is safe to do
+    return VR::FVRSystem::GetInstance();
+}
+
 #endif   // TKD_ENGINE_CLIENT
 
 }   // namespace tkd
