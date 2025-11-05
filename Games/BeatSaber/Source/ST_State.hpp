@@ -60,6 +60,8 @@ public:
     TSharedPtr<IAudioSource> music;    //<! The music source
     EBeatSaberHoveredMenu hoveredMenuItem =
         EBeatSaberHoveredMenu::None;   //<! Currently hovered menu item
+    VR::EHand lastMenuHand =
+        VR::EHand::Left;   //<! Last hand used to interact with menu
 
 public:
     ///////////////////////////////////////////////////////////////////////////
