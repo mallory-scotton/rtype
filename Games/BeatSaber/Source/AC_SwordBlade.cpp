@@ -19,10 +19,7 @@ AC_SwordBlade::AC_SwordBlade(const FString& name, VR::EHand hand)
     , m_hand(hand)
     , m_trailMaxPoints(30)
     , m_trailMinVelocity(0.1f)
-{
-    SetHiddenInGame(false);
-    SetShowDebug(true);
-}
+{}
 
 ///////////////////////////////////////////////////////////////////////////////
 FOBB AC_SwordBlade::GetLocalBoundingBox(void) const
