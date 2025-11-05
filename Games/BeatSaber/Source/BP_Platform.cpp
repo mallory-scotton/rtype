@@ -26,6 +26,8 @@ BP_Platform::BP_Platform(const FString& name)
     AddComponent<UPlaneComponent>("PL_PlatformPlaneOutline");
     AddComponent<AC_DebugGrid>("DCG_PlatformDebugGrid");
     AddComponent<USphereComponent>("SKY_Sphere");
+
+    // Particles
     AddComponent<AC_FireflyParticles>("FP_PlatformFireflies");
 
     // Note rails
