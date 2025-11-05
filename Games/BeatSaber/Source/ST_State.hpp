@@ -27,6 +27,23 @@ enum class EBeatSaberGameState
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+/// \brief Enumeration for the hovered menu items
+///
+///////////////////////////////////////////////////////////////////////////////
+enum class EBeatSaberHoveredMenu
+{
+    None,           //<! No menu item hovered
+    SinglePlayer,   //<! Single Player menu item
+    Multiplayer,    //<! Multiplayer menu item
+    Campaign,       //<! Campaign menu item
+    Party,          //<! Party menu item
+    Settings,       //<! Settings menu item
+    Help,           //<! Help menu item
+    Edit,           //<! Edit menu item
+    Exit            //<! Exit menu item
+};
+
+///////////////////////////////////////////////////////////////////////////////
 /// \brief Singleton class to hold global state information
 ///
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,10 +54,12 @@ public:
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
     EBeatSaberGameState gameState =
-        EBeatSaberGameState::None;    //<! Current game state
-    Float32 beatTime{ 0.0f };         //<! Current beat time
-    Float32 playTime{ 0.0f };         //<! Current play time in seconds
-    TSharedPtr<IAudioSource> music;   //<! The music source
+        EBeatSaberGameState::None;     //<! Current game state
+    Float32 beatTime{ 0.0f };          //<! Current beat time
+    Float32 playTime{ 0.0f };          //<! Current play time in seconds
+    TSharedPtr<IAudioSource> music;    //<! The music source
+    EBeatSaberHoveredMenu hoveredMenuItem =
+        EBeatSaberHoveredMenu::None;   //<! Currently hovered menu item
 
 public:
     ///////////////////////////////////////////////////////////////////////////
