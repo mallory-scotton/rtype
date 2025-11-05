@@ -18,7 +18,7 @@ RTypeGame::RTypeGame(void)
     : UGame(RTYPE_ENGINE_SETTINGS)
 {
     AddPackedResource("Data/RTypeGameContent.pak");
-    SetDefaultLevel("L_RType_Level1");
+    SetDefaultLevel("L_RType_MainMenu");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
