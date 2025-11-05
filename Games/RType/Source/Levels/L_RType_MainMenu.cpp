@@ -14,8 +14,14 @@ L_RType_MainMenu::L_RType_MainMenu()
     : Super("L_RType_MainMenu")
 {
     SetLevelName("L_RType_MainMenu");
-    // Intentionally empty for now; actors will be added later when the menu is
-    // implemented.
+
+    // Add the main menu controller to handle input
+    AddActorEntry(
+        "BP_MainMenuController", "MainMenuController", FTransform::Identity
+    );
+
+    // Add background for visual consistency
+    AddActorEntry("BP_Background", "Background1", FTransform::Identity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
