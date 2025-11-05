@@ -41,6 +41,14 @@ private:
     TUniquePtr<FWorldSubsystem> m_world;       //<! World subsystem
     TUniquePtr<UGame> m_game;                  //<! The game instance
 
+    // Network configuration from command line
+    struct
+    {
+        std::string host = "127.0.0.1";
+        UInt16 port = 8080;
+        bool autoConnect = false;
+    } m_networkConfig;
+
 public:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Default constructor
@@ -183,20 +191,11 @@ private:
 }   // namespace tkd::__internal
 
 ///////////////////////////////////////////////////////////////////////////////
-// Weak symbols for game creation and destruction
+// Weak symbols for game creation (Linux only)
 ///////////////////////////////////////////////////////////////////////////////
-#define TKD_EXPORT_WEAK \
-    extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) TKD_WEAK;
-
-///////////////////////////////////////////////////////////////////////////////
-// Main entry of the engine
-///////////////////////////////////////////////////////////////////////////////
-#define TKD_EXPORT_GAME(GameClass) \
-    extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) \
-    { \
-        static_assert( \
-            std::is_base_of<tkd::UGame, GameClass>::value, \
-            "GameClass must be derived from tkd::IGame" \
-        ); \
-        return std::make_unique<GameClass>(); \
-    }
+#if TKD_USE_WEAK_LINKING
+    #define TKD_EXPORT_WEAK \
+        extern "C" std::unique_ptr<tkd::UGame> TKD_CreateGame(void) TKD_WEAK;
+#else
+    #define TKD_EXPORT_WEAK
+#endif

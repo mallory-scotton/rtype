@@ -105,6 +105,9 @@ void UCubePrimitive::UpdateVertices()
     m_vertices.push_back(
         FVertex(FVector3(-0.5f, 0.5f, -0.5f), m_color, FVector2(0.0f, 0.0f))
     );
+
+    // Apply the origin offset to center the billboard
+    for (auto& vertex: m_vertices) { vertex.position -= m_origin; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

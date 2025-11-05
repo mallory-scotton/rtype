@@ -132,7 +132,7 @@ ULevel ULevel::LoadLevelFromFile(const FilePath& levelPath)
         // Delegate to LoadFromAsset
         level = LoadLevelFromAsset(asset);
     }
-    catch (const std::exception& e)
+    catch (...)
     {
         // Failed to load asset from file - return empty level
         level.m_levelName = "";

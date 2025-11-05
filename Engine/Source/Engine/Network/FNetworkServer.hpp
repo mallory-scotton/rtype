@@ -235,6 +235,16 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     void ReplicateDirtyProperties(void);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle client disconnection and server cleanup
+    ///
+    /// This method sends disconnect notifications to all clients and
+    /// flushes packets before shutdown. Can be called externally during
+    /// shutdown sequence to ensure proper cleanup.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void Cleanup(void);
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Handle incoming packets
@@ -312,12 +322,6 @@ private:
     void HandlePropertyReplicationPacket(
         const Packets::Replication& packet, const FEndpoint& endpoint
     );
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Handle client disconnection and server cleeanup
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void Cleanup(void);
 };
 
 }   // namespace tkd

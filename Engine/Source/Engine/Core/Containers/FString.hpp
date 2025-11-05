@@ -37,8 +37,9 @@ public:
     /// \brief Member data.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    using sizeType = SizeT;    //<! Type alias for string size type.
-    static const SizeT NPOS;   //<! The largest possible value.
+    using sizeType = SizeT;       //<! Type alias for string size type.
+    static inline constexpr SizeT NPOS =
+        static_cast<SizeT>(-1);   //<! The largest possible value.
 
 private:
     ///////////////////////////////////////////////////////////////////////////

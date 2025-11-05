@@ -32,6 +32,8 @@ private:
         m_poses[vr::k_unMaxTrackedDeviceCount];   //<! Array of tracked device
                                                   // poses
     int m_controllerIndices[2];   //<! Indices of left and right controllers
+    std::map<EHand, float>
+        m_hapticTimers;           //<! Haptic pulse timers for each hand
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -154,13 +156,10 @@ public:
     /// \brief Triggers a haptic pulse on a controller
     ///
     /// \param hand Hand identifier (left or right)
-    /// \param intensity Pulse intensity
     /// \param duration Pulse duration in seconds
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual void TriggerHapticPulse(
-        EHand hand, Float32 intensity, Float32 duration
-    ) override;
+    virtual void TriggerHapticPulse(EHand hand, Float32 duration) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Submits a rendered frame for a specific eye

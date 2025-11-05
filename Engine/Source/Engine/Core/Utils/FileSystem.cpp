@@ -333,9 +333,8 @@ FileSystem::FilePath FileSystem::GetLocalAppDataDirectory(void)
     }
     return FilePath();
 #else
-    // On Unix systems, use XDG_DATA_HOME or fallback to ~/.local/share
-    const char* xdgDataHome = std::getenv("XDG_DATA_HOME");
-    if (xdgDataHome) { return FilePath(std::string(xdgDataHome)); }
+    // On Unix systems, always use ~/.local/share to avoid snap/flatpak
+    // isolation
     auto home = GetHomeDirectory();
     if (!home.empty()) { return home / ".local" / "share"; }
     return FilePath();

@@ -63,6 +63,14 @@ public:
     T* Get(void) const { return m_resource.get(); }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the shared pointer to the resource
+    ///
+    /// \return Shared pointer to the resource
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    std::shared_ptr<T> GetShared(void) const { return m_resource; }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the resource ID
     ///
     /// \return The unique identifier for this resource

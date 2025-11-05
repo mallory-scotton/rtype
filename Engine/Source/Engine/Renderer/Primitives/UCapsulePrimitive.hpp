@@ -156,7 +156,7 @@ private:
     /// \brief Generate the vertices
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void GenerateVertices(void);
+    virtual void UpdateVertices(void) override;
 };
 
 }   // namespace tkd

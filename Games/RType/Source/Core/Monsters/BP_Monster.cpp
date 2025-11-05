@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Monsters/BP_Monster.hpp>
+#include <Core/Weapons/BP_Projectile.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -16,7 +17,7 @@ BP_Monster::BP_Monster(void)
     , velocity(*this, "Velocity", FVector2f::Zero)
     , roamRadius(*this, "RoamRadius", 4.0f)
     , waitTime(*this, "WaitTime", 1.0f)
-    , m_targetPosition(FVector3(2.f, 2.f, 0.0f))
+    , m_targetPosition(FVector3(2.f, 2.f, 0.2f))
     , m_timeSinceTarget(0.0f)
     , m_waitRemaining(0.0f)
     , MulticastPos(
@@ -39,8 +40,6 @@ BP_Monster::BP_Monster(void)
     SetNetRole(ENetRole::Authority);
 #endif
     SetTransformReplicated(true);
-
-    // TODO: scale down sprite by half
 
     AddComponent<UBillboardComponent>("BC_MonsterSprite");
     AddComponent<UBoxCollisionComponent>("BoxCollision");
@@ -67,6 +66,8 @@ void BP_Monster::BeginPlay(void)
     {
         Box->SetHiddenInGame(false);
         Box->SetBoxExtent(FVector3f(0.25f, 0.25f, 0.25f));
+        FTransform transform = Box->GetLocalTransform();
+        Box->SetLocalTransform(transform);
     }
 }
 
@@ -177,14 +178,14 @@ void BP_Monster::PickNewTarget(Float32 deltaTime)
     FVector3 offset;
     switch (idx)
     {
-    case 0 : offset = FVector3(r, 0.0f, 0.0f); break;
-    case 1 : offset = FVector3(r * KD, r * KD, 0.0f); break;
-    case 2 : offset = FVector3(0.0f, r, 0.0f); break;
-    case 3 : offset = FVector3(-r * KD, r * KD, 0.0f); break;
-    case 4 : offset = FVector3(-r, 0.0f, 0.0f); break;
-    case 5 : offset = FVector3(-r * KD, -r * KD, 0.0f); break;
-    case 6 : offset = FVector3(0.0f, -r, 0.0f); break;
-    default: offset = FVector3(r * KD, -r * KD, 0.0f); break;
+    case 0 : offset = FVector3(r, 0.0f, 0.2f); break;
+    case 1 : offset = FVector3(r * KD, r * KD, 0.2f); break;
+    case 2 : offset = FVector3(0.0f, r, 0.2f); break;
+    case 3 : offset = FVector3(-r * KD, r * KD, 0.2f); break;
+    case 4 : offset = FVector3(-r, 0.0f, 0.2f); break;
+    case 5 : offset = FVector3(-r * KD, -r * KD, 0.2f); break;
+    case 6 : offset = FVector3(0.0f, -r, 0.2f); break;
+    default: offset = FVector3(r * KD, -r * KD, 0.2f); break;
     }
 
     // Final target is relative to the spawn position, guaranteeing the

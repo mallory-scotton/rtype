@@ -61,6 +61,7 @@ enum class EDisconnectionReason : UInt32
     Shutdown = 3,          //<! Disconnected due to server shutdown
     Error = 4,             //<! Disconnected due to an error
     ClientRequested = 5,   //<! Disconnected at client's request
+    metadata = 6,          //<! Disconnected at client's request
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,7 +74,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Constants
     ///////////////////////////////////////////////////////////////////////////
-    static constexpr SizeT MAX_PACKET_SIZE = 1472;   //<! Max UDP packet size
+    static constexpr SizeT MAX_PACKET_SIZE = 1024;   //<! Max UDP packet size
     static constexpr Float32 ACK_TIMEOUT = 0.5f;     //<! 500 ms
 
 public:
@@ -131,6 +132,7 @@ protected:
     std::atomic<bool> m_running;       //<! true if the network is running
     FNetworkStatistics m_statistics;   //<! Network statistics
     FPacketManager m_packetManager;    //<! Packet manager
+    std::unique_ptr<FEngineSettings> m_settings;   //<! Engine settings
     std::array<UInt8, MAX_PACKET_SIZE>
         m_receiveBuffer;               //<! Buffer for receiving data
     tkd::FEndpoint m_senderEndpoint;   //<! Endpoint of the sender
@@ -239,6 +241,14 @@ public:
     const FNetworkStatistics& GetStatistics(void) const;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set engine settings for network validation
+    ///
+    /// \param settings The engine settings to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void SetEngineSettings(const FEngineSettings& settings);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Process deferred RPCs from the queue
     ///
     /// This should be called from the world thread to safely execute RPCs
@@ -338,6 +348,22 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     bool SendReliablePacket(const IPacket& packet, const FEndpoint& endpoint);
 
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process received data, deserialize the packet and call the
+    /// appropriate handler
+    ///
+    /// This method is public to allow FragmentManager to process reassembled
+    /// packets through the normal packet pipeline
+    ///
+    /// \param data Pointer to the received data
+    /// \param size Size of the received data
+    /// \param sender Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessReceivedData(
+        const UInt8* data, SizeT size, const FEndpoint& sender
+    );
+
 protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Flushes remaining packets to not cause udp issues at shutdown
@@ -367,19 +393,6 @@ protected:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void HandleReceive(const asio::error_code& error, SizeT bytesReceived);
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Process received data, deserialize the packet and call the
-    /// appropriate handler
-    ///
-    /// \param data Pointer to the received data
-    /// \param size Size of the received data
-    /// \param sender Endpoint of the sender
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    void ProcessReceivedData(
-        const UInt8* data, SizeT size, const FEndpoint& sender
-    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when a packet is received
@@ -433,6 +446,32 @@ private:
     void HandleRPCPacket(
         const Packets::RemoteProcedureCall& packet, const FEndpoint& endpoint
     );
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle incoming fragment packet
+    ///
+    /// \param packet Fragment packet received
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleFragmentPacket(
+        const Packets::Fragment& packet, const FEndpoint& endpoint
+    );
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Handle fragment acknowledgment packet
+    ///
+    /// \param packet Fragment acknowledgment packet received
+    /// \param endpoint Endpoint of the sender
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void HandleFragmentAcknowledgment(
+        const Packets::FragmentAcknowledgment& packet,
+        const FEndpoint& endpoint
+    );
+
+    void addtoqueue(void);
 };
 
 }   // namespace tkd

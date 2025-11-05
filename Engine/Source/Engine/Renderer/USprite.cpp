@@ -80,8 +80,8 @@ const FColor& USprite::GetColor(void) const { return m_vertices[0].color; }
 ///////////////////////////////////////////////////////////////////////////////
 FRectangle USprite::GetLocalBounds(void) const
 {
-    float width = static_cast<float>(Math<float>::Abs(m_textureRect.width));
-    float height = static_cast<float>(Math<float>::Abs(m_textureRect.height));
+    float width = Math<float>::Abs(static_cast<float>(m_textureRect.width));
+    float height = Math<float>::Abs(static_cast<float>(m_textureRect.height));
     return FRectangle(0.0f, 0.0f, width, height);
 }
 

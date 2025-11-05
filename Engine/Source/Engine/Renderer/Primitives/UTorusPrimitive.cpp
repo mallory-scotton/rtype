@@ -23,7 +23,7 @@ UTorusPrimitive::UTorusPrimitive(
     , m_majorRadius(majorRadius)
     , m_minorRadius(minorRadius)
 {
-    GenerateVertices();
+    UpdateVertices();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ void UTorusPrimitive::SetMajorSectors(SizeT sectors)
     if (m_majorSectors != sectors)
     {
         m_majorSectors = sectors;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -48,7 +48,7 @@ void UTorusPrimitive::SetMinorSectors(SizeT sectors)
     if (m_minorSectors != sectors)
     {
         m_minorSectors = sectors;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -64,7 +64,7 @@ void UTorusPrimitive::SetMajorRadius(float radius)
     if (m_majorRadius != radius)
     {
         m_majorRadius = radius;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -80,7 +80,7 @@ void UTorusPrimitive::SetMinorRadius(float radius)
     if (m_minorRadius != radius)
     {
         m_minorRadius = radius;
-        GenerateVertices();
+        UpdateVertices();
     }
 }
 
@@ -104,7 +104,7 @@ void UTorusPrimitive::Draw(IRenderer& renderer, FRenderStates states) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UTorusPrimitive::GenerateVertices(void)
+void UTorusPrimitive::UpdateVertices(void)
 {
     m_vertices.clear();
     m_strips.clear();
@@ -131,6 +131,12 @@ void UTorusPrimitive::GenerateVertices(void)
         }
 
         m_strips.push_back(strip);
+    }
+
+    // Apply the origin offset to center the torus
+    for (auto& strip: m_strips)
+    {
+        for (auto& vertex: strip) { vertex.position -= m_origin; }
     }
 }
 

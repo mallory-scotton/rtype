@@ -36,7 +36,7 @@ public:
     // Class Aliases
     ///////////////////////////////////////////////////////////////////////////
     using ButtonCallback = TFunction<void(EHand, EButton, Bool)>;
-    using HapticCallback = TFunction<void(EHand, Float32, Float32)>;
+    using HapticCallback = TFunction<void(EHand, Float32)>;
     using EventCallback = TFunction<void(const FVREvent&)>;
 
 private:
@@ -244,11 +244,10 @@ public:
     /// \brief Trigger a haptic pulse on a controller
     ///
     /// \param hand The hand (left or right)
-    /// \param intensity The intensity of the haptic pulse
     /// \param duration The duration of the haptic pulse in seconds
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void TriggerHapticPulse(EHand hand, Float32 intensity, Float32 duration);
+    void TriggerHapticPulse(EHand hand, Float32 duration);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Submit a rendered frame for a given eye

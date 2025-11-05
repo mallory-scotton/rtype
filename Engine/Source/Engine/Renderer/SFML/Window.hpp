@@ -119,6 +119,14 @@ public:
     TKD_NODISCARD virtual bool IsOpen(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Set the frames per second (FPS) limit for the window
+    ///
+    /// \param fps The new FPS value to set
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual void SetFPSLimit(UInt32 fps) override;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Set the window state
     ///
     /// \param state The new state to set
@@ -304,8 +312,9 @@ public:
     /// \return The current position of the axis in the range [-1.0, 1.0]
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual float GetGamepadAxis(EGamepadAxes axis, UInt32 gamepadIndex = 0)
-        const override;
+    virtual float GetGamepadAxis(
+        EGamepadAxes axis, UInt32 gamepadIndex = 0
+    ) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current mouse position relative to the window

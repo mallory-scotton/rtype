@@ -2,6 +2,8 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Weapons/BP_Projectile.hpp>
+#include <Core/Monsters/BP_Monster.hpp>
+#include <Core/Player/BP_Player.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -18,6 +20,7 @@ BP_Projectile::BP_Projectile(void)
 
     // Add flipbook component
     AddComponent<UBillboardComponent>("BC_ProjectileSprite");
+    AddComponent<UBoxCollisionComponent>("CC_ProjectileCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -32,6 +35,41 @@ void BP_Projectile::BeginPlay(void)
     {
         Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
         Billboard->SetFlipBook(&m_flipBook);
+    }
+
+    // Setup collision for the projectile
+    auto Collision =
+        GetComponent<UBoxCollisionComponent>("CC_ProjectileCollision");
+    if (Collision)
+    {
+        Collision->SetHiddenInGame(false);
+        Collision->SetBoxExtent(FVector3(0.30f, 0.30f, 0.30f));
+        FTransform transform = Collision->GetLocalTransform();
+        transform.SetPosition(FVector3(0.f, 0.f, 0.2f));
+        Collision->SetLocalTransform(transform);
+
+        auto* cs = Collision->GetCollisionSystem();
+        if (cs)
+        {
+            std::cout << "Binding projectile collision" << std::endl;
+            cs->BindOnOverlapBegin(
+                Collision,
+                [this](const FCollisionInfo& info)
+                {
+                    std::cout << "Projectile collided with something "
+                              << info.otherActor->GetName() << " Components: "
+                              << info.otherComponent->GetName() << std::endl;
+                    if (info.otherActor->Is<BP_Player>()) { return; }
+
+                    if (info.otherActor->Is<BP_Monster>())
+                    {
+                        info.otherActor->MarkForDeletion();
+                    }
+                    // On collision, mark the projectile for deletion
+                    // this->MarkForDeletion();
+                }
+            );
+        }
     }
 }
 

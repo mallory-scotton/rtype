@@ -13,6 +13,7 @@ namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
 URessource::URessource(void)
     : m_graphicsFactory(nullptr)
+    , m_audioManager(nullptr)
     , m_isShuttingDown(false)
 {}
 
@@ -22,11 +23,13 @@ URessource::~URessource()
     BeginShutdown();
 
     // Clear all resources in proper order
+    m_buffers.clear();
     m_shaders.clear();
     m_textures.clear();
     m_assets.clear();
     m_pakFiles.clear();
 
+    m_audioManager = nullptr;
     m_graphicsFactory = nullptr;
 }
 
@@ -65,6 +68,17 @@ SizeT URessource::CleanupUnusedResources(void)
         else { ++it; }
     }
 
+    // Remove expired audio buffer references
+    for (auto it = m_buffers.begin(); it != m_buffers.end();)
+    {
+        if (it->second.expired())
+        {
+            it = m_buffers.erase(it);
+            ++cleaned;
+        }
+        else { ++it; }
+    }
+
     return cleaned;
 }
 
@@ -73,6 +87,13 @@ void URessource::SetGraphicsFactory(IGraphicsFactory* factory)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_graphicsFactory = factory;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void URessource::SetAudioManager(IAudioManager* manager)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_audioManager = manager;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,6 +119,20 @@ UAsset* URessource::GetAsset(const FString& uuid) const
     std::lock_guard<std::mutex> lock(m_mutex);
     const auto it = m_assets.find(uuid);
     if (it != m_assets.end()) { return it->second.get(); }
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+TUniquePtr<UAsset> URessource::GetAssetFromName(const FString& name) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (const auto& [pakID, pakFile]: m_pakFiles)
+    {
+        if (pakFile && pakFile->IsOpen() && pakFile->HasAssetByName(name))
+        {
+            return pakFile->GetAssetByName(name);
+        }
+    }
     return nullptr;
 }
 
@@ -249,12 +284,14 @@ FTextureHandle URessource::GetTexture(const FString& id) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FShaderHandle URessource::LoadShader(const TVariant<
-                                     std::tuple<FilePath, EShaderType>,
-                                     std::tuple<FilePath, FilePath>,
-                                     std::tuple<FilePath, FilePath, FilePath>,
-                                     FString,
-                                     UAsset*>& source)
+FShaderHandle URessource::LoadShader(
+    const TVariant<
+        std::tuple<FilePath, EShaderType>,
+        std::tuple<FilePath, FilePath>,
+        std::tuple<FilePath, FilePath, FilePath>,
+        FString,
+        UAsset*>& source
+)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_isShuttingDown || !m_graphicsFactory) { return FShaderHandle(); }
@@ -419,6 +456,178 @@ FShaderHandle URessource::GetShader(const FString& id) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+FAudioBufferHandle URessource::LoadAudioBuffer(
+    const TVariant<FilePath, FString, UAsset*>& source
+)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_isShuttingDown || !m_audioManager) { return FAudioBufferHandle(); }
+
+    FString id;
+    std::shared_ptr<IAudioBuffer> buffer;
+
+    // Handle FilePath source
+    if (std::holds_alternative<FilePath>(source))
+    {
+        const FilePath& path = std::get<FilePath>(source);
+        id = path.string().c_str();
+
+        // Check if already loaded
+        auto it = m_buffers.find(id);
+        if (it != m_buffers.end())
+        {
+            if (auto existing = it->second.lock())
+            {
+                return FAudioBufferHandle(existing, id);
+            }
+        }
+
+        // Check if file is in a pak
+        for (const auto& [pakID, pakFile]: m_pakFiles)
+        {
+            if (pakFile && pakFile->IsOpen() && pakFile->HasAssetByName(id))
+            {
+                std::vector<Byte> data;
+                pakFile->LoadAssetDataByName(id, data);
+                if (data.empty()) { return FAudioBufferHandle(); }
+
+                auto audioBuffer = m_audioManager->CreateBuffer();
+                if (!audioBuffer ||
+                    !audioBuffer->LoadFromMemory(data.data(), data.size()))
+                {
+                    return FAudioBufferHandle();
+                }
+                buffer = audioBuffer;
+                m_buffers[id] = buffer;
+                return FAudioBufferHandle(buffer, id);
+            }
+        }
+
+        // Create new audio buffer from file
+        auto audioBuffer = m_audioManager->CreateBuffer();
+        if (!audioBuffer || !audioBuffer->LoadFromFile(path))
+        {
+            return FAudioBufferHandle();
+        }
+
+        buffer = audioBuffer;
+        m_buffers[id] = buffer;
+    }
+    // Handle UUID (from pak or asset)
+    else if (std::holds_alternative<FString>(source))
+    {
+        const FString& uuid = std::get<FString>(source);
+        id = uuid;
+
+        // Check if already loaded
+        auto it = m_buffers.find(id);
+        if (it != m_buffers.end())
+        {
+            if (auto existing = it->second.lock())
+            {
+                return FAudioBufferHandle(existing, id);
+            }
+        }
+
+        // Check if file is in a pak
+        for (const auto& [pakID, pakFile]: m_pakFiles)
+        {
+            if (pakFile && pakFile->IsOpen() && pakFile->HasAssetByName(id))
+            {
+                std::vector<Byte> data;
+                pakFile->LoadAssetDataByName(id, data);
+                if (data.empty()) { return FAudioBufferHandle(); }
+
+                auto audioBuffer = m_audioManager->CreateBuffer();
+                if (!audioBuffer ||
+                    !audioBuffer->LoadFromMemory(data.data(), data.size()))
+                {
+                    return FAudioBufferHandle();
+                }
+                buffer = audioBuffer;
+                m_buffers[id] = buffer;
+                return FAudioBufferHandle(buffer, id);
+            }
+        }
+
+        // Try to find asset
+        UAsset* asset = GetAsset(uuid);
+        if (!asset) { return FAudioBufferHandle(); }
+
+        if (!asset->IsLoaded() && !asset->Load())
+        {
+            return FAudioBufferHandle();
+        }
+
+        // Create audio buffer from asset data
+        const auto& data = asset->GetData();
+        auto audioBuffer = m_audioManager->CreateBuffer();
+        if (!audioBuffer ||
+            !audioBuffer->LoadFromMemory(data.data(), data.size()))
+        {
+            return FAudioBufferHandle();
+        }
+
+        buffer = audioBuffer;
+        m_buffers[id] = buffer;
+    }
+    // Handle UAsset pointer
+    else if (std::holds_alternative<UAsset*>(source))
+    {
+        UAsset* asset = std::get<UAsset*>(source);
+        if (!asset) { return FAudioBufferHandle(); }
+
+        id = asset->GetUUID();
+
+        // Check if already loaded
+        auto it = m_buffers.find(id);
+        if (it != m_buffers.end())
+        {
+            if (auto existing = it->second.lock())
+            {
+                return FAudioBufferHandle(existing, id);
+            }
+        }
+
+        if (!asset->IsLoaded() && !asset->Load())
+        {
+            return FAudioBufferHandle();
+        }
+
+        // Create audio buffer from asset data
+        const auto& data = asset->GetData();
+        auto audioBuffer = m_audioManager->CreateBuffer();
+        if (!audioBuffer ||
+            !audioBuffer->LoadFromMemory(data.data(), data.size()))
+        {
+            return FAudioBufferHandle();
+        }
+
+        buffer = audioBuffer;
+        m_buffers[id] = buffer;
+    }
+    else { return FAudioBufferHandle(); }
+
+    return FAudioBufferHandle(buffer, id);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FAudioBufferHandle URessource::GetAudioBuffer(const FString& id) const
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    const auto it = m_buffers.find(id);
+    if (it != m_buffers.end())
+    {
+        if (auto buffer = it->second.lock())
+        {
+            return FAudioBufferHandle(buffer, id);
+        }
+    }
+
+    return FAudioBufferHandle();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 bool URessource::LoadPak(const FilePath& pakPath)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -453,7 +662,7 @@ std::vector<FilePath> URessource::GetLoadedPaks(void) const
 
     for (const auto& [path, pak]: m_pakFiles)
     {
-        result.push_back(FilePath(path));
+        result.push_back(FilePath(path.CStr()));
     }
 
     return result;

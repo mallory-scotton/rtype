@@ -34,7 +34,7 @@ bool FWorldSubsystem::Initialize(void)
         m_initialized.store(true, std::memory_order_release);
         return true;
     }
-    catch (const std::exception& e)
+    catch (...)
     {
         return false;
     }
@@ -44,6 +44,12 @@ bool FWorldSubsystem::Initialize(void)
 UWorld* FWorldSubsystem::GetWorld(void) const noexcept
 {
     std::shared_lock lock(m_worldMutex);
+    return m_world.get();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+UWorld* FWorldSubsystem::GetWorldUnsafe(void) const noexcept
+{
     return m_world.get();
 }
 
@@ -69,103 +75,68 @@ void FWorldSubsystem::SetTargetTickRate(float tickRate) noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void FWorldSubsystem::ThreadSetup(void)
+{
+    std::unique_lock lock(m_worldMutex);
+
+    //? BEGIN TEMPORARY
+    // TODO: Load default level if specified
+    //? END TEMPORARY
+
+    m_world->BeginPlay();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FWorldSubsystem::ThreadTeardown(void)
+{
+    std::unique_lock lock(m_worldMutex);
+    m_world->EndPlay();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void FWorldSubsystem::ThreadLoop(void)
 {
-    {   // BEGIN PLAY
-        std::unique_lock lock(m_worldMutex);
+    static TimePoint lastTime = SteadyClock::now();
+    static float accumulator = 0.0f;
 
-        //? BEGIN TEMPORARY
-        // TODO: Load default level if specified
-        //? END TEMPORARY
+    TimePoint currentTime = SteadyClock::now();
+    float frameTime = TDuration<float>(currentTime - lastTime).count();
+    lastTime = currentTime;
 
-        m_world->BeginPlay();
-    }
+    // Clamp frame time to prevent spiral of death
+    frameTime = Math<float>::Min(frameTime, 0.25f);
+    accumulator += frameTime;
 
-    TimePoint lastTime = SteadyClock::now();
-    float accumulator = 0.0f;
-
-    while (m_running.load(std::memory_order_acquire))
+#ifndef TKD_SYSTEM_WINDOWS
+    if (m_fixedDeltaTime > 0.0f)
     {
-        TimePoint currentTime = SteadyClock::now();
-        float frameTime = TDuration<float>(currentTime - lastTime).count();
-        lastTime = currentTime;
-
-        // Clamp frame time to prevent spiral of death
-        frameTime = Math<float>::Min(frameTime, 0.25f);
-        accumulator += frameTime;
-
-        if (m_fixedDeltaTime > 0.0f)
+        // Fixed timestep updates
+        while (accumulator >= m_fixedDeltaTime)
         {
-            // Fixed timestep updates
-            while (accumulator >= m_fixedDeltaTime)
-            {
-                TimePoint tickStart = SteadyClock::now();
-
-                // Process deferred RPCs BEFORE locking the world mutex
-                // This allows RPCs to call World::SpawnActor and other
-                // functions that need to acquire the world mutex
-                Network::ProcessDeferredRPCs(*m_world);
-
-                // Process deferred property replications BEFORE locking the
-                // world mutex This follows the same pattern as RPCs for thread
-                // safety
-                Network::ProcessDeferredPropertyReplications(*m_world);
-
-                {
-                    std::unique_lock lock(m_worldMutex);
-                    m_world->Tick(m_fixedDeltaTime);
-                    // Process deferred spawns AFTER tick, while still holding
-                    // the lock
-                    m_world->ProcessDeferredSpawns();
-                }
-
-                m_simulationTime.fetch_add(
-                    m_fixedDeltaTime, std::memory_order_release
-                );
-                accumulator -= m_fixedDeltaTime;
-
-                // Track tick performance
-                float tickTime =
-                    TDuration<float>(SteadyClock::now() - tickStart).count() *
-                    1000.0f;
-                m_averageTickTime.store(
-                    m_averageTickTime.load(std::memory_order_acquire) * 0.95f +
-                        tickTime * 0.05f,
-                    std::memory_order_release
-                );
-            }
-
-            // Sleep to maintain target tick rate
-            auto targetFrameDuration =
-                std::chrono::duration_cast<Milliseconds>(
-                    TDuration<float>(m_fixedDeltaTime)
-                );
-            WaitFor(targetFrameDuration);
-        }
-        else
-        {
-            // Variable timestep update
             TimePoint tickStart = SteadyClock::now();
 
             // Process deferred RPCs BEFORE locking the world mutex
-            // This allows RPCs to call World::SpawnActor and other functions
-            // that need to acquire the world mutex
+            // This allows RPCs to call World::SpawnActor and other
+            // functions that need to acquire the world mutex
             Network::ProcessDeferredRPCs(*m_world);
 
-            // Process deferred property replications BEFORE locking the world
-            // mutex This follows the same pattern as RPCs for thread safety
+            // Process deferred property replications BEFORE locking the
+            // world mutex This follows the same pattern as RPCs for thread
+            // safety
             Network::ProcessDeferredPropertyReplications(*m_world);
 
             {
                 std::unique_lock lock(m_worldMutex);
-                m_world->Tick(frameTime);
-                // Process deferred spawns AFTER tick, while still holding the
-                // lock
+                m_world->Tick(m_fixedDeltaTime);
+                // Process deferred spawns AFTER tick, while still holding
+                // the lock
                 m_world->ProcessDeferredSpawns();
             }
 
-            m_simulationTime.fetch_add(frameTime, std::memory_order_release);
-            accumulator = 0.0f;
+            m_simulationTime.fetch_add(
+                m_fixedDeltaTime, std::memory_order_release
+            );
+            accumulator -= m_fixedDeltaTime;
 
             // Track tick performance
             float tickTime =
@@ -176,20 +147,65 @@ void FWorldSubsystem::ThreadLoop(void)
                     tickTime * 0.05f,
                 std::memory_order_release
             );
-
-            // Little sleep to prevent 100% CPU usage
-            WaitFor(Milliseconds(1));
         }
-    }
 
-    {   // END PLAY
-        std::unique_lock lock(m_worldMutex);
-        m_world->EndPlay();
+        // Sleep to maintain target tick rate
+        auto targetFrameDuration = std::chrono::duration_cast<Milliseconds>(
+            TDuration<float>(m_fixedDeltaTime)
+        );
+        WaitFor(targetFrameDuration);
+    }
+    else
+#endif
+    {
+        // Variable timestep update
+        TimePoint tickStart = SteadyClock::now();
+
+        // Process deferred RPCs BEFORE locking the world mutex
+        // This allows RPCs to call World::SpawnActor and other functions
+        // that need to acquire the world mutex
+        Network::ProcessDeferredRPCs(*m_world);
+
+        // Process deferred property replications BEFORE locking the world
+        // mutex This follows the same pattern as RPCs for thread safety
+        Network::ProcessDeferredPropertyReplications(*m_world);
+
+        {
+            std::unique_lock lock(m_worldMutex);
+            m_world->Tick(frameTime);
+            // Process deferred spawns AFTER tick, while still holding the
+            // lock
+            m_world->ProcessDeferredSpawns();
+        }
+
+        m_simulationTime.fetch_add(frameTime, std::memory_order_release);
+        accumulator = 0.0f;
+
+        // Track tick performance
+        float tickTime =
+            TDuration<float>(SteadyClock::now() - tickStart).count() * 1000.0f;
+        m_averageTickTime.store(
+            m_averageTickTime.load(std::memory_order_acquire) * 0.95f +
+                tickTime * 0.05f,
+            std::memory_order_release
+        );
+
+#ifndef TKD_SYSTEM_WINDOWS
+        // Little sleep to prevent 100% CPU usage
+        WaitFor(Milliseconds(1));
+#endif
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 const AGameMode& FWorldSubsystem::GetGameMode(void) const
+{
+    std::shared_lock lock(m_worldMutex);
+    return m_world->GetGameMode();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+AGameMode& FWorldSubsystem::GetGameMode(void)
 {
     std::shared_lock lock(m_worldMutex);
     return m_world->GetGameMode();

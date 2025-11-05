@@ -9,6 +9,7 @@
 #include <Engine/Config.hpp>
 #include <Engine/Core.hpp>
 #include <Engine/Renderer/FCamera.hpp>
+#include <Engine/Renderer/VR.hpp>
 #include <Engine/Runtime/Input/FInputManager.hpp>
 #include <mutex>
 
@@ -137,6 +138,14 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     TKD_NODISCARD static FCamera& GetCamera(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the VR system
+    ///
+    /// \return Reference to the VR system
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    TKD_NODISCARD static VR::FVRSystem& GetVRSystem(void);
 };
 
 #endif   // TKD_ENGINE_CLIENT

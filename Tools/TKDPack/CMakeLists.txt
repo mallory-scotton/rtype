@@ -29,6 +29,14 @@ set_target_properties(TKDPack PROPERTIES
     OUTPUT_NAME "TKDPack"
 )
 
+# For multi-config generators, remove the config subdirectory
+foreach(CONFIG ${CMAKE_CONFIGURATION_TYPES})
+    string(TOUPPER ${CONFIG} CONFIG_UPPER)
+    set_target_properties(TKDPack PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_${CONFIG_UPPER} ${CMAKE_BINARY_DIR}/bin/Tools
+    )
+endforeach()
+
 # Create the output directory if it doesn't exist
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Tools)
 
@@ -55,3 +63,25 @@ add_custom_command(TARGET TKDPack POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/bin/Tools
     COMMENT "Ensuring TKDPack output directory exists"
 )
+
+# Copy required DLLs to the tool directory on Windows
+if(WIN32)
+    # Copy TKDEngineClient DLL
+    add_custom_command(TARGET TKDPack POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:TKDEngineClient>
+            $<TARGET_FILE_DIR:TKDPack>
+        COMMENT "Copying TKDEngineClient.dll to TKDPack directory"
+    )
+    
+    # Copy all DLLs from the conan bin directories if they exist
+    if(EXISTS ${CMAKE_BINARY_DIR}/build/Release/generators)
+        add_custom_command(TARGET TKDPack POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E echo "Copying runtime dependencies..."
+            COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+                ${CMAKE_BINARY_DIR}/bin
+                $<TARGET_FILE_DIR:TKDPack>
+            COMMENT "Copying runtime DLLs"
+        )
+    endif()
+endif()

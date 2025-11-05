@@ -72,6 +72,43 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor with constructor parameters
+    ///
+    /// \tparam T The type of actor to spawn
+    /// \tparam Args The types of constructor arguments
+    ///
+    /// \param transform The transform of the actor
+    /// \param args Constructor arguments to forward to T's constructor
+    ///
+    /// \return A pointer to the spawned actor
+    ///
+    /// \warning This may cause a deadlock if called from within Tick()
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor, typename... Args>
+    static T* SpawnActorWithParams(const FTransform& transform, Args&&... args)
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        auto* worldSubsystem = GetWorldSubsystem();
+        if (!worldSubsystem) { return nullptr; }
+
+        T* result = nullptr;
+        worldSubsystem->WithWorld(
+            [&](UWorld& world)
+            {
+                result = world.SpawnActorWithParams<T>(
+                    transform, std::forward<Args>(args)...
+                );
+            }
+        );
+
+        return result;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Spawn an actor deferred (safe to call from Tick)
     ///
     /// \tparam T The type of actor to spawn
@@ -93,8 +130,43 @@ public:
         if (!worldSubsystem) { return; }
 
         // Access world directly without locking (deferred spawns are queued)
-        UWorld* world = worldSubsystem->GetWorld();
+        UWorld* world = worldSubsystem->GetWorldUnsafe();
         if (world) { world->SpawnActorDeferred<T>(transform); }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Spawn an actor deferred with constructor parameters
+    ///
+    /// \tparam T The type of actor to spawn
+    /// \tparam Args The types of constructor arguments
+    ///
+    /// \param transform The transform of the actor
+    /// \param args Constructor arguments to forward to T's constructor
+    ///
+    /// \note The actor will be spawned after the current tick completes
+    /// \note This is safe to call from within Tick() or other callbacks
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    template <typename T = AActor, typename... Args>
+    static void SpawnActorDeferredWithParams(
+        const FTransform& transform, Args&&... args
+    )
+    {
+        static_assert(
+            std::is_base_of<AActor, T>::value, "T must be derived from AActor"
+        );
+
+        auto* worldSubsystem = GetWorldSubsystem();
+        if (!worldSubsystem) { return; }
+
+        // Access world directly without locking (deferred spawns are queued)
+        UWorld* world = worldSubsystem->GetWorldUnsafe();
+        if (world)
+        {
+            world->SpawnActorDeferredWithParams<T>(
+                transform, std::forward<Args>(args)...
+            );
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -293,7 +365,15 @@ public:
     /// \return The game mode of the current level
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const AGameMode& GetGameMode(void) const;
+    static const AGameMode& GetGameMode(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the game mode of the current level
+    ///
+    /// \return The game mode of the current level
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static AGameMode& GetGameModeUnsafe(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the loaded levels
@@ -301,7 +381,7 @@ public:
     /// \return A constant reference to the vector of loaded levels
     ///
     ///////////////////////////////////////////////////////////////////////////
-    const std::vector<ULevel>& GetLoadedLevels(void) const;
+    static const std::vector<ULevel>& GetLoadedLevels(void);
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current level
@@ -309,7 +389,7 @@ public:
     /// \return A pointer to the current level
     ///
     ///////////////////////////////////////////////////////////////////////////
-    ULevel* GetCurrentLevel(void) const;
+    static ULevel* GetCurrentLevel(void);
 };
 
 }   // namespace tkd

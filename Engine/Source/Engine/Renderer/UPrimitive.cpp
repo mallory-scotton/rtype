@@ -14,6 +14,7 @@ UPrimitive::UPrimitive(EPrimitiveType type, const FColor& color)
     : m_primitiveType(type)
     , m_vertices()
     , m_color(color)
+    , m_origin(FVector3::Zero)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -47,5 +48,18 @@ void UPrimitive::SetColor(const FColor& color)
     m_color = color;
     for (FVertex& vertex: m_vertices) { vertex.color = color; }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void UPrimitive::SetOrigin(const FVector3& origin)
+{
+    m_origin = origin;
+    UpdateVertices();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FVector3& UPrimitive::GetOrigin(void) const { return m_origin; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UPrimitive::UpdateVertices(void) {}
 
 }   // namespace tkd

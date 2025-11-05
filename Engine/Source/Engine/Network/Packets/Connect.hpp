@@ -26,8 +26,10 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    UInt32 clientID = 0;           //<! ID of the connecting client
-    std::array<char, 32> name{};   //<! Name of the connecting client
+    UInt32 clientID = 0;         //<! ID of the connecting client
+    std::string name{};          //<! Name of the connecting client
+    std::string gameName{};      //<! Name of the game
+    std::string gameVersion{};   //<! Version of the game
 
 public:
     ///////////////////////////////////////////////////////////////////////////

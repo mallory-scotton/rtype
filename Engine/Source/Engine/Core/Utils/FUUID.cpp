@@ -117,19 +117,19 @@ std::array<UInt8, 6> UUID::GetMACAddress(void)
 #if defined(_WIN32)
     // Windows implementation would go here
     // For now, generate random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #elif defined(__linux__) || defined(__APPLE__)
     // Unix implementation would go here
     // For now, generate random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #else
     // Fallback: random MAC with local bit set
-    std::uniform_int_distribution<UInt8> dist;
-    for (auto& byte: mac) { byte = dist(s_rng); }
+    std::uniform_int_distribution<unsigned int> dist(0, 255);
+    for (auto& byte: mac) { byte = static_cast<UInt8>(dist(s_rng)); }
     mac[0] |= 0x01;
 #endif
     return mac;
@@ -158,8 +158,10 @@ std::array<UInt8, 16> UUID::MD5Hash(std::span<const UInt8> data)
     // like OpenSSL, Crypto++, or similar
     std::array<UInt8, 16> result = {};
     std::hash<std::string_view> hasher;
-    auto hash_val = hasher(std::string_view{
-      reinterpret_cast<const char*>(data.data()), data.size() });
+    auto hash_val = hasher(
+        std::string_view{ reinterpret_cast<const char*>(data.data()),
+                          data.size() }
+    );
 
     // Distribute hash value across the array (not cryptographically secure)
     for (size_t i = 0; i < 16; ++i)
@@ -176,8 +178,10 @@ std::array<UInt8, 20> UUID::SHA1Hash(std::span<const UInt8> data)
     // This is a placeholder - in production, use a proper SHA-1 implementation
     std::array<UInt8, 20> result = {};
     std::hash<std::string_view> hasher;
-    auto hash_val = hasher(std::string_view{
-      reinterpret_cast<const char*>(data.data()), data.size() });
+    auto hash_val = hasher(
+        std::string_view{ reinterpret_cast<const char*>(data.data()),
+                          data.size() }
+    );
 
     // Distribute hash value across the array (not cryptographically secure)
     for (size_t i = 0; i < 20; ++i)
