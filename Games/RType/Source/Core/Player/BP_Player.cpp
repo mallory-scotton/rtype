@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Player/BP_Player.hpp>
+#include <Core/Monsters/BP_Monster.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -63,6 +64,26 @@ void BP_Player::BeginPlay(void)
     {
         Box->SetHiddenInGame(false);
         Box->SetBoxExtent(FVector3f(0.6f, 0.3f, 0.3f));
+        FTransform transform = Box->GetLocalTransform();
+        transform.SetPosition(FVector3(0.f, 0.f, 0.2f));
+        Box->SetLocalTransform(transform);
+
+        auto* cs = Box->GetCollisionSystem();
+        if (cs)
+        {
+            cs->BindOnOverlapBegin(
+                Box,
+                [this](const FCollisionInfo& info)
+                {
+                    if (info.otherActor && info.otherActor->Is<BP_Monster>())
+                    {
+                        // Handle player collision with monster
+                        // this->MarkForDeletion();
+                    }
+                    // Handle player collision logic here
+                }
+            );
+        }
     }
 }
 

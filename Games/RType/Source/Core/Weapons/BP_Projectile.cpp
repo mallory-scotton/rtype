@@ -51,22 +51,17 @@ void BP_Projectile::BeginPlay(void)
         auto* cs = Collision->GetCollisionSystem();
         if (cs)
         {
-            std::cout << "Binding projectile collision" << std::endl;
             cs->BindOnOverlapBegin(
                 Collision,
                 [this](const FCollisionInfo& info)
                 {
-                    std::cout << "Projectile collided with something "
-                              << info.otherActor->GetName() << " Components: "
-                              << info.otherComponent->GetName() << std::endl;
                     if (info.otherActor->Is<BP_Player>()) { return; }
 
                     if (info.otherActor->Is<BP_Monster>())
                     {
                         info.otherActor->MarkForDeletion();
+                        this->MarkForDeletion();
                     }
-                    // On collision, mark the projectile for deletion
-                    // this->MarkForDeletion();
                 }
             );
         }
