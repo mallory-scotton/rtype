@@ -37,14 +37,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     FColor m_color;                     ///< Button background color
     URectangleShape m_rectangleShape;   ///< Rectangle shape for rendering
-
-    bool m_isHovered;                   ///< Mouse is over the widget
-    bool m_isClicked;                   ///< Widget was just clicked this frame
-    bool m_isUnclicked;   ///< Widget was just released this frame
-    bool m_isReleased;    ///< Mouse button was released (regardless of hover)
-    bool m_isHeld;        ///< Widget is being held (mouse button down)
-    int m_clicks;         ///< Number of clicks on the widget
-    bool m_wasMousePressed;   ///< Mouse was pressed in previous frame
+    int m_clicks;                       ///< Number of clicks on the widget
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -153,48 +146,6 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     virtual void Tick(Float32 deltaTime) override;
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if widget was just clicked this frame
-    ///
-    /// \return True if clicked, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool IsClicked(void) const { return m_isClicked; }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if widget was unclicked this frame
-    ///
-    /// \return True if unclicked, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool IsUnclicked(void) const { return m_isUnclicked; }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if mouse button was released this frame
-    ///
-    /// \return True if released, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool IsReleased(void) const { return m_isReleased; }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if mouse is hovering over the widget
-    ///
-    /// \return True if hovered, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool IsHovered(void) const { return m_isHovered; }
-
-    ///////////////////////////////////////////////////////////////////////////
-    /// \brief Check if a point is inside the widget bounds
-    ///
-    /// \param point The point to test in screen coordinates
-    ///
-    /// \return True if the point is inside, false otherwise
-    ///
-    ///////////////////////////////////////////////////////////////////////////
-    bool ContainsPoint(const FVector2& point) const;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is first created

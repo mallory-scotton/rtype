@@ -15,13 +15,7 @@ UWidgetButtonComponent::UWidgetButtonComponent(const FString& name)
     : UWidgetComponent(name)
     , m_color(FColor::White)
     , m_rectangleShape()
-    , m_isHovered(false)
-    , m_isClicked(false)
-    , m_isUnclicked(false)
-    , m_isReleased(false)
-    , m_isHeld(false)
     , m_clicks(0)
-    , m_wasMousePressed(false)
     , m_onClickCallback(nullptr)
     , m_onUnclickedCallback(nullptr)
     , m_onReleasedCallback(nullptr)
@@ -93,50 +87,23 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
     m_rectangleShape.SetSize(GetSize());
     m_rectangleShape.SetOrigin(GetOrigin());
 
-    if (!IsEnabled())
+    UpdateInputStates();
+
+    // Button-specific: track click count
+    if (Super::IsClicked()) { m_clicks++; }
+
+    // Trigger callbacks
+    if (Super::IsClicked() && m_onClickCallback) { m_onClickCallback(); }
+    if (Super::IsUnclicked() && m_onUnclickedCallback)
     {
-        m_isHovered = false;
-        m_wasMousePressed = false;
-        m_isClicked = false;
-        m_isUnclicked = false;
-        m_isReleased = true;
-        m_isHeld = false;
-        return;
+        m_onUnclickedCallback();
     }
-
-    if (!m_inputManager) { return; }
-
-    FVector2 mousePos = m_inputManager->GetMousePosition();
-    m_isHovered = ContainsPoint(mousePos);
-
-    bool isMousePressed = m_inputManager->IsPressed(EInput::Mouse_Left) ||
-                          m_inputManager->IsJustReleased(EInput::Mouse_Left);
-
-    m_isHeld = m_isHovered && isMousePressed;
-    m_isReleased = !m_isHeld;
-    if (m_isHovered && isMousePressed && !m_wasMousePressed)
+    if (Super::IsReleased() && m_onReleasedCallback)
     {
-        m_isClicked = true;
-        m_wasMousePressed = true;
-        m_clicks++;
+        m_onReleasedCallback();
     }
-    else if (!isMousePressed && m_wasMousePressed)
-    {
-        m_isUnclicked = true;
-        m_wasMousePressed = false;
-    }
-    else
-    {
-        m_isClicked = false;
-        m_isUnclicked = false;
-        m_wasMousePressed = isMousePressed;
-    }
-
-    if (m_isClicked && m_onClickCallback) { m_onClickCallback(); }
-    if (m_isUnclicked && m_onUnclickedCallback) { m_onUnclickedCallback(); }
-    if (m_isReleased && m_onReleasedCallback) { m_onReleasedCallback(); }
-    if (m_isHeld && m_onHeldCallback) { m_onHeldCallback(); }
-    if (m_isHovered && m_onHoverCallback) { m_onHoverCallback(); }
+    if (Super::IsHeld() && m_onHeldCallback) { m_onHeldCallback(); }
+    if (Super::IsHovered() && m_onHoverCallback) { m_onHoverCallback(); }
 
     // Debug output (can be removed later)
     // std::cout << "WidgetButtonComponent Tick: Hovered=" << m_isHovered
@@ -144,17 +111,6 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
     //           m_isUnclicked
     //           << " Released=" << m_isReleased << " Held=" << m_isHeld
     //           << " Clicks=" << m_clicks << std::endl;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-bool UWidgetButtonComponent::ContainsPoint(const FVector2& point) const
-{
-    FVector2 origin = GetOrigin();
-    FVector2 topLeft = GetPosition() - origin;
-    FVector2 bottomRight = topLeft + GetSize();
-
-    return point.x >= topLeft.x && point.x <= bottomRight.x &&
-           point.y >= topLeft.y && point.y <= bottomRight.y;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
