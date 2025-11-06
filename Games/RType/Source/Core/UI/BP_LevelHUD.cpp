@@ -24,6 +24,7 @@ BP_LevelHUD::BP_LevelHUD(void)
     AddComponent<UWidgetTextComponent>("textHigh");
     AddComponent<UWidgetTextComponent>("textHighScore");
     AddComponent<UWidgetTextComponent>("textBEAM");
+    AddComponent<UWidgetTextboxComponent>("textBox");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -52,34 +53,6 @@ void BP_LevelHUD::BeginPlay(void)
             // FVector2(640.0f, 0.0f)   // Top-center edge
         );
     }
-
-    // Setup button properties
-    // auto m_buttonWidget =
-    // GetComponent<UWidgetButtonComponent>("MainButton"); if (m_buttonWidget)
-    // {
-    //     m_buttonWidget->SetColor(ButtonColor);               // Red color
-    //     m_buttonWidget->SetSize(FVector2(200.0f, 200.0f));   // 200x200
-    //     pixels m_buttonWidget->SetAlignment(
-    //         UWidgetComponent::EAlignment::BottomCenter
-    //     );
-    //     m_buttonWidget->SetPosition(
-    //         // FVector2(640.0f, 360.0f) // Center of screen (1280x720)
-    //         // FVector2(0.0f, 0.0f)   // Top-left corner
-    //         // FVector2(0.0f, 720.0f)   // Top-right corner
-    //         // FVector2(1280.0f, 720.0f) // Bottom-right corner
-    //         // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-    //         // FVector2(0.0f, 360.0f)   // Middle-left edge
-    //         // FVector2(1280.0f, 360.0f)  // Middle-right edge
-    //         FVector2(640.0f, 720.0f)   // Bottom-center edge
-    //         // FVector2(640.0f, 0.0f)   // Top-center edge
-    //     );
-    //     m_buttonWidget->SetOnHeld(
-    //         [m_buttonWidget]() { m_buttonWidget->SetColor(FColor::Yellow); }
-    //     );
-    //     m_buttonWidget->SetOnReleased(
-    //         [m_buttonWidget]() { m_buttonWidget->SetColor(FColor::Green); }
-    //     );
-    // }
 
     // Setup image properties
     // auto m_imageWidget = GetComponent<UWidgetImageComponent>("MainImage");
@@ -211,6 +184,65 @@ void BP_LevelHUD::BeginPlay(void)
             // FVector2(1280.0f, 360.0f)  // Middle-right edge
             FVector2(185.0f, 680.0f)   // Bottom-center edge
             // FVector2(640.0f, 0.0f)   // Top-center edge
+        );
+    }
+
+    auto m_textBox = GetComponent<UWidgetTextboxComponent>("textBox");
+    if (m_textBox)
+    {
+        m_textBox->SetCharacterSize(TextSize);
+        m_textBox->SetSpacing(TextSpacing);
+        m_textBox->SetText("Enter Input");
+        m_textBox->SetBackgroundColor(FColor(0.3, 0.3, 0.3, 1.0));
+        m_textBox->SetFocusedBackgroundColor(FColor(0.5, 0.5, 0.5, 1.0));
+        m_textBox->SetFontPath("Assets/Font/mainFont.png");
+        m_textBox->SetAlignment(UWidgetComponent::EAlignment::Center);
+        m_textBox->SetPosition(
+            FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
+            // FVector2(0.0f, 0.0f)   // Top-left corner
+            // FVector2(0.0f, 720.0f)   // Top-right corner
+            // FVector2(1280.0f, 720.0f) // Bottom-right corner
+            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
+            // FVector2(0.0f, 360.0f)   // Middle-left edge
+            // FVector2(1280.0f, 360.0f)  // Middle-right edge
+            // FVector2(640.0f, 720.0f)   // Bottom-center edge
+            // FVector2(640.0f, 0.0f)   // Top-center edge
+        );
+        m_textBox->SetMaxCharacters(16);
+        m_textBox->SetMinBoxChars(16);
+        m_textBox->SetMaxBoxChars(16);
+        m_textBox->SetTextColor(FColor::White);
+    }
+
+    // Setup button properties
+    auto m_buttonWidget = GetComponent<UWidgetButtonComponent>("MainButton");
+    if (m_buttonWidget)
+    {
+        m_buttonWidget->SetColor(ButtonColor);               // Red color
+        m_buttonWidget->SetSize(FVector2(200.0f, 200.0f));   // 200x200
+        m_buttonWidget->SetAlignment(
+            UWidgetComponent::EAlignment::BottomCenter
+        );
+        m_buttonWidget->SetPosition(
+            // FVector2(640.0f, 360.0f) // Center of screen (1280x720)
+            // FVector2(0.0f, 0.0f)   // Top-left corner
+            // FVector2(0.0f, 720.0f)   // Top-right corner
+            // FVector2(1280.0f, 720.0f) // Bottom-right corner
+            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
+            // FVector2(0.0f, 360.0f)   // Middle-left edge
+            // FVector2(1280.0f, 360.0f)  // Middle-right edge
+            FVector2(640.0f, 720.0f)   // Bottom-center edge
+            // FVector2(640.0f, 0.0f)   // Top-center edge
+        );
+        m_buttonWidget->SetOnClick(
+            [m_textBox]()
+            { std::cout << "message : " << m_textBox->GetText() << std::endl; }
+        );
+        m_buttonWidget->SetOnHeld(
+            [m_buttonWidget]() { m_buttonWidget->SetColor(FColor::Yellow); }
+        );
+        m_buttonWidget->SetOnReleased(
+            [m_buttonWidget]() { m_buttonWidget->SetColor(FColor::Green); }
         );
     }
 }
