@@ -25,6 +25,13 @@ UWidgetComponent::UWidgetComponent(const FString& name)
     , m_visible(true)
     , m_enabled(true)
     , m_rawModeEnabled(false)
+    , m_isHovered(false)   // input state tracking
+    , m_isClicked(false)
+    , m_isUnclicked(false)
+    , m_isReleased(false)
+    , m_isHeld(false)
+    , m_isFocused(false)
+    , m_wasMousePressed(false)
 {}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,9 +74,6 @@ void UWidgetComponent::SetInputManager(FInputManager* inputManager)
 {
     m_inputManager = inputManager;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-void UWidgetComponent::Tick(Float32 deltaTime) { Super::Tick(deltaTime); }
 
 ///////////////////////////////////////////////////////////////////////////////
 const FVector2& UWidgetComponent::GetSize(void) const { return m_size; }
@@ -120,6 +124,66 @@ bool UWidgetComponent::IsEnabled(void) const { return m_enabled; }
 void UWidgetComponent::SetEnabled(Bool enabled) { m_enabled = enabled; }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool UWidgetComponent::ContainsPoint(const FVector2& point) const
+{
+    FVector2 origin = GetOrigin();
+    FVector2 topLeft = m_position - origin;
+    FVector2 bottomRight = topLeft + m_size;
+
+    return point.x >= topLeft.x && point.x <= bottomRight.x &&
+           point.y >= topLeft.y && point.y <= bottomRight.y;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetComponent::UpdateInputStates()
+{
+    if (!IsEnabled() || !m_inputManager)
+    {
+        m_isHovered = false;
+        m_wasMousePressed = false;
+        m_isClicked = false;
+        m_isUnclicked = false;
+        m_isReleased = true;
+        m_isHeld = false;
+        m_isFocused = false;
+        return;
+    }
+
+    if (!m_inputManager) { return; }
+
+    FVector2 mousePos = m_inputManager->GetMousePosition();
+    m_isHovered = ContainsPoint(mousePos);
+
+    bool isMousePressed = m_inputManager->IsPressed(EInput::Mouse_Left) ||
+                          m_inputManager->IsJustReleased(EInput::Mouse_Left);
+
+    m_isHeld = m_isHovered && isMousePressed;
+    m_isReleased = !m_isHeld;
+
+    if (isMousePressed && !m_wasMousePressed)
+    {
+        if (!m_isHovered) { m_isFocused = false; }
+        else
+        {
+            m_isFocused = true;
+            m_isClicked = true;
+            m_wasMousePressed = true;
+        }
+    }
+    else if (!isMousePressed && m_wasMousePressed)
+    {
+        m_isUnclicked = true;
+        m_wasMousePressed = false;
+    }
+    else
+    {
+        m_isClicked = false;
+        m_isUnclicked = false;
+        m_wasMousePressed = isMousePressed;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void UWidgetComponent::BeginPlay(void)
 {
 #if TKD_ENGINE_CLIENT
@@ -134,5 +198,8 @@ void UWidgetComponent::EndPlay(void)
     // Cleanup logic can be added here if needed
     Super::EndPlay();
 }
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetComponent::Tick(Float32 deltaTime) { Super::Tick(deltaTime); }
 
 }   // namespace tkd
