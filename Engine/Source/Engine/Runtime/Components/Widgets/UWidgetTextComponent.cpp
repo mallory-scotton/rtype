@@ -103,12 +103,33 @@ void UWidgetTextComponent::Tick(Float32 deltaTime)
 {
     Super::Tick(deltaTime);
 
+    // Update text properties
     m_textShape.SetString(m_text);
     m_textShape.SetColor(m_color);
     m_textShape.SetCharacterSize(m_charSize);
     m_textShape.SetSpacing(m_spacing);
-    m_textShape.SetString(m_text);
     m_textShape.SetPosition(GetPosition());
+
+    // Calculate and set origin based on alignment
+    if (GetAlignment() == EAlignment::None)
+    {
+        m_textShape.SetOrigin(FVector2::Zero);
+    }
+    else
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;   // 0=Left, 1=Center, 2=Right
+        int alignY = alignIndex / 3;   // 0=Top, 1=Center, 2=Bottom
+
+        float textWidth = m_textShape.GetTextWidth();
+        float textHeight = m_charSize.y;
+
+        FVector2 textOrigin(
+            alignX * textWidth * 0.5f, alignY * textHeight * 0.5f
+        );
+
+        m_textShape.SetOrigin(textOrigin);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
