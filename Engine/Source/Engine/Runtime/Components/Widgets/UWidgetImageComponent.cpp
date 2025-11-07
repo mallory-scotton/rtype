@@ -18,7 +18,30 @@ UWidgetImageComponent::UWidgetImageComponent(const FString& name)
     , m_sprite()
     , m_textureHandle()
     , m_texturePath()
+    , m_color(FColor::White)
 {}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetImageComponent::SetColor(const FColor& color)
+{
+    m_color = color;
+    m_sprite.SetColor(color);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetImageComponent::SetColor(const FLinearColor& color)
+{
+    SetColor(FColor(color));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FColor& UWidgetImageComponent::GetColor() const { return m_color; }
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetImageComponent::BeginPlay() { Super::BeginPlay(); }
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetImageComponent::EndPlay() { Super::EndPlay(); }
 
 ///////////////////////////////////////////////////////////////////////////////
 void UWidgetImageComponent::SetTexturePath(const FilePath& path)
@@ -30,36 +53,33 @@ void UWidgetImageComponent::SetTexturePath(const FilePath& path)
     {
         ITexture* texture = m_textureHandle.Get();
         m_sprite.SetTexture(*texture);
+        m_sprite.SetColor(m_color);
 
-        // Optional: auto-size widget to match texture
+        // Set widget size to match texture's native size by default
         FVector2u textureSize = texture->GetSize();
         SetSize(FVector2(textureSize.x, textureSize.y));
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UWidgetImageComponent::BeginPlay() { Super::BeginPlay(); }
-
-///////////////////////////////////////////////////////////////////////////////
-void UWidgetImageComponent::EndPlay() { Super::EndPlay(); }
-
-///////////////////////////////////////////////////////////////////////////////
 void UWidgetImageComponent::Tick(Float32 deltaTime)
 {
     Super::Tick(deltaTime);
 
-    // Update sprite position/size to match widget
+    if (m_textureHandle.IsValid())
+    {
+        FVector2u texSize = m_textureHandle.Get()->GetSize();
+        FVector2 textureSize(texSize.x, texSize.y);
+        FVector2 sizeBasedScale = GetSize() / textureSize;
+
+        m_sprite.SetScale(sizeBasedScale * GetScale());
+        FVector2 widgetOrigin = GetOrigin();
+
+        FVector2 spriteOrigin = widgetOrigin / (sizeBasedScale * GetScale());
+        m_sprite.SetOrigin(spriteOrigin);
+    }
+
     m_sprite.SetPosition(GetPosition());
-    m_sprite.SetScale(
-        GetSize() /
-        FVector2(
-            m_textureHandle.IsValid() ? m_textureHandle.Get()->GetSize().x
-                                      : 1.0f,
-            m_textureHandle.IsValid() ? m_textureHandle.Get()->GetSize().y
-                                      : 1.0f
-        )
-    );
-    m_sprite.SetOrigin(GetOrigin());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,10 +87,8 @@ void UWidgetImageComponent::Render(IRenderer& renderer) const
 {
     if (!IsVisible() || !m_textureHandle.IsValid()) { return; }
 
-    // Render sprite directly in screen space (2D, no transform)
     FRenderStates states;
-    states.transform =
-        FTransform2D::Identity;   // No world transform, just screen position
+    states.transform = FTransform2D::Identity;
     m_sprite.Draw(renderer, states);
 }
 
