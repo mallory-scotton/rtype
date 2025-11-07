@@ -25,7 +25,13 @@ const FColor& UWidgetPanelComponent::GetColor(void) const { return m_color; }
 void UWidgetPanelComponent::SetColor(const FColor& color)
 {
     m_color = color;
-    m_rectangleShape.SetFillColor(m_color);   // update live shape color
+    m_rectangleShape.SetFillColor(m_color);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWidgetPanelComponent::SetColor(const FLinearColor& color)
+{
+    SetColor(FColor(color));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
