@@ -16,6 +16,12 @@ L_RType_Level1::L_RType_Level1()
     SetLevelName("L_RType_Level1");
     SetGameMode("RTypeGameMode");
     AddActorEntry("BP_Player", "Player1", FTransform::Identity);
+    // AddActorEntry(           // Level HUD
+    //     "BP_LevelHUD", "LevelHUD", FTransform::Identity
+    // );
+    AddActorEntry(              // Menu HUD
+        "BP_MainMenuHUD", "MainMenuHUD", FTransform::Identity
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
