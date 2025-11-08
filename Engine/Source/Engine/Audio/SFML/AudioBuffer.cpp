@@ -41,6 +41,15 @@ Bool AudioBuffer::LoadFromMemory(const Byte* data, const SizeT size)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+SizeT AudioBuffer::GetSampleCount(void) const
+{
+    return static_cast<SizeT>(m_buffer.getSampleCount());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+Int16* AudioBuffer::GetSamples(void) { return (Int16*)m_buffer.getSamples(); }
+
+///////////////////////////////////////////////////////////////////////////////
 Float32 AudioBuffer::GetDuration(void) const
 {
     return m_buffer.getDuration().asSeconds();

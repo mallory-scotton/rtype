@@ -87,6 +87,22 @@ public:
     virtual UInt32 GetSampleRate(void) const override;
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get the total number of samples in the audio buffer.
+    ///
+    /// \return Total sample count.
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual SizeT GetSampleCount(void) const override;
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Get a pointer to the raw audio samples.
+    ///
+    /// \return Pointer to the audio samples (Int16 format).
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    virtual Int16* GetSamples(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the number of channel in the audio buffer.
     ///
     /// \return Number of channels (e.g., 1 for mono, 2 for stereo).
