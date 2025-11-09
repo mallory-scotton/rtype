@@ -39,11 +39,27 @@ void UWidgetPanelComponent::BeginPlay(void)
 {
     Super::BeginPlay();
 
-    // how do I create a Urectangleshape without new ?
+    // Initialize rectangle with uniform scaled values
     m_rectangleShape.SetFillColor(m_color);
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetOrigin());
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio like text
+    float uniformScale = GetUniformScale();
+    FVector2 scaledSize = GetSize() * uniformScale;
+    m_rectangleShape.SetSize(scaledSize);
+
+    // Calculate scaled origin
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,9 +71,26 @@ void UWidgetPanelComponent::Tick(Float32 deltaTime)
     // Call parent Tick
     Super::Tick(deltaTime);
 
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetOrigin());
+    // Update rectangle with uniform scaled values
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio like text
+    float uniformScale = GetUniformScale();
+    FVector2 scaledSize = GetSize() * uniformScale;
+    m_rectangleShape.SetSize(scaledSize);
+
+    // Calculate scaled origin
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
