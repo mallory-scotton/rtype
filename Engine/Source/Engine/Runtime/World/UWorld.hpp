@@ -426,6 +426,16 @@ public:
     bool ChangeLevel(const FString& levelName);
 
     ///////////////////////////////////////////////////////////////////////////
+    /// \brief Load the default level by name
+    ///
+    /// \param defaultLevelName The name of the default level to load
+    ///
+    /// \return True if the level was loaded successfully, false otherwise
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool LoadDefaultLevel(const FString& defaultLevelName);
+
+    ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the game mode of the current level
     ///
     /// \return The game mode of the current level
