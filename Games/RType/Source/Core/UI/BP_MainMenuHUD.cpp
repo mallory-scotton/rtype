@@ -13,6 +13,7 @@ namespace tkd
 BP_MainMenuHUD::BP_MainMenuHUD(void)
     : AHUD()
 {
+    SetName("BP_MainMenuHUD");
     AddComponent<UWidgetImageComponent>("MainImage");
     AddComponent<UWidgetPanelComponent>("MainPanel");
     AddComponent<UWidgetButtonComponent>("MainButton");
@@ -195,6 +196,24 @@ void BP_MainMenuHUD::BeginPlay(void)
             }
         );
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_MainMenuHUD::Tick(Float32 deltaTime)
+{
+    Super::Tick(deltaTime);
+
+    // // Make instruction text blink
+    // if (m_instructionText)
+    // {
+    //     static Float32 blinkTimer = 0.0f;
+    //     blinkTimer += deltaTime;
+
+    //     UInt8 alpha = static_cast<UInt8>(
+    //         (std::sin(blinkTimer * 2.0f) * 0.5f + 0.5f) * 255.0f
+    //     );
+    //     m_instructionText->SetColor(FColor(200, 200, 200, alpha));
+    // }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
