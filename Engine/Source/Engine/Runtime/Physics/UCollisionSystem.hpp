@@ -112,6 +112,8 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     std::vector<CollisionEntry> m_collisionComponents;
     std::unordered_map<UCollisionComponent*, SizeT> m_componentToIndex;
+    std::vector<UCollisionComponent*>
+        m_pendingRemovals;   //<! Components to remove after update
 
     // Spatial grid for broad-phase optimization
     std::unordered_map<Int64, SpatialCell> m_spatialGrid;
@@ -275,6 +277,12 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void UpdateBoundingBox(CollisionEntry& entry);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Process pending component removals
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void ProcessPendingRemovals();
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Rebuild spatial grid
