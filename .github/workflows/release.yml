@@ -3,42 +3,328 @@ name: R-Type Release Workflow
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version_suffix:
+        description: 'Version suffix (e.g., alpha, beta, rc1)'
+        required: false
+        default: 'alpha'
+
+permissions:
+  contents: write
+  discussions: write
 
 jobs:
-  install-dependencies:
+  build-and-release:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # TODO: Add steps to install dependencies
+      - name: Read version from VERSION file
+        id: version
+        run: |
+          # Extract version from VERSION file (first occurrence of vX.X.X)
+          VERSION=$(grep -oP 'v\d+\.\d+\.\d+' VERSION | head -1 | sed 's/v//')
+          if [ -z "$VERSION" ]; then
+            VERSION="1.0.0"
+          fi
+          
+          # Add suffix if provided
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version_suffix }}" ]; then
+            FULL_VERSION="${VERSION}-${{ github.event.inputs.version_suffix }}"
+          else
+            FULL_VERSION="${VERSION}-alpha"
+          fi
+          
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+          echo "Release version will be: ${FULL_VERSION}"
 
-  build:
-    runs-on: ubuntu-latest
-    needs: install-dependencies
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    # TODO: Add steps to build the project
+      - name: Cache pipx packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/pipx
+            ~/.local/bin
+          key: ${{ runner.os }}-pipx-${{ hashFiles('**/conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pipx-
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            build-essential \
+            pkg-config \
+            git \
+            pipx \
+            python3-pip \
+            libudev-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libfontenc-dev \
+            libice-dev \
+            libsm-dev \
+            libxau-dev \
+            libxaw7-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxdamage-dev \
+            libxext-dev \
+            libxfixes-dev \
+            libxi-dev \
+            libxinerama-dev \
+            libxkbfile-dev \
+            libxmu-dev \
+            libxmuu-dev \
+            libxpm-dev \
+            libxrandr-dev \
+            libxrender-dev \
+            libxres-dev \
+            libxss-dev \
+            libxt-dev \
+            libxtst-dev \
+            libxv-dev \
+            libxxf86vm-dev \
+            libxcb-glx0-dev \
+            libxcb-render0-dev \
+            libxcb-render-util0-dev \
+            libxcb-xkb-dev \
+            libxcb-icccm4-dev \
+            libxcb-image0-dev \
+            libxcb-keysyms1-dev \
+            libxcb-randr0-dev \
+            libxcb-shape0-dev \
+            libxcb-sync-dev \
+            libxcb-xfixes0-dev \
+            libxcb-xinerama0-dev \
+            libxcb-dri3-dev \
+            libxcb-cursor-dev \
+            libxcb-dri2-0-dev \
+            libxcb-present-dev \
+            libxcb-composite0-dev \
+            libxcb-ewmh-dev \
+            libxcb-res0-dev \
+            libxcb-util-dev \
+            libxcb-util0-dev \
+            uuid-dev \
+            libgl1-mesa-dev \
+            libopenal-dev \
+            libflac-dev \
+            libvorbis-dev \
+            libfreetype6-dev \
+            libjpeg-dev
 
-  package:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Ensure pipx is in PATH
+        run: |
+          pipx ensurepath
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-    # TODO: Add steps to package the build artifacts
+      - name: Install Conan
+        run: |
+          pipx install conan
 
-  release:
-    runs-on: ubuntu-latest
-    needs: package
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Verify installations
+        run: |
+          cmake --version
+          gcc --version
+          conan --version
 
-    # TODO: Add steps to release the package
+      - name: Cache Conan packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.conan2/p
+          key: ${{ runner.os }}-conan-${{ hashFiles('**/conanfile.py') }}
+          restore-keys: |
+            ${{ runner.os }}-conan-
+
+      - name: Create Conan profile
+        run: |
+          conan profile detect --force
+
+      - name: Configure Conan for better network reliability
+        run: |
+          # Increase download timeout and retry attempts
+          conan config home
+          mkdir -p ~/.conan2/global.conf.d
+          cat > ~/.conan2/global.conf.d/network.conf << 'EOF'
+          core.download:retry=5
+          core.download:retry_wait=10
+          EOF
+
+      - name: Install Conan dependencies
+        run: |
+          conan install . \
+            --output-folder=Build \
+            --build=missing \
+            --profile:build=default \
+            --profile:host=default \
+            --settings=build_type=Release \
+            --settings=compiler.cppstd=20 \
+            --settings=compiler=gcc \
+            --settings=compiler.version=$(gcc -dumpversion | cut -d. -f1) \
+            -c tools.system.package_manager:mode=check \
+            -c tools.system.package_manager:sudo=True
+        timeout-minutes: 60
+
+      - name: Configure CMake
+        run: |
+          cmake -B Build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_TOOLCHAIN_FILE=Build/build/Release/generators/conan_toolchain.cmake
+
+      - name: Build project
+        run: |
+          cmake --build Build --config Release -j$(nproc)
+
+      - name: List build artifacts
+        run: |
+          echo "=== Built executables ==="
+          ls -lh Build/bin/
+          echo ""
+          echo "=== Built libraries ==="
+          ls -lh Build/libs/
+
+      - name: Package TKDEngine artifacts
+        run: |
+          mkdir -p release-packages/TKDEngine
+          
+          # Copy executables
+          cp Build/bin/TKDEngineClient release-packages/TKDEngine/ || true
+          cp Build/bin/TKDEngineServer release-packages/TKDEngine/ || true
+          
+          # Copy libraries
+          cp Build/libs/libTKDEngineClient.so* release-packages/TKDEngine/ 2>/dev/null || true
+          cp Build/libs/libTKDEngineServer.so* release-packages/TKDEngine/ 2>/dev/null || true
+          
+          # Create archive
+          cd release-packages
+          tar -czf TKDEngine-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz TKDEngine/
+          cd ..
+          
+          echo "TKDEngine package created"
+          ls -lh release-packages/*.tar.gz
+
+      - name: Package RType artifacts
+        run: |
+          mkdir -p release-packages/RType
+          
+          # Copy executables
+          cp Build/bin/RTypeGameClient release-packages/RType/ || true
+          cp Build/bin/RTypeGameServer release-packages/RType/ || true
+          
+          # Copy libraries
+          cp Build/libs/libRTypeGameClient.so* release-packages/RType/ 2>/dev/null || true
+          cp Build/libs/libRTypeGameServer.so* release-packages/RType/ 2>/dev/null || true
+          
+          # Copy Assets and Data if they exist
+          cp -r Build/bin/Assets release-packages/RType/ 2>/dev/null || true
+          cp -r Build/bin/Data release-packages/RType/ 2>/dev/null || true
+          
+          # Create archive
+          cd release-packages
+          tar -czf RType-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz RType/
+          cd ..
+          
+          echo "RType package created"
+          ls -lh release-packages/*.tar.gz
+
+      - name: Package BeatSaber artifacts
+        run: |
+          mkdir -p release-packages/BeatSaber
+          
+          # Copy executables
+          cp Build/bin/BeatSaberGameClient release-packages/BeatSaber/ || true
+          cp Build/bin/BeatSaberGameServer release-packages/BeatSaber/ || true
+          
+          # Copy libraries
+          cp Build/libs/libBeatSaberGameClient.so* release-packages/BeatSaber/ 2>/dev/null || true
+          cp Build/libs/libBeatSaberGameServer.so* release-packages/BeatSaber/ 2>/dev/null || true
+          
+          # Create archive
+          cd release-packages
+          tar -czf BeatSaber-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz BeatSaber/
+          cd ..
+          
+          echo "BeatSaber package created"
+          ls -lh release-packages/*.tar.gz
+
+      - name: Create release notes
+        run: |
+          cat > release-notes.md << 'EOF'
+          # R-Type Project Release ${{ steps.version.outputs.full_version }}
+          
+          ## 📦 Release Contents
+          
+          This release includes three main packages:
+          
+          ### 🎮 TKDEngine
+          - `TKDEngineClient` - Client executable with graphics support
+          - `TKDEngineServer` - Server executable (headless)
+          - Associated shared libraries (`.so` files)
+          
+          ### 🚀 R-Type Game
+          - `RTypeGameClient` - R-Type game client
+          - `RTypeGameServer` - R-Type game server
+          - Associated shared libraries
+          - Game assets and data files
+          
+          ### 🎵 BeatSaber Game
+          - `BeatSaberGameClient` - BeatSaber game client
+          - `BeatSaberGameServer` - BeatSaber game server
+          - Associated shared libraries
+          
+          ## 🛠️ System Requirements
+          
+          - **OS:** Linux (Ubuntu 20.04+ recommended)
+          - **Architecture:** x86_64
+          - **Dependencies:** SFML, OpenGL, OpenAL (see README for full list)
+          
+          ## 📥 Installation
+          
+          1. Download the package(s) you need
+          2. Extract: `tar -xzf <package-name>.tar.gz`
+          3. Run executables from the extracted directory
+          
+          ## 📖 Full Documentation
+          
+          EOF
+          
+          # Append README content
+          cat README.md >> release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.full_version }}
+          name: Release v${{ steps.version.outputs.full_version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: true
+          files: |
+            release-packages/TKDEngine-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz
+            release-packages/RType-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz
+            release-packages/BeatSaber-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "✅ Release v${{ steps.version.outputs.full_version }} created successfully!"
+          echo ""
+          echo "📦 Packages:"
+          echo "  - TKDEngine-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz"
+          echo "  - RType-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz"
+          echo "  - BeatSaber-${{ steps.version.outputs.full_version }}-linux-x64.tar.gz"
