@@ -24,6 +24,24 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Members
     ///////////////////////////////////////////////////////////////////////////
+    static constexpr SizeT NUM_SPECTRUM_BARS = 32;   //<! Number of bars
+    static constexpr float MAX_BAR_HEIGHT = 20.0f;   //<! Max height of bars
+    static constexpr SizeT NUM_SPINNING_CUBE = 8;    //<! Number of cubes
+
+private:
+    ///////////////////////////////////////////////////////////////////////////
+    // Class Member
+    ///////////////////////////////////////////////////////////////////////////
+    float m_maxAmplitude;   //<! Maximum amplitude for spectrum normalization
+    std::vector<float> m_smoothedHeights;   //<! Smoothed heights for each bar
+    float m_barIntensity;     //<! Intensity for the top flicker bar
+    float m_previousEnergy;   //<! Previous energy for beat detection
+    std::vector<float> m_energyHistory;   //<! History of energy values
+    bool m_beatDetected;                  //<! Current beat detection state
+    std::vector<float>
+        m_cubeRotations;   //<! Current rotation for each cube (in degrees)
+    std::vector<float> m_cubeRotationSpeeds;   //<! Base rotation speed for
+                                               // each cube (degrees/sec)
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -45,7 +63,7 @@ public:
     /// \param deltaTime The time elapsed since the last tick
     ///
     ///////////////////////////////////////////////////////////////////////////
-    // virtual void Tick(Float32 deltaTime) override;
+    virtual void Tick(Float32 deltaTime) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Called when the object is being destroyed
@@ -60,4 +78,4 @@ public:
     DECLARE_CLASS_WITH_SUPER(BP_Platform, AActor)
 };
 
-} // !namespace tkd
+}   // namespace tkd
