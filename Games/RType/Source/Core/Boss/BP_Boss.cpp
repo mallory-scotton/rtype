@@ -40,15 +40,16 @@ void BP_Boss::BeginPlay(void)
         Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
         Billboard->SetFlipBook(&m_idleAnimation);
         FTransform t = Billboard->GetLocalTransform();
-        t.SetScale(FVector3(2.f, 2.f, 1.0f));
-        Billboard->SetLocalTransform(t);
+        t.SetPosition(FVector3(6.0f, -1.0f, -0.1f));
+        t.SetScale(FVector3(1.5f, 1.5f, 1.0f));
+        SetTransform(t);
     }
 
     auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
     if (Box)
     {
         Box->SetHiddenInGame(false);
-        Box->SetBoxExtent(FVector3f(0.5f, 0.5f, 0.5f));
+        Box->SetBoxExtent(FVector3f(1.5f, 2.5f, 1.5f));
     }
 }
 
@@ -92,6 +93,7 @@ void BP_Boss::TakeDamage(Int32 amount)
             //     &m_moveUpAnimation
             // );   // placeholder for death
         }
+        this->MarkForDeletion();
     }
 }
 
