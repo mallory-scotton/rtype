@@ -36,6 +36,15 @@ void BP_LobbyGameMode::BeginPlay(void)
 
     FLogger::Info("[Lobby GameMode] Initialized");
 
+    // Spawn the HUD using deferred spawning to ensure BeginPlay is called
+    if (!m_hudClassName.IsEmpty())
+    {
+        World::SpawnActorDeferred(m_hudClassName, FTransform::Identity);
+        FLogger::Info(
+            "[Lobby GameMode] Spawned HUD (deferred): {}", m_hudClassName
+        );
+    }
+
     // On server, find all player controllers
     if (IsAuthority())
     {
