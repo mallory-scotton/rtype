@@ -6,6 +6,10 @@
 #include <Engine/Assets/URessource.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
 
+#if TKD_ENGINE_CLIENT
+    #include <Engine/Static/FWindowInterface.hpp>
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,16 +74,67 @@ void UWidgetImageComponent::Tick(Float32 deltaTime)
     {
         FVector2u texSize = m_textureHandle.Get()->GetSize();
         FVector2 textureSize(texSize.x, texSize.y);
-        FVector2 sizeBasedScale = GetSize() / textureSize;
 
-        m_sprite.SetScale(sizeBasedScale * GetScale());
-        FVector2 widgetOrigin = GetOrigin();
+        FVector2 widgetSize = GetSize();
+        if (widgetSize.x <= 0.0f || widgetSize.y <= 0.0f)
+        {
+            widgetSize = textureSize;
+            SetSize(widgetSize);
+        }
 
-        FVector2 spriteOrigin = widgetOrigin / (sizeBasedScale * GetScale());
+        bool isFullScreen =
+            (widgetSize.x >= 1920.0f && widgetSize.y >= 1080.0f);
+
+        FVector2 targetSize;
+        if (isFullScreen)
+        {
+#if TKD_ENGINE_CLIENT
+            FVector2u windowDims = Window::GetDimensions();
+            if (windowDims.x > 0 && windowDims.y > 0)
+            {
+                targetSize = FVector2(windowDims.x, windowDims.y);
+            }
+            else
+#endif
+            {
+                float uniformScale = GetUniformScale();
+                targetSize = widgetSize * uniformScale;
+            }
+        }
+        else
+        {
+            float uniformScale = GetUniformScale();
+            targetSize = widgetSize * uniformScale;
+        }
+
+        FVector2 scaleRatio = targetSize / textureSize;
+        float aspectScale = isFullScreen
+                                ? std::max(scaleRatio.x, scaleRatio.y)
+                                : std::min(scaleRatio.x, scaleRatio.y);
+
+        FVector2 finalScale(aspectScale, aspectScale);
+        m_sprite.SetScale(finalScale * GetScale());
+
+        FVector2 displayedSize = textureSize * aspectScale;
+
+        FVector2 origin = FVector2::Zero;
+        if (GetAlignment() != EAlignment::None)
+        {
+            int alignIndex = static_cast<int>(GetAlignment()) - 1;
+            int alignX = alignIndex % 3;
+            int alignY = alignIndex / 3;
+            origin = FVector2(
+                alignX * displayedSize.x * 0.5f,
+                alignY * displayedSize.y * 0.5f
+            );
+        }
+
+        FVector2 spriteOrigin = origin / (finalScale * GetScale());
         m_sprite.SetOrigin(spriteOrigin);
     }
 
-    m_sprite.SetPosition(GetPosition());
+    // Use scaled position
+    m_sprite.SetPosition(GetScaledPosition());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
