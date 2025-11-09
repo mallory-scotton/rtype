@@ -87,12 +87,36 @@ void UWidgetTextComponent::BeginPlay(void)
     Super::BeginPlay();
 
     m_textShape.SetString(m_text);
-    m_textShape.SetPosition(GetPosition());
+    m_textShape.SetPosition(GetScaledPosition());
     m_textShape.SetColor(m_color);
-    m_textShape.SetCharacterSize(m_charSize);
+
+    // Scale character size uniformly to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+    FVector2 scaledCharSize = m_charSize * uniformScale;
+    m_textShape.SetCharacterSize(scaledCharSize);
+
     m_textShape.SetFont(m_fontPath);
-    m_textShape.SetSpacing(m_spacing);
-    m_textShape.SetOrigin(Super::GetOrigin());
+    m_textShape.SetSpacing(m_spacing * uniformScale);
+
+    // Calculate scaled origin
+    if (GetAlignment() == EAlignment::None)
+    {
+        m_textShape.SetOrigin(FVector2::Zero);
+    }
+    else
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+
+        float textWidth = m_textShape.GetTextWidth();
+        float textHeight = scaledCharSize.y;
+
+        FVector2 textOrigin(
+            alignX * textWidth * 0.5f, alignY * textHeight * 0.5f
+        );
+        m_textShape.SetOrigin(textOrigin);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -106,9 +130,14 @@ void UWidgetTextComponent::Tick(Float32 deltaTime)
     // Update text properties
     m_textShape.SetString(m_text);
     m_textShape.SetColor(m_color);
-    m_textShape.SetCharacterSize(m_charSize);
-    m_textShape.SetSpacing(m_spacing);
-    m_textShape.SetPosition(GetPosition());
+
+    // Scale character size uniformly to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+    FVector2 scaledCharSize = m_charSize * uniformScale;
+    m_textShape.SetCharacterSize(scaledCharSize);
+
+    m_textShape.SetSpacing(m_spacing * uniformScale);
+    m_textShape.SetPosition(GetScaledPosition());
 
     // Calculate and set origin based on alignment
     if (GetAlignment() == EAlignment::None)
@@ -122,7 +151,7 @@ void UWidgetTextComponent::Tick(Float32 deltaTime)
         int alignY = alignIndex / 3;   // 0=Top, 1=Center, 2=Bottom
 
         float textWidth = m_textShape.GetTextWidth();
-        float textHeight = m_charSize.y;
+        float textHeight = scaledCharSize.y;
 
         FVector2 textOrigin(
             alignX * textWidth * 0.5f, alignY * textHeight * 0.5f

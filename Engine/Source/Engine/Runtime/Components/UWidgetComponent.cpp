@@ -4,6 +4,7 @@
 #include <Engine/Runtime/Components/UWidgetComponent.hpp>
 #include <Engine/Runtime/Actor/AActor.hpp>
 #include <Engine/Static/FWindowInterface.hpp>
+#include <Engine/Static/FWindowSubsystem.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -126,9 +127,24 @@ void UWidgetComponent::SetEnabled(Bool enabled) { m_enabled = enabled; }
 ///////////////////////////////////////////////////////////////////////////////
 bool UWidgetComponent::ContainsPoint(const FVector2& point) const
 {
-    FVector2 origin = GetOrigin();
-    FVector2 topLeft = m_position - origin;
-    FVector2 bottomRight = topLeft + m_size;
+    // Use scaled position and size for hit detection
+    FVector2 scaledPos = GetScaledPosition();
+    FVector2 scaledSize = GetScaledSize();
+
+    // Calculate origin based on alignment
+    FVector2 origin = FVector2::Zero;
+    if (m_align != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(m_align) - 1;
+        int alignX = alignIndex % 3;   // 0=Left, 1=Center, 2=Right
+        int alignY = alignIndex / 3;   // 0=Top, 1=Center, 2=Bottom
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+
+    FVector2 topLeft = scaledPos - origin;
+    FVector2 bottomRight = topLeft + scaledSize;
 
     return point.x >= topLeft.x && point.x <= bottomRight.x &&
            point.y >= topLeft.y && point.y <= bottomRight.y;
@@ -181,6 +197,77 @@ void UWidgetComponent::UpdateInputStates()
         m_isUnclicked = false;
         m_wasMousePressed = isMousePressed;
     }
+#if TKD_ENGINE_CLIENT
+    auto* windowSubsystem = Window::GetWindowSubsystem();
+    if (windowSubsystem && windowSubsystem->GetWindow())
+    {
+        FVector2u physicalSize = Window::GetDimensions();
+        const FView& view = windowSubsystem->GetWindow()->GetCurrentView();
+        FVector2 gameSize = view.GetSize();
+        const FRectangle& viewport = view.GetViewport();
+    }
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FVector2 UWidgetComponent::GetScaledPosition(void) const
+{
+#if TKD_ENGINE_CLIENT
+    FVector2u actualSize = Window::GetDimensions();
+    constexpr float refWidth = 1920.0f;
+    constexpr float refHeight = 1080.0f;
+
+    // If window dimensions are not yet initialized, return unscaled position
+    if (actualSize.x == 0 || actualSize.y == 0) { return m_position; }
+
+    float scaleX = static_cast<float>(actualSize.x) / refWidth;
+    float scaleY = static_cast<float>(actualSize.y) / refHeight;
+
+    return FVector2(m_position.x * scaleX, m_position.y * scaleY);
+#else
+    return m_position;
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+FVector2 UWidgetComponent::GetScaledSize(void) const
+{
+#if TKD_ENGINE_CLIENT
+    FVector2u actualSize = Window::GetDimensions();
+    constexpr float refWidth = 1920.0f;
+    constexpr float refHeight = 1080.0f;
+
+    // If window dimensions are not yet initialized, return unscaled size
+    if (actualSize.x == 0 || actualSize.y == 0) { return m_size; }
+
+    float scaleX = static_cast<float>(actualSize.x) / refWidth;
+    float scaleY = static_cast<float>(actualSize.y) / refHeight;
+
+    return FVector2(m_size.x * scaleX, m_size.y * scaleY);
+#else
+    return m_size;
+#endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+float UWidgetComponent::GetUniformScale(void) const
+{
+#if TKD_ENGINE_CLIENT
+    FVector2u actualSize = Window::GetDimensions();
+    constexpr float refWidth = 1920.0f;
+    constexpr float refHeight = 1080.0f;
+
+    // If window dimensions are not yet initialized, return 1.0 (no scale)
+    if (actualSize.x == 0 || actualSize.y == 0) { return 1.0f; }
+
+    float scaleX = static_cast<float>(actualSize.x) / refWidth;
+    float scaleY = static_cast<float>(actualSize.y) / refHeight;
+
+    // Use average of both scales to maintain aspect ratio
+    return (scaleX + scaleY) * 0.5f;
+#else
+    return 1.0f;
+#endif
 }
 
 ///////////////////////////////////////////////////////////////////////////////

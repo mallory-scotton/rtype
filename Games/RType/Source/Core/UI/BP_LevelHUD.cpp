@@ -33,23 +33,13 @@ void BP_LevelHUD::BeginPlay(void)
         m_bottomPanel->SetColor(
             FColor{ 0.1, 0.1, 0.1, 1 }
         );                                                  // Dark Grey color
-        m_bottomPanel->SetSize(FVector2(2000.0f, 40.0f));   // 200x40 pixels
+        m_bottomPanel->SetSize(FVector2(3000.0f, 80.0f));   // 3000x80 pixels
         m_bottomPanel->SetAlignment(
             UWidgetComponent::EAlignment::BottomCenter
         );
         m_bottomPanel->SetPosition(
-            // FVector2(640.0f, 360.0f) // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(640.0f, 720.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(960.0f, 1080.0f)   // Bottom-center edge (1920x1080)
         );
-        FString lol;
-        int lal = atoi(lol.CStr());
     }
 
     // Setup Text properties
@@ -63,15 +53,7 @@ void BP_LevelHUD::BeginPlay(void)
         m_textPlayer->SetFontPath("Assets/Font/mainFont.png");
         m_textPlayer->SetAlignment(UWidgetComponent::EAlignment::Center);
         m_textPlayer->SetPosition(
-            // FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(50.0f, 700.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(75.0f, 1060.0f)   // Bottom-left area (1920x1080)
         );
     }
 
@@ -86,15 +68,7 @@ void BP_LevelHUD::BeginPlay(void)
         m_textPlayerScore->SetFontPath("Assets/Font/mainFont.png");
         m_textPlayerScore->SetAlignment(UWidgetComponent::EAlignment::Center);
         m_textPlayerScore->SetPosition(
-            // FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(175.0f, 700.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(280.0f, 1060.0f)   // Bottom-left area (1920x1080)
         );
     }
 
@@ -108,15 +82,7 @@ void BP_LevelHUD::BeginPlay(void)
         m_textHigh->SetFontPath("Assets/Font/mainFont.png");
         m_textHigh->SetAlignment(UWidgetComponent::EAlignment::Center);
         m_textHigh->SetPosition(
-            // FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(400.0f, 700.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(600.0f, 1060.0f)   // Bottom-middle area (1920x1080)
         );
     }
 
@@ -130,15 +96,7 @@ void BP_LevelHUD::BeginPlay(void)
         m_textHighScore->SetFontPath("Assets/Font/mainFont.png");
         m_textHighScore->SetAlignment(UWidgetComponent::EAlignment::Center);
         m_textHighScore->SetPosition(
-            // FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(525.0f, 700.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(790.0f, 1060.0f)   // Bottom-middle area (1920x1080)
         );
     }
 
@@ -152,15 +110,7 @@ void BP_LevelHUD::BeginPlay(void)
         m_textBEAM->SetFontPath("Assets/Font/mainFont.png");
         m_textBEAM->SetAlignment(UWidgetComponent::EAlignment::Center);
         m_textBEAM->SetPosition(
-            // FVector2(640.0f, 360.0f)   // Center of screen (1280x720)
-            // FVector2(0.0f, 0.0f)   // Top-left corner
-            // FVector2(0.0f, 720.0f)   // Top-right corner
-            // FVector2(1280.0f, 720.0f) // Bottom-right corner
-            // FVector2(1280.0f, 0.0f)  // Bottom-left corner
-            // FVector2(0.0f, 360.0f)   // Middle-left edge
-            // FVector2(1280.0f, 360.0f)  // Middle-right edge
-            FVector2(185.0f, 680.0f)   // Bottom-center edge
-            // FVector2(640.0f, 0.0f)   // Top-center edge
+            FVector2(280.0f, 1025.0f)   // Bottom-left area (1920x1080)
         );
     }
 }
