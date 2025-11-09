@@ -37,6 +37,30 @@ bool Engine::Initialize(int argc, char* argv[])
     // Process command line
     if (!ProcessCommandLine(argc, argv)) { return false; }
 
+    // If auto-connect is enabled, override default level to go to lobby
+#if TKD_ENGINE_CLIENT
+    if (m_networkConfig.autoConnect && m_game)
+    {
+        FLogger::Info(
+            "[Engine] Auto-connect enabled, setting default level to Lobby"
+        );
+        m_game->SetDefaultLevel("L_RType_Lobby");
+    }
+    else if (!m_networkConfig.autoConnect && m_game)
+    {
+        FLogger::Info(
+            "[Engine] Auto-connect disabled, setting default level to Lobby"
+        );
+        m_game->SetDefaultLevel("L_RType_MainMenu");
+    }
+#elif TKD_ENGINE_SERVER
+    if (m_game)
+    {
+        FLogger::Info("[Engine] Server setting default level to Lobby");
+        m_game->SetDefaultLevel("L_RType_Lobby");
+    }
+#endif
+
     // Print startup message
     PrintStartupMessage();
 
