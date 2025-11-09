@@ -276,6 +276,10 @@ bool UWorld::SpawnLevel(ULevel* level)
         }
     }
 
+    // If we created a game mode and the world has already begun play,
+    // call BeginPlay on the game mode now
+    if (m_gameMode && m_hasBegunPlay) { m_gameMode->BeginPlay(); }
+
     // Spawn actors from the level
     for (const auto& entry: level->GetActorEntries())
     {
