@@ -18,9 +18,6 @@ L_RType_Lobby::L_RType_Lobby()
     // Set the GameMode for this level
     // The GameMode will automatically spawn the PlayerController and HUD
     SetGameMode("BP_LobbyGameMode");
-
-    // Add background
-    AddActorEntry("BP_Background", "Background1", FTransform::Identity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
