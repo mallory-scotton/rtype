@@ -15,10 +15,9 @@ L_RType_MainMenu::L_RType_MainMenu()
 {
     SetLevelName("L_RType_MainMenu");
 
-    // Add the main menu controller to handle input
-    AddActorEntry(
-        "BP_MainMenuController", "MainMenuController", FTransform::Identity
-    );
+    // Set the GameMode for this level
+    // The GameMode will automatically spawn the PlayerController and HUD
+    SetGameMode("BP_MainMenuGameMode");
 
     // Add background for visual consistency
     AddActorEntry("BP_Background", "Background1", FTransform::Identity);
