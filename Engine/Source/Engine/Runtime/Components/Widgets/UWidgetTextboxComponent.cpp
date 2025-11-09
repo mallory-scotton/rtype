@@ -194,7 +194,7 @@ void UWidgetTextboxComponent::CaptureTypedText(void)
         m_keyCooldowns[EInput::Keyboard_Space] = 0.15f;
         if (ctrlHeld && !m_text.IsEmpty()) { m_text += "."; }
         else if (shiftHeld && !m_text.IsEmpty()) { m_text += "."; }
-        else { m_text += " "; }
+        else { m_text += "."; }
     }
 
     // Other characters
@@ -214,15 +214,35 @@ void UWidgetTextboxComponent::BeginPlay(void)
     Super::BeginPlay();
 
     m_rectangleShape.SetFillColor(m_backgroundColor);
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetOrigin());
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+    FVector2 scaledSize = GetSize() * uniformScale;
+    m_rectangleShape.SetSize(scaledSize);
+
+    // Calculate scaled origin
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 
     m_textShape.SetFont(m_fontPath);
-    m_textShape.SetCharacterSize(m_charSize);
-    m_textShape.SetSpacing(m_spacing);
+
+    // Scale character size uniformly to maintain aspect ratio
+    FVector2 scaledCharSize = m_charSize * uniformScale;
+    m_textShape.SetCharacterSize(scaledCharSize);
+
+    m_textShape.SetSpacing(m_spacing * uniformScale);
     m_textShape.SetString(m_text);
-    m_textShape.SetPosition(GetPosition());
+    m_textShape.SetPosition(GetScaledPosition());
     m_textShape.SetColor(m_textColor);
 }
 
@@ -234,8 +254,24 @@ void UWidgetTextboxComponent::Tick(Float32 deltaTime)
 {
     Super::Tick(deltaTime);
 
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetOrigin(GetOrigin());
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+
+    // Calculate scaled origin
+    FVector2 scaledSize = GetSize() * uniformScale;
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 
     if (Super::IsFocused())
     {
@@ -244,11 +280,16 @@ void UWidgetTextboxComponent::Tick(Float32 deltaTime)
     else { m_rectangleShape.SetFillColor(m_backgroundColor); }
 
     m_textShape.SetString(m_text);
-    m_textShape.SetPosition(GetPosition());
-    m_textShape.SetCharacterSize(m_charSize);
-    m_textShape.SetSpacing(m_spacing);
+    m_textShape.SetPosition(GetScaledPosition());
+
+    // Scale character size uniformly to maintain aspect ratio
+    FVector2 scaledCharSize = m_charSize * uniformScale;
+    m_textShape.SetCharacterSize(scaledCharSize);
+
+    m_textShape.SetSpacing(m_spacing * uniformScale);
     m_textShape.SetColor(m_textColor);
 
+    // Use unscaled values for adaptive sizing (will be scaled uniformly)
     float charWidth = m_charSize.x + m_spacing;
     float textHeight = m_charSize.y;
     UInt32 textLength = m_text.Length();
@@ -260,8 +301,11 @@ void UWidgetTextboxComponent::Tick(Float32 deltaTime)
 
         m_size.x = visibleChars * charWidth + 20.0f;   // +20 for padding
         m_size.y = textHeight + 10.0f;                 // +10 for padding
+
+        // Recalculate scaled size after updating m_size
+        scaledSize = GetSize() * uniformScale;
     }
-    m_rectangleShape.SetSize(GetSize());
+    m_rectangleShape.SetSize(scaledSize);
 
     if (GetAlignment() == EAlignment::None)
     {
@@ -274,9 +318,10 @@ void UWidgetTextboxComponent::Tick(Float32 deltaTime)
         int alignY = alignIndex / 3;
 
         float textWidth = m_textShape.GetTextWidth();
+        float scaledTextHeight = scaledCharSize.y;
 
         FVector2 textOrigin(
-            alignX * textWidth * 0.5f, alignY * textHeight * 0.5f
+            alignX * textWidth * 0.5f, alignY * scaledTextHeight * 0.5f
         );
 
         m_textShape.SetOrigin(textOrigin);
