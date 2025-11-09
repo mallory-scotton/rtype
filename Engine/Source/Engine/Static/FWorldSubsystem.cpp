@@ -225,4 +225,11 @@ ULevel* FWorldSubsystem::GetCurrentLevel(void) const
     return m_world->GetCurrentLevel();
 }
 
+///////////////////////////////////////////////////////////////////////////////
+bool FWorldSubsystem::LoadDefaultLevel(const FString& defaultLevelName)
+{
+    std::unique_lock lock(m_worldMutex);
+    return m_world->LoadDefaultLevel(defaultLevelName);
+}
+
 }   // namespace tkd::__internal
