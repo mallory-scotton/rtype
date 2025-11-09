@@ -205,12 +205,6 @@ void UWidgetComponent::UpdateInputStates()
         const FView& view = windowSubsystem->GetWindow()->GetCurrentView();
         FVector2 gameSize = view.GetSize();
         const FRectangle& viewport = view.GetViewport();
-
-        std::cout << "Physical: " << physicalSize.x << "x" << physicalSize.y
-                  << " | Game: " << gameSize.x << "x" << gameSize.y
-                  << " | Viewport: [" << viewport.left << "," << viewport.top
-                  << "," << viewport.width << "," << viewport.height << "]"
-                  << std::endl;
     }
 #endif
 }
