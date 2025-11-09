@@ -92,10 +92,10 @@ UWorld::UWorld(const FString& name)
         }
     }
 
+    // Don't spawn any level yet - wait for SetDefaultLevel to be called
     if (!m_loadedLevels.empty())
     {
-        m_currentLevel = &m_loadedLevels[0];
-        SpawnLevel(m_currentLevel);
+        FLogger::Info("[World] Loaded {} levels", m_loadedLevels.size());
     }
 }
 
@@ -313,6 +313,47 @@ bool UWorld::ChangeLevel(const FString& levelName)
 
     // Level not found
     return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool UWorld::LoadDefaultLevel(const FString& defaultLevelName)
+{
+    if (m_loadedLevels.empty())
+    {
+        FLogger::Warn("[World] No levels loaded");
+        return false;
+    }
+
+    // Try to find the level with the matching name
+    ULevel* defaultLevel = nullptr;
+    for (auto& level: m_loadedLevels)
+    {
+        if (level.GetLevelName() == defaultLevelName)
+        {
+            defaultLevel = &level;
+            break;
+        }
+    }
+
+    // Fall back to first level if default not found
+    if (!defaultLevel)
+    {
+        defaultLevel = &m_loadedLevels[0];
+        FLogger::Warn(
+            "[World] Default level '{}' not found, using first available level: '{}'",
+            defaultLevelName,
+            defaultLevel->GetLevelName()
+        );
+    }
+    else
+    {
+        FLogger::Info(
+            "[World] Loading default level: {}", defaultLevel->GetLevelName()
+        );
+    }
+
+    m_currentLevel = defaultLevel;
+    return SpawnLevel(m_currentLevel);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
