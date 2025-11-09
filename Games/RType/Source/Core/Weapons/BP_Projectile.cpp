@@ -55,10 +55,21 @@ void BP_Projectile::BeginPlay(void)
                 Collision,
                 [this](const FCollisionInfo& info)
                 {
+                    // Safety checks - validate all pointers before use
+                    if (!info.otherActor) { return; }
+                    if (!info.otherComponent) { return; }
+
+                    // Check if either actor is already marked for deletion
+                    if (info.otherActor->IsMarkedForDeletion()) { return; }
+                    if (this->IsMarkedForDeletion()) { return; }
+
+                    // Don't collide with players
                     if (info.otherActor->Is<BP_Player>()) { return; }
 
+                    // Only destroy monsters
                     if (info.otherActor->Is<BP_Monster>())
                     {
+                        // Mark both for deletion
                         info.otherActor->MarkForDeletion();
                         this->MarkForDeletion();
                     }
@@ -71,6 +82,9 @@ void BP_Projectile::BeginPlay(void)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Projectile::Tick(Float32 deltaTime)
 {
+    // Early exit if marked for deletion
+    if (IsMarkedForDeletion()) { return; }
+
     // Call Super Tick
     Super::Tick(deltaTime);
 

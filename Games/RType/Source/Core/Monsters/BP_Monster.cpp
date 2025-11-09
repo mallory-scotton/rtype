@@ -52,6 +52,11 @@ BP_Monster::BP_Monster(const UUID& uuid, const FVector3& initialOffset)
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::BeginPlay(void)
 {
+    FLogger::SetNamespace("Game");
+    FLogger::Debug(
+        "[BP_MONSTER] BeginPlay - START, UUID: {}", GetUUID().ToString()
+    );
+
     Super::BeginPlay();
 
     // Record spawn position as center of roaming
@@ -60,38 +65,60 @@ void BP_Monster::BeginPlay(void)
     if (m_spawnPosition == FVector3::Zero)
     {
         m_spawnPosition = GetTransform().GetPosition();
+        FLogger::Debug(
+            "[BP_MONSTER] Spawn position: ({}, {}, {})",
+            m_spawnPosition.x,
+            m_spawnPosition.y,
+            m_spawnPosition.z
+        );
     }
     if (m_initialOffset != FVector3::Zero)
     {
         m_targetPosition = m_spawnPosition + m_initialOffset;
         m_timeSinceTarget = 0.0f;
         m_waitRemaining = 0.0f;
+        FLogger::Debug(
+            "[BP_MONSTER] Initial target: ({}, {}, {})",
+            m_targetPosition.x,
+            m_targetPosition.y,
+            m_targetPosition.z
+        );
     }
 
     auto Billboard = GetComponent<UBillboardComponent>("BC_MonsterSprite");
     if (Billboard)
     {
+        FLogger::Debug("[BP_MONSTER] Setting up billboard component");
         Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
         Billboard->SetFlipBook(&m_idleAnimation);
         FTransform t = Billboard->GetLocalTransform();
         t.SetScale(FVector3(0.5f, 0.5f, 1.0f));
         Billboard->SetLocalTransform(t);
     }
+    else { FLogger::Warn("[BP_MONSTER] Billboard component not found!"); }
 
     auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
     if (Box)
     {
+        FLogger::Debug("[BP_MONSTER] Setting up box collision component");
         Box->SetHiddenInGame(false);
         Box->SetBoxExtent(FVector3f(0.25f, 0.25f, 0.25f));
         FTransform transform = Box->GetLocalTransform();
         Box->SetLocalTransform(transform);
     }
+    else { FLogger::Warn("[BP_MONSTER] BoxCollision component not found!"); }
+
+    FLogger::Debug("[BP_MONSTER] BeginPlay - END");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 void BP_Monster::Tick(Float32 deltaTime)
 {
     Super::Tick(deltaTime);
+
+    // Early exit if marked for deletion to prevent RPC calls during
+    // destruction
+    if (IsMarkedForDeletion()) { return; }
 
     if (IsAuthority())
     {
@@ -153,7 +180,12 @@ void BP_Monster::Tick(Float32 deltaTime)
             // Apply authoritative transform on server
             SetTransform(serverTransform);
         }
-        MulticastPos(serverTransform, velocity);
+
+        // Only send RPC if not marked for deletion (double check)
+        if (!IsMarkedForDeletion())
+        {
+            MulticastPos(serverTransform, velocity);
+        }
     }
 
     UpdateAnimationState();
@@ -220,8 +252,6 @@ FTransform BP_Monster::SimulateMovement(
 {
     FTransform result = startTransform;
 
-    auto box = GetComponent<UBoxCollisionComponent>("BoxCollision");
-
     // Update velocity property for client-side animation/extrapolation
     if (inputVector.Length() > 0.0f)
     {
@@ -229,7 +259,6 @@ FTransform BP_Monster::SimulateMovement(
 
         FVector3 movement = inputVector * deltaTime;
         result.Translate(movement);
-        box->SetLocalTransform(result);
     }
     else { velocity = FVector2f::Zero; }
 

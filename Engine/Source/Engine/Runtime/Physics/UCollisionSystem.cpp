@@ -68,42 +68,56 @@ void UCollisionSystem::RegisterComponent(
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::UnregisterComponent(UCollisionComponent* component)
 {
-    auto it = m_componentToIndex.find(component);
-    if (it == m_componentToIndex.end()) { return; }
+    // Mark for deferred removal instead of removing immediately
+    // This prevents issues when unregistering during collision detection
+    m_pendingRemovals.push_back(component);
+}
 
-    SizeT index = it->second;
-
-    // Remove from vector (swap with last element for O(1) removal)
-    if (index < m_collisionComponents.size() - 1)
+///////////////////////////////////////////////////////////////////////////////
+void UCollisionSystem::ProcessPendingRemovals()
+{
+    for (UCollisionComponent* component: m_pendingRemovals)
     {
-        m_collisionComponents[index] = m_collisionComponents.back();
-        m_componentToIndex[m_collisionComponents[index].component] = index;
-    }
+        auto it = m_componentToIndex.find(component);
+        if (it == m_componentToIndex.end()) { continue; }
 
-    m_collisionComponents.pop_back();
-    m_componentToIndex.erase(it);
+        SizeT index = it->second;
 
-    // Clean up any overlapping pairs involving this component
-    std::vector<ComponentPair> toRemove;
-    for (const auto& pair: m_overlappingPairs)
-    {
-        ComponentPair compPair = pair.first;
-        if (compPair.a == component || compPair.b == component)
+        // Remove from vector (swap with last element for O(1) removal)
+        if (index < m_collisionComponents.size() - 1)
         {
-            toRemove.push_back(compPair);
+            m_collisionComponents[index] = m_collisionComponents.back();
+            m_componentToIndex[m_collisionComponents[index].component] = index;
         }
+
+        m_collisionComponents.pop_back();
+        m_componentToIndex.erase(it);
+
+        // Clean up any overlapping pairs involving this component
+        std::vector<ComponentPair> toRemove;
+        for (const auto& pair: m_overlappingPairs)
+        {
+            ComponentPair compPair = pair.first;
+            if (compPair.a == component || compPair.b == component)
+            {
+                toRemove.push_back(compPair);
+            }
+        }
+
+        for (const ComponentPair& pair: toRemove)
+        {
+            m_overlappingPairs.erase(pair);
+        }
+
+        // Clean up any registered callbacks for this component
+        m_onCollisionBegin.erase(component);
+        m_onCollisionEnd.erase(component);
+        m_onOverlapBegin.erase(component);
+        m_onOverlapEnd.erase(component);
     }
 
-    for (const ComponentPair& pair: toRemove)
-    {
-        m_overlappingPairs.erase(pair);
-    }
-
-    // Clean up any registered callbacks for this component
-    m_onCollisionBegin.erase(component);
-    m_onCollisionEnd.erase(component);
-    m_onOverlapBegin.erase(component);
-    m_onOverlapEnd.erase(component);
+    // Clear pending removals
+    m_pendingRemovals.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,6 +133,9 @@ void UCollisionSystem::MarkDirty(UCollisionComponent* component)
 ///////////////////////////////////////////////////////////////////////////////
 void UCollisionSystem::Update(Float32)
 {
+    // Process pending removals FIRST to avoid accessing deleted components
+    ProcessPendingRemovals();
+
     // Update bounding boxes for dirty components
     for (auto& entry: m_collisionComponents)
     {
@@ -146,8 +163,12 @@ void UCollisionSystem::Update(Float32)
             const CollisionEntry& entryA =
                 m_collisionComponents[cell.componentIndices[i]];
 
-            // Skip if component is not active
+            // Skip if component is not active or owner is marked for deletion
             if (!entryA.component || !entryA.component->IsActive())
+            {
+                continue;
+            }
+            if (!entryA.owner || entryA.owner->IsMarkedForDeletion())
             {
                 continue;
             }
@@ -157,8 +178,13 @@ void UCollisionSystem::Update(Float32)
                 const CollisionEntry& entryB =
                     m_collisionComponents[cell.componentIndices[j]];
 
-                // Skip if component is not active
+                // Skip if component is not active or owner is marked for
+                // deletion
                 if (!entryB.component || !entryB.component->IsActive())
+                {
+                    continue;
+                }
+                if (!entryB.owner || entryB.owner->IsMarkedForDeletion())
                 {
                     continue;
                 }
