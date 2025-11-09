@@ -18,9 +18,6 @@ L_RType_MainMenu::L_RType_MainMenu()
     // Set the GameMode for this level
     // The GameMode will automatically spawn the PlayerController and HUD
     SetGameMode("BP_MainMenuGameMode");
-
-    // Add background for visual consistency
-    AddActorEntry("BP_Background", "Background1", FTransform::Identity);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
