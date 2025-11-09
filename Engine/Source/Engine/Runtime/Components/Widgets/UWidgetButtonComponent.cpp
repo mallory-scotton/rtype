@@ -69,9 +69,25 @@ void UWidgetButtonComponent::BeginPlay(void)
     Super::BeginPlay();
 
     m_rectangleShape.SetFillColor(m_color);
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetSize() / 2.0f);
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+    FVector2 scaledSize = GetSize() * uniformScale;
+    m_rectangleShape.SetSize(scaledSize);
+
+    // Calculate scaled origin
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,10 +98,26 @@ void UWidgetButtonComponent::Tick(Float32 deltaTime)
 {
     Super::Tick(deltaTime);
 
-    // Update shape for debug rendering
-    m_rectangleShape.SetPosition(GetPosition());
-    m_rectangleShape.SetSize(GetSize());
-    m_rectangleShape.SetOrigin(GetOrigin());
+    // Update shape with uniform scaled values
+    m_rectangleShape.SetPosition(GetScaledPosition());
+
+    // Use uniform scale to maintain aspect ratio
+    float uniformScale = GetUniformScale();
+    FVector2 scaledSize = GetSize() * uniformScale;
+    m_rectangleShape.SetSize(scaledSize);
+
+    // Calculate scaled origin
+    FVector2 origin = FVector2::Zero;
+    if (GetAlignment() != EAlignment::None)
+    {
+        int alignIndex = static_cast<int>(GetAlignment()) - 1;
+        int alignX = alignIndex % 3;
+        int alignY = alignIndex / 3;
+        origin = FVector2(
+            alignX * scaledSize.x * 0.5f, alignY * scaledSize.y * 0.5f
+        );
+    }
+    m_rectangleShape.SetOrigin(origin);
 
     UpdateInputStates();
 
