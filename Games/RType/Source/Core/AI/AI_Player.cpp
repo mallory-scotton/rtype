@@ -12,34 +12,16 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 AI_Player::AI_Player(UInt32 playerColor)
-    : BP_Player()
-    , speed(*this, "Speed", 2.0f, EPropertyFlags::Replicated)
-    , velocity(*this, "Velocity", FVector2f::Zero)
-    , playerColor(*this, "PlayerColor", playerColor % 5)
-    , ServerFire(
-          *this,
-          "ServerFire",
-          ERPCType::Server,
-          std::bind(&AI_Player::RPC_ServerFire, this),
-          true
-      )
-    , MulticastFire(
-          *this,
-          "MulticastFire",
-          ERPCType::Multicast,
-          std::bind(
-              &AI_Player::RPC_MulticastFire, this, std::placeholders::_1
-          ),
-          true
-      )
-    , m_lastVelocity(FVector2f::Zero)
-    , m_lastFiredTime(0.0f)
-    , m_lastPosition(FVector3::Zero)
+    : BP_Player(playerColor)
+    , m_isMovementInitialized(false)
+    , m_totalTime(0.0f)
+    , m_waveFrequency(2.0f)
+    , m_waveAmplitude(300.0f)
+    , m_forwardSpeed(-1.0f)
+    , m_startY(0.0f)
+    , m_fireRate(0.8f)
 {
-    // Transform is replicated via ServerMoveRPC, not property replication
     SetTransformReplicated(true);
-
-    // Add components
     AddComponent<UBillboardComponent>("BC_PlayerSprite");
     AddComponent<UBoxCollisionComponent>("BoxCollision");
 }
@@ -84,45 +66,26 @@ void AI_Player::BeginPlay(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 void AI_Player::Tick(Float32 deltaTime)
 {
-    // For locally controlled players, use input velocity
-    if (IsLocallyControlled())
+    if (IsAuthority())
     {
-        // Build input vector from velocity
-        FVector3 inputVector(velocity->x, velocity->y, 0.0f);
-
-        // Normalize and scale the input if there is movement
-        FVector3 scaledInput = FVector3::Zero;
-        if (inputVector.Length() > 0.0f)
+        ApplyMovement(FVector3::Zero, deltaTime);
+        m_lastFiredTime += deltaTime;
+        if (m_lastFiredTime >= m_fireRate)
         {
-            // Normalize the input vector
-            FVector3 normalizedInput = inputVector.Normalized();
-
-            // Scale by speed
-            scaledInput = normalizedInput * speed();
+            m_lastFiredTime = 0.0f;
+            this->Fire();
         }
-
-        // ALWAYS call ApplyMovement, even with zero input
-        // This ensures stop commands are sent to the server
-        ApplyMovement(scaledInput, deltaTime);
     }
-    else if (!IsAuthority())
+    else
     {
-        // For simulated proxies (other players we see),
-        // calculate velocity from movement for animations
-        // The movement is already being interpolated by AActor::Tick
-
         FVector3 currentPosition = GetTransform().GetPosition();
-
-        // Calculate movement delta from last frame
         FVector3 movementDelta = currentPosition - m_lastPosition;
-
-        // Update velocity property for animation (normalized direction)
         if (movementDelta.Length() > 0.01f && deltaTime > 0.0f)
         {
             FVector3 velocityDir = movementDelta / deltaTime;
-            // Normalize to -1 to 1 range for animation
             Float32 maxSpeed = speed();
             if (maxSpeed > 0.0f)
             {
@@ -138,26 +101,14 @@ void AI_Player::Tick(Float32 deltaTime)
         {
             velocity = FVector2f::Zero;
         }
-
-        // Update last position for next frame
         m_lastPosition = currentPosition;
     }
 
-    // Call parent tick for components (handles interpolation for simulated
-    // proxies)
     Super::Tick(deltaTime);
 
-    // Add time to last fired time
-    m_lastFiredTime += deltaTime;
-
-    // Update animation state based on movement
     UpdateAnimationState();
 
-    // Update last velocity if there is movement
     if (velocity() != FVector2f::Zero) { m_lastVelocity = velocity; }
-
-    // Reset velocity for next frame (only for locally controlled)
-    if (IsLocallyControlled()) { velocity = FVector2f::Zero; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,7 +153,7 @@ FTransform AI_Player::SimulateMovement(
     }
 
     // Create the AI's desired direction vector
-    FVector3 aiDirectionVector(, directionY, 0.0f);
+    FVector3 aiDirectionVector(m_forwardSpeed, directionY, 0.0f);
 
     // Normalize the vector to ensure consistent speed
     aiDirectionVector = FVector3::Normalize(aiDirectionVector);
