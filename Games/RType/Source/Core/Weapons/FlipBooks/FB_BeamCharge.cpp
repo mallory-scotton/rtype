@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Core/Weapons/FlipBooks/FB_Projectile.hpp>
+#include <Core/Weapons/FlipBooks/FB_BeamCharge.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Namespace tkd
@@ -10,18 +10,23 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-FB_Projectile::FB_Projectile(void)
-    : UFlipBook("FB_Projectile", ESourceMode::FromSprite, EPlayMode::Once)
+FB_BeamCharge::FB_BeamCharge(void)
+    : UFlipBook("FB_BeamCharge", ESourceMode::FromSprite, EPlayMode::Once)
 {
     SetSpriteSheetPath("Assets/Images/T_Projectiles.png");
-    AddFrame(FRectangle(212, 85, 17, 17));
-    AddFrame(FRectangle(229, 85, 17, 17));
-    AddFrame(FRectangle(246, 85, 17, 17));
-    SetDuration(0.2f);
+    AddFrame(FRectangle(0, 51, 33, 33));
+    AddFrame(FRectangle(33, 51, 33, 33));
+    AddFrame(FRectangle(66, 51, 33, 33));
+    AddFrame(FRectangle(99, 51, 33, 33));
+    AddFrame(FRectangle(132, 51, 33, 33));
+    AddFrame(FRectangle(165, 51, 33, 33));
+    AddFrame(FRectangle(198, 51, 33, 33));
+    AddFrame(FRectangle(231, 51, 33, 33));
+    SetDuration(1.f);
     SetPlaybackSpeed(1.f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-IMPLEMENT_CLASS_WITH_SUPER(FB_Projectile, UFlipBook)
+IMPLEMENT_CLASS_WITH_SUPER(FB_BeamCharge, UFlipBook)
 
 }   // namespace tkd

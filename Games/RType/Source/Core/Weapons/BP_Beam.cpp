@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
-#include <Core/Weapons/BP_Projectile.hpp>
+#include <Core/Weapons/BP_Beam.hpp>
 #include <Core/Boss/BP_Boss.hpp>
 #include <Core/Monsters/BP_Monster.hpp>
 #include <Core/Player/BP_Player.hpp>
@@ -13,38 +13,37 @@ namespace tkd
 {
 
 ///////////////////////////////////////////////////////////////////////////////
-BP_Projectile::BP_Projectile(void)
-    : AActor("BP_Projectile")
+BP_Beam::BP_Beam(void)
+    : AActor("BP_Beam")
 {
     // Remove transform replication for projectiles
     SetTransformReplicated(false);
 
     // Add flipbook component
-    AddComponent<UBillboardComponent>("BC_ProjectileSprite");
-    AddComponent<UBoxCollisionComponent>("CC_ProjectileCollision");
+    AddComponent<UBillboardComponent>("BC_BeamSprite");
+    AddComponent<UBoxCollisionComponent>("CC_BeamCollision");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Projectile::BeginPlay(void)
+void BP_Beam::BeginPlay(void)
 {
     // Call parent BeginPlay first
     Super::BeginPlay();
 
     FTransform t = GetTransform();
-    t.SetPosition(t.GetPosition() + FVector3(1.f, -0.15f, 0.f));
+    t.SetPosition(t.GetPosition() + FVector3(1.f, -0.3f, 0.f));
     SetTransform(t);
 
     // Set the flipbook for the projectile's billboard component
-    auto Billboard = GetComponent<UBillboardComponent>("BC_ProjectileSprite");
+    auto Billboard = GetComponent<UBillboardComponent>("BC_BeamSprite");
     if (Billboard)
     {
         Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
-        Billboard->SetFlipBook(&m_flipBook);
+        Billboard->SetFlipBook(&m_chargeflipBook);
     }
 
     // Setup collision for the projectile
-    auto Collision =
-        GetComponent<UBoxCollisionComponent>("CC_ProjectileCollision");
+    auto Collision = GetComponent<UBoxCollisionComponent>("CC_BeamCollision");
     if (Collision)
     {
         Collision->SetHiddenInGame(true);
@@ -76,12 +75,11 @@ void BP_Projectile::BeginPlay(void)
                     {
                         // Mark both for deletion
                         info.otherActor->MarkForDeletion();
-                        this->MarkForDeletion();
                     }
                     if (info.otherActor->Is<BP_Boss>())
                     {
                         auto boss = info.otherActor->As<BP_Boss>();
-                        boss->TakeDamage(1);
+                        boss->TakeDamage(5);
                         this->MarkForDeletion();
                     }
                 }
@@ -91,7 +89,7 @@ void BP_Projectile::BeginPlay(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void BP_Projectile::Tick(Float32 deltaTime)
+void BP_Beam::Tick(Float32 deltaTime)
 {
     // Early exit if marked for deletion
     if (IsMarkedForDeletion()) { return; }
@@ -100,12 +98,16 @@ void BP_Projectile::Tick(Float32 deltaTime)
     Super::Tick(deltaTime);
 
     // Move the projectile forward
-    auto billboard = GetComponent<UBillboardComponent>("BC_ProjectileSprite");
+    auto billboard = GetComponent<UBillboardComponent>("BC_BeamSprite");
     if (billboard)
     {
         auto fb = billboard->GetFlipBook();
-        if (fb->HasFinished())
+        if (fb->HasFinished() || fb->GetName() == "FB_Beam")
         {
+            if (fb->GetName() != "FB_Beam")
+            {
+                billboard->SetFlipBook(&m_beamFlipBook);
+            }
             Translate(FVector3(8.0f * deltaTime, 0.0f, 0.0f));
         }
         else { Translate(FVector3(0.0f * deltaTime, 0.0f, 0.0f)); }
@@ -116,6 +118,6 @@ void BP_Projectile::Tick(Float32 deltaTime)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-IMPLEMENT_CLASS_WITH_SUPER(BP_Projectile, AActor)
+IMPLEMENT_CLASS_WITH_SUPER(BP_Beam, AActor)
 
 }   // namespace tkd

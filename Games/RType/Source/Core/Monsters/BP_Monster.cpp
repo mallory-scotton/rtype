@@ -101,7 +101,7 @@ void BP_Monster::BeginPlay(void)
     if (Box)
     {
         FLogger::Debug("[BP_MONSTER] Setting up box collision component");
-        Box->SetHiddenInGame(false);
+        Box->SetHiddenInGame(true);
         Box->SetBoxExtent(FVector3f(0.25f, 0.25f, 0.25f));
         FTransform transform = Box->GetLocalTransform();
         Box->SetLocalTransform(transform);
