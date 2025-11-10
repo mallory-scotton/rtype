@@ -190,9 +190,9 @@ FTransform AI_Player::SimulateMovement(
     // Determine the Y direction needed to reach the targetY
     FVector3 currentPosition = startTransform.GetPosition();
     Float32 directionY = 0.0f;
-    _Float32 m_forwardSpeed = -1.0f
+    _Float32 m_forwardSpeed = -1.0f;
 
-                              if (targetY > currentPosition.y + 1.0f)
+    if (targetY > currentPosition.y + 1.0f)
     {
         directionY = 1.0f;   // Move up
     }
