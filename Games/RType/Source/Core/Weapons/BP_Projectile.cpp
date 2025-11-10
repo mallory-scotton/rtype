@@ -43,7 +43,7 @@ void BP_Projectile::BeginPlay(void)
         GetComponent<UBoxCollisionComponent>("CC_ProjectileCollision");
     if (Collision)
     {
-        Collision->SetHiddenInGame(false);
+        Collision->SetHiddenInGame(true);
         Collision->SetBoxExtent(FVector3(0.40f, 0.40f, 0.40f));
         FTransform transform = Collision->GetLocalTransform();
         transform.SetPosition(FVector3(0.f, 0.f, 0.1f));
