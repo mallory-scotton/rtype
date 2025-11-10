@@ -97,10 +97,7 @@ void AI_Player::Tick(Float32 deltaTime)
                 );
             }
         }
-        else
-        {
-            velocity = FVector2f::Zero;
-        }
+        else { velocity = FVector2f::Zero; }
         m_lastPosition = currentPosition;
     }
 
@@ -141,7 +138,7 @@ FTransform AI_Player::SimulateMovement(
     // Determine the Y direction needed to reach the targetY
     FVector3 currentPosition = startTransform.GetPosition();
     Float32 directionY = 0.0f;
-    _Float32 m_forwardSpeed = -1.0f;
+    Float32 m_forwardSpeed = -1.0f;
 
     if (targetY > currentPosition.y + 1.0f)
     {
