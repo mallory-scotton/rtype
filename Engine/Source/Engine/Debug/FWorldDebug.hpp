@@ -108,9 +108,9 @@ private:
     /// \param properties The properties to display
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void
-        DisplayActorProperties(const TVector<ULevel::PropertyEntry>& properties
-        );
+    void DisplayActorProperties(
+        const TVector<ULevel::PropertyEntry>& properties
+    );
 };
 
 #endif

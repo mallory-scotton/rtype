@@ -112,8 +112,8 @@ public:
     /// \return unique pointer to the Created renderer
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual std::unique_ptr<IRenderer> CreateRenderer(IWindow* window
-    ) const = 0;
+    virtual std::unique_ptr<IRenderer>
+        CreateRenderer(IWindow* window) const = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Create a window

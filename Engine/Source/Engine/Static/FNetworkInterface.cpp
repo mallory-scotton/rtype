@@ -391,8 +391,8 @@ Bool FNetworkInterface::IsServer(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FConnectionInformation* FNetworkInterface::GetClientInformation(UInt32 clientID
-)
+FConnectionInformation*
+    FNetworkInterface::GetClientInformation(UInt32 clientID)
 {
     std::lock_guard<std::mutex> lock(s_mutex);
     if (s_networkSubsystem == nullptr)

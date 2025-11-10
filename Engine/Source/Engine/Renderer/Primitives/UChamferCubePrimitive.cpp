@@ -116,18 +116,24 @@ void UChamferCubePrimitive::UpdateVertices()
 
                 // Add two triangles to form a quad (counter-clockwise winding
                 // for outward normal)
-                m_vertices.push_back(FVertex(v1, m_color, FVector2(u1, v1_uv))
+                m_vertices.push_back(
+                    FVertex(v1, m_color, FVector2(u1, v1_uv))
                 );
-                m_vertices.push_back(FVertex(v4, m_color, FVector2(u2, v1_uv))
+                m_vertices.push_back(
+                    FVertex(v4, m_color, FVector2(u2, v1_uv))
                 );
-                m_vertices.push_back(FVertex(v3, m_color, FVector2(u2, v2_uv))
+                m_vertices.push_back(
+                    FVertex(v3, m_color, FVector2(u2, v2_uv))
                 );
 
-                m_vertices.push_back(FVertex(v1, m_color, FVector2(u1, v1_uv))
+                m_vertices.push_back(
+                    FVertex(v1, m_color, FVector2(u1, v1_uv))
                 );
-                m_vertices.push_back(FVertex(v3, m_color, FVector2(u2, v2_uv))
+                m_vertices.push_back(
+                    FVertex(v3, m_color, FVector2(u2, v2_uv))
                 );
-                m_vertices.push_back(FVertex(v2, m_color, FVector2(u1, v2_uv))
+                m_vertices.push_back(
+                    FVertex(v2, m_color, FVector2(u1, v2_uv))
                 );
             }
         }
@@ -423,8 +429,9 @@ void UChamferCubePrimitive::UpdateVertices()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void UChamferCubePrimitive::Draw(IRenderer& renderer, FRenderStates states)
-    const
+void UChamferCubePrimitive::Draw(
+    IRenderer& renderer, FRenderStates states
+) const
 {
     // Suppress unused variable warning
     TKD_UNUSED(states);

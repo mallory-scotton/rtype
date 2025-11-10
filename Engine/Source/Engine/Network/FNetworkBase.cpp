@@ -127,8 +127,9 @@ void FNetworkBase::SetEngineSettings(const FEngineSettings& settings)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::
-    HandleAcknowledgmentPacket(const Packets::Acknowledgment& packet, const FEndpoint&)
+void FNetworkBase::HandleAcknowledgmentPacket(
+    const Packets::Acknowledgment& packet, const FEndpoint&
+)
 {
     // Remove the acknowledged sequence number from pending ACKs
     std::lock_guard<std::mutex> lock(m_pendingAcksMutex);

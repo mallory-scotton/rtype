@@ -431,7 +431,7 @@ void FOpenVRBackend::SubmitFrame(EEye eye, const FRenderTarget& target)
         FLogger::SetNamespace("VR");
         FLogger::Error(
             "Attempting to submit invalid texture ID for {} eye",
-            (eye == EEye::Left ? "Left" : "Right")
+            eye == EEye::Left ? "Left" : "Right"
         );
         return;
     }
@@ -459,7 +459,7 @@ void FOpenVRBackend::SubmitFrame(EEye eye, const FRenderTarget& target)
         FLogger::SetNamespace("VR");
         FLogger::Error(
             "Compositor submit failed for {} eye: Error code {}",
-            (eye == EEye::Left ? "Left" : "Right"),
+            eye == EEye::Left ? "Left" : "Right",
             static_cast<int>(err)
         );
     }

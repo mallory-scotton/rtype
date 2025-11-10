@@ -127,9 +127,9 @@ Bool FragmentManager::IsFragmentComplete(const FragmentEntry& entry) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-std::vector<std::vector<Byte>>
-    FragmentManager::FragmentPacket(const std::vector<Byte>& serializedData
-    ) const
+std::vector<std::vector<Byte>> FragmentManager::FragmentPacket(
+    const std::vector<Byte>& serializedData
+) const
 {
     std::vector<std::vector<Byte>> chunks;
 
@@ -164,8 +164,8 @@ FragmentEntry* FragmentManager::FindFragmentEntry(const UUID& fragmentID)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FragmentEntry* FragmentManager::FindFragmentEntry(const UUID& fragmentID
-) const
+const FragmentEntry*
+    FragmentManager::FindFragmentEntry(const UUID& fragmentID) const
 {
     for (const auto& entry: m_fragments)
     {

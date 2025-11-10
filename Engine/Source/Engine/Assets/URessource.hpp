@@ -185,12 +185,14 @@ public:
     /// \return Handle to the loaded shader, or invalid handle on failure
     ///
     ///////////////////////////////////////////////////////////////////////////
-    FShaderHandle LoadShader(const TVariant<
-                             std::tuple<FilePath, EShaderType>,
-                             std::tuple<FilePath, FilePath>,
-                             std::tuple<FilePath, FilePath, FilePath>,
-                             FString,
-                             UAsset*>& source);
+    FShaderHandle LoadShader(
+        const TVariant<
+            std::tuple<FilePath, EShaderType>,
+            std::tuple<FilePath, FilePath>,
+            std::tuple<FilePath, FilePath, FilePath>,
+            FString,
+            UAsset*>& source
+    );
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get a shader handle by identifier

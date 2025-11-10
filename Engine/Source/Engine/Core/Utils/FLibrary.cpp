@@ -299,7 +299,10 @@ FString FLibrary::ExtractLibraryName(const FilePath& path)
 bool FLibrary::IsLoaded(void) const { return m_isLoaded; }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FString& FLibrary::GetLastErrorMessage(void) const { return m_lastError; }
+const FString& FLibrary::GetLastErrorMessage(void) const
+{
+    return m_lastError;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 const FString& FLibrary::GetName(void) const { return m_name; }

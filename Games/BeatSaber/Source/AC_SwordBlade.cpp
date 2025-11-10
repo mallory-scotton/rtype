@@ -307,8 +307,9 @@ void AC_SwordBlade::Render(IRenderer& renderer) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void AC_SwordBlade::DrawCylinder(float radius, float height, int segments)
-    const
+void AC_SwordBlade::DrawCylinder(
+    float radius, float height, int segments
+) const
 {
 #if TKD_ENGINE_CLIENT
     glBegin(GL_TRIANGLE_STRIP);

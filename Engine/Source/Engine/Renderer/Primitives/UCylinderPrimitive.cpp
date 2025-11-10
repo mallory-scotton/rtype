@@ -145,7 +145,8 @@ void UCylinderPrimitive::UpdateVertices(void)
     if (m_capBottom)
     {
         std::vector<FVertex> bottomCap;
-        bottomCap.push_back(FVertex(FVector3(0.0f, -halfHeight, 0.0f), m_color)
+        bottomCap.push_back(
+            FVertex(FVector3(0.0f, -halfHeight, 0.0f), m_color)
         );
         for (SizeT i = 0; i <= m_sectorCount; i++)
         {

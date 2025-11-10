@@ -554,9 +554,9 @@ void BP_Note::OnCut(const FCollisionInfo& info)
     // Random small variations
     auto rnd = [](float a, float b) -> float
     {
-        return a +
-               (static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX)
-               ) * (b - a);
+        return a + (static_cast<float>(std::rand()) /
+                    static_cast<float>(RAND_MAX)) *
+                       (b - a);
     };
 
     // Bias fragments to move away along the world impact normal so the split

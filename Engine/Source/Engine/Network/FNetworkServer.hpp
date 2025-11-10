@@ -253,8 +253,9 @@ protected:
     /// \param sender The endpoint of the sender
     ///
     ///////////////////////////////////////////////////////////////////////////
-    void OnPacketReceived(const FPacketHeader& packet, const FEndpoint& sender)
-        override;
+    void OnPacketReceived(
+        const FPacketHeader& packet, const FEndpoint& sender
+    ) override;
 
 private:
     ///////////////////////////////////////////////////////////////////////////

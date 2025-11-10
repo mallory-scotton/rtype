@@ -234,6 +234,17 @@ void AActor::Translate(const FVector3& translation)
 {
     if (m_isTransformReplicated) { m_pendingTransform.Translate(translation); }
     else { m_transform->Translate(translation); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -244,6 +255,17 @@ void AActor::Translate(Float32 x, Float32 y, Float32 z)
         m_pendingTransform.Translate(FVector3(x, y, z));
     }
     else { m_transform->Translate(FVector3(x, y, z)); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -252,6 +274,17 @@ void AActor::Rotate(const FVector3& rotation)
     FRotator rotator = FRotator(rotation.x, rotation.y, rotation.z);
     if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -259,6 +292,17 @@ void AActor::Rotate(const FRotator& rotation)
 {
     if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotation); }
     else { m_transform->Rotate(rotation); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -267,6 +311,17 @@ void AActor::Rotate(Float32 pitch, Float32 yaw, Float32 roll)
     FRotator rotator = FRotator(pitch, yaw, roll);
     if (m_isTransformReplicated) { m_pendingTransform.Rotate(rotator); }
     else { m_transform->Rotate(rotator); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -274,6 +329,17 @@ void AActor::Scale(const FVector3& scale)
 {
     if (m_isTransformReplicated) { m_pendingTransform.Scale(scale); }
     else { m_transform->Scale(scale); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -284,6 +350,17 @@ void AActor::Scale(Float32 x, Float32 y, Float32 z)
         m_pendingTransform.Scale(FVector3(x, y, z));
     }
     else { m_transform->Scale(FVector3(x, y, z)); }
+
+    // Mark all collision components as dirty when transform changes
+    for (auto& component: m_components)
+    {
+        UCollisionComponent* collisionComp =
+            dynamic_cast<UCollisionComponent*>(component.get());
+        if (collisionComp && collisionComp->GetCollisionSystem())
+        {
+            collisionComp->GetCollisionSystem()->MarkDirty(collisionComp);
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

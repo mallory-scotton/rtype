@@ -20,11 +20,8 @@ void GameRegistry::Register(CreateFunc func)
 TUniquePtr<UGame> GameRegistry::CreateGameInstance(void)
 {
     GameRegistry& registry = GetInstance();
-    if (registry.m_createFunc)
-    {
-        return registry.m_createFunc();
-    }
+    if (registry.m_createFunc) { return registry.m_createFunc(); }
     return nullptr;
 }
 
-} // !namespace tkd
+}   // namespace tkd

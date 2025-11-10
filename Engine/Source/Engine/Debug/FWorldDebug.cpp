@@ -275,7 +275,8 @@ void FWorldDebug::ShowLevelsList(UWorld* world)
     if (m_selectedLevelIndex >= 0 &&
         m_selectedLevelIndex < (int)loadedLevels.size())
     {
-        ULevel& level = const_cast<std::vector<ULevel>&>(loadedLevels
+        ULevel& level = const_cast<std::vector<ULevel>&>(
+            loadedLevels
         )[m_selectedLevelIndex];
         bool isCurrent =
             (currentLevel != nullptr &&

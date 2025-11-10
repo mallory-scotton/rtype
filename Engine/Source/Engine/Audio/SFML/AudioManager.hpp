@@ -115,8 +115,8 @@ public:
     /// \return Shared pointer to the created effect
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual TSharedPtr<IAudioEffect> CreateEffect(EAudioEffectType type
-    ) override;
+    virtual TSharedPtr<IAudioEffect>
+        CreateEffect(EAudioEffectType type) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the audio listener
@@ -134,8 +134,8 @@ public:
     /// \return Shared pointer to the loaded audio buffer
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const FilePath& filePath
-    ) override;
+    virtual TSharedPtr<IAudioBuffer>
+        LoadBuffer(const FilePath& filePath) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Load audio data from an asset.
@@ -155,8 +155,8 @@ public:
     /// \return True if loading was successful, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const std::vector<Byte>& data
-    ) override;
+    virtual TSharedPtr<IAudioBuffer>
+        LoadBuffer(const std::vector<Byte>& data) override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Load audio data from raw memory buffer.

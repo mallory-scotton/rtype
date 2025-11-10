@@ -158,8 +158,10 @@ std::array<UInt8, 16> UUID::MD5Hash(std::span<const UInt8> data)
     // like OpenSSL, Crypto++, or similar
     std::array<UInt8, 16> result = {};
     std::hash<std::string_view> hasher;
-    auto hash_val = hasher(std::string_view{
-      reinterpret_cast<const char*>(data.data()), data.size() });
+    auto hash_val = hasher(
+        std::string_view{ reinterpret_cast<const char*>(data.data()),
+                          data.size() }
+    );
 
     // Distribute hash value across the array (not cryptographically secure)
     for (size_t i = 0; i < 16; ++i)
@@ -176,8 +178,10 @@ std::array<UInt8, 20> UUID::SHA1Hash(std::span<const UInt8> data)
     // This is a placeholder - in production, use a proper SHA-1 implementation
     std::array<UInt8, 20> result = {};
     std::hash<std::string_view> hasher;
-    auto hash_val = hasher(std::string_view{
-      reinterpret_cast<const char*>(data.data()), data.size() });
+    auto hash_val = hasher(
+        std::string_view{ reinterpret_cast<const char*>(data.data()),
+                          data.size() }
+    );
 
     // Distribute hash value across the array (not cryptographically secure)
     for (size_t i = 0; i < 20; ++i)

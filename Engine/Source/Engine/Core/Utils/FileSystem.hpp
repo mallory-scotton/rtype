@@ -583,8 +583,8 @@ public:
     /// \return A vector of all directory paths found recursively
     ///
     ///////////////////////////////////////////////////////////////////////////
-    static std::vector<FilePath> RecursiveListDirectories(const FilePath& path
-    );
+    static std::vector<FilePath>
+        RecursiveListDirectories(const FilePath& path);
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Recursively lists all entries in a directory tree
     ///

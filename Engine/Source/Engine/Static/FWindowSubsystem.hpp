@@ -47,7 +47,7 @@ private:
     RenderCallback m_renderCallback;             //<! Callback for rendering
     TAtomic<float> m_currentFPS{ 0.0f };         //<! Current frames per second
     TAtomic<float> m_averageFrameTime{ 0.0f };   //<! Average frame time in ms
-    bool m_vrInitialized;                  //<! Flag indicating if VR is initialized
+    bool m_vrInitialized;   //<! Flag indicating if VR is initialized
 
 public:
     ///////////////////////////////////////////////////////////////////////////
