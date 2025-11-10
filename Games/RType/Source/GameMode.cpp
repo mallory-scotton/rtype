@@ -23,7 +23,13 @@ RTypeGameMode::RTypeGameMode(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void RTypeGameMode::BeginPlay(void) { Super::BeginPlay(); }
+void RTypeGameMode::BeginPlay(void)
+{
+    Super::BeginPlay();
+    Audio::PlaySoundFromPak(
+        "Assets/Audios/Music/M_02_Opening.wav", 0.5f, true
+    );
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 void RTypeGameMode::Tick(Float32 deltaTime) { Super::Tick(deltaTime); }
