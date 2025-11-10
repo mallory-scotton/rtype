@@ -167,6 +167,10 @@ FTransform AI_Player::SimulateMovement(
     const FTransform& startTransform
 )
 {
+    Float32 m_totalTime = 0.0f;
+    Float32 m_waveFrequency = 2.0f;
+    Float32 m_waveAmplitude = 300.0f;
+
     // One-time initialization on the first frame
     if (!m_isMovementInitialized)
     {
@@ -186,9 +190,9 @@ FTransform AI_Player::SimulateMovement(
     // Determine the Y direction needed to reach the targetY
     FVector3 currentPosition = startTransform.GetPosition();
     Float32 directionY = 0.0f;
+    _Float32 m_forwardSpeed = -1.0f
 
-    // Move up or down towards the target Y position
-    if (targetY > currentPosition.y + 1.0f)
+                              if (targetY > currentPosition.y + 1.0f)
     {
         directionY = 1.0f;   // Move up
     }
@@ -198,7 +202,7 @@ FTransform AI_Player::SimulateMovement(
     }
 
     // Create the AI's desired direction vector
-    FVector3 aiDirectionVector(m_forwardSpeed, directionY, 0.0f);
+    FVector3 aiDirectionVector(, directionY, 0.0f);
 
     // Normalize the vector to ensure consistent speed
     aiDirectionVector = FVector3::Normalize(aiDirectionVector);

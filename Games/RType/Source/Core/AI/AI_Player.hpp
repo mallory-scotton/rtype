@@ -30,12 +30,12 @@ public:
     UProperty<UInt32> playerColor;   //<! The color index of the player
 
     bool m_isMovementInitialized = false;
-    Float32 m_totalTime = 0.0f;
-    Float32 m_waveFrequency = 2.0f;     // Vitesse de l'oscillation
-    Float32 m_waveAmplitude = 300.0f;   // Hauteur de l'oscillation
-    Float32 m_forwardSpeed = -1.0f;     // Vitesse de "descente" (ex: -1 en X)
-    Float32 m_startY;                   // Position Y de départ
-    UFunction<> ServerFire;             //<! Server RPC to handle firing
+    Float32 m_totalTime;
+    Float32 m_waveFrequency;
+    Float32 m_waveAmplitude;
+    Float32 m_forwardSpeed;
+    Float32 m_startY;
+    UFunction<> ServerFire;                //<! Server RPC to handle firing
     UFunction<FTransform> MulticastFire;   //<! Multicast RPC to handle firing
 
 private:
