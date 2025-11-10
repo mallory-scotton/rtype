@@ -120,7 +120,10 @@ public:
         {
             return value != value;
         }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -137,7 +140,10 @@ public:
         {
             return (value < 0) ? -value : value;
         }
-        else { return value; }
+        else
+        {
+            return value;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -171,7 +177,10 @@ public:
         {
             return std::sqrt(value);
         }
-        else { return value; }
+        else
+        {
+            return value;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -225,7 +234,10 @@ public:
     static Bool IsEven(const T value)
     {
         if constexpr (std::is_integral<T>::value) { return (value % 2) == 0; }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -239,7 +251,10 @@ public:
     static Bool IsOdd(const T value)
     {
         if constexpr (std::is_integral<T>::value) { return (value % 2) != 0; }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -256,7 +271,10 @@ public:
         {
             return (value > 0) && ((value & (value - 1)) == 0);
         }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -282,7 +300,10 @@ public:
             value++;
             return value;
         }
-        else { return value; }
+        else
+        {
+            return value;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -364,7 +385,10 @@ public:
         {
             return Abs(a - b) <= epsilon;
         }
-        else { return a == b; }
+        else
+        {
+            return a == b;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -451,7 +475,10 @@ public:
         {
             return std::isinf(value);
         }
-        else { return false; }
+        else
+        {
+            return false;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -484,6 +511,66 @@ public:
         else
         {
             return std::fmod(std::fmod(value, modulus) + modulus, modulus);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief The sine of a value
+    ///
+    /// \param value The value (in radians)
+    ///
+    /// \return The sine of the value
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Sin(const T value)
+    {
+        if constexpr (std::is_floating_point<T>::value)
+        {
+            return std::sin(value);
+        }
+        else
+        {
+            return T(0);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief The cosine of a value
+    ///
+    /// \param value The value (in radians)
+    ///
+    /// \return The cosine of the value
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Cos(const T value)
+    {
+        if constexpr (std::is_floating_point<T>::value)
+        {
+            return std::cos(value);
+        }
+        else
+        {
+            return T(1);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief The tangent of a value
+    ///
+    /// \param value The value (in radians)
+    ///
+    /// \return The tangent of the value
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    static T Tan(const T value)
+    {
+        if constexpr (std::is_floating_point<T>::value)
+        {
+            return std::tan(value);
+        }
+        else
+        {
+            return T(0);
         }
     }
 };
