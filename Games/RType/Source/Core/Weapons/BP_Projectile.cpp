@@ -2,6 +2,7 @@
 // Dependencies
 ///////////////////////////////////////////////////////////////////////////////
 #include <Core/Weapons/BP_Projectile.hpp>
+#include <Core/Boss/BP_Boss.hpp>
 #include <Core/Monsters/BP_Monster.hpp>
 #include <Core/Player/BP_Player.hpp>
 
@@ -71,6 +72,12 @@ void BP_Projectile::BeginPlay(void)
                     {
                         // Mark both for deletion
                         info.otherActor->MarkForDeletion();
+                        this->MarkForDeletion();
+                    }
+                    if (info.otherActor->Is<BP_Boss>())
+                    {
+                        auto boss = info.otherActor->As<BP_Boss>();
+                        boss->TakeDamage(1);
                         this->MarkForDeletion();
                     }
                 }
