@@ -62,7 +62,7 @@ void BP_Player::BeginPlay(void)
     auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
     if (Box)
     {
-        Box->SetHiddenInGame(false);
+        Box->SetHiddenInGame(true);
         Box->SetBoxExtent(FVector3f(0.6f, 0.3f, 0.3f));
         FTransform transform = Box->GetLocalTransform();
         transform.SetPosition(FVector3(0.f, 0.f, 0.2f));
