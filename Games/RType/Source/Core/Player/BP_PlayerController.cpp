@@ -36,6 +36,18 @@ void BP_PlayerController::SetupInputBindings(void)
             }
         );
 
+        BindActionPressed(
+            "Beam",
+            [player](EInput input)
+            {
+                if (player->IsLocallyControlled())
+                {
+                    // Send RPC to server
+                    player->Beam();
+                }
+            }
+        );
+
         // Movement axes - handle in Tick for smooth prediction
         // (See below)
     }

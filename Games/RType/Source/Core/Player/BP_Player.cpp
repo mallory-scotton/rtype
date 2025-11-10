@@ -32,6 +32,22 @@ BP_Player::BP_Player(UInt32 playerColor)
           ),
           true
       )
+    , ServerBeam(
+          *this,
+          "ServerBeam",
+          ERPCType::Server,
+          std::bind(&BP_Player::RPC_ServerBeam, this),
+          true
+      )
+    , MulticastBeam(
+          *this,
+          "MulticastBeam",
+          ERPCType::Multicast,
+          std::bind(
+              &BP_Player::RPC_MulticastBeam, this, std::placeholders::_1
+          ),
+          true
+      )
     , m_lastVelocity(FVector2f::Zero)
     , m_lastFiredTime(0.0f)
     , m_lastPosition(FVector3::Zero)
@@ -217,6 +233,18 @@ void BP_Player::Fire(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void BP_Player::Beam(void)
+{
+    if (IsLocallyControlled() && m_lastFiredTime >= 1.0f)
+    {
+        // Call the server RPC to handle beaming
+        this->ServerBeam();
+        // Reset last fired time
+        m_lastFiredTime = 0.0f;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void BP_Player::RPC_ServerFire(void)
 {
     if (IsAuthority() && m_lastFiredTime >= 0.25f)
@@ -238,12 +266,44 @@ void BP_Player::RPC_ServerFire(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_ServerBeam(void)
+{
+    if (IsAuthority() && m_lastFiredTime >= 1.0f)
+    {
+        // Reset last fired time
+        m_lastFiredTime = 0.0f;
+
+        // Get player transform
+        FTransform transform = GetTransform();
+        transform.SetRotation(FRotator(0.f, 0.f, 0.f));
+        transform.SetScale(FVector3f::One);
+
+        // Call multicast RPC to notify all clients
+        this->MulticastBeam(transform);
+
+        // Spawn a beam
+        World::SpawnActor("BP_Beam", transform);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 void BP_Player::RPC_MulticastFire(FTransform transform)
 {
     // Play firing effects on all clients,
     if (IsAuthority()) { return; }
 
     World::SpawnActor("BP_Projectile", transform);
+    // Reset last fired time
+    m_lastFiredTime = 0.0f;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Player::RPC_MulticastBeam(FTransform transform)
+{
+    // Play beaming effects on all clients,
+    if (IsAuthority()) { return; }
+
+    World::SpawnActor("BP_Beam", transform);
     // Reset last fired time
     m_lastFiredTime = 0.0f;
 }
