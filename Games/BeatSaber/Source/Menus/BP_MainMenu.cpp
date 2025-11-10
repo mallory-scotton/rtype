@@ -256,8 +256,6 @@ void BP_MainMenu::BeginPlay(void)
 
         SettingsIcon->SetLocalTransform(transform);
 
-        SettingsBox->SetHiddenInGame(false);   //?TEMP
-        SettingsBox->SetShowDebug(true);       //?TEMP
         SetupSubMenuHighlighting(
             SettingsBox,
             SettingsIcon,

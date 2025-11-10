@@ -28,7 +28,7 @@ BP_Platform::BP_Platform(const FString& name)
     // Add Components
     AddComponent<UPlaneComponent>("PL_PlatformPlane");
     AddComponent<UPlaneComponent>("PL_PlatformPlaneOutline");
-    AddComponent<AC_DebugGrid>("DCG_PlatformDebugGrid");
+    // AddComponent<AC_DebugGrid>("DCG_PlatformDebugGrid");
     AddComponent<USphereComponent>("SKY_Sphere");
 
     // Particles
