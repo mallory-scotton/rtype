@@ -22,3 +22,5 @@
 #include <Engine/Runtime/Components/USphereComponent.hpp>
 #include <Engine/Runtime/Components/USpriteComponent.hpp>
 #include <Engine/Runtime/Components/UTorusComponent.hpp>
+#include <Engine/Runtime/Components/UWidgetComponent.hpp>
+#include <Engine/Runtime/Components/Widgets.hpp>

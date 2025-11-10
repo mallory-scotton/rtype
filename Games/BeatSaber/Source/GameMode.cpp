@@ -65,6 +65,8 @@ void BeatSaberGameMode::BeginPlay(void)
 
     // Switch to the default Menu state
     SwitchGameState(EBeatSaberGameState::Menu);
+
+    // PlayLevel(0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

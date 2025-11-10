@@ -27,6 +27,14 @@ void FInputManager::Initialize(const FEngineSettings& settings)
     }
 
     m_initialized = true;
+
+    for (SizeT i = 0;
+         i <= static_cast<SizeT>(EInput::GamePadAxis_RightTrigger);
+         i++)
+    {
+        m_currentInputStates[static_cast<EInput>(i)] = false;
+        m_previousInputStates[static_cast<EInput>(i)] = false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,6 +111,20 @@ void FInputManager::Update(IWindow* window)
         for (auto& axis: m_axes) { axis.RemoveAllListeners(); }
         return;
     }
+
+    // Clear the states of the input
+    for (SizeT i = 0;
+         i <= static_cast<SizeT>(EInput::GamePadAxis_RightTrigger);
+         i++)
+    {
+        m_previousInputStates[static_cast<EInput>(i)] =
+            m_currentInputStates[static_cast<EInput>(i)];
+        m_currentInputStates[static_cast<EInput>(i)] = false;
+    }
+
+    // Save the position of the mouse
+    m_mousePosition = window->GetMousePosition();
+    m_mouseDelta = m_mouseDeltaReference - m_mousePosition;
 
     // Process input states and emit events as necessary
     for (auto& action: m_actions)
@@ -261,6 +283,101 @@ void FInputManager::Update(IWindow* window)
         if (combinedValue != 0.0f) { axis.Move(activeInput, factor); }
         else if (axis.GetScale() != 0.0f) { axis.Reset(); }
     }
+
+    for (SizeT i = 0;
+         i <= static_cast<SizeT>(EInput::GamePadAxis_RightTrigger);
+         i++)
+    {
+        EInput input = static_cast<EInput>(i);
+
+        if (input >= EInput::Keyboard_A && input <= EInput::Keyboard_Pause)
+        {
+            if (window->IsKeyPressed(static_cast<EKeyboardKeys>(input)))
+            {
+                m_currentInputStates[input] = true;
+                break;
+            }
+        }
+        else if (input >= EInput::Mouse_Left &&
+                 input <= EInput::Mouse_XButton2)
+        {
+            if (window->IsMouseButtonPressed(
+                    static_cast<EMouseButtons>(input)
+                ))
+            {
+                m_currentInputStates[input] = true;
+                break;
+            }
+        }
+        else if (input >= EInput::GamePad_A &&
+                 input <= EInput::GamePad_DPadRight)
+        {
+            if (m_enableGamepad && window->IsGamepadButtonPressed(
+                                       static_cast<EGamepadButtons>(input)
+                                   ))
+            {
+                m_currentInputStates[input] = true;
+                break;
+            }
+        }
+        else if (input >= EInput::GamePadAxis_LeftX &&
+                 input <= EInput::GamePadAxis_RightTrigger)
+        {
+            if (m_enableGamepad &&
+                window->GetGamepadAxis(static_cast<EGamepadAxes>(input)) >=
+                    0.10f)
+            {
+                m_currentInputStates[input] = true;
+                break;
+            }
+        }
+        else { m_currentInputStates[input] = false; }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FVector2i& FInputManager::GetMousePosition(void) const
+{
+    return m_mousePosition;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FVector2i& FInputManager::GetMouseDelta(void) const
+{
+    return m_mouseDelta;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const FVector2i& FInputManager::GetMouseDeltaReference(void) const
+{
+    return m_mouseDeltaReference;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void FInputManager::SetDeltaReference(void)
+{
+    m_mouseDeltaReference = m_mousePosition;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FInputManager::IsJustPressed(EInput input) const
+{
+    if (input == EInput::Unknown) { return false; }
+    return m_currentInputStates.at(input) && !m_previousInputStates.at(input);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FInputManager::IsPressed(EInput input) const
+{
+    if (input == EInput::Unknown) { return false; }
+    return m_currentInputStates.at(input);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+bool FInputManager::IsJustReleased(EInput input) const
+{
+    if (input == EInput::Unknown) { return false; }
+    return m_previousInputStates.at(input) && !m_currentInputStates.at(input);
 }
 
 }   // namespace tkd
