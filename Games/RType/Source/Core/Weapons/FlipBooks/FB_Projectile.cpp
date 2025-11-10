@@ -11,14 +11,13 @@ namespace tkd
 
 ///////////////////////////////////////////////////////////////////////////////
 FB_Projectile::FB_Projectile(void)
-    : UFlipBook("FB_Projectile", ESourceMode::FromSprite, EPlayMode::Loop)
+    : UFlipBook("FB_Projectile", ESourceMode::FromSprite, EPlayMode::Once)
 {
     SetSpriteSheetPath("Assets/Images/T_Projectiles.png");
-    AddFrame(FRectangle(233, 17, 34, 34));
-    AddFrame(FRectangle(199, 17, 34, 34));
-    AddFrame(FRectangle(165, 17, 34, 34));
-    AddFrame(FRectangle(131, 17, 34, 34));
-    SetDuration(0.6f);
+    AddFrame(FRectangle(212, 85, 17, 17));
+    AddFrame(FRectangle(229, 85, 17, 17));
+    AddFrame(FRectangle(246, 85, 17, 17));
+    SetDuration(0.2f);
     SetPlaybackSpeed(1.f);
 }
 

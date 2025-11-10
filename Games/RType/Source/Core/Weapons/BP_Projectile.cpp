@@ -30,6 +30,10 @@ void BP_Projectile::BeginPlay(void)
     // Call parent BeginPlay first
     Super::BeginPlay();
 
+    FTransform t = GetTransform();
+    t.SetPosition(t.GetPosition() + FVector3(1.f, -0.15f, 0.f));
+    SetTransform(t);
+
     // Set the flipbook for the projectile's billboard component
     auto Billboard = GetComponent<UBillboardComponent>("BC_ProjectileSprite");
     if (Billboard)
@@ -44,7 +48,7 @@ void BP_Projectile::BeginPlay(void)
     if (Collision)
     {
         Collision->SetHiddenInGame(true);
-        Collision->SetBoxExtent(FVector3(0.40f, 0.40f, 0.40f));
+        Collision->SetBoxExtent(FVector3(0.20f, 0.20f, 0.40f));
         FTransform transform = Collision->GetLocalTransform();
         transform.SetPosition(FVector3(0.f, 0.f, 0.1f));
         Collision->SetLocalTransform(transform);
@@ -96,7 +100,16 @@ void BP_Projectile::Tick(Float32 deltaTime)
     Super::Tick(deltaTime);
 
     // Move the projectile forward
-    Translate(FVector3(8.0f * deltaTime, 0.0f, 0.0f));
+    auto billboard = GetComponent<UBillboardComponent>("BC_ProjectileSprite");
+    if (billboard)
+    {
+        auto fb = billboard->GetFlipBook();
+        if (fb->HasFinished())
+        {
+            Translate(FVector3(8.0f * deltaTime, 0.0f, 0.0f));
+        }
+        else { Translate(FVector3(0.0f * deltaTime, 0.0f, 0.0f)); }
+    }
 
     // If the projectile goes out of bounds, destroy it
     if (GetTransform().GetPosition().x > 200.0f) { MarkForDeletion(); }
