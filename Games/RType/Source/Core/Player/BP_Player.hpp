@@ -115,7 +115,7 @@ protected:
         const FTransform& startTransform
     ) override;
 
-private:
+protected:
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Update the animation state based on movement
     ///
