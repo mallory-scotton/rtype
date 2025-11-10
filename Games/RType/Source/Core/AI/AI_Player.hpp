@@ -25,30 +25,13 @@ public:
     ///////////////////////////////////////////////////////////////////////////
     // Class members
     ///////////////////////////////////////////////////////////////////////////
-    UProperty<Float32> speed;        //<! The movement speed of the player
-    UProperty<FVector2f> velocity;   //<! The current velocity of the player
-    UProperty<UInt32> playerColor;   //<! The color index of the player
-
-    bool m_isMovementInitialized = false;
+    bool m_isMovementInitialized;
     Float32 m_totalTime;
     Float32 m_waveFrequency;
     Float32 m_waveAmplitude;
     Float32 m_forwardSpeed;
     Float32 m_startY;
-    UFunction<> ServerFire;                //<! Server RPC to handle firing
-    UFunction<FTransform> MulticastFire;   //<! Multicast RPC to handle firing
-
-private:
-    ///////////////////////////////////////////////////////////////////////////
-    // Class Member
-    ///////////////////////////////////////////////////////////////////////////
-    FVector2f m_lastVelocity;      //<! Last movement direction
-    Float32 m_lastFiredTime;       //<! Time since last fired shot
-    FVector3 m_lastPosition;       //<! Last position for velocity calculation
-
-    FB_ShipIdle m_idleAnimation;   //<! Idle flipbook
-    FB_ShipMoveUp m_moveUpAnimation;       //<! Move up flipbook
-    FB_ShipMoveDown m_moveDownAnimation;   //<! Move down flipbook
+    Float32 m_fireRate;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
