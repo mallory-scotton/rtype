@@ -48,7 +48,7 @@ void BP_Boss::BeginPlay(void)
     auto Box = GetComponent<UBoxCollisionComponent>("BoxCollision");
     if (Box)
     {
-        Box->SetHiddenInGame(false);
+        Box->SetHiddenInGame(true);
         Box->SetBoxExtent(FVector3f(1.5f, 2.5f, 1.5f));
     }
 }
