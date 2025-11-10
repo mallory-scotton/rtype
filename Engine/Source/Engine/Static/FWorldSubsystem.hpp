@@ -178,6 +178,13 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void ThreadLoop(void) override;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    bool LoadDefaultLevel(const FString& defaultLevelName)
+    {
+        std::unique_lock lock(m_worldMutex);
+        return m_world->LoadDefaultLevel(defaultLevelName);
+    }
 };
 
 }   // namespace tkd::__internal

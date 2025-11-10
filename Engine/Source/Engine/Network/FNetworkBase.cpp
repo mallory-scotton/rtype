@@ -127,9 +127,8 @@ void FNetworkBase::SetEngineSettings(const FEngineSettings& settings)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-void FNetworkBase::HandleAcknowledgmentPacket(
-    const Packets::Acknowledgment& packet, const FEndpoint&
-)
+void FNetworkBase::
+    HandleAcknowledgmentPacket(const Packets::Acknowledgment& packet, const FEndpoint&)
 {
     // Remove the acknowledged sequence number from pending ACKs
     std::lock_guard<std::mutex> lock(m_pendingAcksMutex);
@@ -667,8 +666,6 @@ void FNetworkBase::HandleFragmentPacket(
         static_cast<UInt32>(packet.FragmentCount),
         packet.PackageID
     );
-    std::cout << "[NETWORK] we processing the fragments huh little bro"
-              << std::endl;
 
     // Forward to FragmentManager for processing
     // FragmentManager will send the acknowledgment

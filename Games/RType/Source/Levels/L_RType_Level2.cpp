@@ -17,6 +17,9 @@ L_RType_Level2::L_RType_Level2()
     SetGameMode("RTypeGameMode");
     AddActorEntry("BP_Background", "Background1", FTransform::Identity);
     AddActorEntry("BP_Boss", "Boss1", FTransform::Identity);
+    AddActorEntry(
+        "BP_MonsterSpawner", "MonsterSpawner1", FTransform::Identity
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
