@@ -283,10 +283,8 @@ void FNetworkServer::CheckConnectionTimeouts(const TimePoint& now)
             SendPacket(disconnectPacket, endpoint);
 
             // Emit event
-            EmitEvent(
-                Events::ClientDisconnected{ clientID,
-                                            EDisconnectionReason::Timeout }
-            );
+            EmitEvent(Events::ClientDisconnected{
+              clientID, EDisconnectionReason::Timeout });
 
             // Remove connection
             m_connections.erase(it);
@@ -337,6 +335,17 @@ void FNetworkServer::HandleDisconnectPacket(
 
         FLogger::SetNamespace("Network");
         FLogger::Info("Client ID: {} disconnected", clientID);
+
+        {
+            // Add a new RPC deferred call to destroy the client entity
+            Packets::RemoteProcedureCall rpc(
+                "DestroyClient", ERPCType::Server, UUID::World, clientID
+            );
+
+            // Add parameters to the RPC
+            std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+            m_deferredRPCs.push({ rpc, endpoint });
+        }
     }
 }
 
@@ -378,8 +387,7 @@ void FNetworkServer::HandleConnectPacket(
     if (packet.gameName != m_settings->game.title ||
         packet.gameVersion != m_settings->game.version)
     {
-        FLogger::Warn(
-            "[SERVER] Rejecting connection - Game/Version mismatch!"
+        FLogger::Warn("[SERVER] Rejecting connection - Game/Version mismatch!"
         );
 
         Packets::ConnectResponse response;
@@ -598,8 +606,8 @@ void FNetworkServer::Cleanup(void)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FConnectionInformation*
-    FNetworkServer::GetClientInformation(UInt32 clientID) const
+FConnectionInformation* FNetworkServer::GetClientInformation(UInt32 clientID
+) const
 {
     std::lock_guard<std::mutex> lock(m_connectionsMutex);
     auto it = m_clientIDToEndpoint.find(clientID);
