@@ -202,7 +202,7 @@ FTransform AI_Player::SimulateMovement(
     }
 
     // Create the AI's desired direction vector
-    FVector3 aiDirectionVector(, directionY, 0.0f);
+    FVector3 aiDirectionVector(m_forwardSpeed, directionY, 0.0f);
 
     // Normalize the vector to ensure consistent speed
     aiDirectionVector = FVector3::Normalize(aiDirectionVector);
