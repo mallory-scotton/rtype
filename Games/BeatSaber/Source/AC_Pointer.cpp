@@ -123,6 +123,14 @@ void AC_Pointer::Tick(float deltaTime)
 
     // Get state
     auto& stateManager = ST_State::GetInstance();
+
+    if (stateManager.gameState != EBeatSaberGameState::Menu)
+    {
+        SetHiddenInGame(true);
+        SetShowDebug(false);
+        return;
+    }
+
     if (stateManager.lastMenuHand == m_hand)
     {
         SetHiddenInGame(false);
