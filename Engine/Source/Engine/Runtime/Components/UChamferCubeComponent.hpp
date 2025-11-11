@@ -51,7 +51,8 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////////////
     UChamferCubeComponent(
-        const FString& name = "ChamferCubeComponent", Float32 chamferSize = 0.1f
+        const FString& name = "ChamferCubeComponent",
+        Float32 chamferSize = 0.1f
     );
 
 public:

@@ -73,6 +73,7 @@ public:
     UFunction<UInt32> SpawnClientRPC;
     UFunction<UInt32, UUID, FTransform> SpawnPlayerRPC;
     UFunction<std::vector<Byte>> SyncSnapshotRPC;
+    UFunction<UInt32> DestroyClientRPC;
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -137,6 +138,14 @@ private:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void RPC_SyncSnapshot(const std::vector<Byte>& snapshot);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief Destroy client RPC handler
+    ///
+    /// \param owningClientID The ID of the client to destroy
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    void RPC_DestroyClient(UInt32 owningClientID);
 
 public:
     ///////////////////////////////////////////////////////////////////////////
@@ -545,6 +554,55 @@ public:
     ///
     ///////////////////////////////////////////////////////////////////////////
     void ProcessDeferredSpawns(void);
+
+    ///////////////////////////////////////////////////////////////////////////
+    /// \brief
+    ///
+    /// \param defaultLevelName
+    ///
+    /// \return
+    ///
+    ///////////////////////////////////////////////////////////////////////////
+    bool LoadDefaultLevel(const FString& defaultLevelName)
+    {
+        if (m_loadedLevels.empty())
+        {
+            FLogger::Warn("[World] No levels loaded");
+            return false;
+        }
+
+        // Try to find the level with the matching name
+        ULevel* defaultLevel = nullptr;
+        for (auto& level: m_loadedLevels)
+        {
+            if (level.GetLevelName() == defaultLevelName)
+            {
+                defaultLevel = &level;
+                break;
+            }
+        }
+
+        // Fall back to first level if default not found
+        if (!defaultLevel)
+        {
+            defaultLevel = &m_loadedLevels[0];
+            FLogger::Warn(
+                "[World] Default level '{}' not found, using first available level: '{}'",
+                defaultLevelName,
+                defaultLevel->GetLevelName()
+            );
+        }
+        else
+        {
+            FLogger::Info(
+                "[World] Loading default level: {}",
+                defaultLevel->GetLevelName()
+            );
+        }
+
+        m_currentLevel = defaultLevel;
+        return SpawnLevel(m_currentLevel);
+    }
 
 public:
     ///////////////////////////////////////////////////////////////////////////

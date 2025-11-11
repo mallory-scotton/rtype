@@ -128,8 +128,8 @@ public:
     /// \return True if loading was successful, false otherwise.
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual TSharedPtr<IAudioBuffer> LoadBuffer(const std::vector<Byte>& data
-    ) = 0;
+    virtual TSharedPtr<IAudioBuffer>
+        LoadBuffer(const std::vector<Byte>& data) = 0;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Load audio data from raw memory buffer.

@@ -1,0 +1,123 @@
+///////////////////////////////////////////////////////////////////////////////
+// Dependencies
+///////////////////////////////////////////////////////////////////////////////
+#include <Core/Weapons/BP_Beam.hpp>
+#include <Core/Boss/BP_Boss.hpp>
+#include <Core/Monsters/BP_Monster.hpp>
+#include <Core/Player/BP_Player.hpp>
+
+///////////////////////////////////////////////////////////////////////////////
+// Namespace tkd
+///////////////////////////////////////////////////////////////////////////////
+namespace tkd
+{
+
+///////////////////////////////////////////////////////////////////////////////
+BP_Beam::BP_Beam(void)
+    : AActor("BP_Beam")
+{
+    // Remove transform replication for projectiles
+    SetTransformReplicated(false);
+
+    // Add flipbook component
+    AddComponent<UBillboardComponent>("BC_BeamSprite");
+    AddComponent<UBoxCollisionComponent>("CC_BeamCollision");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Beam::BeginPlay(void)
+{
+    // Call parent BeginPlay first
+    Super::BeginPlay();
+
+    FTransform t = GetTransform();
+    t.SetPosition(t.GetPosition() + FVector3(1.f, -0.3f, 0.f));
+    SetTransform(t);
+
+    // Set the flipbook for the projectile's billboard component
+    auto Billboard = GetComponent<UBillboardComponent>("BC_BeamSprite");
+    if (Billboard)
+    {
+        Billboard->SetDisplayMode(UBillboardComponent::EDisplayMode::FlipBook);
+        Billboard->SetFlipBook(&m_chargeflipBook);
+    }
+
+    // Setup collision for the projectile
+    auto Collision = GetComponent<UBoxCollisionComponent>("CC_BeamCollision");
+    if (Collision)
+    {
+        Collision->SetHiddenInGame(true);
+        Collision->SetBoxExtent(FVector3(0.20f, 0.20f, 0.40f));
+        FTransform transform = Collision->GetLocalTransform();
+        transform.SetPosition(FVector3(0.f, 0.f, 0.1f));
+        Collision->SetLocalTransform(transform);
+
+        auto* cs = Collision->GetCollisionSystem();
+        if (cs)
+        {
+            cs->BindOnOverlapBegin(
+                Collision,
+                [this](const FCollisionInfo& info)
+                {
+                    // Safety checks - validate all pointers before use
+                    if (!info.otherActor) { return; }
+                    if (!info.otherComponent) { return; }
+
+                    // Check if either actor is already marked for deletion
+                    if (info.otherActor->IsMarkedForDeletion()) { return; }
+                    if (this->IsMarkedForDeletion()) { return; }
+
+                    // Don't collide with players
+                    if (info.otherActor->Is<BP_Player>()) { return; }
+
+                    // Only destroy monsters
+                    if (info.otherActor->Is<BP_Monster>())
+                    {
+                        // Mark both for deletion
+                        info.otherActor->MarkForDeletion();
+                    }
+                    if (info.otherActor->Is<BP_Boss>())
+                    {
+                        auto boss = info.otherActor->As<BP_Boss>();
+                        boss->TakeDamage(5);
+                        this->MarkForDeletion();
+                    }
+                }
+            );
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void BP_Beam::Tick(Float32 deltaTime)
+{
+    // Early exit if marked for deletion
+    if (IsMarkedForDeletion()) { return; }
+
+    // Call Super Tick
+    Super::Tick(deltaTime);
+
+    // Move the projectile forward
+    auto billboard = GetComponent<UBillboardComponent>("BC_BeamSprite");
+    if (billboard)
+    {
+        auto fb = billboard->GetFlipBook();
+        if (fb->HasFinished() || fb->GetName() == "FB_Beam")
+        {
+            if (fb->GetName() != "FB_Beam")
+            {
+                billboard->SetFlipBook(&m_beamFlipBook);
+            }
+            Translate(FVector3(8.0f * deltaTime, 0.0f, 0.0f));
+        }
+        else { Translate(FVector3(0.0f * deltaTime, 0.0f, 0.0f)); }
+    }
+
+    // If the projectile goes out of bounds, destroy it
+    if (GetTransform().GetPosition().x > 200.0f) { MarkForDeletion(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+IMPLEMENT_CLASS_WITH_SUPER(BP_Beam, AActor)
+
+}   // namespace tkd

@@ -312,8 +312,9 @@ public:
     /// \return The current position of the axis in the range [-1.0, 1.0]
     ///
     ///////////////////////////////////////////////////////////////////////////
-    virtual float GetGamepadAxis(EGamepadAxes axis, UInt32 gamepadIndex = 0)
-        const override;
+    virtual float GetGamepadAxis(
+        EGamepadAxes axis, UInt32 gamepadIndex = 0
+    ) const override;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the current mouse position relative to the window

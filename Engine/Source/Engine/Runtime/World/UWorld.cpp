@@ -68,6 +68,12 @@ UWorld::UWorld(const FString& name)
           ERPCType::Client,
           std::bind(&UWorld::RPC_SyncSnapshot, this, std::placeholders::_1)
       )
+    , DestroyClientRPC(
+          *this,
+          "DestroyClient",
+          ERPCType::Server,
+          std::bind(&UWorld::RPC_DestroyClient, this, std::placeholders::_1)
+      )
 {
 #if TKD_ENGINE_SERVER
     SetNetRole(ENetRole::Authority);
@@ -446,10 +452,34 @@ void UWorld::RPC_DestroyActor(const UUID& actorID)
         m_actors.begin(),
         m_actors.end(),
         [&actorID](const std::shared_ptr<AActor>& actor)
-        { return actor && actor->GetNetworkID() == actorID; }
+        { return actor && actor->GetUUID() == actorID; }
     );
 
     if (it != m_actors.end()) { (*it)->MarkForDeletion(); }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+void UWorld::RPC_DestroyClient(UInt32 owningClientID)
+{
+    std::vector<UUID> actorsToDestroy;
+
+    // Find and destroy all actors owned by the specified client
+    for (const auto& actor: m_actors)
+    {
+        if (actor && actor->GetOwningClientID() == owningClientID)
+        {
+            actorsToDestroy.push_back(actor->GetUUID());
+            actor->MarkForDeletion();
+        }
+    }
+
+    // Send DestroyActorRPC for each actor to all clients
+    for (const auto& actorID: actorsToDestroy)
+    {
+        this->DestroyActorRPC.SetRPCType(ERPCType::Multicast);
+        this->DestroyActorRPC(actorID);
+        this->DestroyActorRPC.SetRPCType(ERPCType::Client);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

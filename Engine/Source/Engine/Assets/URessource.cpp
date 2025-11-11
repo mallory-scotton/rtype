@@ -284,12 +284,14 @@ FTextureHandle URessource::GetTexture(const FString& id) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-FShaderHandle URessource::LoadShader(const TVariant<
-                                     std::tuple<FilePath, EShaderType>,
-                                     std::tuple<FilePath, FilePath>,
-                                     std::tuple<FilePath, FilePath, FilePath>,
-                                     FString,
-                                     UAsset*>& source)
+FShaderHandle URessource::LoadShader(
+    const TVariant<
+        std::tuple<FilePath, EShaderType>,
+        std::tuple<FilePath, FilePath>,
+        std::tuple<FilePath, FilePath, FilePath>,
+        FString,
+        UAsset*>& source
+)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_isShuttingDown || !m_graphicsFactory) { return FShaderHandle(); }

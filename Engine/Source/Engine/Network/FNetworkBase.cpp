@@ -666,8 +666,6 @@ void FNetworkBase::HandleFragmentPacket(
         static_cast<UInt32>(packet.FragmentCount),
         packet.PackageID
     );
-    std::cout << "[NETWORK] we processing the fragments huh little bro"
-              << std::endl;
 
     // Forward to FragmentManager for processing
     // FragmentManager will send the acknowledgment

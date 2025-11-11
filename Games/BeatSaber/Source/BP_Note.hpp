@@ -65,7 +65,7 @@ private:
     float m_spawnTime = 0.0f;            //<! accumulated spawn time
     FTransform m_spawnStartTransform;    //<! starting transform for spawn
     FTransform m_spawnTargetTransform;   //<! dynamic target (moves forward
-                                         //while spawning)
+                                         // while spawning)
     // Cut / fragment state
     bool m_cutProcessed = false;   //<! Whether this note has already been cut
     bool m_fragmentsActive = false;   //<! Whether fragment animation is active

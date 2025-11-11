@@ -182,6 +182,17 @@ void Engine::Run(void)
     TKD_ENGINE_IF_CLIENT({ m_window->Start(); })
     if (m_network) { m_network->Start(); }
 
+    // Load the default level after world has started
+    if (m_game && m_world)
+    {
+        FString defaultLevel = m_game->GetDefaultLevel();
+        if (!defaultLevel.IsEmpty())
+        {
+            FLogger::Info("Loading default level: {}", defaultLevel);
+            m_world->LoadDefaultLevel(defaultLevel);
+        }
+    }
+
     FLogger::SetNamespace("Engine");
     FLogger::Info("All subsystems started");
 

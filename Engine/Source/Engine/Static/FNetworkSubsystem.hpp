@@ -107,8 +107,8 @@ public:
     /// \return Pointer to engine settings, or nullptr if not set
     ///
     ///////////////////////////////////////////////////////////////////////////
-    TKD_NODISCARD const FEngineSettings* GetEngineSettings(void
-    ) const noexcept;
+    TKD_NODISCARD const FEngineSettings*
+        GetEngineSettings(void) const noexcept;
 
     ///////////////////////////////////////////////////////////////////////////
     /// \brief Get the server instance

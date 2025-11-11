@@ -122,8 +122,8 @@ TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const FilePath& filePath)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-TSharedPtr<IAudioBuffer> AudioManager::LoadBuffer(const std::vector<Byte>& data
-)
+TSharedPtr<IAudioBuffer>
+    AudioManager::LoadBuffer(const std::vector<Byte>& data)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 

@@ -55,7 +55,6 @@ void FragmentManager::DestroyFragments(void)
 {
     if (m_fragmentsToDelete.empty()) { return; }
 
-    std::cout << "[manager] we deleting and shit" << std::endl;
     m_fragments.erase(
         std::remove_if(
             m_fragments.begin(),
@@ -109,7 +108,6 @@ void FragmentManager::MergeFragments(
             completeData.end(), chunk.data.begin(), chunk.data.end()
         );
     }
-    std::cout << "[manager] its processing time little one" << std::endl;
     // Process the reassembled packet through the normal packet pipeline
     networkBase->ProcessReceivedData(
         completeData.data(), completeData.size(), entry.sender
@@ -192,7 +190,6 @@ UUID FragmentManager::SendFullTransmission(
 )
 {
     if (!networkBase) { return UUID::Nil; }
-    std::cout << "[MANAGER] we out here and shit" << std::endl;
     // Create new fragment entry
     FragmentEntry entry;
     entry.id = UUID::V4();   // Generate unique ID
@@ -211,7 +208,6 @@ UUID FragmentManager::SendFullTransmission(
                        (static_cast<UInt32>(uuidData[1]) << 16) |
                        (static_cast<UInt32>(uuidData[2]) << 8) |
                        static_cast<UInt32>(uuidData[3]);
-    std::cout << "[MANAGER] id created" << std::endl;
 
     // Create chunk entries and send them
     for (SizeT i = 0; i < chunks.size(); ++i)

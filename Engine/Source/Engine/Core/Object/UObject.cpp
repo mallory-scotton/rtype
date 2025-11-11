@@ -74,8 +74,8 @@ void UObject::RegisterFunction(IFunction* function)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::unordered_map<FString, IProperty*>& UObject::GetProperties(void
-) const
+const std::unordered_map<FString, IProperty*>&
+    UObject::GetProperties(void) const
 {
     return m_properties;
 }
@@ -95,8 +95,8 @@ void UObject::GetLifetimeReplicatedProperties(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const std::unordered_map<FString, IFunction*>& UObject::GetFunctions(void
-) const
+const std::unordered_map<FString, IFunction*>&
+    UObject::GetFunctions(void) const
 {
     return m_functions;
 }

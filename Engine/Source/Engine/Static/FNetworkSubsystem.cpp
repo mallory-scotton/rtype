@@ -97,7 +97,8 @@ void FNetworkSubsystem::SetEngineSettings(const FEngineSettings& settings)
             );
             if (!m_client->Connect(m_config.host, m_config.port))
             {
-                FLogger::Warn("Auto-connect failed, manual connection required"
+                FLogger::Warn(
+                    "Auto-connect failed, manual connection required"
                 );
             }
         }
@@ -105,8 +106,8 @@ void FNetworkSubsystem::SetEngineSettings(const FEngineSettings& settings)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const FEngineSettings* FNetworkSubsystem::GetEngineSettings(void
-) const noexcept
+const FEngineSettings*
+    FNetworkSubsystem::GetEngineSettings(void) const noexcept
 {
     return m_settings.get();
 }

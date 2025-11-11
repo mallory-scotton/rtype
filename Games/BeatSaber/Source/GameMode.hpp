@@ -26,10 +26,10 @@ private:
     ///////////////////////////////////////////////////////////////////////////
     // Class Member
     ///////////////////////////////////////////////////////////////////////////
-    FilePath m_gameSaves;               //<! Path to the game saves directory
-    std::vector<BSLevel> m_levels;      //<! All available levels
-    BSLevel* m_level;                   //<! THe level currently selected
-    BSBeatMap m_map;                    //<! The map currently playing
+    FilePath m_gameSaves;            //<! Path to the game saves directory
+    std::vector<BSLevel> m_levels;   //<! All available levels
+    BSLevel* m_level;                //<! THe level currently selected
+    BSBeatMap m_map;                 //<! The map currently playing
 
 public:
     ///////////////////////////////////////////////////////////////////////////

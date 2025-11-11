@@ -287,8 +287,9 @@ public:
         );
 
         m_packetHandlers[T::GetStaticType()] =
-            [handler = std::move(handler
-             )](const IPacket& packet, const FEndpoint& endpoint)
+            [handler = std::move(handler)](
+                const IPacket& packet, const FEndpoint& endpoint
+            )
         {
             const T* typedPacket = dynamic_cast<const T*>(&packet);
             if (typedPacket) { handler(*typedPacket, endpoint); }

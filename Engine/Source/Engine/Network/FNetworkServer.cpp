@@ -335,6 +335,17 @@ void FNetworkServer::HandleDisconnectPacket(
 
         FLogger::SetNamespace("Network");
         FLogger::Info("Client ID: {} disconnected", clientID);
+
+        {
+            // Add a new RPC deferred call to destroy the client entity
+            Packets::RemoteProcedureCall rpc(
+                "DestroyClient", ERPCType::Server, UUID::World, clientID
+            );
+
+            // Add parameters to the RPC
+            std::lock_guard<std::mutex> lock(m_rpcQueueMutex);
+            m_deferredRPCs.push({ rpc, endpoint });
+        }
     }
 }
 

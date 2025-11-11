@@ -64,8 +64,8 @@ public:
         if (!worldSubsystem) { return nullptr; }
 
         T* result = nullptr;
-        worldSubsystem->WithWorld([&](UWorld& world)
-                                  { result = world.SpawnActor<T>(transform); }
+        worldSubsystem->WithWorld(
+            [&](UWorld& world) { result = world.SpawnActor<T>(transform); }
         );
 
         return result;
